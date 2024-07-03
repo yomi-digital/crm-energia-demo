@@ -1,0 +1,188 @@
+<script setup>
+const route = useRoute('workflow-customers-id')
+const searchQuery = ref('')
+const selectedStatus = ref()
+
+// Data table options
+const itemsPerPage = ref(10)
+const page = ref(1)
+const sortBy = ref()
+const orderBy = ref()
+
+const updateOptions = options => {
+  sortBy.value = options.sortBy[0]?.key
+  orderBy.value = options.sortBy[0]?.order
+}
+
+const isLoading = ref(false)
+
+// 👉 headers
+const headers = [
+  {
+    title: '#',
+    key: 'id',
+  },
+  {
+    title: 'ID Pratica',
+    key: 'order_code',
+  },
+  {
+    title: 'Agente',
+    key: 'user_id',
+  },
+  {
+    title: 'Data Inserimento',
+    key: 'added_at',
+  },
+  {
+    title: 'Stato Ordine',
+    key: 'order_status',
+  },
+  {
+    title: 'Prodotto',
+    key: 'product_id',
+  },
+]
+
+const {
+  data: paperworkData,
+  execute: fetchPaperworks,
+} = await useApi(createUrl('/paperworks', {
+  query: {
+    q: searchQuery,
+    customer_id: route.params.id,
+    status: selectedStatus,
+    itemsPerPage,
+    page,
+    sortBy,
+    orderBy,
+  },
+}))
+
+const paperworks = computed(() => paperworkData.value?.paperworks)
+const totalPaperworks = computed(() => paperworkData.value?.totalPaperworks)
+</script>
+
+<template>
+  <section v-if="paperworks">
+    <VCard id="invoice-list">
+      <VCardText>
+        <div class="d-flex align-center justify-space-between flex-wrap gap-4">
+          <div class="text-h5">
+            Lista Pratiche
+          </div>
+          <div class="d-flex align-center gap-x-4">
+            <AppSelect
+              :model-value="itemsPerPage"
+              :items="[
+                { value: 10, title: '10' },
+                { value: 25, title: '25' },
+                { value: 50, title: '50' },
+                { value: 100, title: '100' },
+                { value: -1, title: 'All' },
+              ]"
+              style="inline-size: 6.25rem;"
+              @update:model-value="itemsPerPage = parseInt($event, 10)"
+            />
+
+            <!-- 👉 Add paperwork button -->
+            <VBtn
+              prepend-icon="tabler-plus"
+            >
+              Crea Pratica
+            </VBtn>
+          </div>
+        </div>
+      </VCardText>
+
+      <VDivider />
+
+      <!-- SECTION Datatable -->
+      <VDataTableServer
+        v-model:items-per-page="itemsPerPage"
+        v-model:page="page"
+        :loading="isLoading"
+        :items-length="totalPaperworks"
+        :headers="headers"
+        :items="paperworks"
+        item-value="total"
+        class="text-no-wrap text-sm rounded-0"
+        @update:options="updateOptions"
+      >
+        <!-- id -->
+        <template #item.id="{ item }">
+          <RouterLink :to="{ name: 'apps-invoice-preview-id', params: { id: item.id } }">
+            #{{ item.id }}
+          </RouterLink>
+        </template>
+
+        <!-- 👉 Order Code -->
+        <template #item.order_code="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.order_code }}
+            </div>
+          </div>
+        </template>
+
+        <!-- 👉 Agent -->
+        <template #item.user_id="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ [item.user?.name, item.user?.last_name].join(' ') }}
+            </div>
+          </div>
+        </template>
+
+        <!-- 👉 Added At -->
+        <template #item.added_at="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.added_at }}
+            </div>
+          </div>
+        </template>
+
+        <!-- 👉 Order Status -->
+        <template #item.order_status="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.order_status }}
+            </div>
+          </div>
+        </template>
+
+
+        <!-- 👉 Prodotto -->
+        <template #item.product_id="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.product?.name }}
+            </div>
+          </div>
+        </template>
+
+        <template #bottom>
+          <TablePagination
+            v-model:page="page"
+            :items-per-page="itemsPerPage"
+            :total-items="totalPaperworks"
+          />
+        </template>
+      </VDataTableServer>
+      <!-- !SECTION -->
+    </VCard>
+  </section>
+</template>
+
+<style lang="scss">
+#invoice-list {
+  .invoice-list-actions {
+    inline-size: 8rem;
+  }
+
+  .invoice-list-search {
+    inline-size: 12rem;
+  }
+}
+</style>
