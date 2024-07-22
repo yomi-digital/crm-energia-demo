@@ -6,6 +6,7 @@ const name = ref('')
 const notes = ref('')
 const price = ref(0)
 const discountPercentage = ref(0)
+const feeType = ref('FISSO')
 const getterFee = ref(0)
 const agentFee = ref(0)
 const structureFee = ref(0)
@@ -21,24 +22,6 @@ const emit = defineEmits([
   'productData',
 ])
 
-// Fake data
-// name.value = 'Mario'
-// lastName.value = 'Rossi'
-// businessName.value = 'Società SRL'
-// taxIdCode.value = 'ABCDEF12G34H567I'
-// vatNumber.value = '12345678901'
-// email.value = 'mail@mail.com'
-// phone.value = '1234567890'
-// mobile.value = '1234567890'
-// atecoCode.value = '123456'
-// pec.value = 'pec@mail.com'
-// uniqueCode.value = '123456'
-// address.value = 'Via Roma 123'
-// region.value = 'Lazio'
-// province.value = 'RM'
-// city.value = 'Roma'
-// zip.value = '00100'
-
 const brands = ref([])
 
 await $api('/brands?itemsPerPage=99999999').then(responseBrands => {
@@ -51,45 +34,44 @@ await $api('/brands?itemsPerPage=99999999').then(responseBrands => {
 })
 
 const createProduct = async () => {
-  let customerData = {
-    category: category.value === 'all' ? null : category.value,
-    email: email.value,
-    phone: phone.value,
-    mobile: mobile.value,
-    address: address.value,
-    region: region.value,
-    province: province.value,
-    city: city.value,
-    zip: zip.value,
-  }
-  if (category.value === 'Residenziale' || category.value === 'all') {
-    customerData.name = name.value
-    customerData.last_name = lastName.value
-    customerData.tax_id_code = taxIdCode.value
-  }
-  if (category.value === 'Business' || category.value === 'all') {
-    customerData.business_name = businessName.value
-    customerData.vat_number = vatNumber.value
-    customerData.pec = pec.value
-    customerData.ateco_code = atecoCode.value
-    customerData.unique_code = uniqueCode.value
+  let productData = {
+    name: name.value,
+    brand_id: brand.value,
+    notes: notes.value,
+    price: price.value,
+    discount_percent: discountPercentage.value,
+    fee_type: feeType.value,
+    getter_fee: getterFee.value,
+    agent_fee: agentFee.value,
+    structure_fee: structureFee.value,
+    salesperson_fee: salespersonFee.value,
+    structure_top_fee: structureTopFee.value,
+    management_fee: managementFee.value,
+    enabled: enabled.value,
   }
 
   isSaving.value = true
-  const response = await $api('/customers', {
+  const response = await $api('/products', {
     method: 'POST',
-    body: customerData,
+    body: productData,
   })
   isSaving.value = false
-  // Redirect to the customer detail page
+  // Redirect to the product detail page
   if (response.id) {
-    emit('customerData', response)
+    emit('productData', response)
     nextTick(() => {
       refForm.value?.reset()
       refForm.value?.resetValidation()
     })
   }
 }
+
+const feeTypes = [
+  { title: 'Fisso', value: 'FISSO' },
+  { title: 'Percentuale', value: 'PERCENTUALE' },
+  { title: 'Mensilità', value: 'MESE' },
+  { title: 'Consumo', value: 'CONSUMO' },
+]
 </script>
 
 <template>
@@ -168,6 +150,33 @@ const createProduct = async () => {
         </h5>
       </VCol>
 
+      <!-- 👉 Fee type -->
+      <VCol
+        cols="12"
+        md="12"
+      >
+        <AppSelect
+          v-model="feeType"
+          label="Tipo di compenso"
+          placeholder="Fisso"
+          :rules="[requiredValidator]"
+          :items="feeTypes"
+        />
+      </VCol>
+
+      <!-- 👉 Management fee -->
+      <VCol
+        cols="12"
+        md="6"
+      >
+        <AppTextField
+          v-model="managementFee"
+          label="Gestione"
+          placeholder="0"
+          :rules="[requiredValidator]"
+        />
+      </VCol>
+
       <!-- 👉 Getter fee -->
       <VCol
         cols="12"
@@ -232,20 +241,6 @@ const createProduct = async () => {
           :rules="[requiredValidator]"
         />
       </VCol>
-
-      <!-- 👉 Management fee -->
-      <VCol
-        cols="12"
-        md="6"
-      >
-        <AppTextField
-          v-model="managementFee"
-          label="Gestione"
-          placeholder="0"
-          :rules="[requiredValidator]"
-        />
-      </VCol>
-
 
       <VCol
         cols="12"

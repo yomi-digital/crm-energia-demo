@@ -12,14 +12,36 @@ class Product extends Model
     protected $fillable = [
         'name',
         'brand_id',
-        'type',
-        'category',
+        'price',
         'notes',
         'enabled',
+        'discount_percent',
+        'fee_type',
+        'management_fee',
+        'getter_fee',
+        'agent_fee',
+        'structure_fee',
+        'structure_top_fee',
+        'salesperson_fee',
     ];
 
     public function brand()
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public function feebands()
+    {
+        return $this->hasMany(Feeband::class);
+    }
+
+    public function getCreatedAtAttribute($value)
+    {
+        return date(config('app.date_format'), strtotime($value));
+    }
+
+    public function getUpdatedAtAttribute($value)
+    {
+        return date(config('app.date_format'), strtotime($value));
     }
 }

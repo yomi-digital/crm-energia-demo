@@ -77,7 +77,7 @@ const headers = [
   },
   {
     title: 'Compenso',
-    key: 'pda',
+    key: 'pay',
   },
   {
     title: '',
@@ -442,11 +442,11 @@ const widgetData = ref([
           </VChip>
         </template>
 
-        <!-- 👉 PDA -->
-        <template #item.pda="{ item }">
+        <!-- 👉 Pay -->
+        <template #item.pay="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              &euro; {{ item.pda }}
+              &euro; {{ item.pay }}
             </div>
           </div>
         </template>

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('url');
-            $table->unsignedBigInteger('brand_id')->nullable();
+            $table->unsignedBigInteger('brand_id')->nullable()->index();
             $table->timestamps();
             $table->softDeletes();
         });

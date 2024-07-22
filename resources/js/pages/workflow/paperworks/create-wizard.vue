@@ -1,10 +1,12 @@
 <script setup>
-import DealReviewComplete from '@/views/wizard-examples/create-deal/DealReviewComplete.vue';
-import DealUsage from '@/views/wizard-examples/create-deal/DealUsage.vue';
+import { $api } from '@/utils/api';
 import PaperworkAgent from '@/views/workflow/paperworks/PaperworkAgent.vue';
 import PaperworkCustomer from '@/views/workflow/paperworks/PaperworkCustomer.vue';
-import PaperworkDetails from '@/views/workflow/paperworks/PaperworkDetails.vue';
+import PaperworkProduct from '@/views/workflow/paperworks/PaperworkProduct.vue';
+import PaperworkReviewComplete from '@/views/workflow/paperworks/PaperworkReviewComplete.vue';
 import CreatePaperworkType from '@/views/workflow/paperworks/PaperworkType.vue';
+
+const route = useRoute('workflow-paperworks-create-wizard')
 
 const createPaperworkSteps = [
   {
@@ -20,21 +22,16 @@ const createPaperworkSteps = [
   {
     title: 'Tipo Pratica',
     subtitle: 'Seleziona un tipo di pratica',
-    icon: 'tabler-users',
-  },
-  {
-    title: 'Deal Details',
-    subtitle: 'Provide deal details',
     icon: 'tabler-id',
   },
   {
-    title: 'Deal Usage',
-    subtitle: 'Limitations & Offers',
-    icon: 'tabler-credit-card',
+    title: 'Prodotto',
+    subtitle: 'Seleziona Brand e Prodotto',
+    icon: 'tabler-star',
   },
   {
-    title: 'Review & Complete',
-    subtitle: 'Launch a deal',
+    title: 'Crea Pratica',
+    subtitle: 'Rivedi i dettagli e completa la pratica',
     icon: 'tabler-checkbox',
   },
 ]
@@ -50,47 +47,140 @@ const validateAgentSelected = () => {
   }
 }
 
+const validateCustomerSelected = () => {
+  if (!createPaperworkData.value.customer.id) {
+    isCurrentStepValid.value = false
+  } else {
+    isCurrentStepValid.value = true
+  }
+}
+
+const validatePaperworkType = () => {
+  if (!createPaperworkData.value.paperworkType.category ||
+      !createPaperworkData.value.paperworkType.energy_type ||
+      !createPaperworkData.value.paperworkType.type) {
+    isCurrentStepValid.value = false
+  } else {
+    isCurrentStepValid.value = true
+  }
+}
+
+const validateProductSelected = () => {
+  if (!createPaperworkData.value.product.brand_id ||
+      !createPaperworkData.value.product.product_id) {
+    isCurrentStepValid.value = false
+  } else {
+    isCurrentStepValid.value = true
+  }
+}
+
 const createPaperworkData = ref({
   agent: {
     id: null,
+    name: null,
+    mandate_id: null,
+    mandate_name: null,
   },
   customer: {
     id: null,
-    appointment: null,
+    name: null,
+    appointment_id: null,
+    appointment_title: null,
+    account_pod_pdr: null,
+    annual_consumption: null,
   },
   paperworkType: {
-    typology: 'ENERGIA',
-    typologyType: null,
-    type: null,
-    mobileType: null,
+    category: 'ALLACCIO',
+    type: 'ENERGIA',
+    energy_type: null,
+    mobile_type: null,
+    user_type: null,
+    previous_provider: null,
   },
-  dealDetails: {
-    title: '',
-    code: '',
-    description: '',
-    offeredUItems: [],
-    cartCondition: null,
-    dealDuration: '',
-    notification: {
-      email: false,
-      sms: false,
-      pushNotification: false,
-    },
+  product: {
+    brand_id: null,
+    brand_name: null,
+    product_id: null,
+    product_name: null,
+    mandate_id: null,
+    mandate_name: null,
   },
-  dealUsage: {
-    userType: null,
-    maxUsers: null,
-    cartAmount: null,
-    promotionFree: null,
-    paymentMethod: null,
-    dealStatus: null,
-    isSingleUserCustomer: false,
-  },
-  dealReviewComplete: { isDealDetailsConfirmed: true },
+  paperworkReviewComplete: { notes: null, owner_notes: null, isPaperworkDetailsConfirmed: false },
 })
 
-const onSubmit = () => {
-  console.log('createPaperworkData :>> ', createPaperworkData.value)
+const getCustomerName = (customer) => {
+  let name = ''
+  if (customer.name) {
+    name = [customer.name, customer.last_name].join(' ').trim()
+  } else {
+    name = customer.business_name
+  }
+  if (customer.vat_number) {
+    name += ` - ${customer.vat_number}`
+  }
+  if (customer.tax_id_code) {
+    name += ` - ${customer.tax_id_code}`
+  }
+
+  return name
+}
+
+if (route.query.customer_id) {
+  const responseCustomer = await $api('/customers?itemsPerPage=1&select=1&id=' + route.query.customer_id)
+  createPaperworkData.value.customer.id = responseCustomer.customers[0].id
+  createPaperworkData.value.customer_name = getCustomerName(responseCustomer.customers[0])
+}
+
+if (route.query.agent_id) {
+  const responseAgent = await $api('/agents?itemsPerPage=1&select=1&id=' + route.query.agent_id)
+  createPaperworkData.value.agent.id = responseAgent.agents[0].id
+  createPaperworkData.value.agent_name = [responseAgent.agents[0].name, responseAgent.agents[0].last_name].join(' ')
+}
+
+const goToNextStep = () => {
+  if (currentStep.value === 0) {
+    validateAgentSelected()
+  } else if (currentStep.value === 1) {
+    validateCustomerSelected()
+  } else if (currentStep.value === 2) {
+    validatePaperworkType()
+  } else if (currentStep.value === 3) {
+    validateProductSelected()
+  }
+
+  if (isCurrentStepValid.value) {
+    currentStep.value++
+  }
+}
+
+const isCreating = ref(false)
+
+const onSubmit = async () => {
+  if (! createPaperworkData.value.paperworkReviewComplete.isPaperworkDetailsConfirmed) {
+    return false
+  }
+  isCreating.value = true
+  const response = await $api('/paperworks', {
+    method: 'POST',
+    body: {
+      user_id: createPaperworkData.value.agent.id,
+      customer_id: createPaperworkData.value.customer.id,
+      appointment_id: createPaperworkData.value.customer.appointment_id,
+      mandate_id: createPaperworkData.value.agent.mandate_id,
+      product_id: createPaperworkData.value.product.product_id,
+      account_pod_pdr: createPaperworkData.value.customer.account_pod_pdr,
+      annual_consumption: createPaperworkData.value.customer.annual_consumption,
+      notes: createPaperworkData.value.paperworkReviewComplete.notes,
+      contract_type: createPaperworkData.value.paperworkType.user_type,
+      category: createPaperworkData.value.paperworkType.category,
+      type: createPaperworkData.value.paperworkType.type,
+      energy_type: createPaperworkData.value.paperworkType.energy_type,
+      mobile_type: createPaperworkData.value.paperworkType.mobile_type,
+      previous_provider: createPaperworkData.value.paperworkType.previous_provider,
+    }
+  })
+  isCreating.value = false
+  console.log(response)
 }
 </script>
 
@@ -138,15 +228,11 @@ const onSubmit = () => {
             </VWindowItem>
 
             <VWindowItem>
-              <PaperworkDetails v-model:form-data="createPaperworkData.dealDetails" />
+              <PaperworkProduct v-model:form-data="createPaperworkData.product" :ptype="createPaperworkData.paperworkType" />
             </VWindowItem>
 
             <VWindowItem>
-              <DealUsage v-model:form-data="createPaperworkData.dealUsage" />
-            </VWindowItem>
-
-            <VWindowItem>
-              <DealReviewComplete v-model:form-data="createPaperworkData.dealReviewComplete" />
+              <PaperworkReviewComplete v-model:form-data="createPaperworkData.paperworkReviewComplete" :details="createPaperworkData" />
             </VWindowItem>
           </VWindow>
 
@@ -154,7 +240,7 @@ const onSubmit = () => {
             <VBtn
               color="secondary"
               variant="tonal"
-              :disabled="currentStep === 0"
+              :disabled="currentStep === 0 || isCreating"
               @click="currentStep--"
             >
               <VIcon
@@ -162,23 +248,23 @@ const onSubmit = () => {
                 start
                 class="flip-in-rtl"
               />
-              Previous
+              Indietro
             </VBtn>
 
             <VBtn
               v-if="createPaperworkSteps.length - 1 === currentStep"
+              :disabled="isCreating"
               color="success"
               @click="onSubmit"
             >
-              submit
+              Crea Pratica
             </VBtn>
 
             <VBtn
               v-else
-              @click="currentStep++"
+              @click="goToNextStep"
             >
-              Next
-
+              Avanti
               <VIcon
                 icon="tabler-arrow-right"
                 end

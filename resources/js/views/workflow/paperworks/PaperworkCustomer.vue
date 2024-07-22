@@ -36,16 +36,21 @@ const getCustomerName = (customer) => {
 }
 
 const fetchCustomers = async (query) => {
-  const response = await $api('/customers?itemsPerPage=20&select=1&q=' + query)
+  const response = await $api('/customers?itemsPerPage=999999&select=1&q=' + query)
   customers.value = response.customers.map(customer => ({
     title: getCustomerName(customer),
     value: customer.id,
   }))
 }
+if (formData.value.id) {
+  await fetchCustomers('')
+} else {
+  fetchCustomers('')
+}
 
-watch(search, query => {
-  query && query !== formData.value.id && fetchCustomers(query)
-})
+// watch(search, query => {
+//   query && query !== formData.value.id && fetchCustomers(query)
+// })
 
 const isAppointment = ref(false)
 
@@ -54,15 +59,24 @@ const searchAppointment = ref()
 const loadingAppointment = ref(false)
 
 const fetchAppointments = async (query) => {
-  const response = await $api('/appointments?select=1&q=' + query + '&agent_id=1')
+  const response = await $api('/appointments?itemsPerPage=999999select=1&q=' + query)
   appointments.value = response.map(appointment => ({
     title: appointment.start + ' - ' + appointment.title,
     value: appointment.id,
   }))
 }
+fetchAppointments('')
 
-watch(searchAppointment, query => {
-  query && query !== formData.value.appointment_id && fetchAppointments(query)
+// watch(searchAppointment, query => {
+//   query && query !== formData.value.appointment_id && fetchAppointments(query)
+// })
+watch(() => formData.value.id, () => {
+  const selected = customers.value.find(customer => customer.value === formData.value.id)
+  formData.value.name = selected.title
+})
+watch(() => formData.value.appointment_id, () => {
+  const selected = appointments.value.find(appointment => appointment.value === formData.value.appointment_id)
+  formData.value.appointment_title = selected.title
 })
 </script>
 
@@ -106,6 +120,28 @@ watch(searchAppointment, query => {
           label="Appuntamento"
           :items="appointments"
           placeholder="Seleziona un Appuntamento"
+        />
+      </VCol>
+
+      <VCol
+        cols="12"
+        sm="6"
+      >
+        <AppTextField
+          v-model="formData.account_pod_pdr"
+          label="Account / POD / PDR (opzionale per ALLACCIO)"
+          placeholder="09886655"
+        />
+      </VCol>
+
+      <VCol
+        cols="12"
+        sm="6"
+      >
+        <AppTextField
+          v-model="formData.annual_consumption"
+          label="Consumo Annuale (opzionale)"
+          placeholder="0"
         />
       </VCol>
     </VRow>

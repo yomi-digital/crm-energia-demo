@@ -35,9 +35,19 @@ class Customer extends Model
         return $this->belongsTo(User::class, 'added_by');
     }
 
+    public function confirmedByUser()
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
     public function getAddedAtAttribute($value)
     {
         return date(config('app.date_format'), strtotime($value));
+    }
+
+    public function getConfirmedAtAttribute($value)
+    {
+        return date(config('app.datetime_format'), strtotime($value));
     }
 
     public function paperworks()

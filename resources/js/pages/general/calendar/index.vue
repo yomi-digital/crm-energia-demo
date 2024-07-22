@@ -8,7 +8,7 @@ import FullCalendar from '@fullcalendar/vue3';
 
 // Components
 import CalendarEventHandler from '@/views/general/calendar/CalendarEventHandler.vue';
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 
 // 👉 Store
 const store = useCalendarStore()
@@ -19,6 +19,12 @@ const event = ref(structuredClone(blankEvent))
 const isEventHandlerSidebarActive = ref(false)
 const isEventHandlerDialogActive = ref(false)
 const isRemoveDialogVisible = ref(false)
+const selectedType = ref('')
+const selectedCity = ref('')
+const selectedUser = ref('')
+const selectedTelemarketing = ref('')
+const selectedAgent = ref('')
+const selectedCalendarUser = ref('')
 
 watch(isEventHandlerSidebarActive, val => {
   if (!val)
@@ -69,10 +75,123 @@ const confirmationRemoveEvent = () => {
 const resetBlankEvent = () => {
   event.value = structuredClone(blankEvent)
 }
+
+const cities = []
+const fetchCities = async (query) => {
+  const response = await $api('/calendar-cities')
+  for (const city of response) {
+    cities.push({
+      title: city.user_city,
+      value: city.user_city,
+    })
+  }
+}
+await fetchCities()
+
+const users = []
+const telemarketing = []
+const agents = []
+const fetchUsers = async (query) => {
+  const response = await $api('/users?itemsPerPage=99999999&select=1')
+  for (const user of response.users) {
+    users.push({
+      title: [user.name, user.last_name].join(' ').trim() + ' (' + user.role?.name + ')',
+      value: user.id,
+    })
+    if (user.role?.name === 'telemarketing') {
+      telemarketing.push({
+        title: [user.name, user.last_name].join(' ').trim(),
+        value: user.id,
+      })
+    }
+    if (user.role?.name === 'agente') {
+      agents.push({
+        title: [user.name, user.last_name].join(' ').trim(),
+        value: user.id,
+      })
+    }
+  }
+}
+await fetchUsers()
+
+const calendarUsers = []
+const fetchCalendarUsers = async (query) => {
+  const response = await $api('/calendar-users')
+  for (const user of response) {
+    calendarUsers.push({
+      title: user.user_name,
+      value: user.user_name,
+    })
+  }
+}
+await fetchCalendarUsers()
 </script>
 
 <template>
   <div>
+    <VExpansionPanels class="mb-4">
+      <VExpansionPanel>
+        <VExpansionPanelTitle>
+          Filtri
+        </VExpansionPanelTitle>
+        <VExpansionPanelText>
+          <VRow>
+            <VCol cols="4">
+              <AppAutocomplete
+                v-model="store.selectedOperators"
+                label="Filtra per Operatore"
+                clearable
+                multiple
+                chips
+                closable-chips
+                :items="telemarketing"
+                placeholder="Seleziona un Operatore"
+              />
+            </VCol>
+            <VCol cols="4">
+              <AppAutocomplete
+                v-model="store.selectedAgents"
+                label="Filtra per Agente"
+                clearable
+                multiple
+                chips
+                closable-chips
+                :items="agents"
+                placeholder="Seleziona un Agente"
+              />
+            </VCol>
+            <VCol cols="4">
+              <AppSelect
+                v-model="store.selectedType"
+                label="Filtra per Tipo di Appuntamento"
+                placeholder="Filtra per tipo di appuntamento"
+                :items="[{ title: 'Energia', value: 'ENERGIa' }, { title: 'Telefonia', value: 'TELEFONIA' }]"
+                clearable
+              />
+            </VCol>
+            <VCol cols="6">
+              <AppAutocomplete
+                v-model="store.selecterUserName"
+                label="Filtra per Ragione Sociale"
+                clearable
+                :items="calendarUsers"
+                placeholder="Seleziona una Ragione Sociale"
+              />
+            </VCol>
+            <VCol cols="4">
+              <AppAutocomplete
+                v-model="store.selectedCity"
+                label="Filtra per Città"
+                clearable
+                :items="cities"
+                placeholder="Seleziona una città"
+              />
+            </VCol>
+          </VRow>
+        </VExpansionPanelText>
+      </VExpansionPanel>
+    </VExpansionPanels>
+
     <VCard>
       <!-- `z-index: 0` Allows overlapping vertical nav on calendar -->
       <VLayout style="z-index: 0;">

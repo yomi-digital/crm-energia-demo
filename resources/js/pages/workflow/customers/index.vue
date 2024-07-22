@@ -9,9 +9,8 @@ definePage({
 
 // 👉 Store
 const searchQuery = ref('')
-const selectedRole = ref()
-const selectedTeamLeader = ref()
-const selectedStatus = ref()
+const selectedBrand = ref()
+const selectedCity = ref()
 
 // Data table options
 const itemsPerPage = ref(25)
@@ -26,6 +25,10 @@ const updateOptions = options => {
 
 // Headers
 const headers = [
+  {
+    title: '',
+    key: 'confirmed_at',
+  },
   {
     title: 'Nome / Ragione Sociale',
     key: 'name',
@@ -83,6 +86,8 @@ const {
 } = await useApi(createUrl('/customers', {
   query: {
     q: searchQuery,
+    brand: selectedBrand,
+    city: selectedCity,
     itemsPerPage,
     page,
     sortBy,
@@ -101,23 +106,64 @@ const truncate = (text, length = 30) => {
   return text
 }
 
+// 👉 search filters
+const brands = [
+  {
+    title: 'Tutti',
+    value: '',
+  },
+]
+const fetchBrands = async (query) => {
+  const response = await $api('/brands?itemsPerPage=100&select=1')
+  for (const brand of response.brands) {
+    brands.push({
+      title: brand.name,
+      value: brand.id,
+    })
+  }
+}
+await fetchBrands()
 
-const addNewUser = async userData => {
-  await $api('/apps/users', {
-    method: 'POST',
-    body: userData,
+const cities = [
+  {
+    title: 'Tutte',
+    value: '',
+  },
+]
+const fetchCities = async (query) => {
+  const response = await $api('/cities')
+  for (const city of response) {
+    cities.push({
+      title: city.city,
+      value: city.city,
+    })
+  }
+}
+await fetchCities()
+
+const isExporting = ref(false)
+const exportCustomers = async () => {
+  isExporting.value = true
+  const response = await $api('/customers-export', {
+    method: 'GET',
+    query: {
+      q: searchQuery.value,
+      brand: selectedBrand.value,
+      city: selectedCity.value,
+    },
   })
+  isExporting.value = false
 
-  // refetch User
-  fetchCustomers()
+  // Export as csv
+  const blob = new Blob([response], { type: 'text/csv' })
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'Client.csv'
+  a.click()
+  window.URL.revokeObjectURL(url)
 }
 
-const deleteUser = async id => {
-  await $api(`/apps/users/${ id }`, { method: 'DELETE' })
-
-  // refetch User
-  fetchCustomers()
-}
 
 const widgetData = ref([
   {
@@ -157,58 +203,6 @@ const widgetData = ref([
 
 <template>
   <section>
-    <!-- 👉 Widgets -->
-    <div class="d-flex mb-6">
-      <VRow>
-        <template
-          v-for="(data, id) in widgetData"
-          :key="id"
-        >
-          <VCol
-            cols="12"
-            md="3"
-            sm="6"
-          >
-            <VCard>
-              <VCardText>
-                <div class="d-flex justify-space-between">
-                  <div class="d-flex flex-column gap-y-1">
-                    <div class="text-body-1 text-high-emphasis">
-                      {{ data.title }}
-                    </div>
-                    <div class="d-flex gap-x-2 align-center">
-                      <h4 class="text-h4">
-                        {{ data.value }}
-                      </h4>
-                      <div
-                        class="text-base"
-                        :class="data.change > 0 ? 'text-success' : 'text-error'"
-                      >
-                        ({{ prefixWithPlus(data.change) }}%)
-                      </div>
-                    </div>
-                    <div class="text-sm">
-                      {{ data.desc }}
-                    </div>
-                  </div>
-                  <VAvatar
-                    :color="data.iconColor"
-                    variant="tonal"
-                    rounded
-                    size="42"
-                  >
-                    <VIcon
-                      :icon="data.icon"
-                      size="26"
-                    />
-                  </VAvatar>
-                </div>
-              </VCardText>
-            </VCard>
-          </VCol>
-        </template>
-      </VRow>
-    </div>
 
     <VCard class="mb-6">
       <VCardItem class="pb-4">
@@ -217,9 +211,33 @@ const widgetData = ref([
 
       <VCardText>
         <VRow>
-          <!-- 👉 Select Plan -->
+          <!-- 👉 Select Brand -->
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <AppAutocomplete
+              v-model="selectedBrand"
+              label="Filtra per Brand"
+              clearable
+              :items="brands"
+              placeholder="Seleziona un brand"
+            />
+          </VCol>
 
-          <!-- 👉 Select Status -->
+          <!-- 👉 Select City -->
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <AppAutocomplete
+              v-model="selectedCity"
+              label="Filtra per Città"
+              clearable
+              :items="cities"
+              placeholder="Seleziona una città"
+            />
+          </VCol>
 
         </VRow>
       </VCardText>
@@ -256,7 +274,9 @@ const widgetData = ref([
           <VBtn
             variant="tonal"
             color="secondary"
-            prepend-icon="tabler-upload"
+            :prepend-icon="isExporting ? 'tabler-loader' : 'tabler-download'"
+            :disabled="isExporting"
+            @click="exportCustomers"
           >
             Esporta
           </VBtn>
@@ -285,6 +305,27 @@ const widgetData = ref([
         show-select
         @update:options="updateOptions"
       >
+        <template #item.confirmed_at="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <VAvatar
+              :color="item.confirmed_at ? 'success' : 'warning'"
+              variant="tonal"
+              rounded
+              size="32"
+            >
+              <VIcon
+                :icon="item.confirmed_at ? 'tabler-circle-check' : 'tabler-alert-triangle'"
+                size="20"
+              />
+            </VAvatar>
+            <VTooltip
+              activator="parent"
+              location="top"
+            >
+              {{ item.confirmed_at ? 'Confermato' : 'Non confermato' }}
+            </VTooltip>
+          </div>
+        </template>
         <!-- Customer -->
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-x-4">
@@ -410,3 +451,24 @@ const widgetData = ref([
     </VCard>
   </section>
 </template>
+
+<style>
+.tabler-loader,
+.tabler-fidget-spinner,
+.tabler-loader-3,
+.tabler-loader-quarter,
+.tabler-refresh-dot,
+.tabler-reload,
+.tabler-loader-2 {
+  animation: spin-animation .8s infinite;
+}
+
+@keyframes spin-animation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(359deg);
+  }
+}
+</style>

@@ -183,7 +183,7 @@ const editBrand = brand => {
         <template #item.enabled="{ item }">
           <VChip
             :color="item.enabled ? 'success' : 'error'"
-            :text="item.enabled ? 'Attivo' : 'Disattivo'"
+            :text="item.enabled ? 'Abilitato' : 'Disabilitato'"
           />
         </template>
 

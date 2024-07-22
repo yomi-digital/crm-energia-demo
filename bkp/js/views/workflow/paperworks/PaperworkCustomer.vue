@@ -54,7 +54,7 @@ const searchAppointment = ref()
 const loadingAppointment = ref(false)
 
 const fetchAppointments = async (query) => {
-  const response = await $api('/appointments?select=1&q=' + query + '&agent_id=1')
+  const response = await $api('/appointments?select=1&q=' + query)
   appointments.value = response.map(appointment => ({
     title: appointment.start + ' - ' + appointment.title,
     value: appointment.id,

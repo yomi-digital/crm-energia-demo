@@ -64,6 +64,7 @@ export const useCalendar = (event, isEventHandlerDialogActive, isEventHandlerSid
         calendar,
         agent_id,
         agent,
+        operator,
         referent,
         user_name,
         user_phone,
@@ -87,6 +88,7 @@ export const useCalendar = (event, isEventHandlerDialogActive, isEventHandlerSid
         calendar,
         agent_id,
         agent,
+        operator,
         referent,
         user_name,
         user_phone,
@@ -178,6 +180,11 @@ export const useCalendar = (event, isEventHandlerDialogActive, isEventHandlerSid
   }
 
   watch(() => store.selectedCalendars, refetchEvents)
+  watch(() => store.selectedOperators, refetchEvents)
+  watch(() => store.selectedAgents, refetchEvents)
+  watch(() => store.selectedCity, refetchEvents)
+  watch(() => store.selectedType, refetchEvents)
+  watch(() => store.selecterUserName, refetchEvents)
 
 
   // 👉 Add event

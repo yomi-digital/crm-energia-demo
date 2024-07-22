@@ -40,7 +40,7 @@ class ProductsController extends Controller
 
     public function show($id)
     {
-        $product = \App\Models\Product::find($id);
+        $product = \App\Models\Product::with('brand')->whereId($id)->first();
 
         if (!$product) {
             return response()->json(['error' => 'Product not found'], 404);
@@ -86,5 +86,93 @@ class ProductsController extends Controller
         $product->delete();
 
         return response()->json($product);
+    }
+
+    public function feebands(Request $request, $id)
+    {
+        $product = \App\Models\Product::find($id);
+
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+
+        $perPage = $request->get('itemsPerPage', 10);
+        $feeBands = $product->feebands()->orderBy('start_date', 'desc')->paginate($perPage);
+
+        return response()->json([
+            'feebands' => $feeBands->getCollection(),
+            'totalPages' => $feeBands->lastPage(),
+            'totalFeebands' => $feeBands->total(),
+            'page' => $feeBands->currentPage()
+        ]);
+    }
+
+    public function addFeeband(Request $request, $id)
+    {
+        $product = \App\Models\Product::find($id);
+
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+
+        $feeBand = new \App\Models\FeeBand;
+        $input = $request->all();
+        if (isset($input['start_date'])) {
+            $input['start_date'] = \Carbon\Carbon::createFromFormat('d/m/Y', $input['start_date']);
+        }
+        if (isset($input['end_date'])) {
+            $input['end_date'] = \Carbon\Carbon::createFromFormat('d/m/Y', $input['end_date']);
+        }
+        $feeBand->fill($input);
+        $feeBand->product_id = $product->id;
+        $feeBand->save();
+
+        return response()->json($feeBand);
+    }
+
+    public function destroyFeeband(Request $request, $id, $feeBandId)
+    {
+        $product = \App\Models\Product::find($id);
+
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+
+        $feeBand = \App\Models\FeeBand::find($feeBandId);
+
+        if (!$feeBand) {
+            return response()->json(['error' => 'Feeband not found'], 404);
+        }
+
+        $feeBand->delete();
+
+        return response()->json($feeBand);
+    }
+
+    public function updateFeeband(Request $request, $id, $feeBandId)
+    {
+        $product = \App\Models\Product::find($id);
+
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+
+        $feeBand = \App\Models\FeeBand::find($feeBandId);
+
+        if (!$feeBand) {
+            return response()->json(['error' => 'Feeband not found'], 404);
+        }
+
+        $input = $request->all();
+        if (isset($input['start_date'])) {
+            $input['start_date'] = \Carbon\Carbon::createFromFormat('d/m/Y', $input['start_date']);
+        }
+        if (isset($input['end_date'])) {
+            $input['end_date'] = \Carbon\Carbon::createFromFormat('d/m/Y', $input['end_date']);
+        }
+        $feeBand->fill($input);
+        $feeBand->save();
+
+        return response()->json($feeBand);
     }
 }

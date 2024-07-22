@@ -27,6 +27,27 @@ const fetchAgents = async () => {
   }
 }
 await fetchAgents()
+watch(() => formData.value.id, () => {
+  const selectedAgent = agents.value.find(agent => agent.value === formData.value.id)
+  formData.value.name = selectedAgent.title
+})
+
+const agencies = ref([])
+const fetchAgencies = async () => {
+  agencies.value = []
+  const response = await $api('/agencies?itemsPerPage=99999999&select=1')
+  for (let i = 0; i < response.agencies.length; i++) {
+    agencies.value.push({
+      title: [response.agencies[i].name, response.agencies[i].last_name].join(' '),
+      value: response.agencies[i].id,
+    })
+  }
+}
+await fetchAgencies()
+watch(() => formData.value.mandate_id, () => {
+  const selectedAgency = agencies.value.find(agency => agency.value === formData.value.mandate_id)
+  formData.value.mandate_name = selectedAgency.title
+})
 </script>
 
 <template>
@@ -34,13 +55,25 @@ await fetchAgents()
     <VRow>
       <VCol
         cols="12"
-        sm="6"
+        sm="8"
       >
         <AppAutocomplete
           v-model="formData.id"
           label="Agente"
           :items="agents"
           placeholder="Seleziona un agente"
+        />
+      </VCol>
+
+      <VCol
+        cols="12"
+        sm="8"
+      >
+        <AppAutocomplete
+          v-model="formData.mandate_id"
+          label="Agenzia di Fatturazione"
+          :items="agencies"
+          placeholder="Seleziona un'agenzia"
         />
       </VCol>
     </VRow>

@@ -1,11 +1,7 @@
 <script setup>
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
-import sittingGirlWithLaptop from '@images/illustrations/sitting-girl-with-laptop.png'
 import CreateDealBackgroundDark from '@images/pages/DealTypeBackground-dark.png'
 import CreateDealBackgroundLight from '@images/pages/DealTypeBackground-light.png'
-import card from '@images/svg/Card.svg'
-import check from '@images/svg/Check.svg'
-import diamond from '@images/svg/Diamond.svg'
 import energy from '@images/svg/energy.svg'
 import phone from '@images/svg/phone-call.svg'
 
@@ -57,12 +53,12 @@ watch(formData, () => {
 })
 
 const selectableTypes = () => {
-  if (formData.value.typology === 'ENERGIA') {
+  if (formData.value.type === 'ENERGIA') {
     return [
       { title: 'Luce', value: 'LUCE' },
       { title: 'Gas', value: 'GAS' },
     ]
-  } else if (formData.value.typology === 'TELEFONIA') {
+  } else if (formData.value.type === 'TELEFONIA') {
     return [
       { title: 'Fisso', value: 'FISSO' },
       { title: 'Mobile', value: 'MOBILE' },
@@ -70,6 +66,14 @@ const selectableTypes = () => {
     ]
   }
 }
+
+const contractTypes = ref([
+  { title: 'ALLACCIO', value: 'ALLACCIO' },
+  { title: 'OTP', value: 'OTP' },
+  { title: 'SUBENTRO', value: 'SUBENTRO' },
+  { title: 'VOLTURA', value: 'VOLTURA' },
+  { title: 'SWITCH', value: 'SWITCH' },
+])
 </script>
 
 <template>
@@ -88,10 +92,10 @@ const selectableTypes = () => {
 
       <VCol cols="12">
         <CustomRadiosWithIcon
-          v-model:selected-radio="formData.typology"
+          v-model:selected-radio="formData.type"
           :radio-content="paperworkTypes"
           :grid-column="{ cols: '12', sm: '6' }"
-          @change="formData.typologyType = null"
+          @change="formData.energy_type = null"
         />
       </VCol>
 
@@ -100,7 +104,31 @@ const selectableTypes = () => {
         sm="6"
       >
         <AppSelect
-          v-model="formData.type"
+          v-model="formData.category"
+          label="Tipo Contratto"
+          :items="contractTypes"
+          placeholder="Seleziona un tipo contratto"
+        />
+      </VCol>
+
+      <VCol
+        cols="12"
+        sm="6"
+        v-if="formData.category === 'SWITCH'"
+      >
+        <AppTextField
+          v-model="formData.previous_provider"
+          label="Compagnia Fornitore Uscente"
+          placeholder="Enel"
+        />
+      </VCol>
+
+      <VCol
+        cols="12"
+        sm="6"
+      >
+        <AppSelect
+          v-model="formData.user_type"
           label="Tipologia Pratica"
           :items="[{ title: 'Residenziale', value: 'RESIDENZIALE' }, { title: 'Business', value: 'BUSINESS' }]"
           placeholder="Seleziona un tipo"
@@ -112,10 +140,10 @@ const selectableTypes = () => {
         sm="6"
       >
         <AppSelect
-          v-model="formData.typologyType"
-          label="Tipo"
+          v-model="formData.energy_type"
+          label="Tipo Utenza"
           :items="selectableTypes()"
-          placeholder="Seleziona un tipo"
+          placeholder="Seleziona un tipo di utenza"
         />
       </VCol>
 
@@ -124,8 +152,8 @@ const selectableTypes = () => {
         sm="6"
       >
         <AppSelect
-          v-show="formData.typologyType === 'MOBILE'"
-          v-model="formData.mobileType"
+          v-show="formData.energy_type === 'MOBILE'"
+          v-model="formData.mobile_type"
           label="Tipologia Mobile"
           :items="[{ title: 'MNP', value: 'MNP' }, { title: 'NIP', value: 'NIP' }]"
           placeholder="Seleziona un tipo"

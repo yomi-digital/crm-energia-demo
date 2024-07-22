@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('brands_users', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('brand_id');
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('brand_id')->index();
+            $table->unsignedBigInteger('user_id')->index();
+            $table->string('pay_level')->nullable();
             $table->timestamps();
         });
     }

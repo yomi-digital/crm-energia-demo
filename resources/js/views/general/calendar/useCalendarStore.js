@@ -32,12 +32,22 @@ export const useCalendarStore = defineStore('calendar', {
       },
     ],
     selectedCalendars: ['NON VALIDO', 'VALIDO', 'CHIUSO', 'DA FISSARE', 'SOSPESO', 'TRATTATIVA', 'N/A'],
+    selectedOperators: [],
+    selectedAgents: [],
+    selectedCity: '',
+    selectedType: '',
+    selecterUserName: '',
   }),
   actions: {
     async fetchEvents(start, end) {
       const { data, error } = await useApi(createUrl('/calendar', {
         query: {
           calendars: this.selectedCalendars.join(','),
+          operators: this.selectedOperators.join(','),
+          agents: this.selectedAgents.join(','),
+          city: this.selectedCity,
+          type: this.selectedType,
+          user_name: this.selecterUserName,
           start: start,
           end: end,
         },

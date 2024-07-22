@@ -14,11 +14,22 @@ class BrandsController extends Controller
         $brands = new \App\Models\Brand;
 
         if ($request->filled('with') && $request->get('with') == 'products') {
-            $brands = $brands->withCount('products');
+            if ($request->get('product_details') == '1') {
+                $brands = $brands->with('products');
+            } else {
+                $brands = $brands->withCount('products');
+            }
         }
 
         if ($request->filled('enabled')) {
             $brands = $brands->where('enabled', $request->get('enabled'));
+        }
+
+        if ($request->get('type')) {
+            $brands = $brands->where('type', $request->get('type'));
+        }
+        if ($request->get('category')) {
+            $brands = $brands->where('category', $request->get('category'));
         }
 
 

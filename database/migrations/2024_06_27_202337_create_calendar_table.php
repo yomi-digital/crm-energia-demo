@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('calendar', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('agent_id')->nullable();
+            $table->unsignedBigInteger('agent_id')->nullable()->index();
             $table->string('title')->nullable();
             $table->text('notes_call_center')->nullable();
             $table->text('notes_agent')->nullable();
@@ -21,8 +21,8 @@ return new class extends Migration
             $table->string('status')->nullable();
             $table->string('referent')->nullable();
             $table->unsignedBigInteger('user_connection')->nullable();
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->unsignedBigInteger('customer_id')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable()->index();
+            $table->unsignedBigInteger('customer_id')->nullable()->index();
             $table->string('user_name')->nullable();
             $table->string('user_phone')->nullable();
             $table->string('user_mobile')->nullable();

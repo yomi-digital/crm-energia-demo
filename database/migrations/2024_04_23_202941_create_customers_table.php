@@ -32,10 +32,9 @@ return new class extends Migration
             $table->string('city')->nullable();
             $table->string('zip')->nullable();
             $table->date('added_at')->nullable();
-            $table->unsignedBigInteger('added_by')->nullable();
-            $table->unsignedTinyInteger('confirmed')->nullable();
+            $table->unsignedBigInteger('added_by')->nullable()->index();
             $table->timestamp('confirmed_at')->nullable();
-            $table->unsignedBigInteger('confirmed_by')->nullable();
+            $table->unsignedBigInteger('confirmed_by')->nullable()->index();
             $table->timestamps();
             $table->softDeletes();
             $table->unsignedBigInteger('deleted_by')->nullable();

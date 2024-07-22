@@ -15,4 +15,9 @@ class Calendar extends Model
     {
         return $this->belongsTo(User::class, 'agent_id', 'id');
     }
+
+    public function operator()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id');
+    }
 }

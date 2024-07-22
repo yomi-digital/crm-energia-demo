@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    2: typeof import('./resources/js/components/dialogs/UserInfoEditDialog copy 2.vue')['default']
     AddAuthenticatorAppDialog: typeof import('./resources/js/components/dialogs/AddAuthenticatorAppDialog.vue')['default']
     AddEditAddressDialog: typeof import('./resources/js/components/dialogs/AddEditAddressDialog.vue')['default']
     AddEditPermissionDialog: typeof import('./resources/js/components/dialogs/AddEditPermissionDialog.vue')['default']
@@ -33,6 +34,7 @@ declare module 'vue' {
     CardStatisticsVertical: typeof import('./resources/js/@core/components/cards/CardStatisticsVertical.vue')['default']
     CardStatisticsVerticalSimple: typeof import('./resources/js/@core/components/CardStatisticsVerticalSimple.vue')['default']
     ConfirmDialog: typeof import('./resources/js/components/dialogs/ConfirmDialog.vue')['default']
+    copy: typeof import('./resources/js/components/dialogs/UserInfoEditDialog copy.vue')['default']
     CreateAppDialog: typeof import('./resources/js/components/dialogs/CreateAppDialog.vue')['default']
     CustomCheckboxes: typeof import('./resources/js/@core/components/app-form-elements/CustomCheckboxes.vue')['default']
     CustomCheckboxesWithIcon: typeof import('./resources/js/@core/components/app-form-elements/CustomCheckboxesWithIcon.vue')['default']
@@ -373,9 +375,12 @@ declare module 'vue' {
     I18n: typeof import('./resources/js/@core/components/I18n.vue')['default']
     MoreBtn: typeof import('./resources/js/@core/components/MoreBtn.vue')['default']
     Notifications: typeof import('./resources/js/@core/components/Notifications.vue')['default']
+    PaperworkEditDialog: typeof import('./resources/js/components/dialogs/PaperworkEditDialog.vue')['default']
     PaymentProvidersDialog: typeof import('./resources/js/components/dialogs/PaymentProvidersDialog.vue')['default']
     PricingPlanDialog: typeof import('./resources/js/components/dialogs/PricingPlanDialog.vue')['default']
     ProductDescriptionEditor: typeof import('./resources/js/@core/components/ProductDescriptionEditor.vue')['default']
+    ProductFeeBandDialog: typeof import('./resources/js/components/dialogs/ProductFeeBandDialog.vue')['default']
+    ProductInfoEditDialog: typeof import('./resources/js/components/dialogs/ProductInfoEditDialog.vue')['default']
     ReferAndEarnDialog: typeof import('./resources/js/components/dialogs/ReferAndEarnDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
@@ -391,6 +396,7 @@ declare module 'vue' {
     TiptapEditor: typeof import('./resources/js/@core/components/TiptapEditor.vue')['default']
     TwoFactorAuthDialog: typeof import('./resources/js/components/dialogs/TwoFactorAuthDialog.vue')['default']
     UserInfoEditDialog: typeof import('./resources/js/components/dialogs/UserInfoEditDialog.vue')['default']
+    'UserInfoEditDialog copy': typeof import('./resources/js/components/dialogs/UserInfoEditDialog copy.vue')['default']
     UserUpgradePlanDialog: typeof import('./resources/js/components/dialogs/UserUpgradePlanDialog.vue')['default']
     VueApexCharts: typeof import('vue3-apexcharts')['default']
   }

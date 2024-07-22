@@ -13,9 +13,21 @@ class CustomersController extends Controller
 
         $customers = new \App\Models\Customer;
 
+        if ($request->get('id')) {
+            $customers = $customers->where('id', $request->get('id'));
+        }
 
-        if ($request->filled('enabled')) {
-            $customers = $customers->where('enabled', $request->get('enabled'));
+        if ($request->filled('brand')) {
+            // Need to get all customers that have a paperwork with products of the selected brand
+            $customers = $customers->whereHas('paperworks', function ($query) use ($request) {
+                $query->whereHas('product', function ($query) use ($request) {
+                    $query->where('brand_id', $request->get('brand'));
+                });
+            });
+        }
+
+        if ($request->filled('city')) {
+            $customers = $customers->where('city', $request->get('city'));
         }
 
         if ($request->get('q')) {
@@ -50,7 +62,7 @@ class CustomersController extends Controller
 
     public function show($id)
     {
-        $customer = \App\Models\Customer::with('addedByUser')->whereId($id)->first();
+        $customer = \App\Models\Customer::with(['addedByUser', 'confirmedByUser'])->whereId($id)->first();
 
         if (!$customer) {
             return response()->json(['error' => 'Customer not found'], 404);
@@ -85,5 +97,117 @@ class CustomersController extends Controller
         $customer->save();
 
         return response()->json($customer);
+    }
+
+    public function cities(Request $request)
+    {
+        $cities = \App\Models\Customer::select('city')
+            ->groupBy('city')->orderBy('city', 'asc')
+            ->get();
+
+        return response()->json($cities);
+    }
+
+    public function confirm(Request $request, $id)
+    {
+        $customer = \App\Models\Customer::find($id);
+
+        if (!$customer) {
+            return response()->json(['error' => 'Customer not found'], 404);
+        }
+
+        $customer->confirmed_by = $request->user()->id;
+        $customer->confirmed_at = now()->format('Y-m-d H:i:s');
+
+        $customer->save();
+
+        return response()->json($customer);
+    }
+
+    public function export(Request $request)
+    {
+        $customers = new \App\Models\Customer;
+
+        if ($request->get('id')) {
+            $customers = $customers->where('id', $request->get('id'));
+        }
+
+        if ($request->filled('brand')) {
+            // Need to get all customers that have a paperwork with products of the selected brand
+            $customers = $customers->whereHas('paperworks', function ($query) use ($request) {
+                $query->whereHas('product', function ($query) use ($request) {
+                    $query->where('brand_id', $request->get('brand'));
+                });
+            });
+        }
+
+        if ($request->filled('city')) {
+            $customers = $customers->where('city', $request->get('city'));
+        }
+
+        if ($request->get('q')) {
+            $search = $request->get('q');
+            $customers = $customers->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('business_name', 'like', "%{$search}%")
+                    ->orWhere('vat_number', 'like', "%{$search}%")
+                    ->orWhere('tax_id_code', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $customers = $customers->get();
+
+        $filename = 'customers_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($customers) {
+            $file = fopen('php://output', 'w');
+
+            fputcsv($file, [
+                'ID',
+                'Nome',
+                'Cognome',
+                'Ragione Sociale',
+                'P.IVA',
+                'CF',
+                'Email',
+                'Telefono',
+                'Città',
+                'Indirizzo',
+                'CAP',
+                'Aggiunto da',
+                'Aggiunto il',
+                'Confermato da',
+                'Confermato il',
+            ]);
+
+            foreach ($customers as $customer) {
+                fputcsv($file, [
+                    $customer->id,
+                    $customer->name,
+                    $customer->last_name,
+                    $customer->business_name,
+                    $customer->vat_number,
+                    $customer->tax_id_code,
+                    $customer->email,
+                    $customer->phone,
+                    $customer->city,
+                    $customer->address,
+                    $customer->zip_code,
+                    $customer->addedByUser ? $customer->addedByUser->name . ' ' . $customer->addedByUser->last_name : '',
+                    $customer->added_at,
+                    $customer->confirmedByUser ? $customer->confirmedByUser->name . ' ' . $customer->confirmedByUser->last_name : '',
+                    $customer->confirmed_at,
+                ]);
+            }
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

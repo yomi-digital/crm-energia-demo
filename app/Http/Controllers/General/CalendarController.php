@@ -9,7 +9,7 @@ class CalendarController extends Controller
 {
     public function index(Request $request)
     {
-        $calendar = \App\Models\Calendar::with('agent');
+        $calendar = \App\Models\Calendar::with(['agent', 'operator']);
 
         if ($request->start) {
             $calendar = $calendar->where('start', '>=', $request->start);
@@ -29,6 +29,28 @@ class CalendarController extends Controller
             });
         }
 
+        if ($request->agents) {
+            $agents = explode(',', $request->agents);
+            $calendar = $calendar->whereIn('agent_id', $agents);
+        }
+
+        if ($request->operators) {
+            $operators = explode(',', $request->operators);
+            $calendar = $calendar->whereIn('created_by', $operators);
+        }
+
+        if ($request->type) {
+            $calendar = $calendar->where('type', $request->type);
+        }
+
+        if ($request->user_name) {
+            $calendar = $calendar->where('user_name', $request->user_name);
+        }
+
+        if ($request->city) {
+            $calendar = $calendar->where('user_city', $request->city);
+        }
+
         $calendar = $calendar->get();
 
         $calendar = $calendar->map(function ($item) {
@@ -42,6 +64,7 @@ class CalendarController extends Controller
                     'calendar' => $item->status,
                     'agent_id' => $item->agent_id,
                     'agent' => $item->agent,
+                    'operator' => $item->operator,
                     'referent' => $item->referent,
                     'user_name' => $item->user_name,
                     'user_phone' => $item->user_phone,
@@ -148,5 +171,19 @@ class CalendarController extends Controller
         $calendar = $calendar->orderBy('start', 'desc');
 
         return response()->json($calendar->take(20)->get());
+    }
+
+    public function users(Request $request)
+    {
+        $users = \App\Models\Calendar::select('user_name')->where('user_name', '!=', '')->distinct()->orderBy('user_name', 'asc')->get();
+
+        return response()->json($users);
+    }
+
+    public function cities(Request $request)
+    {
+        $cities = \App\Models\Calendar::select('user_city')->where('user_city', '!=', '')->distinct()->orderBy('user_city', 'asc')->get();
+
+        return response()->json($cities);
     }
 }

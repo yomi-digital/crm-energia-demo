@@ -10,14 +10,13 @@ const emit = defineEmits(['update:formData'])
 
 const formData = ref(props.formData)
 
-const offeredItems = [
-  'iPhone 12 Pro Max',
-  'iPhone 12 Pro',
-  'iPhone 11 Pro Max',
-  'iPhone 11',
-  'iPhone 12 Mini',
-  'OnePlus Nord CE',
-]
+const statuses = ref([
+  { title: 'ACCANTONATO', value: 'ACCANTONATO' },
+  { title: 'ATTIVO', value: 'ATTIVO' },
+  { title: 'IN PROVISIONING', value: 'IN PROVISIONING' },
+  { title: 'INSERITO', value: 'INSERITO' },
+  { title: 'INVIATO', value: 'INVIATO' },
+])
 
 watch(formData, () => {
   emit('update:formData', formData.value)
@@ -27,106 +26,137 @@ watch(formData, () => {
 <template>
   <VForm>
     <VRow>
-      <VCol
-        cols="12"
-        sm="6"
-      >
-        <AppTextField
-          v-model="formData.title"
-          label="Deal Title"
-          placeholder="Black Friday Sale, 50% off on all products"
-        />
-      </VCol>
 
-      <VCol
-        cols="12"
-        sm="6"
-      >
-        <AppTextField
-          v-model="formData.code"
-          label="Deal Code"
-          placeholder="BLACKFRIDAY50"
-        />
-      </VCol>
 
+      <!-- 👉 Note -->
       <VCol
         cols="12"
-        sm="6"
+        md="12"
       >
         <AppTextarea
-          v-model="formData.description"
-          label="Deal Description"
-          placeholder="Write something about this deal"
-          rows="5"
-          auto-grow
+          v-model="formData.notes"
+          label="Note"
+          placeholder="Note"
+        />
+      </VCol>
+
+      <!-- 👉 Note Alfacom -->
+      <VCol
+        cols="12"
+        md="12"
+      >
+        <AppTextarea
+          v-model="formData.owner_notes"
+          label="Note Alfacom"
+          placeholder="Note"
         />
       </VCol>
 
       <VCol
         cols="12"
-        sm="6"
+        md="12"
       >
-        <VRow>
-          <VCol cols="12">
-            <AppSelect
-              v-model="formData.offeredUItems"
-              multiple
-              chips
-              label="Offered Items"
-              placeholder="Select Offered Items"
-              :items="offeredItems"
-            />
-          </VCol>
-
-          <VCol cols="12">
-            <AppSelect
-              v-model="formData.cartCondition"
-              label="Cart Condition"
-              placeholder="Select Cart Condition"
-              :items="['Cart must contain all selected Downloads', 'Cart needs one or more of the selected Downloads']"
-            />
-          </VCol>
-        </VRow>
+        <h5 class="text-h5 mt-6">
+          ORDINE
+        </h5>
       </VCol>
 
+      <!-- 👉 Stato Ordine -->
       <VCol
         cols="12"
-        sm="6"
+        md="6"
+      >
+        <AppSelect
+          v-model="formData.order_status"
+          label="Stato Ordine"
+          placeholder="Seleziona"
+          :items="statuses"
+        />
+      </VCol>
+
+      <!-- 👉 Codice Ordine -->
+      <VCol
+        cols="12"
+        md="6"
+      >
+        <AppTextField
+          v-model="formData.order_code"
+          label="Codice Ordine"
+          placeholder="09886655"
+          :rules="[requiredValidator]"
+        />
+      </VCol>
+
+      <!-- 👉 Data Inserimento -->
+      <VCol
+        cols="12"
+        md="6"
       >
         <AppDateTimePicker
-          v-model="formData.dealDuration"
-          label="Deal Duration"
-          placeholder="Select Date Range"
-          :config="{ mode: 'range' }"
+          v-model="formData.partner_sent_at"
+          label="Data Inserimento"
+          placeholder="Data Inserimento"
+        />
+      </VCol>
+
+      <!-- 👉 Data Annullamento -->
+      <VCol
+        cols="12"
+        md="6"
+      >
+        <AppDateTimePicker
+          v-model="formData.canceled_at"
+          label="Data Annullamento"
+          placeholder="Data Annullamento"
+        />
+      </VCol>
+
+      <!-- 👉 Data Scadenza -->
+      <VCol
+        cols="12"
+        md="6"
+      >
+        <AppDateTimePicker
+          v-model="formData.expired_at"
+          label="Data Scadenza"
+          placeholder="Data Scadenza"
         />
       </VCol>
 
       <VCol
         cols="12"
-        sm="6"
+        md="12"
       >
-        <h6 class="text-body-2 text-high-emphasis mb-2">
-          Notify Users
-        </h6>
-
-        <div class="d-flex align-center flex-wrap gap-x-3">
-          <VCheckbox
-            v-model="formData.notification.email"
-            label="Email"
-            value="email"
-          />
-          <VCheckbox
-            v-model="formData.notification.sms"
-            label="SMS"
-            value="sms"
-          />
-          <VCheckbox
-            v-model="formData.notification.pushNotification"
-            label="Push Notification"
-            value="push-notification"
-          />
-        </div>
+        <h5 class="text-h5 mt-6">
+          PARTNER
+        </h5>
       </VCol>
+
+      <!-- 👉 Esito Partner -->
+      <VCol
+        cols="12"
+        md="6"
+      >
+        <AppSelect
+          v-model="formData.partner_outcome"
+          label="Esito Partner"
+          placeholder="Seleziona"
+          :items="statuses"
+        />
+      </VCol>
+
+      <!-- 👉 Data Esito Partner -->
+      <VCol
+        cols="12"
+        md="6"
+      >
+        <AppDateTimePicker
+          v-model="formData.partner_outcome_at"
+          label="Data Esito Partner"
+          placeholder="Data Esito Partner"
+        />
+      </VCol>
+
     </VRow>
   </VForm>
 </template>

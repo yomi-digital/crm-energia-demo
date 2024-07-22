@@ -1,15 +1,15 @@
-import { breakpointsVuetify } from '@vueuse/core'
-import { VIcon } from 'vuetify/components/VIcon'
 import { defineThemeConfig } from '@core'
 import { Skins } from '@core/enums'
+import { breakpointsVuetify } from '@vueuse/core'
+import { VIcon } from 'vuetify/components/VIcon'
 
 // ❗ Logo SVG must be imported with ?raw suffix
-import logo from '@images/logo.svg?raw'
+import logo from '@images/logo_alfacom.svg?raw'
 import { AppContentLayoutNav, ContentWidth, FooterType, NavbarType } from '@layouts/enums'
 
 export const { themeConfig, layoutConfig } = defineThemeConfig({
   app: {
-    title: 'vuexy',
+    title: 'AlfacomCRM',
     logo: h('div', { innerHTML: logo, style: 'line-height:0; color: rgb(var(--v-global-theme-primary))' }),
     contentWidth: ContentWidth.Boxed,
     contentLayoutNav: AppContentLayoutNav.Vertical,

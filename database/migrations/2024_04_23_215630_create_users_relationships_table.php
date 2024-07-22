@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('users_relationships', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('related_id');
+            $table->unsignedBigInteger('user_id')->index();
+            $table->unsignedBigInteger('related_id')->index();
             $table->string('role');
             $table->timestamps();
         });

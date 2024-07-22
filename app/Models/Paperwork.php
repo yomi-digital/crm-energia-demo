@@ -10,6 +10,37 @@ class Paperwork extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $fillable = [
+        'user_id',
+        'customer_id',
+        'appointment_id',
+        'manager_id',
+        'product_id',
+        'mandate_id',
+        'account_pod_pdr',
+        'annual_consumption',
+        'contract_type',
+        'category',
+        'type',
+        'energy_type',
+        'mobile_type',
+        'coverage',
+        'previous_provider',
+        'notes',
+        'owner_notes',
+        'order_code',
+        'order_status',
+        'partner_sent_at',
+        'partner_outcome',
+        'partner_outcome_at',
+        'paid',
+        'canceled_at',
+        'expired_at',
+        'confirmed_at',
+        'confirmed_by',
+        'created_by',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -22,12 +53,27 @@ class Paperwork extends Model
 
     public function mandate()
     {
-        return $this->belongsTo(Mandate::class);
+        return $this->belongsTo(Agency::class);
     }
 
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(PaperworkDocument::class);
+    }
+
+    public function confirmedByUser()
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
+    public function createdByUser()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function getAddedAtAttribute($value)

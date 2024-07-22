@@ -139,7 +139,10 @@ const selectProductForRemove = product => {
           <div class="d-flex align-center gap-x-4">
             <div class="d-flex flex-column">
               <h6 class="text-capitalize text-high-emphasis text-body-1">
-                {{ item.name }}
+                <RouterLink v-if="$can('view', 'products')" :to="{ name: 'configuration-products-id', params: { id: item.id } }">
+                  {{ item.name }}
+                </RouterLink>
+                <template v-else>{{ item.name }}</template>
               </h6>
             </div>
           </div>

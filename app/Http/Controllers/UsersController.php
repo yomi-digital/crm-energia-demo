@@ -37,8 +37,15 @@ class UsersController extends Controller
             });
         }
 
+        if ($request->get('relationships')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', $request->get('relationships'))->get(['related_id']);
+            $users->whereIn('id', $relationships->pluck('related_id'));
+        }
+
         if ($request->get('sortBy')) {
             $users->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
+        } else {
+            $users->orderBy('name', 'asc');
         }
 
         $users = $users->paginate($perPage);
@@ -62,10 +69,208 @@ class UsersController extends Controller
             ->role('agente')
             ->orderBy('name', 'asc');
 
+        if ($request->get('id')) {
+            $agents = $agents->where('id', $request->get('id'));
+        }
+
         if ($request->get('select') === '1') {
             $agents = $agents->select('id', 'name', 'last_name');
         }
 
         return response()->json(['agents' => $agents->get()]);
+    }
+
+    public function structures(Request $request)
+    {
+        $structures = \App\Models\User::where('enabled', 1)
+            ->role('struttura')
+            ->orderBy('name', 'asc');
+
+        if ($request->get('select') === '1') {
+            $structures = $structures->select('id', 'name', 'last_name');
+        }
+
+        return response()->json(['structures' => $structures->get()]);
+    }
+
+    public function show(Request $request, $id)
+    {
+        $user = \App\Models\User::with(['roles', 'manager', 'structure'])->whereId($id)->first();
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $user->related_users = \App\Models\UserRelationship::where('user_id', $id)->with('user', 'user.roles')->get();
+        $user->related_to = \App\Models\UserRelationship::where('related_id', $id)->with('user', 'user.roles')->get();
+
+        $user->role = $user->roles->first();
+
+        return response()->json($user);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = \App\Models\User::find($id);
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $user->fill($request->all());
+
+        if ($request->filled('password')) {
+            $user->password = bcrypt($request->get('password'));
+        }
+
+        $user->save();
+
+        return response()->json($user);
+    }
+
+    public function destroyRelationship(Request $request, $id, $relatedId)
+    {
+        $relationship = \App\Models\UserRelationship::where('user_id', $id)->where('related_id', $relatedId)->first();
+
+        if (! $relationship) {
+            return response()->json(['message' => 'Relationship not found'], 404);
+        }
+
+        $relationship->delete();
+
+        return response()->json(['message' => 'Relationship deleted']);
+    }
+
+    public function addRelationship(Request $request, $id)
+    {
+        $user = \App\Models\User::find($id);
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $relationships = $request->get('users');
+        // Existing relationships
+        $existing = \App\Models\UserRelationship::where('user_id', $id)->get(['related_id']);
+        $users = \App\Models\User::with('roles')->whereIn('id', $relationships)->whereNotIn('id', $existing->pluck('related_id'))->get();
+
+        foreach ($users as $related) {
+            \App\Models\UserRelationship::create([
+                'user_id' => $id,
+                'related_id' => $related->id,
+                'role' => $related->roles->first()->name,
+            ]);
+        }
+
+        return response()->json(null, 201);
+    }
+
+    public function brands(Request $request, $id)
+    {
+        $user = \App\Models\User::find($id);
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $perPage = $request->get('itemsPerPage', 10);
+
+        $brands = $user->brands()->paginate($perPage);
+
+        return response()->json([
+            'brands' => $brands->getCollection(),
+            'totalPages' => $brands->lastPage(),
+            'totalBrands' => $brands->total(),
+            'page' => $brands->currentPage()
+        ]);
+    }
+
+    public function addBrand(Request $request, $id)
+    {
+        $user = \App\Models\User::find($id);
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $userBrands = $user->brands()->pluck('brand_id');
+
+        $brands = \App\Models\Brand::whereIn('id', $request->get('brands'))
+            ->whereNotIn('id', $userBrands)->get();
+
+        foreach ($brands as $brand) {
+            $user->brands()->attach($brand, ['pay_level' => $request->get('pay_level')]);
+        }
+
+        return response()->json(null, 201);
+    }
+
+    public function destroyBrand(Request $request, $id, $brandId)
+    {
+        $user = \App\Models\User::find($id);
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $brand = \App\Models\Brand::find($brandId);
+
+        if (! $brand) {
+            return response()->json(['message' => 'Brand not found'], 404);
+        }
+
+        $user->brands()->detach($brand);
+
+        return response()->json(null, 204);
+    }
+
+    public function updateBrand(Request $request, $id, $brandId)
+    {
+        $user = \App\Models\User::find($id);
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $brand = \App\Models\Brand::find($brandId);
+
+        if (! $brand) {
+            return response()->json(['message' => 'Brand not found'], 404);
+        }
+
+        $user->brands()->updateExistingPivot($brandId, ['pay_level' => $request->get('pay_level')]);
+
+        return response()->json(null, 204);
+    }
+
+    public function appointments(Request $request, $id)
+    {
+        $user = \App\Models\User::find($id);
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $perPage = $request->get('itemsPerPage', 10);
+
+        $appointments = \App\Models\Calendar::where(function ($query) use ($user) {
+            $query->where('agent_id', $user->id)
+                ->orWhere('created_by', $user->id);
+        })
+            ->orderBy('start', 'desc')
+            ->paginate($perPage);
+
+        $appointments->getCollection()->transform(function ($appointment) {
+            $appointment->start = \Carbon\Carbon::parse($appointment->start)->format(config('app.datetime_format'));
+            $appointment->end = \Carbon\Carbon::parse($appointment->end)->format(config('app.datetime_format'));
+            return $appointment;
+        });
+
+        return response()->json([
+            'appointments' => $appointments->getCollection(),
+            'totalPages' => $appointments->lastPage(),
+            'totalAppointments' => $appointments->total(),
+            'page' => $appointments->currentPage()
+        ]);
     }
 }

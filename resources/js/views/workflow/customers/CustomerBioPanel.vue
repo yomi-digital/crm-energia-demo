@@ -21,6 +21,13 @@ const updateCustomerInfo = async (data) => {
   emit('updateCustomerData', response)
 }
 
+const confirmCustomer = async () => {
+  const response = await $api(`/customers/${ props.customerData.id }/confirm`, {
+    method: 'PUT',
+  })
+  emit('updateCustomerData', response)
+}
+
 </script>
 
 <template>
@@ -38,6 +45,9 @@ const updateCustomerInfo = async (data) => {
 
           <!-- 👉 Customer Details list -->
           <VList class="card-list mt-2">
+            <VAlert class="mb-4" icon="tabler-alert-triangle" color="warning" v-if="! props.customerData.confirmed_at">
+              Non confermato
+            </VAlert>
             <VListItem>
               <VListItemTitle>
                 <h6 class="text-h6">
@@ -250,19 +260,28 @@ const updateCustomerInfo = async (data) => {
                 <h6 class="text-h6">
                   Aggiunto da:
                   <div class="d-inline-block text-body-1">
-                    {{ [props.customerData.added_by_user?.name, props.customerData.added_by_user?.last_name].join(' ').trim() }}
+                    <RouterLink
+                      v-if="$can('view', 'users')"
+                      :to="{ name: 'admin-users-id', params: { id: props.customerData.added_by } }"
+                      class="font-weight-medium text-link"
+                    >
+                      {{ [props.customerData.added_by_user?.name, props.customerData.added_by_user?.last_name].join(' ').trim() }}
+                    </RouterLink>
+                    <template v-else>
+                      {{ [props.customerData.added_by_user?.name, props.customerData.added_by_user?.last_name].join(' ').trim() }}
+                    </template>
                   </div>
                 </h6>
               </VListItemTitle>
             </VListItem>
 
             <!-- Confirmed -->
-            <VlistItem v-if="props.customerData.confirmed">
+            <VListItem v-if="props.customerData.confirmed_at">
               <VListItemTitle>
                 <h6 class="text-h6">
-                  Confermato:
+                  Confermato il:
                   <div class="d-inline-block text-body-1">
-                    {{ props.customerData.confirmed }}
+                    {{ props.customerData.confirmed_at }}
                   </div>
                 </h6>
               </VListItemTitle>
@@ -274,7 +293,16 @@ const updateCustomerInfo = async (data) => {
                 <h6 class="text-h6">
                   Confermato da:
                   <div class="d-inline-block text-body-1">
-                    {{ props.customerData.confirmed_by }}
+                    <RouterLink
+                      v-if="$can('view', 'users')"
+                      :to="{ name: 'admin-users-id', params: { id: props.customerData.confirmed_by } }"
+                      class="font-weight-medium text-link"
+                    >
+                      {{ [props.customerData.confirmed_by_user?.name, props.customerData.confirmed_by_user?.last_name].join(' ').trim() }}
+                    </RouterLink>
+                    <template v-else>
+                      {{ [props.customerData.confirmed_by_user?.name, props.customerData.confirmed_by_user?.last_name].join(' ').trim() }}
+                    </template>
                   </div>
                 </h6>
               </VListItemTitle>
@@ -284,6 +312,15 @@ const updateCustomerInfo = async (data) => {
 
         <!-- 👉 Edit and Suspend button -->
         <VCardText class="d-flex justify-center gap-x-4">
+          <VBtn
+            v-if="! props.customerData.confirmed_at && $can('edit', 'customers')"
+            variant="elevated"
+            color="success"
+            @click="confirmCustomer"
+          >
+            Conferma
+          </VBtn>
+
           <VBtn
             v-if="$can('edit', 'customers')"
             variant="elevated"

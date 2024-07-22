@@ -9,7 +9,6 @@ const brand = ref('')
 const product = ref('')
 const orderCode = ref('')
 const orderStatus = ref('INSERITO')
-const pda = ref(0)
 const agent = ref('')
 const notes = ref('')
 const ownerNotes = ref('')
@@ -263,7 +262,7 @@ const createUser = async () => {
       >
         <AppTextField
           v-model="accountPodPdr"
-          label="Accoutn / POD / PDR"
+          label="Account / POD / PDR"
           placeholder="09886655"
           :rules="[requiredValidator]"
         />
@@ -278,19 +277,6 @@ const createUser = async () => {
           v-model="annualConsumpion"
           label="Consumo Annuale"
           placeholder="0"
-        />
-      </VCol>
-
-      <!-- 👉 PDA -->
-      <VCol
-        cols="12"
-        md="6"
-      >
-        <AppSelect
-          v-model="pda"
-          label="PDA Originale"
-          placeholder="Seleziona"
-          :items="[ { title: 'Si', value: 1 }, { title: 'No', value: 0 } ]"
         />
       </VCol>
 

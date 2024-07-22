@@ -1,5 +1,5 @@
 <script setup>
-import AddNewUserDrawer from '@/views/admin/users/AddNewUserDrawer.vue'
+import AddNewUserDrawer from '@/views/admin/users/AddNewUserDrawer.vue';
 
 // 👉 Store
 const searchQuery = ref('')
@@ -300,7 +300,7 @@ const widgetData = ref([
           >
             <AppSelect
               v-model="selectedRole"
-              placeholder="Filtra per"
+              placeholder="Filtra per Ruolo"
               :items="roles"
               clearable
               clear-icon="tabler-x"
@@ -413,7 +413,7 @@ const widgetData = ref([
             <div class="d-flex flex-column">
               <h6 class="text-base">
                 <RouterLink
-                  :to="{ name: 'apps-user-view-id', params: { id: item.id } }"
+                  :to="{ name: 'admin-users-id', params: { id: item.id } }"
                   class="font-weight-medium text-link"
                 >
                   {{ [item.name, item.last_name].join(' ') }}
@@ -454,7 +454,7 @@ const widgetData = ref([
         <template #item.manager="{ item }">
           <div class="text-body-1 text-high-emphasis">
             <RouterLink v-if="item.manager"
-              :to="{ name: 'apps-user-view-id', params: { id: item.manager_id } }"
+              :to="{ name: 'admin-users-id', params: { id: item.manager_id } }"
               class="font-weight-medium text-link"
             >
               {{ [item.manager.name, item.manager.last_name].join(' ') }}
@@ -466,7 +466,7 @@ const widgetData = ref([
         <template #item.structure="{ item }">
           <div class="text-body-1 text-high-emphasis">
             <RouterLink v-if="item.structure"
-              :to="{ name: 'apps-user-view-id', params: { id: item.structure_id } }"
+              :to="{ name: 'admin-users-id', params: { id: item.structure_id } }"
               class="font-weight-medium text-link"
             >
               {{ [item.structure.name, item.structure.last_name].join(' ') }}

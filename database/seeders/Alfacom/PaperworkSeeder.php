@@ -16,7 +16,7 @@ trait PaperworkSeeder
                     'legacy_id' => $entry['id'],
                     'user_id' => null,
                     'account_pod_pdr' => $entry['account_pod_pdr'],
-                    'added_at' => $entry['data_inserimento'] === '0000-00-00' ? null : $entry['data_inserimento'],
+                    'partner_sent_at' => $entry['data_inserimento'] === '0000-00-00' ? null : $entry['data_inserimento'],
                     'order_status' => $entry['stato_ordine'],
                     'partner_outcome_at' => $entry['data_esito_partner'],
                     'owner_notes' => $entry['note_alfacom'],
@@ -28,21 +28,19 @@ trait PaperworkSeeder
                     'partner_outcome' => $entry['esito_partner'],
                     'order_code' => $entry['codice_ordine'],
                     'paid' => $entry['pagato'] && strtolower($entry['pagato']) === 'si' ? 1 : 0,
-                    'pda' => $entry['pda_originale'] && strtolower($entry['pda_originale']) === 'si' ? 1 : 0,
-                    'appointment' => $entry['appuntamento'] && strtolower($entry['appuntamento']) === 'si' ? 1 : 0,
+                    // 'appointment' => $entry['appuntamento'] && strtolower($entry['appuntamento']) === 'si' ? 1 : 0,
+                    'appointment_id' => null,
                     'mandate_id' => null,
                     'coverage' => $entry['copertura'],
                     'canceled_at' => $entry['data_storno'],
                     'expired_at' => $entry['data_scadenza'],
                     'annual_consumption' => $entry['consumo_annuo'],
                     'category' => $entry['tipologia'],
-                    'confirmed' => $entry['confirmed'],
                     'confirmed_at' => $entry['confirmed_at'],
                     'confirmed_by' => null,
                     'type' => $entry['tipo'],
                     'energy_type' => $entry['tipo_energia'],
-                    'brand_category_id' => null,
-                    'pdf_url' => $entry['url_pdf'],
+                    // 'pdf_url' => $entry['url_pdf'],
                 ];
 
                 if ($entry['id_agente']) {
@@ -95,6 +93,12 @@ trait PaperworkSeeder
                 // }
 
                 $newModel = \App\Models\Paperwork::create($data);
+                if ($entry['url_pdf']) {
+                    $newModel->documents()->create([
+                        'url' => $entry['url_pdf'],
+                        'name' => basename($entry['url_pdf']),
+                    ]);
+                }
             } catch (\Exception $e) {
                 dump('Cannot create paperwork legacy_id ' . $entry['id'] . ' Error: ' . substr($e->getMessage(), 0, 120) . '...');
             }

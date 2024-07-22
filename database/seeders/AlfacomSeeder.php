@@ -71,5 +71,22 @@ class AlfacomSeeder extends Seeder
         $this->paperworks($conn);
         mysqli_query($conn, 'DROP DATABASE IF EXISTS ' . $tmpDb);
         mysqli_close($conn);
+
+        // Drop unnecessary columns
+        \Schema::table('paperworks', function ($table) {
+            $table->dropColumn('legacy_id');
+        });
+        \Schema::table('products', function ($table) {
+            $table->dropColumn('legacy_id');
+        });
+        \Schema::table('brands', function ($table) {
+            $table->dropColumn('legacy_id');
+        });
+        \Schema::table('customers', function ($table) {
+            $table->dropColumn('legacy_id');
+        });
+        \Schema::table('users', function ($table) {
+            $table->dropColumn('legacy_id');
+        });
     }
 }

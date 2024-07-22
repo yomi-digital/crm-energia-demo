@@ -6,15 +6,11 @@ definePage({
   },
 })
 
-import UserTabBillingsPlans from '@/views/apps/user/view/UserTabBillingsPlans.vue';
-import UserTabConnections from '@/views/apps/user/view/UserTabConnections.vue';
-import UserTabNotifications from '@/views/apps/user/view/UserTabNotifications.vue';
-import UserTabSecurity from '@/views/apps/user/view/UserTabSecurity.vue';
 import CustomerBioPanel from '@/views/workflow/customers/CustomerBioPanel.vue';
 import CustomerTabPaperworks from '@/views/workflow/customers/CustomerTabPaperworks.vue';
 
 const route = useRoute('workflow-customers-id')
-const userTab = ref(null)
+const customerTab = ref(null)
 
 const tabs = [
   {
@@ -27,8 +23,6 @@ const tabs = [
   },
 ]
 
-const { data: userData } = await useApi(`/apps/users/${ route.params.id }`)
-
 const {
   data: customerData,
   execute: fetchCustomer,
@@ -37,14 +31,6 @@ const {
 const updatedCustomerData = (newData) => {
   console.log(newData)
   fetchCustomer()
-}
-
-
-if (userData.value) {
-  const [firstName, lastName] = userData.value.fullName.split(' ')
-
-  userData.value.firstName = firstName
-  userData.value.lastName = lastName
 }
 </script>
 
@@ -64,7 +50,7 @@ if (userData.value) {
       lg="8"
     >
       <VTabs
-        v-model="userTab"
+        v-model="customerTab"
         class="v-tabs-pill"
       >
         <VTab
@@ -81,28 +67,12 @@ if (userData.value) {
       </VTabs>
 
       <VWindow
-        v-model="userTab"
+        v-model="customerTab"
         class="mt-6 disable-tab-transition"
         :touch="false"
       >
         <VWindowItem>
           <CustomerTabPaperworks />
-        </VWindowItem>
-
-        <VWindowItem>
-          <UserTabSecurity />
-        </VWindowItem>
-
-        <VWindowItem>
-          <UserTabBillingsPlans />
-        </VWindowItem>
-
-        <VWindowItem>
-          <UserTabNotifications />
-        </VWindowItem>
-
-        <VWindowItem>
-          <UserTabConnections />
         </VWindowItem>
       </VWindow>
     </VCol>
@@ -112,7 +82,7 @@ if (userData.value) {
       type="error"
       variant="tonal"
     >
-      Invoice with ID  {{ route.params.id }} not found!
+      Cliente ID  {{ route.params.id }} non trovato!
     </VAlert>
   </div>
 </template>

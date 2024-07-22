@@ -132,6 +132,9 @@ trait UserSeeder
                         $agents = User::whereIn('legacy_id', $agentsArray)->get();
                         dump('Found agents: ' . count($agents) . ' of ' . count($agentsArray));
                         foreach ($agents as $agent) {
+                            if ($user->id === $agent->id) {
+                                continue;
+                            }
                             \App\Models\UserRelationship::create([
                                 'user_id' => $user->id,
                                 'related_id' => $agent->id,
@@ -150,6 +153,9 @@ trait UserSeeder
                         $telemarketings = User::whereIn('legacy_id', $telemarketingArray)->get();
                         dump('Found telemarketing: ' . count($telemarketings) . ' of ' . count($telemarketingArray));
                         foreach ($telemarketings as $tlm) {
+                            if ($user->id === $tlm->id) {
+                                continue;
+                            }
                             \App\Models\UserRelationship::create([
                                 'user_id' => $user->id,
                                 'related_id' => $tlm->id,

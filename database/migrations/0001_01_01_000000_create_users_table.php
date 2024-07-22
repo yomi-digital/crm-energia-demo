@@ -20,13 +20,15 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('agent_code')->nullable();
-            $table->unsignedBigInteger('manager_id')->nullable();
-            $table->unsignedBigInteger('structure_id')->nullable();
+            $table->unsignedBigInteger('manager_id')->nullable()->index();
+            $table->unsignedBigInteger('structure_id')->nullable()->index();
             $table->text('commercial_profile')->nullable();
             $table->string('area')->nullable();
             $table->unsignedTinyInteger('team_leader')->default(0);
             $table->unsignedTinyInteger('extractor')->default(0);
             $table->unsignedTinyInteger('enabled')->default(1);
+            $table->unsignedTinyInteger('enabled_sprint')->default(0);
+            $table->unsignedSmallInteger('additinal_percentage')->default(0);
             $table->timestamp('last_login_at')->nullable();
             $table->timestamp('last_logout_at')->nullable();
             $table->string('ip')->nullable();

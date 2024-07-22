@@ -5,22 +5,20 @@ const props = defineProps({
     required: false,
     default: () => ({
       id: 0,
-      fullName: '',
-      firstName: '',
-      lastName: '',
-      company: '',
-      role: '',
-      username: '',
-      country: '',
-      contact: '',
+      role: {
+        id: 0,
+      },
+      name: '',
+      last_name: '',
       email: '',
-      currentPlan: '',
-      status: '',
-      avatar: '',
-      taskDone: null,
-      projectDone: null,
-      taxId: '',
-      language: '',
+      agent_code: '',
+      manager_id: '',
+      structure_id: '',
+      commercial_profile: '',
+      area: '',
+      team_leader: 0,
+      extractor: 0,
+      enabled: 0,
     }),
   },
   isDialogVisible: {
@@ -35,7 +33,6 @@ const emit = defineEmits([
 ])
 
 const userData = ref(structuredClone(toRaw(props.userData)))
-const isUseAsBillingAddress = ref(false)
 
 watch(props, () => {
   userData.value = structuredClone(toRaw(props.userData))
@@ -54,6 +51,46 @@ const onFormReset = () => {
 const dialogModelValueUpdate = val => {
   emit('update:isDialogVisible', val)
 }
+
+function ucfirst(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+const roles = []
+await $api('/roles').then(response => {
+  for (let i = 0; i < response.roles.length; i++) {
+    roles.push({
+      title: ucfirst(response.roles[i].name),
+      value: response.roles[i].id,
+    })
+  }
+})
+
+const users = ref([])
+const fetchUsers = async () => {
+  users.value = []
+  const response = await $api('/users?itemsPerPage=99999999&select=1')
+  for (let i = 0; i < response.users.length; i++) {
+    users.value.push({
+      title: [response.users[i].name, response.users[i].last_name].join(' '),
+      value: response.users[i].id,
+    })
+  }
+}
+await fetchUsers()
+
+const structures = ref([])
+const fetchStructures = async () => {
+  structures.value = []
+  const response = await $api('/structures?itemsPerPage=99999999&select=1')
+  for (let i = 0; i < response.structures.length; i++) {
+    structures.value.push({
+      title: [response.structures[i].name, response.structures[i].last_name].join(' '),
+      value: response.structures[i].id,
+    })
+  }
+}
+await fetchStructures()
 </script>
 
 <template>
@@ -69,11 +106,11 @@ const dialogModelValueUpdate = val => {
       <VCardText>
         <!-- 👉 Title -->
         <h4 class="text-h4 text-center mb-2">
-          Edit User Information
+          Modifica Dettagli Account
         </h4>
-        <p class="text-body-1 text-center mb-6">
+        <!-- <p class="text-body-1 text-center mb-6">
           Updating user details will receive a privacy audit.
-        </p>
+        </p> -->
 
         <!-- 👉 Form -->
         <VForm
@@ -81,15 +118,30 @@ const dialogModelValueUpdate = val => {
           @submit.prevent="onFormSubmit"
         >
           <VRow>
-            <!-- 👉 First Name -->
+            <!-- 👉 Role -->
+            <VCol
+              cols="12"
+              md="12"
+            >
+              <AppSelect
+                v-model="userData.role.id"
+                label="Ruolo"
+                placeholder="Seleziona un ruolo"
+                :rules="[requiredValidator]"
+                :items="roles"
+              />
+            </VCol>
+
+            <!-- 👉 Name -->
             <VCol
               cols="12"
               md="6"
             >
               <AppTextField
-                v-model="userData.firstName"
-                label="First Name"
-                placeholder="John"
+                v-model="userData.name"
+                :rules="[requiredValidator]"
+                label="Nome"
+                placeholder="Mario"
               />
             </VCol>
 
@@ -99,105 +151,118 @@ const dialogModelValueUpdate = val => {
               md="6"
             >
               <AppTextField
-                v-model="userData.lastName"
-                label="Last Name"
-                placeholder="Doe"
+                v-model="userData.last_name"
+                :rules="[requiredValidator]"
+                label="Cognome"
+                placeholder="Rossi"
               />
             </VCol>
 
-            <!-- 👉 Username -->
-            <VCol cols="12">
-              <AppTextField
-                v-model="userData.username"
-                label="Username"
-                placeholder="john.doe.007"
-              />
-            </VCol>
-
-            <!-- 👉 Billing Email -->
+            <!-- 👉 Email -->
             <VCol
               cols="12"
-              md="6"
+              md="12"
             >
               <AppTextField
                 v-model="userData.email"
+                :rules="[requiredValidator, emailValidator]"
                 label="Email"
                 placeholder="johndoe@email.com"
               />
             </VCol>
 
-            <!-- 👉 Status -->
-            <VCol
-              cols="12"
-              md="6"
-            >
-              <AppSelect
-                v-model="userData.status"
-                label="Status"
-                placeholder="Active"
-                :items="['Active', 'Inactive', 'Pending']"
-              />
-            </VCol>
-
-            <!-- 👉 Tax Id -->
+            <!-- 👉 Agent Code -->
             <VCol
               cols="12"
               md="6"
             >
               <AppTextField
-                v-model="userData.taxId"
-                label="Tax ID"
-                placeholder="123456789"
+                v-model="userData.agent_code"
+                :rules="[requiredValidator]"
+                label="Codice Agente"
+                placeholder="12345"
               />
             </VCol>
 
-            <!-- 👉 Contact -->
+            <!-- 👉 Area -->
             <VCol
               cols="12"
               md="6"
             >
               <AppTextField
-                v-model="userData.contact"
-                label="Phone Number"
-                placeholder="+1 9876543210"
+                v-model="userData.area"
+                label="Area"
+                placeholder="Catania"
               />
             </VCol>
 
-            <!-- 👉 Language -->
+            <!-- 👉 Manager -->
+            <VCol
+              cols="12"
+              md="12"
+            >
+              <AppAutocomplete
+                v-model="userData.manager_id"
+                label="Capo Area"
+                :items="users"
+                clearable
+                placeholder="Seleziona un Capo Area"
+              />
+            </VCol>
+
+            <!-- 👉 Structure -->
+            <VCol
+              cols="12"
+              md="12"
+            >
+              <AppAutocomplete
+                v-model="userData.structure_id"
+                label="Struttura"
+                :items="structures"
+                clearable
+                placeholder="Seleziona una Struttura"
+              />
+            </VCol>
+
+            <!-- 👉 Team Leader -->
             <VCol
               cols="12"
               md="6"
             >
               <AppSelect
-                v-model="userData.language"
-                closable-chips
-                chips
-                multiple
-                label="Language"
-                placeholder="English"
-                :items="['English', 'Spanish', 'French']"
+                v-model="userData.team_leader"
+                label="Team Leader"
+                placeholder="Seleziona"
+                :rules="[requiredValidator]"
+                :items="[{ title: 'SI', value: 1 }, { title: 'NO', value: 0 }]"
               />
             </VCol>
 
-            <!-- 👉 Country -->
+            <!-- 👉 Extractor -->
             <VCol
               cols="12"
               md="6"
             >
               <AppSelect
-                v-model="userData.country"
-                label="Country"
-                placeholder="United States"
-                :items="['United States', 'United Kingdom', 'France']"
+                v-model="userData.extractor"
+                label="Estrattore"
+                placeholder="Seleziona"
+                :rules="[requiredValidator]"
+                :items="[{ title: 'Si', value: 1 }, { title: 'NO', value: 0 }]"
               />
             </VCol>
 
-            <!-- 👉 Switch -->
-            <VCol cols="12">
-              <VSwitch
-                v-model="isUseAsBillingAddress"
-                density="compact"
-                label="Use as a billing address?"
+            <!-- 👉 Enabled -->
+            <VCol
+              cols="12"
+              md="6"
+            >
+              <AppSelect
+                v-model="userData.enabled"
+                label="Abilitato"
+                placeholder="Seleziona"
+                :rules="[requiredValidator]"
+                :items="[{ title: 'SI', value: 1 }, { title: 'NO', value: 0 }]"
               />
             </VCol>
 
@@ -207,7 +272,7 @@ const dialogModelValueUpdate = val => {
               class="d-flex flex-wrap justify-center gap-4"
             >
               <VBtn type="submit">
-                Submit
+                Salva
               </VBtn>
 
               <VBtn
@@ -215,7 +280,7 @@ const dialogModelValueUpdate = val => {
                 variant="tonal"
                 @click="onFormReset"
               >
-                Cancel
+                Annulla
               </VBtn>
             </VCol>
           </VRow>

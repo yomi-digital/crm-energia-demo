@@ -80,7 +80,38 @@ const dialogModelValueUpdate = val => {
               <h6 class="text-h6 mt-2">
                 Agente
                 <div class="text-body-1">
-                  {{ eventData.extendedProps.agent ? [eventData.extendedProps.agent.name, eventData.extendedProps.agent.last_name].join(' ') : 'N/A' }}
+                  <RouterLink
+                    v-if="$can('view', 'users') && eventData.extendedProps.agent"
+                    :to="{ name: 'admin-users-id', params: { id: eventData.extendedProps.agent.id } }"
+                    class="font-weight-medium text-link"
+                    :title="[eventData.extendedProps.agent.name, eventData.extendedProps.agent.last_name].join(' ').trim()"
+                  >
+                    {{ [eventData.extendedProps.agent.name, eventData.extendedProps.agent.last_name].join(' ').trim() }}
+                  </RouterLink>
+                  <template v-else>
+                    {{ eventData.extendedProps.agent ? [eventData.extendedProps.agent.name, eventData.extendedProps.agent.last_name].join(' ') : 'N/A' }}
+                  </template>
+                </div>
+              </h6>
+            </VListItemTitle>
+          </VListItem>
+
+          <VListItem style="padding-bottom: 5px !important">
+            <VListItemTitle>
+              <h6 class="text-h6 mt-2">
+                Operatore
+                <div class="text-body-1">
+                  <RouterLink
+                    v-if="$can('view', 'users') && eventData.extendedProps.operator"
+                    :to="{ name: 'admin-users-id', params: { id: eventData.extendedProps.operator.id } }"
+                    class="font-weight-medium text-link"
+                    :title="[eventData.extendedProps.operator.name, eventData.extendedProps.operator.last_name].join(' ').trim()"
+                  >
+                    {{ [eventData.extendedProps.operator.name, eventData.extendedProps.operator.last_name].join(' ').trim() }}
+                  </RouterLink>
+                  <template v-else>
+                    {{ eventData.extendedProps.operator ? [eventData.extendedProps.operator.name, eventData.extendedProps.operator.last_name].join(' ') : 'N/A' }}
+                  </template>
                 </div>
               </h6>
             </VListItemTitle>
@@ -125,7 +156,7 @@ const dialogModelValueUpdate = val => {
               <h6 class="text-h6 mt-2">
                 Telefono
                 <div class="text-body-1">
-                  {{ eventData.extendedProps.user_phone }}
+                  {{ eventData.extendedProps.user_phone || 'N/A' }}
                 </div>
               </h6>
             </VListItemTitle>
@@ -136,7 +167,7 @@ const dialogModelValueUpdate = val => {
               <h6 class="text-h6 mt-2">
                 Cellulare
                 <div class="text-body-1">
-                  {{ eventData.extendedProps.user_mobile }}
+                  {{ eventData.extendedProps.user_mobile || 'N/A' }}
                 </div>
               </h6>
             </VListItemTitle>
@@ -147,7 +178,7 @@ const dialogModelValueUpdate = val => {
               <h6 class="text-h6 mt-2">
                 Referente
                 <div class="text-body-1">
-                  {{ eventData.extendedProps.referent }}
+                  {{ eventData.extendedProps.referent || 'N/A' }}
                 </div>
               </h6>
             </VListItemTitle>
@@ -158,7 +189,7 @@ const dialogModelValueUpdate = val => {
               <h6 class="text-h6 mt-2">
                 Note Call Center
                 <div class="text-body-1" style="white-space:normal">
-                  {{ eventData.extendedProps.notes_call_center }}
+                  {{ eventData.extendedProps.notes_call_center || 'N/A' }}
                 </div>
               </h6>
             </VListItemTitle>
@@ -169,7 +200,7 @@ const dialogModelValueUpdate = val => {
               <h6 class="text-h6 mt-2">
                 Note Agente
                 <div class="text-body-1">
-                  {{ eventData.extendedProps.notes_agent }}
+                  {{ eventData.extendedProps.notes_agent || 'N/A' }}
                 </div>
               </h6>
             </VListItemTitle>
@@ -180,7 +211,7 @@ const dialogModelValueUpdate = val => {
               <h6 class="text-h6 mt-2">
                 Note Alfacom
                 <div class="text-body-1">
-                  {{ eventData.extendedProps.notes }}
+                  {{ eventData.extendedProps.notes || 'N/A' }}
                 </div>
               </h6>
             </VListItemTitle>

@@ -32,7 +32,7 @@ const headers = [
   },
   {
     title: 'Data Inserimento',
-    key: 'added_at',
+    key: 'partner_sent_at',
   },
   {
     title: 'Stato Ordine',
@@ -88,6 +88,7 @@ const totalPaperworks = computed(() => paperworkData.value?.totalPaperworks)
             <!-- 👉 Add paperwork button -->
             <VBtn
               prepend-icon="tabler-plus"
+              :to="{ name: 'workflow-paperworks-create-wizard', query: { customer_id: route.params.id } }"
             >
               Crea Pratica
             </VBtn>
@@ -111,7 +112,7 @@ const totalPaperworks = computed(() => paperworkData.value?.totalPaperworks)
       >
         <!-- id -->
         <template #item.id="{ item }">
-          <RouterLink :to="{ name: 'apps-invoice-preview-id', params: { id: item.id } }">
+          <RouterLink :to="{ name: 'workflow-customers-id', params: { id: item.id } }">
             #{{ item.id }}
           </RouterLink>
         </template>
@@ -129,16 +130,25 @@ const totalPaperworks = computed(() => paperworkData.value?.totalPaperworks)
         <template #item.user_id="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ [item.user?.name, item.user?.last_name].join(' ') }}
+              <RouterLink
+                v-if="$can('view', 'users') && item.user"
+                :to="{ name: 'admin-users-id', params: { id: item.user.id } }"
+                class="font-weight-medium text-link"
+              >
+                {{ [item.user.name, item.user.last_name].join(' ').trim() }}
+              </RouterLink>
+              <template v-else>
+                {{ [item.user?.name, item.user?.last_name].join(' ').trim() }}
+              </template>
             </div>
           </div>
         </template>
 
-        <!-- 👉 Added At -->
-        <template #item.added_at="{ item }">
+        <!-- 👉 Partner sent At -->
+        <template #item.partner_sent_at="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ item.added_at }}
+              {{ item.partner_sent_at }}
             </div>
           </div>
         </template>

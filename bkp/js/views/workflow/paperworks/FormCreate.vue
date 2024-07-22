@@ -263,7 +263,7 @@ const createUser = async () => {
       >
         <AppTextField
           v-model="accountPodPdr"
-          label="Accoutn / POD / PDR"
+          label="Account / POD / PDR"
           placeholder="09886655"
           :rules="[requiredValidator]"
         />

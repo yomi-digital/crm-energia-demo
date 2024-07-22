@@ -33,7 +33,6 @@ trait CustomerSeeder
                     'zip' => $customer['cap'],
                     'added_at' => $customer['data_inserimento'] === '0000-00-00' ? null : $customer['data_inserimento'],
                     'added_by' => null,
-                    'confirmed' => $customer['confirmed'],
                     'confirmed_at' => $customer['confirmed_at'],
                     'confirmed_by' => null,
                     'deleted_at' => $customer['deleted_at'],

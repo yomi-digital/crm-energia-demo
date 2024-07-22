@@ -20,8 +20,17 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'last_name',
         'email',
         'password',
+        'enabled',
+        'team_leader',
+        'extractor',
+        'manager_id',
+        'structure_id',
+        'commercial_profile',
+        'area',
+        'agent_code',
     ];
 
     /**
@@ -59,6 +68,11 @@ class User extends Authenticatable
         return $this->hasMany(Group::class);
     }
 
+    public function brands()
+    {
+        return $this->belongsToMany(Brand::class, 'brands_users', 'user_id', 'brand_id')->withPivot('pay_level');
+    }
+
     public function manager()
     {
         return $this->hasOne(Manager::class, 'id', 'manager_id');
@@ -71,7 +85,7 @@ class User extends Authenticatable
 
     public function relationships()
     {
-        return $this->hasManyThrough(User::class, UserRelationship::class, 'user_id', 'related_id')->withPivot('role');
+        return $this->hasManyThrough(User::class, UserRelationship::class, 'related_id', 'id', 'id', 'id');
         // return $this->belongsToMany(User::class, 'users_agents', 'user_id', 'agent_id');
     }
 
@@ -79,5 +93,15 @@ class User extends Authenticatable
     {
         return $this->relationships()->where('role', 'agente');
         // return $this->belongsToMany(User::class, 'users_agents', 'user_id', 'agent_id');
+    }
+
+    public function getCreatedAtAttribute($value)
+    {
+        return date(config('app.date_format'), strtotime($value));
+    }
+
+    public function getUpdatedAtAttribute($value)
+    {
+        return date(config('app.date_format'), strtotime($value));
     }
 }

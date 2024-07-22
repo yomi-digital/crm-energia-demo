@@ -17,6 +17,10 @@ class PaperworksController extends Controller
             $paperworks = $paperworks->where('customer_id', $request->get('customer_id'));
         }
 
+        if ($request->filled('user_id')) {
+            $paperworks = $paperworks->where('user_id', $request->get('user_id'));
+        }
+
         if ($request->get('q')) {
             $search = $request->get('q');
             $paperworks = $paperworks->where(function ($query) use ($search) {
@@ -30,7 +34,7 @@ class PaperworksController extends Controller
         if ($request->get('sortBy')) {
             $paperworks = $paperworks->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
         } else {
-            $paperworks = $paperworks->orderBy('added_at', 'desc');
+            $paperworks = $paperworks->orderBy('created_at', 'desc');
         }
 
         $paperworks = $paperworks->paginate($perPage);
@@ -45,38 +49,129 @@ class PaperworksController extends Controller
 
     public function show($id)
     {
-        $customer = \App\Models\Customer::find($id);
+        $paperwork = \App\Models\Paperwork::with(['user', 'customer', 'customer.paperworks', 'mandate', 'product', 'documents', 'createdByUser', 'confirmedByUser'])->whereId($id)->first();
 
-        if (!$customer) {
-            return response()->json(['error' => 'Customer not found'], 404);
+        if (!$paperwork) {
+            return response()->json(['error' => 'Paperwork not found'], 404);
         }
 
-        return response()->json($customer);
+        return response()->json($paperwork);
     }
 
     public function store(Request $request)
     {
-        $customer = new \App\Models\Customer;
+        $paperwork = new \App\Models\Paperwork;
 
-        $customer->fill($request->all());
+        if ($request->user()->hasRole('agent')) {
+            $request->validate([
+                'customer_id' => 'required|exists:customers,id',
+                'appointment_id' => 'exists:calendar,id|nullable',
+                'product_id' => 'required|exists:products,id',
+                'account_pod_pdr' => 'required_unless:category,ALLACCIO|nullable',
+                'annual_consumption' => 'nullable',
+                'contract_type' => 'required',
+                'category' => 'required',
+                'type' => 'required',
+                'energy_type' => 'required',
+                'mobile_type' => 'required_if:energy_type,MOBILE|nullable',
+                'coverage' => 'nullable',
+                'previous_provider' => 'nullable',
+                'notes' => 'nullable',
+            ]);
+            $fields = $request->only([
+                'customer_id',
+                'appointment_id',
+                'product_id',
+                'account_pod_pdr',
+                'annual_consumption',
+                'contract_type',
+                'category',
+                'type',
+                'energy_type',
+                'mobile_type',
+                'coverage',
+                'previous_provider',
+                'notes',
+            ]);
+        } else {
+            $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'customer_id' => 'required|exists:customers,id',
+                'appointment_id' => 'exists:calendar,id|nullable',
+                'product_id' => 'required|exists:products,id',
+                'mandate_id' => 'exists:agencies,id|nullable',
+                'account_pod_pdr' => 'required_unless:category,ALLACCIO|nullable',
+                'annual_consumption' => 'nullable',
+                'contract_type' => 'required',
+                'category' => 'required',
+                'type' => 'required',
+                'energy_type' => 'required',
+                'mobile_type' => 'required_if:energy_type,MOBILE|nullable',
+                'coverage' => 'nullable',
+                'previous_provider' => 'nullable',
+                'notes' => 'nullable',
+            ]);
+            $fields = $request->all();
+        }
 
-        $customer->save();
+        $paperwork->fill($fields);
 
-        return response()->json($customer, 201);
+        if ($request->user()->hasRole('agent')) {
+            $agent = $request->user();
+        } else {
+            $agent = \App\Models\User::find($request->get('user_id'));
+        }
+        $paperwork->manager_id = $agent->manager_id;
+        $paperwork->created_by = $request->user()->id;
+
+        $paperwork->save();
+
+        return response()->json($paperwork, 201);
     }
 
     public function update(Request $request, $id)
     {
-        $customer = \App\Models\Customer::find($id);
+        $paperwork = \App\Models\Paperwork::find($id);
 
-        if (!$customer) {
-            return response()->json(['error' => 'Customer not found'], 404);
+        if (!$paperwork) {
+            return response()->json(['error' => 'Paperwork not found'], 404);
         }
 
-        $customer->fill($request->all());
+        $paperwork->fill($request->all());
 
-        $customer->save();
+        $paperwork->save();
 
-        return response()->json($customer);
+        return response()->json($paperwork);
+    }
+
+    public function confirm(Request $request, $id)
+    {
+        $paperwork = \App\Models\Paperwork::find($id);
+
+        if (!$paperwork) {
+            return response()->json(['error' => 'Paperwork not found'], 404);
+        }
+
+        $paperwork->confirmed_by = $request->user()->id;
+        $paperwork->confirmed_at = now()->format('Y-m-d H:i:s');
+
+        $paperwork->save();
+
+        return response()->json($paperwork);
+    }
+
+    public function confirmPartnerSent(Request $request, $id)
+    {
+        $paperwork = \App\Models\Paperwork::find($id);
+
+        if (!$paperwork) {
+            return response()->json(['error' => 'Paperwork not found'], 404);
+        }
+
+        $paperwork->partner_sent_at = now()->format('Y-m-d H:i:s');
+
+        $paperwork->save();
+
+        return response()->json($paperwork);
     }
 }

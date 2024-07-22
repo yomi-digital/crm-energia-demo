@@ -15,6 +15,8 @@ const itemsPerPage = ref(25)
 const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
+const selectedAgent = ref()
+const selectedCustomer = ref()
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -45,7 +47,7 @@ const headers = [
   },
   {
     title: 'Data Inserimento',
-    key: 'added_at',
+    key: 'partner_sent_at',
   },
   {
     title: 'Stato Ordine',
@@ -77,7 +79,7 @@ const headers = [
   },
   {
     title: 'Compenso',
-    key: 'pda',
+    key: 'pay',
   },
   {
     title: '',
@@ -93,6 +95,8 @@ const {
   query: {
     q: searchQuery,
     itemsPerPage,
+    user_id: selectedAgent,
+    customer_id: selectedCustomer,
     page,
     sortBy,
     orderBy,
@@ -101,32 +105,6 @@ const {
 
 const paperworks = computed(() => paperworksData.value.paperworks)
 const totalPaperworks = computed(() => paperworksData.value.totalPaperworks)
-
-const truncate = (text, length = 30) => {
-  if (text.length > length) {
-    return text.substring(0, length) + '...'
-  }
-
-  return text
-}
-
-
-const addNewUser = async userData => {
-  await $api('/apps/users', {
-    method: 'POST',
-    body: userData,
-  })
-
-  // refetch User
-  fetchPaperworks()
-}
-
-const deleteUser = async id => {
-  await $api(`/apps/users/${ id }`, { method: 'DELETE' })
-
-  // refetch User
-  fetchPaperworks()
-}
 
 const getCustomerName = (customer) => {
   if (! customer) {
@@ -175,62 +153,36 @@ const widgetData = ref([
     iconColor: 'warning',
   },
 ])
+
+const agents = ref([])
+const fetchAgents = async () => {
+  agents.value = []
+  const response = await $api('/agents?itemsPerPage=99999999&select=1')
+  for (let i = 0; i < response.agents.length; i++) {
+    agents.value.push({
+      title: [response.agents[i].name, response.agents[i].last_name].join(' '),
+      value: response.agents[i].id,
+    })
+  }
+}
+fetchAgents()
+
+const customers = ref([])
+const fetchCustomers = async () => {
+  customers.value = []
+  const response = await $api('/customers?itemsPerPage=99999999&select=1')
+  for (let i = 0; i < response.customers.length; i++) {
+    customers.value.push({
+      title: getCustomerName(response.customers[i]),
+      value: response.customers[i].id,
+    })
+  }
+}
+fetchCustomers()
 </script>
 
 <template>
   <section>
-    <!-- 👉 Widgets -->
-    <div class="d-flex mb-6">
-      <VRow>
-        <template
-          v-for="(data, id) in widgetData"
-          :key="id"
-        >
-          <VCol
-            cols="12"
-            md="3"
-            sm="6"
-          >
-            <VCard>
-              <VCardText>
-                <div class="d-flex justify-space-between">
-                  <div class="d-flex flex-column gap-y-1">
-                    <div class="text-body-1 text-high-emphasis">
-                      {{ data.title }}
-                    </div>
-                    <div class="d-flex gap-x-2 align-center">
-                      <h4 class="text-h4">
-                        {{ data.value }}
-                      </h4>
-                      <div
-                        class="text-base"
-                        :class="data.change > 0 ? 'text-success' : 'text-error'"
-                      >
-                        ({{ prefixWithPlus(data.change) }}%)
-                      </div>
-                    </div>
-                    <div class="text-sm">
-                      {{ data.desc }}
-                    </div>
-                  </div>
-                  <VAvatar
-                    :color="data.iconColor"
-                    variant="tonal"
-                    rounded
-                    size="42"
-                  >
-                    <VIcon
-                      :icon="data.icon"
-                      size="26"
-                    />
-                  </VAvatar>
-                </div>
-              </VCardText>
-            </VCard>
-          </VCol>
-        </template>
-      </VRow>
-    </div>
 
     <VCard class="mb-6">
       <VCardItem class="pb-4">
@@ -239,9 +191,25 @@ const widgetData = ref([
 
       <VCardText>
         <VRow>
-          <!-- 👉 Select Plan -->
+          <VCol cols="4">
+            <AppAutocomplete
+              v-model="selectedAgent"
+              label="Filtra per Agente"
+              clearable
+              :items="agents"
+              placeholder="Seleziona un Agente"
+            />
+          </VCol>
 
-          <!-- 👉 Select Status -->
+          <VCol cols="4">
+            <AppAutocomplete
+              v-model="selectedCustomer"
+              label="Filtra per Cliente"
+              clearable
+              :items="customers"
+              placeholder="Seleziona un Cliente"
+            />
+          </VCol>
 
         </VRow>
       </VCardText>
@@ -267,25 +235,25 @@ const widgetData = ref([
 
         <div class="app-user-search-filter d-flex align-center flex-wrap gap-4">
           <!-- 👉 Search  -->
-          <div style="inline-size: 15.625rem;">
+          <!-- <div style="inline-size: 15.625rem;">
             <AppTextField
               v-model="searchQuery"
               placeholder="Cerca"
             />
-          </div>
+          </div> -->
 
           <!-- 👉 Export button -->
-          <VBtn
+          <!-- <VBtn
             variant="tonal"
             color="secondary"
             prepend-icon="tabler-upload"
           >
             Esporta
-          </VBtn>
+          </VBtn> -->
 
           <!-- 👉 Add user button -->
           <VBtn
-            :to="{ name: 'workflow-paperworks-create' }"
+            :to="{ name: 'workflow-paperworks-create-wizard' }"
             v-if="$can('create', 'paperworks')"
             prepend-icon="tabler-plus"
           >
@@ -308,12 +276,12 @@ const widgetData = ref([
         @update:options="updateOptions"
       >
         <!-- Paperwork -->
-        <template #item.name="{ item }">
+        <template #item.id="{ item }">
           <div class="d-flex align-center gap-x-4">
             <div class="d-flex flex-column">
               <h6 class="text-base">
                 <RouterLink
-                  :to="{ name: 'workflow-customers-id', params: { id: item.id } }"
+                  :to="{ name: 'workflow-paperworks-id', params: { id: item.id } }"
                   class="font-weight-medium text-link"
                   :title="item.id"
                 >
@@ -346,7 +314,16 @@ const widgetData = ref([
         <template #item.user_id="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ [item.user?.name, item.user?.last_name].join(' ') }}
+              <RouterLink
+                v-if="item.user && $can('view', 'users')"
+                :to="{ name: 'admin-users-id', params: { id: item.user.id } }"
+                class="font-weight-medium text-link"
+              >
+                {{ [item.user.name, item.user.last_name].join(' ') }}
+              </RouterLink>
+              <template v-else>
+                {{ [item.user?.name, item.user?.last_name].join(' ') }}
+              </template>
             </div>
           </div>
         </template>
@@ -366,11 +343,11 @@ const widgetData = ref([
           </div>
         </template>
 
-        <!-- 👉 Added At -->
-        <template #item.added_at="{ item }">
+        <!-- 👉 Partner Sent At -->
+        <template #item.partner_sent_at="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ item.added_at }}
+              {{ item.partner_sent_at }}
             </div>
           </div>
         </template>
@@ -442,11 +419,11 @@ const widgetData = ref([
           </VChip>
         </template>
 
-        <!-- 👉 PDA -->
-        <template #item.pda="{ item }">
+        <!-- 👉 Pay -->
+        <template #item.pay="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              &euro; {{ item.pda }}
+              &euro; {{ item.pay }}
             </div>
           </div>
         </template>

@@ -36,7 +36,6 @@ Route::group(['prefix' => 'auth'], function () {
         Route::get('user', [AuthController::class, 'user']);
     });
 });
-Route::get('agents', [UsersController::class, 'agents']);
 
 Route::group(['middleware' => 'auth:sanctum'], function() {
 
@@ -62,12 +61,18 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('products/{id}', [ProductsController::class, 'show']);
     Route::put('products/{id}', [ProductsController::class, 'update']);
     Route::delete('products/{id}', [ProductsController::class, 'destroy']);
+    Route::get('products/{id}/feebands', [ProductsController::class, 'feebands']);
+    Route::post('products/{id}/feebands', [ProductsController::class, 'addFeeband']);
+    Route::delete('products/{id}/feebands/{feebandId}', [ProductsController::class, 'destroyFeeband']);
+    Route::put('products/{id}/feebands/{feebandId}', [ProductsController::class, 'updateFeeband']);
 
     Route::get('calendar', [CalendarController::class, 'index']);
     Route::post('calendar', [CalendarController::class, 'store']);
     Route::put('calendar/{id}', [CalendarController::class, 'update']);
     Route::delete('calendar/{id}', [CalendarController::class, 'destroy']);
     Route::get('appointments', [CalendarController::class, 'search']);
+    Route::get('calendar-users', [CalendarController::class, 'users']);
+    Route::get('calendar-cities', [CalendarController::class, 'cities']);
 
     Route::get('documents', [DocumentsController::class, 'index']);
     Route::post('documents', [DocumentsController::class, 'store']);
@@ -82,13 +87,33 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
 
     Route::get('roles', [RolesController::class, 'index']);
     Route::get('users', [UsersController::class, 'index']);
-    // Route::get('agents', [UsersController::class, 'agents']);
+    Route::get('users/{id}', [UsersController::class, 'show']);
+    Route::put('users/{id}', [UsersController::class, 'update']);
+    Route::post('users/{id}/relationships', [UsersController::class, 'addRelationship']);
+    Route::delete('users/{id}/relationships/{relatedId}', [UsersController::class, 'destroyRelationship']);
+
+    Route::get('users/{id}/brands', [UsersController::class, 'brands']);
+    Route::post('users/{id}/brands', [UsersController::class, 'addBrand']);
+    Route::patch('users/{id}/brands/{brandId}', [UsersController::class, 'updateBrand']);
+    Route::delete('users/{id}/brands/{brandId}', [UsersController::class, 'destroyBrand']);
+    Route::get('users/{id}/appointments', [UsersController::class, 'appointments']);
+
+    Route::get('agents', [UsersController::class, 'agents']);
+    Route::get('structures', [UsersController::class, 'structures']);
 
     Route::get('customers', [CustomersController::class, 'index']);
+    Route::get('customers-export', [CustomersController::class, 'export']);
     Route::get('customers/{id}', [CustomersController::class, 'show']);
     Route::post('customers', [CustomersController::class, 'store']);
     Route::put('customers/{id}', [CustomersController::class, 'update']);
+    Route::put('customers/{id}/confirm', [CustomersController::class, 'confirm']);
+    Route::get('cities', [CustomersController::class, 'cities']);
 
     Route::get('paperworks', [PaperworksController::class, 'index']);
+    Route::get('paperworks/{id}', [PaperworksController::class, 'show']);
+    Route::put('paperworks/{id}', [PaperworksController::class, 'update']);
+    Route::put('paperworks/{id}/confirm', [PaperworksController::class, 'confirm']);
+    Route::put('paperworks/{id}/confirm-partner-sent', [PaperworksController::class, 'confirmPartnerSent']);
+    Route::post('paperworks', [PaperworksController::class, 'store']);
 });
 
