@@ -3,9 +3,6 @@ import navItems from '@/navigation/vertical'
 
 // Components
 import Footer from '@/layouts/components/Footer.vue'
-import NavBarNotifications from '@/layouts/components/NavBarNotifications.vue'
-import NavSearchBar from '@/layouts/components/NavSearchBar.vue'
-import NavbarShortcuts from '@/layouts/components/NavbarShortcuts.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import UserProfile from '@/layouts/components/UserProfile.vue'
 
@@ -44,13 +41,13 @@ watch([
           />
         </IconBtn>
 
-        <NavSearchBar class="ms-lg-n3" />
+        <!-- <NavSearchBar class="ms-lg-n3" /> -->
 
         <VSpacer />
 
         <NavbarThemeSwitcher />
-        <NavbarShortcuts />
-        <NavBarNotifications class="me-1" />
+        <!-- <NavbarShortcuts /> -->
+        <!-- <NavBarNotifications class="me-1" /> -->
         <UserProfile />
       </div>
     </template>

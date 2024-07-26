@@ -2,7 +2,7 @@ export default [
   {
     title: 'Dashboard',
     icon: { icon: 'tabler-layout-dashboard' },
-    to: 'admin-users',
+    to: 'dashboards-crm',
     action: 'access',
     subject: 'dashboard',
   },

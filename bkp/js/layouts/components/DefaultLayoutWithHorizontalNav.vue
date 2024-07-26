@@ -6,7 +6,6 @@ import { themeConfig } from '@themeConfig'
 import Footer from '@/layouts/components/Footer.vue'
 import NavBarNotifications from '@/layouts/components/NavBarNotifications.vue'
 import NavSearchBar from '@/layouts/components/NavSearchBar.vue'
-import NavbarShortcuts from '@/layouts/components/NavbarShortcuts.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import UserProfile from '@/layouts/components/UserProfile.vue'
 import NavBarI18n from '@core/components/I18n.vue'
@@ -53,7 +52,7 @@ watch([
       />
 
       <NavbarThemeSwitcher />
-      <NavbarShortcuts />
+      <!-- <NavbarShortcuts /> -->
       <NavBarNotifications class="me-2" />
       <UserProfile />
     </template>
