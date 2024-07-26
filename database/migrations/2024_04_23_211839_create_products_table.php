@@ -19,14 +19,6 @@ return new class extends Migration
             $table->float('price')->nullable();
             $table->text('notes')->nullable();
             $table->integer('discount_percent')->nullable();
-            $table->string('fee_type')->default('FISSO');
-            $table->float('management_fee')->nullable();
-            $table->float('getter_fee')->nullable();
-            $table->float('agent_fee')->nullable();
-            $table->float('structure_fee')->nullable();
-            $table->float('salesperson_fee')->nullable();
-            $table->float('structure_top_fee')->nullable();
-            $table->text('fees')->nullable();
             $table->unsignedTinyInteger('enabled')->default(1);
             $table->timestamps();
             $table->softDeletes();

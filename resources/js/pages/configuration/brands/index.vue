@@ -36,7 +36,7 @@ const headers = [
     key: 'type',
   },
   {
-    title: 'Tipologia',
+    title: 'Settore',
     key: 'category',
   },
   {

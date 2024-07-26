@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="{{ asset('favicon.ico') }}" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vuexy - Vuejs Admin Dashboard Template</title>
+  <title>AlfacomCRM</title>
   <link rel="stylesheet" type="text/css" href="{{ asset('loader.css') }}" />
   @vite(['resources/js/main.js'])
 </head>
@@ -38,7 +38,7 @@
       </div>
     </div>
   </div>
-  
+
   <script>
     const loaderColor = localStorage.getItem('vuexy-initial-loader-bg') || '#FFFFFF'
     const primaryColor = localStorage.getItem('vuexy-initial-loader-color') || '#7367F0'

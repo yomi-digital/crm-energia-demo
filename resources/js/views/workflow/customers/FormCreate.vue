@@ -26,24 +26,6 @@ const emit = defineEmits([
   'customerData',
 ])
 
-// Fake data
-name.value = 'Mario'
-lastName.value = 'Rossi'
-businessName.value = 'Società SRL'
-taxIdCode.value = 'ABCDEF12G34H567I'
-vatNumber.value = '12345678901'
-email.value = 'mail@mail.com'
-phone.value = '1234567890'
-mobile.value = '1234567890'
-atecoCode.value = '123456'
-pec.value = 'pec@mail.com'
-uniqueCode.value = '123456'
-address.value = 'Via Roma 123'
-region.value = 'Lazio'
-province.value = 'RM'
-city.value = 'Roma'
-zip.value = '00100'
-
 const categories = ref([
   { title: 'N/A', value: 'all' },
   { title: 'Residenziale', value: 'Residenziale' },

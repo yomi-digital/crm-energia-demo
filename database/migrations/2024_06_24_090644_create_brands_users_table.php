@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('brand_id')->index();
             $table->unsignedBigInteger('user_id')->index();
+            $table->unsignedTinyInteger('race')->default(0);
+            $table->string('bonus')->default('');
             $table->string('pay_level')->nullable();
             $table->timestamps();
         });

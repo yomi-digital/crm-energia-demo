@@ -16,13 +16,6 @@ class Product extends Model
         'notes',
         'enabled',
         'discount_percent',
-        'fee_type',
-        'management_fee',
-        'getter_fee',
-        'agent_fee',
-        'structure_fee',
-        'structure_top_fee',
-        'salesperson_fee',
     ];
 
     public function brand()

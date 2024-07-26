@@ -112,7 +112,7 @@ const totalPaperworks = computed(() => paperworkData.value?.totalPaperworks)
       >
         <!-- id -->
         <template #item.id="{ item }">
-          <RouterLink :to="{ name: 'workflow-customers-id', params: { id: item.id } }">
+          <RouterLink :to="{ name: 'workflow-paperworks-id', params: { id: item.id } }">
             #{{ item.id }}
           </RouterLink>
         </template>

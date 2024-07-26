@@ -10,7 +10,7 @@ class UsersController extends Controller
     {
         $perPage = $request->get('itemsPerPage', 10);
 
-        $users = \App\Models\User::with(['roles', 'manager', 'structure']);
+        $users = \App\Models\User::with(['roles', 'manager', 'agency']);
 
         if ($request->get('role')) {
             $roleValue = $request->get('role');
@@ -63,6 +63,25 @@ class UsersController extends Controller
         ]);
     }
 
+    public function store(Request $request)
+    {
+        $user = new \App\Models\User($request->all());
+
+        if ($request->filled('password')) {
+            $user->password = bcrypt($request->get('password'));
+        }
+
+        $role = $request->get('role');
+        if (! $role) {
+            $role = 'agente';
+        }
+
+        $user->save();
+        $user->assignRole($role);
+
+        return response()->json($user, 201);
+    }
+
     public function agents(Request $request)
     {
         $agents = \App\Models\User::where('enabled', 1)
@@ -95,7 +114,7 @@ class UsersController extends Controller
 
     public function show(Request $request, $id)
     {
-        $user = \App\Models\User::with(['roles', 'manager', 'structure'])->whereId($id)->first();
+        $user = \App\Models\User::with(['roles', 'manager', 'agency'])->whereId($id)->first();
 
         if (! $user) {
             return response()->json(['message' => 'User not found'], 404);
@@ -199,7 +218,11 @@ class UsersController extends Controller
             ->whereNotIn('id', $userBrands)->get();
 
         foreach ($brands as $brand) {
-            $user->brands()->attach($brand, ['pay_level' => $request->get('pay_level')]);
+            $user->brands()->attach($brand, [
+                'race' => $request->get('race'),
+                'bonus' => $request->get('bonus'),
+                'pay_level' => $request->get('pay_level')
+            ]);
         }
 
         return response()->json(null, 201);

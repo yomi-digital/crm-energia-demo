@@ -17,13 +17,6 @@ trait ProductSeeder
                     'brand_id' => null,
                     'notes' => $entry['note'],
                     'discount_percent' => $entry['percentuale_sconto'],
-                    'getter_fee' => $entry['compenso_procacciatore'],
-                    'agent_fee' => $entry['compenso_agente'],
-                    'structure_fee' => $entry['compenso_struttura'],
-                    'salesperson_fee' => $entry['compenso_retevendita'],
-                    'structure_top_fee' => $entry['compenso_strutturetop'],
-                    'management_fee' => $entry['compenso_gestione'],
-                    'fees' => $entry['compensi'],
                     'enabled' => $entry['attivo'],
                     'deleted_by' => null,
                 ];

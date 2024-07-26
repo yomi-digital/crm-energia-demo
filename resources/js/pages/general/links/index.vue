@@ -36,12 +36,12 @@ const headers = [
     key: 'name',
   },
   {
-    title: 'URL',
-    key: 'url',
-  },
-  {
     title: 'Brand',
     key: 'brand_id',
+  },
+  {
+    title: 'URL',
+    key: 'url',
   },
   {
     title: '',

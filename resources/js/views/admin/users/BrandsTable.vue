@@ -17,6 +17,8 @@ const isLoading = ref(false)
 const isAddDialogVisible = ref(false)
 const selectedBrandsAdd = ref([])
 const selectedBrandsAddPayLevel = ref()
+const selectedBrandsAddRace = ref(0)
+const selectedBrandsAddBonus = ref()
 const isRemoveDialogVisible = ref(false)
 const selectedBrandsRemove = ref()
 
@@ -31,12 +33,20 @@ const headers = [
     key: 'type',
   },
   {
-    title: 'Tipologia',
+    title: 'Settore',
     key: 'category',
   },
   {
     title: 'Compenso',
     key: 'pivot.pay_level',
+  },
+  {
+    title: 'Gara',
+    key: 'pivot.race',
+  },
+  {
+    title: 'Bonus %',
+    key: 'pivot.bonus',
   },
   {
     title: '',
@@ -81,11 +91,15 @@ const addBrand = async () => {
     body: {
       brands: selectedBrandsAdd.value,
       pay_level: selectedBrandsAddPayLevel.value,
+      race: selectedBrandsAddRace.value,
+      bonus: selectedBrandsAddBonus.value,
     },
   })
   isAddDialogVisible.value = false
   selectedBrandsAdd.value = []
   selectedBrandsAddPayLevel.value = null
+  selectedBrandsAddRace.value = 0
+  selectedBrandsAddBonus.value = null
 
   fetchUserBrands()
 }
@@ -233,6 +247,24 @@ const updateBrandPayLevel = async (brand, payLevel) => {
           </div>
         </template>
 
+        <!-- 👉 Race -->
+        <template #item.pivot.race="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              {{ item.pivot.race ? 'SI' : 'NO' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- 👉 Bonus -->
+        <template #item.pivot.bonus="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              {{ item.pivot.bonus || '-' }}
+            </div>
+          </div>
+        </template>
+
         <!-- Actions -->
         <template #item.actions="{ item }">
           <IconBtn @click="selectBrandForRemove(item)">
@@ -304,6 +336,20 @@ const updateBrandPayLevel = async (brand, payLevel) => {
                 v-model="selectedBrandsAddPayLevel"
                 label="Compenso"
                 :items="payLevels"
+              />
+            </VCol>
+            <VCol cols="12">
+              <AppSelect
+                v-model="selectedBrandsAddRace"
+                label="Gara"
+                :items="[ { title: 'SI', value: 1 }, { title: 'NO', value: 0 } ]"
+              />
+            </VCol>
+            <VCol cols="12">
+              <AppTextField
+                v-model="selectedBrandsAddBonus"
+                label="Bonus"
+                placeholder="10"
               />
             </VCol>
           </VRow>

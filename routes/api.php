@@ -87,6 +87,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
 
     Route::get('roles', [RolesController::class, 'index']);
     Route::get('users', [UsersController::class, 'index']);
+    Route::post('users', [UsersController::class, 'store']);
     Route::get('users/{id}', [UsersController::class, 'show']);
     Route::put('users/{id}', [UsersController::class, 'update']);
     Route::post('users/{id}/relationships', [UsersController::class, 'addRelationship']);

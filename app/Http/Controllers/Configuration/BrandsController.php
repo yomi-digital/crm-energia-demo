@@ -48,7 +48,7 @@ class BrandsController extends Controller
         }
 
         if ($request->get('select') === '1') {
-            $brands = $brands->select('id', 'name');
+            $brands = $brands->select('id', 'name', 'type', 'category');
         }
 
         $brands = $brands->paginate($perPage);

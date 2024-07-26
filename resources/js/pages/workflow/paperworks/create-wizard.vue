@@ -155,6 +155,8 @@ const goToNextStep = () => {
 
 const isCreating = ref(false)
 
+const router = useRouter()
+
 const onSubmit = async () => {
   if (! createPaperworkData.value.paperworkReviewComplete.isPaperworkDetailsConfirmed) {
     return false
@@ -180,7 +182,7 @@ const onSubmit = async () => {
     }
   })
   isCreating.value = false
-  console.log(response)
+  router.push({ name: 'workflow-paperworks-id', params: { id: response.id } })
 }
 </script>
 

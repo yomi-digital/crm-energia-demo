@@ -206,19 +206,9 @@ const updateUserInfo = async (data) => {
             <VListItem v-if="props.userData.structure">
               <VListItemTitle>
                 <h6 class="text-h6">
-                  Struttura:
+                  Agenzia di Fatturazione:
                   <div class="d-inline-block text-body-1">
-                    <RouterLink
-                      v-if="$can('view', 'users')"
-                      :to="{ name: 'admin-users-id', params: { id: props.userData.structure_id } }"
-                      class="font-weight-medium text-link"
-                      :title="[props.userData.structure.name, props.userData.structure.last_name].join(' ').trim()"
-                    >
-                      {{ [props.userData.structure.name, props.userData.structure.last_name].join(' ').trim() }}
-                    </RouterLink>
-                    <template v-else>
-                      {{ [props.userData.structure.name, props.userData.structure.last_name].join(' ').trim() }}
-                    </template>
+                      {{ props.userData.structure.name }}
                   </div>
                 </h6>
               </VListItemTitle>
@@ -241,6 +231,7 @@ const updateUserInfo = async (data) => {
             v-if="$can('delete', 'users')"
             variant="tonal"
             color="error"
+            disabled="disabled"
           >
             Elimina
           </VBtn>

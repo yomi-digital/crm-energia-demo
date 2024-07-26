@@ -1,5 +1,5 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 
 const props = defineProps({
   isDrawerOpen: {
@@ -22,6 +22,8 @@ const refForm = ref()
 const name = ref('')
 const last_name = ref('')
 const email = ref('')
+// Generate random string for password
+const password = ref(Math.random().toString(36).slice(-10))
 const role = ref()
 const enabled = ref(1)
 
@@ -43,6 +45,7 @@ const onSubmit = () => {
         last_name: last_name.value,
         role: role.value,
         email: email.value,
+        password: password.value,
         enabled: enabled.value,
       })
       emit('update:isDrawerOpen', false)
@@ -113,6 +116,16 @@ const handleDrawerModelValueUpdate = val => {
                   :rules="[requiredValidator, emailValidator]"
                   label="Email"
                   placeholder="johndoe@email.com"
+                />
+              </VCol>
+
+              <!-- 👉 Password -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="password"
+                  :rules="[requiredValidator]"
+                  label="Password"
+                  placeholder=""
                 />
               </VCol>
 

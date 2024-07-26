@@ -1,9 +1,6 @@
 <script setup>
-import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
-import CreateDealBackgroundDark from '@images/pages/DealTypeBackground-dark.png'
-import CreateDealBackgroundLight from '@images/pages/DealTypeBackground-light.png'
-import energy from '@images/svg/energy.svg'
-import phone from '@images/svg/phone-call.svg'
+import energy from '@images/svg/energy.svg';
+import phone from '@images/svg/phone-call.svg';
 
 const props = defineProps({
   formData: {
@@ -13,8 +10,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:formData'])
-
-const createDealBackground = useGenerateImageVariant(CreateDealBackgroundLight, CreateDealBackgroundDark)
 
 const paperworkTypes = [
   {
@@ -74,28 +69,21 @@ const contractTypes = ref([
   { title: 'VOLTURA', value: 'VOLTURA' },
   { title: 'SWITCH', value: 'SWITCH' },
 ])
+const contractTypesMobile = ref([
+  { title: 'NUOVA LINEA', value: 'NUOVA LINEA' },
+  { title: 'PORTABILITÀ', value: 'PORTABILITÀ' },
+])
 </script>
 
 <template>
   <VForm>
     <VRow>
-      <!-- 👉 Shopping girl image -->
-      <!-- <VCol cols="12">
-        <div class="d-flex align-center justify-center w-100 deal-type-image-wrapper border rounded px-5 pt-2 pb-5">
-          <VImg :src="sittingGirlWithLaptop" />
-          <VImg
-            :src="createDealBackground"
-            class="position-absolute deal-type-background-img d-md-block d-none"
-          />
-        </div>
-      </VCol> -->
-
       <VCol cols="12">
         <CustomRadiosWithIcon
           v-model:selected-radio="formData.type"
           :radio-content="paperworkTypes"
           :grid-column="{ cols: '12', sm: '6' }"
-          @change="formData.energy_type = null"
+          @change="formData.energy_type = null; formData.category = null"
         />
       </VCol>
 
@@ -106,7 +94,7 @@ const contractTypes = ref([
         <AppSelect
           v-model="formData.category"
           label="Tipo Contratto"
-          :items="contractTypes"
+          :items="formData.type === 'ENERGIA' ? contractTypes : contractTypesMobile"
           placeholder="Seleziona un tipo contratto"
         />
       </VCol>
@@ -152,7 +140,7 @@ const contractTypes = ref([
         sm="6"
       >
         <AppSelect
-          v-show="formData.energy_type === 'MOBILE'"
+          v-show="formData.energy_type === 'MOBILE' || formData.type === 'FISSO_MOBILE'"
           v-model="formData.mobile_type"
           label="Tipologia Mobile"
           :items="[{ title: 'MNP', value: 'MNP' }, { title: 'NIP', value: 'NIP' }]"

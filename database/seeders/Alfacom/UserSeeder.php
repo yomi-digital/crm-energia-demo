@@ -11,51 +11,51 @@ trait UserSeeder
         $testAdmin = User::create([
             'name' => 'Test User',
             'email' => 'admin@alfacom.com',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('pas_sw&8o?.t6rd'),
         ]);
         $testAdmin->assignRole('gestione');
-        $testGestione = User::create([
-            'name' => 'Gestione',
-            'email' => 'gestione@alfacom.com',
-            'password' => bcrypt('password'),
-        ]);
-        $testGestione->assignRole('gestione');
-        $testBackoffice = User::create([
-            'name' => 'Backoffice',
-            'email' => 'backoffice@alfacom.com',
-            'password' => bcrypt('password'),
-        ]);
-        $testBackoffice->assignRole('backoffice');
-        $testAgente = User::create([
-            'name' => 'Agente',
-            'email' => 'agente@alfacom.com',
-            'password' => bcrypt('password'),
-        ]);
-        $testAgente->assignRole('agente');
-        $testStruttura = User::create([
-            'name' => 'Struttura',
-            'email' => 'struttura@alfacom.com',
-            'password' => bcrypt('password'),
-        ]);
-        $testStruttura->assignRole('struttura');
-        $testTelemarketing = User::create([
-            'name' => 'Telemarketing',
-            'email' => 'telemarketing@alfacom.com',
-            'password' => bcrypt('password'),
-        ]);
-        $testTelemarketing->assignRole('telemarketing');
-        $testTeamleader = User::create([
-            'name' => 'Team Leader',
-            'email' => 'teamleader@alfacom.com',
-            'password' => bcrypt('password'),
-        ]);
-        $testTeamleader->assignRole('team leader');
-        $testAmministrazione = User::create([
-            'name' => 'Amministrazione',
-            'email' => 'amministrazione@alfacom.com',
-            'password' => bcrypt('password'),
-        ]);
-        $testAmministrazione->assignRole('amministrazione');
+        // $testGestione = User::create([
+        //     'name' => 'Gestione',
+        //     'email' => 'gestione@alfacom.com',
+        //     'password' => bcrypt('password'),
+        // ]);
+        // $testGestione->assignRole('gestione');
+        // $testBackoffice = User::create([
+        //     'name' => 'Backoffice',
+        //     'email' => 'backoffice@alfacom.com',
+        //     'password' => bcrypt('password'),
+        // ]);
+        // $testBackoffice->assignRole('backoffice');
+        // $testAgente = User::create([
+        //     'name' => 'Agente',
+        //     'email' => 'agente@alfacom.com',
+        //     'password' => bcrypt('password'),
+        // ]);
+        // $testAgente->assignRole('agente');
+        // $testStruttura = User::create([
+        //     'name' => 'Struttura',
+        //     'email' => 'struttura@alfacom.com',
+        //     'password' => bcrypt('password'),
+        // ]);
+        // $testStruttura->assignRole('struttura');
+        // $testTelemarketing = User::create([
+        //     'name' => 'Telemarketing',
+        //     'email' => 'telemarketing@alfacom.com',
+        //     'password' => bcrypt('password'),
+        // ]);
+        // $testTelemarketing->assignRole('telemarketing');
+        // $testTeamleader = User::create([
+        //     'name' => 'Team Leader',
+        //     'email' => 'teamleader@alfacom.com',
+        //     'password' => bcrypt('password'),
+        // ]);
+        // $testTeamleader->assignRole('team leader');
+        // $testAmministrazione = User::create([
+        //     'name' => 'Amministrazione',
+        //     'email' => 'amministrazione@alfacom.com',
+        //     'password' => bcrypt('password'),
+        // ]);
+        // $testAmministrazione->assignRole('amministrazione');
 
         mysqli_query($mysqli, 'ALTER TABLE datatype_accounts ADD new_id BIGINT');
         $legacyUsers = $mysqli->query("SELECT * FROM datatype_accounts")->fetch_all(MYSQLI_ASSOC);
@@ -84,7 +84,7 @@ trait UserSeeder
                     'password' => $user['password'],
                     'agent_code' => $user['codice_agente'],
                     'manager_id' => $user['id_capoarea'],
-                    'structure_id' => $user['id_struttura'],
+                    // 'structure_id' => $user['id_struttura'],
                     'commercial_profile' => $user['profilo_commerciale'],
                     'area' => $user['area'],
                     'team_leader' => $user['team_leader'] === 'SI' ? 1 : 0,
@@ -104,6 +104,11 @@ trait UserSeeder
             }
         }
 
+        /**
+         * STOP HERE. Associations will be done manually.
+         */
+        return;
+
         // Associate manager id, structure id, agents
         foreach ($legacyUsers as $row) {
             $user = User::where('legacy_id', $row['id'])->first();
@@ -117,12 +122,12 @@ trait UserSeeder
                     $user->manager_id = $manager->id;
                 }
             }
-            if (is_numeric($row['id_struttura'])) {
-                $structure = \App\Models\Structure::where('legacy_id', $row['id_struttura'])->first();
-                if ($structure) {
-                    $user->structure_id = $structure->id;
-                }
-            }
+            // if (is_numeric($row['id_struttura'])) {
+            //     $structure = \App\Models\Structure::where('legacy_id', $row['id_struttura'])->first();
+            //     if ($structure) {
+            //         $user->structure_id = $structure->id;
+            //     }
+            // }
 
             if ($user->hasRole('struttura')) {
                 if ($row['agenti_assegnati'] && strlen($row['agenti_assegnati'])) {

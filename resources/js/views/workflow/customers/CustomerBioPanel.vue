@@ -333,6 +333,7 @@ const confirmCustomer = async () => {
             v-if="$can('delete', 'customers')"
             variant="tonal"
             color="error"
+            disabled="disabled"
           >
             Elimina
           </VBtn>

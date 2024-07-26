@@ -6,13 +6,6 @@ const name = ref('')
 const notes = ref('')
 const price = ref(0)
 const discountPercentage = ref(0)
-const feeType = ref('FISSO')
-const getterFee = ref(0)
-const agentFee = ref(0)
-const structureFee = ref(0)
-const salespersonFee = ref(0)
-const structureTopFee = ref(0)
-const managementFee = ref(0)
 const enabled = ref(true)
 
 const refForm = ref()
@@ -40,13 +33,6 @@ const createProduct = async () => {
     notes: notes.value,
     price: price.value,
     discount_percent: discountPercentage.value,
-    fee_type: feeType.value,
-    getter_fee: getterFee.value,
-    agent_fee: agentFee.value,
-    structure_fee: structureFee.value,
-    salesperson_fee: salespersonFee.value,
-    structure_top_fee: structureTopFee.value,
-    management_fee: managementFee.value,
     enabled: enabled.value,
   }
 
@@ -65,13 +51,6 @@ const createProduct = async () => {
     })
   }
 }
-
-const feeTypes = [
-  { title: 'Fisso', value: 'FISSO' },
-  { title: 'Percentuale', value: 'PERCENTUALE' },
-  { title: 'Mensilità', value: 'MESE' },
-  { title: 'Consumo', value: 'CONSUMO' },
-]
 </script>
 
 <template>
@@ -136,107 +115,6 @@ const feeTypes = [
         <AppTextField
           v-model="discountPercentage"
           label="% Sconto Appuntamento"
-          placeholder="0"
-          :rules="[requiredValidator]"
-        />
-      </VCol>
-
-      <VCol
-        cols="12"
-        md="12"
-      >
-        <h5 class="text-h5 mt-6">
-          Compensi
-        </h5>
-      </VCol>
-
-      <!-- 👉 Fee type -->
-      <VCol
-        cols="12"
-        md="12"
-      >
-        <AppSelect
-          v-model="feeType"
-          label="Tipo di compenso"
-          placeholder="Fisso"
-          :rules="[requiredValidator]"
-          :items="feeTypes"
-        />
-      </VCol>
-
-      <!-- 👉 Management fee -->
-      <VCol
-        cols="12"
-        md="6"
-      >
-        <AppTextField
-          v-model="managementFee"
-          label="Gestione"
-          placeholder="0"
-          :rules="[requiredValidator]"
-        />
-      </VCol>
-
-      <!-- 👉 Getter fee -->
-      <VCol
-        cols="12"
-        md="6"
-      >
-        <AppTextField
-          v-model="getterFee"
-          label="Procacciatore"
-          placeholder="0"
-          :rules="[requiredValidator]"
-        />
-      </VCol>
-
-      <!-- 👉 Agent fee -->
-      <VCol
-        cols="12"
-        md="6"
-      >
-        <AppTextField
-          v-model="agentFee"
-          label="Agente"
-          placeholder="0"
-          :rules="[requiredValidator]"
-        />
-      </VCol>
-
-      <!-- 👉 Structure fee -->
-      <VCol
-        cols="12"
-        md="6"
-      >
-        <AppTextField
-          v-model="structureFee"
-          label="Struttura"
-          placeholder="0"
-          :rules="[requiredValidator]"
-        />
-      </VCol>
-
-      <!-- 👉 Structure top fee -->
-      <VCol
-        cols="12"
-        md="6"
-      >
-        <AppTextField
-          v-model="structureTopFee"
-          label="Struttura Top"
-          placeholder="0"
-          :rules="[requiredValidator]"
-        />
-      </VCol>
-
-      <!-- 👉 Salesperson fee -->
-      <VCol
-        cols="12"
-        md="6"
-      >
-        <AppTextField
-          v-model="salespersonFee"
-          label="Venditore"
           placeholder="0"
           :rules="[requiredValidator]"
         />

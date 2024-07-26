@@ -27,7 +27,7 @@ class User extends Authenticatable
         'team_leader',
         'extractor',
         'manager_id',
-        'structure_id',
+        'agency_id',
         'commercial_profile',
         'area',
         'agent_code',
@@ -70,7 +70,7 @@ class User extends Authenticatable
 
     public function brands()
     {
-        return $this->belongsToMany(Brand::class, 'brands_users', 'user_id', 'brand_id')->withPivot('pay_level');
+        return $this->belongsToMany(Brand::class, 'brands_users', 'user_id', 'brand_id')->withPivot(['race', 'bonus', 'pay_level']);
     }
 
     public function manager()
@@ -78,9 +78,9 @@ class User extends Authenticatable
         return $this->hasOne(Manager::class, 'id', 'manager_id');
     }
 
-    public function structure()
+    public function agency()
     {
-        return $this->hasOne(Structure::class, 'id', 'structure_id');
+        return $this->hasOne(Agency::class, 'id', 'agency_id');
     }
 
     public function relationships()

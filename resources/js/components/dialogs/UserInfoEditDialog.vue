@@ -13,7 +13,7 @@ const props = defineProps({
       email: '',
       agent_code: '',
       manager_id: '',
-      structure_id: '',
+      agency_id: '',
       commercial_profile: '',
       area: '',
       team_leader: 0,
@@ -79,18 +79,18 @@ const fetchUsers = async () => {
 }
 await fetchUsers()
 
-const structures = ref([])
-const fetchStructures = async () => {
-  structures.value = []
-  const response = await $api('/structures?itemsPerPage=99999999&select=1')
-  for (let i = 0; i < response.structures.length; i++) {
-    structures.value.push({
-      title: [response.structures[i].name, response.structures[i].last_name].join(' '),
+const agencies = ref([])
+const fetchAgencies = async () => {
+  agencies.value = []
+  const response = await $api('/agencies?itemsPerPage=99999999&select=1')
+  for (let i = 0; i < response.agencies.length; i++) {
+    agencies.value.push({
+      title: response.structures[i].name,
       value: response.structures[i].id,
     })
   }
 }
-await fetchStructures()
+await fetchAgencies()
 </script>
 
 <template>
@@ -210,17 +210,17 @@ await fetchStructures()
               />
             </VCol>
 
-            <!-- 👉 Structure -->
+            <!-- 👉 Agency -->
             <VCol
               cols="12"
               md="12"
             >
               <AppAutocomplete
-                v-model="userData.structure_id"
-                label="Struttura"
-                :items="structures"
+                v-model="userData.agency_id"
+                label="Agenzia di Fatturazione"
+                :items="agencies"
                 clearable
-                placeholder="Seleziona una Struttura"
+                placeholder="Seleziona una Agenzia"
               />
             </VCol>
 

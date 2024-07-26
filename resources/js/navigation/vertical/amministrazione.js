@@ -11,15 +11,15 @@ export default [
     action: 'access',
     subject: 'users',
   },
-  {
-    title: 'Logs',
-    icon: { icon: 'tabler-article' },
-    action: 'access',
-    subject: 'logs',
-    children: [
-      { title: 'Account', to: 'admin-users', action: 'access', subject: 'logs' },
-      { title: 'Login', to: 'admin-users', action: 'access', subject: 'logs' },
-      { title: 'Archivio Notifiche', to: 'admin-users', action: 'access', subject: 'logs' },
-    ],
-  }
+  // {
+  //   title: 'Logs',
+  //   icon: { icon: 'tabler-article' },
+  //   action: 'access',
+  //   subject: 'logs',
+  //   children: [
+  //     { title: 'Account', to: 'admin-users', action: 'access', subject: 'logs' },
+  //     { title: 'Login', to: 'admin-users', action: 'access', subject: 'logs' },
+  //     { title: 'Archivio Notifiche', to: 'admin-users', action: 'access', subject: 'logs' },
+  //   ],
+  // }
 ]

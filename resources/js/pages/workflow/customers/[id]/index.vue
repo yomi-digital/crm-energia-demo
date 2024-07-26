@@ -17,10 +17,6 @@ const tabs = [
     icon: 'tabler-file-text',
     title: 'Pratiche',
   },
-  {
-    icon: 'tabler-calendar',
-    title: 'Appuntamenti',
-  },
 ]
 
 const {
@@ -49,32 +45,7 @@ const updatedCustomerData = (newData) => {
       md="7"
       lg="8"
     >
-      <VTabs
-        v-model="customerTab"
-        class="v-tabs-pill"
-      >
-        <VTab
-          v-for="tab in tabs"
-          :key="tab.icon"
-        >
-          <VIcon
-            :size="18"
-            :icon="tab.icon"
-            class="me-1"
-          />
-          <span>{{ tab.title }}</span>
-        </VTab>
-      </VTabs>
-
-      <VWindow
-        v-model="customerTab"
-        class="mt-6 disable-tab-transition"
-        :touch="false"
-      >
-        <VWindowItem>
-          <CustomerTabPaperworks />
-        </VWindowItem>
-      </VWindow>
+      <CustomerTabPaperworks />
     </VCol>
   </VRow>
   <div v-else>

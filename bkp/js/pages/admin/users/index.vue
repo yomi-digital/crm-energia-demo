@@ -1,5 +1,5 @@
 <script setup>
-import AddNewUserDrawer from '@/views/admin/users/AddNewUserDrawer.vue'
+import AddNewUserDrawer from '@/views/admin/users/AddNewUserDrawer.vue';
 
 // 👉 Store
 const searchQuery = ref('')
@@ -45,8 +45,8 @@ const headers = [
     key: 'manager',
   },
   {
-    title: 'Struttura',
-    key: 'structure',
+    title: 'Agenzia',
+    key: 'agency',
   },
   {
     title: 'Area',
@@ -462,15 +462,10 @@ const widgetData = ref([
           </div>
         </template>
 
-        <!-- Structure -->
-        <template #item.structure="{ item }">
+        <!-- Agency -->
+        <template #item.agency="{ item }">
           <div class="text-body-1 text-high-emphasis">
-            <RouterLink v-if="item.structure"
-              :to="{ name: 'apps-user-view-id', params: { id: item.structure_id } }"
-              class="font-weight-medium text-link"
-            >
-              {{ [item.structure.name, item.structure.last_name].join(' ') }}
-            </RouterLink>
+            {{ item.agency.name }}
           </div>
         </template>
 
