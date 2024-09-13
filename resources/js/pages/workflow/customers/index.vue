@@ -114,7 +114,7 @@ const brands = [
   },
 ]
 const fetchBrands = async (query) => {
-  const response = await $api('/brands?itemsPerPage=100&select=1')
+  const response = await $api('/brands?itemsPerPage=999999&select=1')
   for (const brand of response.brands) {
     brands.push({
       title: brand.name,

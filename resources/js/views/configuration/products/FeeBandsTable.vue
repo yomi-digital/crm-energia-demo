@@ -81,7 +81,7 @@ const headers = [
     key: 'structure_top_fee',
   },
   {
-    title: 'Venditore',
+    title: 'Partner',
     key: 'salesperson_fee',
   },
   {

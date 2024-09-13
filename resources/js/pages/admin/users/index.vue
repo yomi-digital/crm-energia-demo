@@ -33,6 +33,7 @@ const headers = [
   {
     title: 'Ruolo',
     key: 'role',
+    sortable: false,
   },
   {
     title: 'Codice Agente',
@@ -43,12 +44,9 @@ const headers = [
     key: 'enabled',
   },
   {
-    title: 'Capo Area',
-    key: 'manager',
-  },
-  {
     title: 'Agenzia',
     key: 'agency',
+    sortable: false,
   },
   {
     title: 'Area',
@@ -365,18 +363,6 @@ const deleteUser = async id => {
               :icon="item.enabled ? 'tabler-check' : 'tabler-x'"
               :color="resolveUserStatusVariant(item.enabled)"
             />
-        </template>
-
-        <!-- Manager -->
-        <template #item.manager="{ item }">
-          <div class="text-body-1 text-high-emphasis">
-            <RouterLink v-if="item.manager"
-              :to="{ name: 'admin-users-id', params: { id: item.manager_id } }"
-              class="font-weight-medium text-link"
-            >
-              {{ [item.manager.name, item.manager.last_name].join(' ') }}
-            </RouterLink>
-          </div>
         </template>
 
         <!-- Agency -->

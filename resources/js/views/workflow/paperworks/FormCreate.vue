@@ -95,7 +95,7 @@ const brands = ref([])
 const searchBrand = ref()
 const loadingBrands = ref(false)
 const fetchBrands = async (query) => {
-  const response = await $api('/brands?itemsPerPage=100&select=1&q=' + query)
+  const response = await $api('/brands?itemsPerPage=999999&select=1&q=' + query)
   brands.value = response.brands.map(brand => ({
     title: brand.name,
     value: brand.id,

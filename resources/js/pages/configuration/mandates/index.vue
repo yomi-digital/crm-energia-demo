@@ -36,6 +36,10 @@ const headers = [
     key: 'notes',
   },
   {
+    title: 'Inizio Incarico',
+    key: 'start_date',
+  },
+  {
     title: '',
     key: 'actions',
     sortable: false,
@@ -167,6 +171,15 @@ const editMandate = mandate => {
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
               {{ item.notes }}
+            </div>
+          </div>
+        </template>
+
+        <!-- 👉 Start Date -->
+        <template #item.start_date="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              {{ item.start_date }}
             </div>
           </div>
         </template>

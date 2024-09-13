@@ -228,7 +228,7 @@ const onStartDateChange = value => {
               <VCol cols="12" md="6">
                 <AppTextField
                   v-model="feeband.salesperson_fee"
-                  label="Venditore"
+                  label="Partner"
                   placeholder="0"
                   :rules="[requiredValidator]"
                 />

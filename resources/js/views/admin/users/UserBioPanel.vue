@@ -160,9 +160,9 @@ const updateUserInfo = async (data) => {
             <VListItem>
               <VListItemTitle>
                 <h6 class="text-h6">
-                  Estrattore:
+                  Agenzia di Fatturazione:
                   <div class="d-inline-block text-body-1">
-                    {{ props.userData.extractor ? 'Sì' : 'No' }}
+                    {{ props.userData.agency ? props.userData.agency.name : 'N/A' }}
                   </div>
                 </h6>
               </VListItemTitle>
@@ -175,28 +175,6 @@ const updateUserInfo = async (data) => {
                   Abilitato:
                   <div class="d-inline-block text-body-1">
                     {{ props.userData.enabled ? 'Sì' : 'No' }}
-                  </div>
-                </h6>
-              </VListItemTitle>
-            </VListItem>
-
-            <!-- Manager -->
-            <VListItem v-if="props.userData.manager">
-              <VListItemTitle>
-                <h6 class="text-h6">
-                  Capo Area:
-                  <div class="d-inline-block text-body-1">
-                    <RouterLink
-                      v-if="$can('view', 'users')"
-                      :to="{ name: 'admin-users-id', params: { id: props.userData.manager_id } }"
-                      class="font-weight-medium text-link"
-                      :title="[props.userData.manager.name, props.userData.manager.last_name].join(' ').trim()"
-                    >
-                      {{ [props.userData.manager.name, props.userData.manager.last_name].join(' ').trim() }}
-                    </RouterLink>
-                    <template v-else>
-                      {{ [props.userData.manager.name, props.userData.manager.last_name].join(' ').trim() }}
-                    </template>
                   </div>
                 </h6>
               </VListItemTitle>

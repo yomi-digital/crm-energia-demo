@@ -85,8 +85,8 @@ const fetchAgencies = async () => {
   const response = await $api('/agencies?itemsPerPage=99999999&select=1')
   for (let i = 0; i < response.agencies.length; i++) {
     agencies.value.push({
-      title: response.structures[i].name,
-      value: response.structures[i].id,
+      title: response.agencies[i].name,
+      value: response.agencies[i].id,
     })
   }
 }
@@ -196,20 +196,6 @@ await fetchAgencies()
               />
             </VCol>
 
-            <!-- 👉 Manager -->
-            <VCol
-              cols="12"
-              md="12"
-            >
-              <AppAutocomplete
-                v-model="userData.manager_id"
-                label="Capo Area"
-                :items="users"
-                clearable
-                placeholder="Seleziona un Capo Area"
-              />
-            </VCol>
-
             <!-- 👉 Agency -->
             <VCol
               cols="12"
@@ -235,20 +221,6 @@ await fetchAgencies()
                 placeholder="Seleziona"
                 :rules="[requiredValidator]"
                 :items="[{ title: 'SI', value: 1 }, { title: 'NO', value: 0 }]"
-              />
-            </VCol>
-
-            <!-- 👉 Extractor -->
-            <VCol
-              cols="12"
-              md="6"
-            >
-              <AppSelect
-                v-model="userData.extractor"
-                label="Estrattore"
-                placeholder="Seleziona"
-                :rules="[requiredValidator]"
-                :items="[{ title: 'Si', value: 1 }, { title: 'NO', value: 0 }]"
               />
             </VCol>
 

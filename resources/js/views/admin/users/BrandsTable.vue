@@ -27,26 +27,32 @@ const headers = [
 {
     title: 'Brand',
     key: 'name',
+    sortable: false,
   },
   {
     title: 'Tipo',
     key: 'type',
+    sortable: false,
   },
   {
     title: 'Settore',
     key: 'category',
+    sortable: false,
   },
   {
     title: 'Compenso',
     key: 'pivot.pay_level',
+    sortable: false,
   },
   {
     title: 'Gara',
     key: 'pivot.race',
+    sortable: false,
   },
   {
     title: 'Bonus %',
     key: 'pivot.bonus',
+    sortable: false,
   },
   {
     title: '',
@@ -260,7 +266,7 @@ const updateBrandPayLevel = async (brand, payLevel) => {
         <template #item.pivot.bonus="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
-              {{ item.pivot.bonus || '-' }}
+              {{ item.pivot.bonus + '%' || '-' }}
             </div>
           </div>
         </template>

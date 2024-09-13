@@ -40,6 +40,7 @@ const headers = [
   {
     title: 'Prodotto',
     key: 'product_id',
+    sortable: false,
   },
   {
     title: 'Esito Partner',
@@ -52,6 +53,7 @@ const headers = [
   {
     title: 'Compenso',
     key: 'Pay',
+    sortable: false,
   },
 ]
 

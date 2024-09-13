@@ -58,12 +58,17 @@ const headers = [
   },
 ]
 
+const selectedType = ref('')
+const selectedCategory = ref('')
+
 const {
   data: brandsData,
   execute: fetchBrands,
 } = await useApi(createUrl('/brands', {
   query: {
     q: searchQuery,
+    type: selectedType,
+    category: selectedCategory,
     with: 'products',
     itemsPerPage,
     page,
@@ -113,11 +118,62 @@ const editBrand = brand => {
   selectedBrand.value = brand
   isEditBrandDrawerVisible.value = true
 }
+
+const types = [
+  { value: '', title: 'Tutti' },
+  { value: 'Residenziale', title: 'Residenziale' },
+  { value: 'Business', title: 'Business' },
+]
+const categories = [
+  { value: '', title: 'Tutti' },
+  { value: 'Telefonia', title: 'Telefonia' },
+  { value: 'Energia', title: 'Energia' },
+  { value: 'Altro', title: 'Altro' },
+]
 </script>
 
 <template>
   <section>
     <VCard class="mb-6">
+      <VCardItem class="pb-4">
+        <VCardTitle>Filtri</VCardTitle>
+      </VCardItem>
+
+      <VCardText>
+        <VRow>
+          <!-- 👉 Select Type -->
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <AppAutocomplete
+              v-model="selectedType"
+              label="Filtra per Tipo"
+              clearable
+              :items="types"
+              placeholder="Seleziona un tipo"
+            />
+          </VCol>
+
+          <!-- 👉 Select Category -->
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <AppAutocomplete
+              v-model="selectedCategory"
+              label="Filtra per Settore"
+              clearable
+              :items="categories"
+              placeholder="Seleziona un settore"
+            />
+          </VCol>
+
+        </VRow>
+      </VCardText>
+
+      <VDivider />
+
       <VCardText class="d-flex flex-wrap gap-4">
         <div class="me-3 d-flex gap-3">
           <AppSelect

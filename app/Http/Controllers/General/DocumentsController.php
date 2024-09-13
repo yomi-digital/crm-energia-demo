@@ -9,91 +9,119 @@ class DocumentsController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = $request->get('itemsPerPage', 10);
+        // TODO Get the brands the user is allowed to see
+        $brands = \App\Models\Brand::orderBy('name', 'asc')->get();
+        $brandsWithoutFolder = $brands->pluck('name')->toArray();
 
-        $documents = \App\Models\Document::with('brand');
+        $path = $request->get('path', '');
+        $data = \Storage::disk('do')->listContents('/documents/' . $path, false);
+        $files = [];
+        foreach ($data as $file) {
+            $path = str_replace('documents/', '', $file['path']);
+            $split = explode('/', $path);
+            $name = $split[count($split) - 1];
+            $brand = $split[0];
+            if (in_array($brand, $brandsWithoutFolder)) {
+                $brandsWithoutFolder = array_diff($brandsWithoutFolder, [$brand]);
+            }
+            $isAllowed = $brands->where('name', $brand)->count() > 0;
+            if (! $isAllowed) {
+                continue;
+            }
 
-        if ($request->get('q')) {
-            $search = $request->get('q');
-            $documents->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('category', 'like', "%{$search}%");
-            });
+            $breadcrumbs = [];
+            $breadcrumbs[] = [
+                'title' => 'Documenti',
+                'path' => '',
+            ];
+            foreach ($split as $index => $folder) {
+                $breadcrumbs[] = [
+                    'title' => $folder,
+                    'path' => implode('/', array_slice($split, 0, $index + 1)),
+                ];
+            }
+
+            $files[] = [
+                'type' => $file['type'],
+                'path' => $path,
+                'breadcrumbs' => $breadcrumbs,
+                'title' => $name,
+                'icon' => $file['type'] === 'dir' ? 'tabler-folder-filled' : 'tabler-file',
+            ];
         }
-
-        if ($request->get('sortBy')) {
-            $documents->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
-        }
-
-        $documents = $documents->paginate($perPage);
 
         return response()->json([
-            'documents' => $documents->getCollection(),
-            'totalPages' => $documents->lastPage(),
-            'totalDocuments' => $documents->total(),
-            'page' => $documents->currentPage()
+            'documents' => $files,
+            'brands_without_folder' => array_values($brandsWithoutFolder),
         ]);
     }
 
-    public function store(Request $request)
+    public function newFolder(Request $request)
     {
         $request->validate([
             'name' => 'required',
-            'category' => 'required',
-            'file_path' => 'required'
         ]);
 
+        $path = $request->get('path', '');
+        $name = $request->get('name', '');
 
-        $document = new \App\Models\Document;
-        $document->name = $request->name;
-        $document->category = $request->category;
-        $document->url = $request->file_path;
-        if ($request->brand_id) {
-            $document->brand_id = $request->brand_id;
-        }
-        $document->added_at = now();
+        \Storage::disk('do')->makeDirectory('/documents/' . $path . '/' . $name);
 
-        $document->save();
-
-        return response()->json($document);
+        return response()->json([
+            'message' => 'Folder created'
+        ]);
     }
 
-    public function update(Request $request, $id)
+    public function list(Request $request) {
+        $path = $request->get('path', '');
+        $data = \Storage::disk('do')->listContents('/documents/' . $path, false);
+        $files = [];
+        foreach ($data as $file) {
+            $path = str_replace('documents/', '', $file['path']);
+            $split = explode('/', $path);
+            $name = end($split);
+
+            $files[] = [
+                'type' => $file['type'],
+                'path' => $path,
+                'name' => $name,
+            ];
+        }
+
+        return response()->json([
+            'files' => $files
+        ]);
+    }
+
+    public function destroy(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'category' => 'required',
+            'path' => 'required',
         ]);
 
-        $document = \App\Models\Document::find($id);
-        $document->name = $request->name;
-        $document->category = $request->category;
-        if ($request->brand_id) {
-            $document->brand_id = $request->brand_id;
-        }
+        $path = $request->get('path', '');
 
-        $document->save();
-
-        return response()->json($document);
-    }
-
-    public function destroy(Request $request, $id)
-    {
-        $document = \App\Models\Document::find($id);
-        $document->delete();
-
-        return response()->json(['message' => 'Document removed']);
-    }
-
-    public function download(Request $request, $id)
-    {
-        $document = \App\Models\Document::find($id);
-        $extension = pathinfo($document->url, PATHINFO_EXTENSION);
-
-        if ($request->inline) {
-            return response()->download(storage_path('app/' . $document->url), $document->name . '.' . $extension, [], 'inline');
+        // If folder, delete folder, otherwise delete file
+        $isFolder = $request->get('type') === 'dir';
+        if (! $isFolder) {
+            \Storage::disk('do')->delete('/documents/' . $path);
         } else {
-            return response()->download(storage_path('app/' . $document->url), $document->name . '.' . $extension);
+            \Storage::disk('do')->deleteDirectory('/documents/' . $path);
         }
+
+        return response()->json([
+            'message' => 'Deleted'
+        ]);
+    }
+
+    public function download(Request $request)
+    {
+        $request->validate([
+            'path' => 'required',
+        ]);
+
+        $path = $request->get('path', '');
+
+        return \Storage::disk('do')->download('/documents/' . $path);
     }
 }

@@ -1,5 +1,5 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 
 const props = defineProps({
   isDrawerOpen: {
@@ -17,6 +17,7 @@ const isFormValid = ref(false)
 const refForm = ref()
 const name = ref('')
 const notes = ref('')
+const startDate = ref('')
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
@@ -34,6 +35,7 @@ const onSubmit = () => {
         // id: 0,
         name: name.value,
         notes: notes.value,
+        start_date: startDate.value,
       })
       emit('update:isDrawerOpen', false)
       nextTick(() => {
@@ -92,6 +94,15 @@ const handleDrawerModelValueUpdate = val => {
                   v-model="notes"
                   label="Note"
                   placeholder="Note"
+                />
+              </VCol>
+
+              <!-- 👉 Inizio Incarico -->
+              <VCol cols="12">
+                <AppDateTimePicker
+                  v-model="startDate"
+                  label="Inizio Incarico"
+                  placeholder="Inizio Incarico"
                 />
               </VCol>
 

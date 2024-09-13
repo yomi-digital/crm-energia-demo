@@ -15,6 +15,7 @@ const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
 const selectedProductRemove = ref()
+const selectedBrand = ref()
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -56,6 +57,7 @@ const {
 } = await useApi(createUrl('/products', {
   query: {
     q: searchQuery,
+    brand: selectedBrand,
     itemsPerPage,
     page,
     sortBy,
@@ -75,6 +77,24 @@ const deleteProduct = async id => {
   fetchProducts()
 }
 
+// 👉 search filters
+const brands = [
+  {
+    title: 'Tutti',
+    value: '',
+  },
+]
+const fetchBrands = async (query) => {
+  const response = await $api('/brands?itemsPerPage=999999&select=1')
+  for (const brand of response.brands) {
+    brands.push({
+      title: brand.name,
+      value: brand.id,
+    })
+  }
+}
+await fetchBrands()
+
 const selectProductForRemove = product => {
   selectedProductRemove.value = product
   isRemoveDialogVisible.value = true
@@ -84,6 +104,31 @@ const selectProductForRemove = product => {
 <template>
   <section>
     <VCard class="mb-6">
+      <VCardItem class="pb-4">
+        <VCardTitle>Filtri</VCardTitle>
+      </VCardItem>
+
+      <VCardText>
+        <VRow>
+          <!-- 👉 Select Brand -->
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <AppAutocomplete
+              v-model="selectedBrand"
+              label="Filtra per Brand"
+              clearable
+              :items="brands"
+              placeholder="Seleziona un brand"
+            />
+          </VCol>
+
+        </VRow>
+      </VCardText>
+
+      <VDivider />
+
       <VCardText class="d-flex flex-wrap gap-4">
         <div class="me-3 d-flex gap-3">
           <AppSelect

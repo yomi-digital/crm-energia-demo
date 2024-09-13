@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->index();
             $table->string('notes')->nullable();
+            $table->date('start_date')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

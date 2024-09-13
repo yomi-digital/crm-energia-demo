@@ -29,10 +29,12 @@ const headers = [
   {
     title: 'Ruolo',
     key: 'role',
+    sortable: false,
   },
   {
     title: 'Abilitato',
     key: 'enabled',
+    sortable: false,
   },
   {
     title: 'Area',
@@ -41,6 +43,7 @@ const headers = [
   {
     title: 'Team Leader',
     key: 'team_leader',
+    sortable: false,
   },
   {
     title: '',

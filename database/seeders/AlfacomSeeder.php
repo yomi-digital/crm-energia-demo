@@ -13,7 +13,6 @@ class AlfacomSeeder extends Seeder
         Alfacom\CustomerSeeder,
         Alfacom\BrandSeeder,
         Alfacom\LinkSeeder,
-        Alfacom\DocumentSeeder,
         Alfacom\CalendarSeeder,
         Alfacom\ProductSeeder,
         Alfacom\PaperworkSeeder;
@@ -59,16 +58,26 @@ class AlfacomSeeder extends Seeder
             throw $e;
         }
 
+        dump('Seeding Roles');
         $this->roles();
+        dump('Seeding Users');
         $this->users($conn);
+        dump('Seeding Mandates');
         $this->mandates($conn);
+        dump('Seeding Brands');
         $this->brands($conn);
+        dump('Seeding Customers');
         $this->customers($conn);
+        dump('Seeding Calendar');
         $this->calendar($conn);
+        dump('Seeding Links');
         $this->links($conn);
-        $this->documents($conn);
+        dump('Seeding Products');
         $this->products($conn);
+        dump('Seeding Paperworks');
         $this->paperworks($conn);
+
+        dump('Cleanup');
         mysqli_query($conn, 'DROP DATABASE IF EXISTS ' . $tmpDb);
         mysqli_close($conn);
 

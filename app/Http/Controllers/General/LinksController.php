@@ -20,6 +20,10 @@ class LinksController extends Controller
             });
         }
 
+        if ($request->filled('brand')) {
+            $links->where('brand_id', $request->get('brand'));
+        }
+
         if ($request->get('sortBy')) {
             $links->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
         }

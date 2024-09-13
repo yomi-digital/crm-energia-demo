@@ -13,5 +13,10 @@ class Mandate extends Model
     protected $fillable = [
         'name',
         'notes',
+        'start_date',
+    ];
+
+    protected $dates = [
+        'start_date',
     ];
 }

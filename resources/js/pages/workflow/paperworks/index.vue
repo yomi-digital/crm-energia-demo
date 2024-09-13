@@ -40,10 +40,12 @@ const headers = [
   {
     title: 'Agente',
     key: 'user_id',
+    sortable: false,
   },
   {
     title: 'Cliente',
     key: 'customer_id',
+    sortable: false,
   },
   {
     title: 'Data Inserimento',
@@ -56,6 +58,7 @@ const headers = [
   {
     title: 'Prodotto',
     key: 'product_id',
+    sortable: false,
   },
   {
     title: 'Categoria Brand',
@@ -64,6 +67,7 @@ const headers = [
   {
     title: 'Mandato',
     key: 'mandate_id',
+    sortable: false,
   },
   {
     title: 'Esito Partner',
@@ -80,6 +84,7 @@ const headers = [
   {
     title: 'Compenso',
     key: 'pay',
+    sortable: false,
   },
   {
     title: '',

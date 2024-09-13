@@ -227,7 +227,7 @@ const createProduct = async () => {
       >
         <AppTextField
           v-model="salespersonFee"
-          label="Venditore"
+          label="Partner"
           placeholder="0"
           :rules="[requiredValidator]"
         />

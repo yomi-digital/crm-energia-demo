@@ -10,8 +10,8 @@ class UploadsController extends Controller
     {
         $file = $request->file('file');
         $scope = $request->get('scope', 'uploads');
-        $path = $file->store($scope);
-        
+        $path = $file->storeAs($scope, $file->getClientOriginalName(), 'do');
+
         return response()->json(['path' => $path]);
     }
 }

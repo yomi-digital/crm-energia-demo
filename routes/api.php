@@ -75,10 +75,10 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('calendar-cities', [CalendarController::class, 'cities']);
 
     Route::get('documents', [DocumentsController::class, 'index']);
-    Route::post('documents', [DocumentsController::class, 'store']);
-    Route::put('documents/{id}', [DocumentsController::class, 'update']);
-    Route::delete('documents/{id}', [DocumentsController::class, 'destroy']);
-    Route::get('documents/{id}/download', [DocumentsController::class, 'download']);
+    Route::post('documents/new-folder', [DocumentsController::class, 'newFolder']);
+    Route::post('documents/upload', [DocumentsController::class, 'upload']);
+    Route::delete('documents/remove', [DocumentsController::class, 'destroy']);
+    Route::get('documents/download', [DocumentsController::class, 'download']);
 
     Route::get('links', [LinksController::class, 'index']);
     Route::post('links', [LinksController::class, 'store']);
