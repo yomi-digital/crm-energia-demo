@@ -60,6 +60,7 @@ const headers = [
 
 const selectedType = ref('')
 const selectedCategory = ref('')
+const selectedStatus = ref('1')
 
 const {
   data: brandsData,
@@ -67,6 +68,7 @@ const {
 } = await useApi(createUrl('/brands', {
   query: {
     q: searchQuery,
+    enabled: selectedStatus,
     type: selectedType,
     category: selectedCategory,
     with: 'products',
@@ -130,6 +132,11 @@ const categories = [
   { value: 'Energia', title: 'Energia' },
   { value: 'Altro', title: 'Altro' },
 ]
+const statuses = [
+  { value: '1', title: 'Abilitati' },
+  { value: '0', title: 'Disabilitati' },
+  { value: '', title: 'Tutti' },
+]
 </script>
 
 <template>
@@ -166,6 +173,20 @@ const categories = [
               clearable
               :items="categories"
               placeholder="Seleziona un settore"
+            />
+          </VCol>
+
+          <!-- 👉 Select Status -->
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <AppAutocomplete
+              v-model="selectedStatus"
+              label="Filtra per Stato"
+              clearable
+              :items="statuses"
+              placeholder="Seleziona uno stato"
             />
           </VCol>
 
