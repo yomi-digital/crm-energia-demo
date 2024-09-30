@@ -61,7 +61,7 @@ const createProduct = async () => {
         cols="12"
         md="12"
       >
-        <AppSelect
+        <AppAutocomplete
           v-model="brand"
           label="Brand"
           placeholder="Seleziona"

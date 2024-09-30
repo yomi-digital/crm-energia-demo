@@ -22,4 +22,9 @@ class Brand extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    public function getCreatedAtAttribute($value)
+    {
+        return date(config('app.date_format'), strtotime($value));
+    }
 }

@@ -1,5 +1,5 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 
 const props = defineProps({
   isDrawerOpen: {
@@ -110,7 +110,7 @@ const handleDrawerModelValueUpdate = val => {
 
               <!-- 👉 Brand -->
               <VCol cols="12">
-                <AppSelect
+                <AppAutocomplete
                   v-model="brand"
                   label="Brand"
                   placeholder="Seleziona un Brand"

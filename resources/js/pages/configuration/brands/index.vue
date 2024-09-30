@@ -52,6 +52,10 @@ const headers = [
     key: 'enabled',
   },
   {
+    title: 'Aggiunto',
+    key: 'created_at',
+  },
+  {
     title: '',
     key: 'actions',
     sortable: false,
