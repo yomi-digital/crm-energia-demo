@@ -1,4 +1,6 @@
 <script setup>
+import { watch } from 'vue';
+
 const props = defineProps({
   formData: {
     type: null,
@@ -18,6 +20,11 @@ const selectedBrand = ref({})
 watch(formData, () => {
   emit('update:formData', formData.value)
 })
+watch(props.ptype, () => {
+  formData.value.brand_id = null
+  formData.value.product_id = null
+  fetchBrands('')
+})
 
 const brands = ref([])
 
@@ -29,6 +36,9 @@ await fetchBrands('')
 
 
 const selectBrand = () => {
+  if (!formData.value.brand_id) {
+    return
+  }
   selectedBrand.value = brands.value.find(brand => brand.id === formData.value.brand_id)
   formData.value.brand_name = selectedBrand.value.name
   formData.value.product_id = null
@@ -36,6 +46,9 @@ const selectBrand = () => {
 
 watch(() => formData.value.brand_id, selectBrand)
 watch(() => formData.value.product_id, () => {
+  if (!formData.value.product_id) {
+    return
+  }
   const selected = selectedBrand.value.products.find(product => product.id === formData.value.product_id)
   formData.value.product_name = selected.name
 })
