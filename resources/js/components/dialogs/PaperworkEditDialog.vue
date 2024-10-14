@@ -1,5 +1,6 @@
 <script setup>
 import { watch } from 'vue';
+import { VDivider } from 'vuetify/lib/components/index.mjs';
 
 const props = defineProps({
   paperworkData: {
@@ -196,6 +197,30 @@ watch(() => paperworkDataClone.value.type, () => {
                 label="Tipologia Mobile"
                 :items="[{ title: 'MNP', value: 'MNP' }, { title: 'NIP', value: 'NIP' }]"
                 placeholder="Seleziona un tipo"
+              />
+            </VCol>
+
+            <VDivider />
+
+            <VCol
+              cols="12"
+              sm="6"
+            >
+              <AppTextField
+                v-model="paperworkDataClone.account_pod_pdr"
+                label="Account / POD / PDR"
+                placeholder="IT000000000000"
+              />
+            </VCol>
+
+            <VCol
+              cols="12"
+              sm="6"
+            >
+              <AppTextField
+                v-model="paperworkDataClone.annual_consumption"
+                label="Consumo Annuo"
+                placeholder="1000"
               />
             </VCol>
 

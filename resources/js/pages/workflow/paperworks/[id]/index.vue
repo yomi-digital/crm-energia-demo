@@ -358,6 +358,9 @@ const selectedFiles = async (files) => {
             <div class="text-body-1">
               {{ [paperworkData.user.name, paperworkData.user.last_name].join(' ') }}
             </div>
+            <div class="text-body-1">
+              Compenso Stimato: € {{ paperworkData.payout || 'N/A' }}
+            </div>
           </VCardText>
         </VCard>
 

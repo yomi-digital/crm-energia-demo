@@ -113,6 +113,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
 
     Route::get('paperworks', [PaperworksController::class, 'index']);
     Route::get('paperworks/{id}', [PaperworksController::class, 'show']);
+    // Route::get('paperworks/{id}/payout', [PaperworksController::class, 'calculatePayout']);
     Route::put('paperworks/{id}', [PaperworksController::class, 'update']);
     Route::post('paperworks/{id}/documents', [PaperworksController::class, 'documents']);
     Route::put('paperworks/{id}/confirm', [PaperworksController::class, 'confirm']);
