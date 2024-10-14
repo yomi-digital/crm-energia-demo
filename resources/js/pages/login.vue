@@ -5,6 +5,7 @@ import authV1TopShape from '@images/svg/auth-v1-top-shape.svg?raw'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 import { VForm } from 'vuetify/components/VForm'
+import { VAlert } from 'vuetify/lib/components/index.mjs'
 
 definePage({
   meta: {
@@ -21,13 +22,14 @@ const ability = useAbility()
 const errors = ref({
   email: undefined,
   password: undefined,
+  message: undefined,
 })
 
 const refVForm = ref()
 
 const credentials = ref({
-  // email: 'admin@alfacom.com',
-  // password: 'password',
+  email: 'admin@alfacom.com',
+  password: 'pas_sw&8o?.t6rd',
   // email: 'admin@demo.com',
   // password: 'admin',
 })
@@ -35,6 +37,9 @@ const credentials = ref({
 const rememberMe = ref(false)
 
 const login = async () => {
+  errors.value.email = false
+  errors.value.password = false
+  errors.value.message = undefined
   try {
     const res = await $api('/auth/login', {
       method: 'POST',
@@ -43,7 +48,12 @@ const login = async () => {
         password: credentials.value.password,
       },
       onResponseError({ response }) {
-        errors.value = response._data.errors
+        if (response.status === 401) {
+          // errors.value.email = true
+          // errors.value.password = true
+          errors.value.message = 'Credenziali non valide'
+          return
+        }
       },
     })
 
@@ -121,6 +131,7 @@ const onSubmit = () => {
                   label="Email"
                   type="email"
                   placeholder="johndoe@email.com"
+                  :error="errors.email"
                 />
               </VCol>
 
@@ -133,6 +144,7 @@ const onSubmit = () => {
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  :error="errors.password"
                 />
 
                 <!-- remember me checkbox -->
@@ -157,6 +169,14 @@ const onSubmit = () => {
                 >
                   Login
                 </VBtn>
+                <VAlert
+                  v-if="errors.message"
+                  type="error"
+                  elevation="1"
+                  class="mt-4"
+                >
+                  {{ errors.message }}
+                </VAlert>
               </VCol>
 
               <!-- <VCol
