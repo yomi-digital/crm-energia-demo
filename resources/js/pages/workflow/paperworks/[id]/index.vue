@@ -4,6 +4,11 @@ const route = useRoute('workflow-paperworks-id')
 const isConfirmDialogVisible = ref(false)
 const isConfirmPartnerSentDialogVisible = ref(false)
 const isPaperworkEditDialogVisible = ref(false)
+const isTicketDialogVisible = ref(false)
+const selectedTicket = ref(null)
+const isTicketViewDialogVisible = ref(false)
+const isUploadDialogVisible = ref(false)
+const isUpdatePartnerDialogVisible = ref(false)
 
 const {
   data: paperworkData,
@@ -26,7 +31,7 @@ const confirmPaperwork = async (confirm) => {
   })
   fetchPaperwork()
 }
-const confirmPaperworkPartnerSent = async (confirm) => {
+const confirmPaperworkPartnerSentOld = async (confirm) => {
   if (! confirm) {
     // isConfirmPartnerSentDialogVisible.value = false
     return
@@ -37,10 +42,40 @@ const confirmPaperworkPartnerSent = async (confirm) => {
   fetchPaperwork()
 }
 
+const confirmPaperworkPartnerSent = async () => {
+  fetchPaperwork()
+}
+
+const confirmPaperworkUpdatePartner = async (data) => {
+  await $api(`/paperworks/${ route.params.id }/update-partner`, {
+    method: 'PUT',
+    body: data,
+  })
+  fetchPaperwork()
+}
+
 const updatePaperwork = async (data) => {
   await $api(`/paperworks/${ route.params.id }`, {
     method: 'PUT',
     body: data,
+  })
+  fetchPaperwork()
+}
+
+const createdTicket = () => {
+  fetchPaperwork()
+}
+const closedTicket = () => {
+  fetchPaperwork()
+}
+
+const selectedFiles = async (files) => {
+  isUploadDialogVisible.value = false
+  await $api(`/paperworks/${ route.params.id }/documents`, {
+    method: 'POST',
+    body: {
+      documents: files,
+    }
   })
   fetchPaperwork()
 }
@@ -76,32 +111,34 @@ const updatePaperwork = async (data) => {
           </div>
         </div>
         <div class="text-body-1">
-          Create {{ formatDateTime(paperworkData.created_at) }}
+          Creata {{ formatDateTime(paperworkData.created_at) }}
         </div>
       </div>
 
       <div>
         <VBtn
-          color="primary"
+          color="success"
+          v-if="! paperworkData.confirmed_at"
           @click="isConfirmDialogVisible = !isConfirmDialogVisible"
         >
           Conferma Pratica
         </VBtn>&nbsp;
 
         <VBtn
-          color="primary"
+          color="success"
+          v-if="paperworkData.confirmed_at && ! paperworkData.partner_sent_at"
           @click="isConfirmPartnerSentDialogVisible = !isConfirmPartnerSentDialogVisible"
         >
           Conferma Inserirmento
         </VBtn>&nbsp;
 
-        <VBtn
+        <!-- <VBtn
           variant="tonal"
           color="error"
           @click="isConfirmDialogVisible = !isConfirmDialogVisible"
         >
           Elimina Pratica
-        </VBtn>
+        </VBtn> -->
       </div>
     </div>
 
@@ -261,7 +298,7 @@ const updatePaperwork = async (data) => {
               >
                 <div class="d-flex justify-space-between align-center">
                   <span class="app-timeline-title">Pratica Confermata</span>
-                  <span class="app-timeline-meta">{{ formatDateTime(paperworkData.confirmed_at) }}</span>
+                  <span class="app-timeline-meta">{{ paperworkData.confirmed_at ? formatDateTime(paperworkData.confirmed_at) : '' }}</span>
                 </div>
                 <p class="app-timeline-text mb-0 mt-3">
                   <template v-if="paperworkData.confirmed_at">
@@ -277,7 +314,7 @@ const updatePaperwork = async (data) => {
               >
                 <div class="d-flex justify-space-between align-center">
                   <span class="app-timeline-title">Pratica Inserita</span>
-                  <span class="app-timeline-meta">{{ formatDateTime(paperworkData.partner_sent_at) }}</span>
+                  <span class="app-timeline-meta">{{ paperworkData.partner_sent_at ? formatDateTime(paperworkData.partner_sent_at) : '' }}</span>
                 </div>
                 <p class="app-timeline-text mb-0 mt-3">
                   <template v-if="paperworkData.partner_sent_at">
@@ -293,7 +330,7 @@ const updatePaperwork = async (data) => {
               >
                 <div class="d-flex justify-space-between align-center">
                   <span class="app-timeline-title">Esito Partner</span>
-                  <span class="app-timeline-meta">{{ formatDateTime(paperworkData.partner_outcome_at) }}</span>
+                  <span class="app-timeline-meta">{{ paperworkData.partner_outcome_at ? formatDateTime(paperworkData.partner_outcome_at) : '' }}</span>
                 </div>
                 <p class="app-timeline-text mb-0 mt-3">
                   <template v-if="paperworkData.partner_outcome_at">
@@ -393,17 +430,24 @@ const updatePaperwork = async (data) => {
         </VCard>
 
         <!-- Documents -->
-        <VCard>
+        <VCard class="mb-6">
           <VCardText>
             <div class="d-flex align-center justify-space-between mb-2">
               <h5 class="text-h5">
                 Documenti
               </h5>
+              <VBtn
+                color="primary"
+                size="small"
+                @click="isUploadDialogVisible = true"
+              >
+                <VIcon icon="tabler-upload" /> Upload</VBtn>
             </div>
             <div>
               <VList
                 nav
                 :lines="false"
+                v-if="paperworkData.documents.length"
               >
                 <VListItem
                   v-for="doc in paperworkData.documents"
@@ -411,7 +455,7 @@ const updatePaperwork = async (data) => {
                   :value="doc.name"
                 >
                   <template #prepend>
-                    <VIcon icon="tabler-pdf" />
+                    <VIcon icon="tabler-file" />
                   </template>
 
                   <VListItemTitle>
@@ -419,6 +463,53 @@ const updatePaperwork = async (data) => {
                   </VListItemTitle>
                 </VListItem>
               </VList>
+              <div v-else>
+                Nessun documento trovato
+              </div>
+            </div>
+          </VCardText>
+        </VCard>
+
+        <!-- Tickets -->
+        <VCard>
+          <VCardText>
+            <div class="d-flex align-center justify-space-between mb-2">
+              <h5 class="text-h5">
+                Ticket
+              </h5>
+              <VBtn
+                color="primary"
+                size="small"
+                @click="isTicketDialogVisible = true"
+              >
+                <VIcon icon="tabler-mail" /> Apri Ticket</VBtn>
+            </div>
+            <div>
+              <VList
+                nav
+                :lines="false"
+                v-if="paperworkData.tickets.length"
+              >
+                <VListItem
+                  v-for="ticket in paperworkData.tickets"
+                  :key="ticket.id"
+                  :value="ticket.title"
+                  @click="selectedTicket = ticket.id; isTicketViewDialogVisible = true"
+                >
+                  <template #prepend>
+                    <VIcon v-if="ticket.status != 3" icon="tabler-mail-opened" :class="ticket.status == 1 ? 'text-warning' : 'text-success'" />
+                    <VIcon v-if="ticket.status == 3" icon="tabler-check" class="text-success" />
+                  </template>
+
+                  <VListItemTitle>
+                    <div style="font-size:1.2em;line-height: 1.5em;">{{ ticket.title }}</div>
+                    <div>Creato da <b>{{ [ticket.created_by.name, ticket.created_by.last_name].join(' ') }}</b> il <i>{{ ticket.created_at }}</i></div>
+                  </VListItemTitle>
+                </VListItem>
+              </VList>
+              <div v-else>
+                Nessun ticket trovato
+              </div>
             </div>
           </VCardText>
         </VCard>
@@ -435,7 +526,7 @@ const updatePaperwork = async (data) => {
       @confirm="confirmPaperwork"
     />
 
-    <ConfirmDialog
+    <!-- <ConfirmDialog
       v-model:isDialogVisible="isConfirmPartnerSentDialogVisible"
       confirmation-question="Confermare insertimento pratica?"
       cancel-msg="L'inserimento della pratica non è stata confermato."
@@ -443,6 +534,22 @@ const updatePaperwork = async (data) => {
       confirm-msg="Inserimento pratica confermato."
       confirm-title="Confermato!"
       @confirm="confirmPaperworkPartnerSent"
+    /> -->
+
+    <!-- 👉 Edit paperwor dialog -->
+    <PaperworkConfirmInsertDialog
+      v-if="$can('edit', 'paperworks')"
+      v-model:isDialogVisible="isConfirmPartnerSentDialogVisible"
+      :paperwork-id="paperworkData.id"
+      @submit="confirmPaperworkPartnerSent"
+    />
+
+    <!-- 👉 Edit paperwor dialog -->
+    <PaperworkUpdatePartnerDialog
+      v-if="$can('edit', 'paperworks')"
+      v-model:isDialogVisible="isUpdatePartnerDialogVisible"
+      :paperwork-data="paperworkData"
+      @submit="confirmPaperworkUpdatePartner"
     />
 
     <!-- 👉 Edit paperwor dialog -->
@@ -453,4 +560,36 @@ const updatePaperwork = async (data) => {
       @submit="updatePaperwork"
     />
   </div>
+
+  <!-- 👉 Create ticket -->
+  <TicketCreateDialog
+    v-if="$can('edit', 'users')"
+    v-model:isDialogVisible="isTicketDialogVisible"
+    :paperwork-id="route.params.id"
+    @submit="createdTicket"
+  />
+
+  <!-- View Ticket -->
+  <TicketViewDialog
+    v-if="$can('edit', 'users') && selectedTicket"
+    v-model:isDialogVisible="isTicketViewDialogVisible"
+    :ticket-id="selectedTicket"
+    @submit="closedTicket"
+  />
+
+  <!-- Upload document -->
+  <VDialog
+    v-model="isUploadDialogVisible"
+    width="800"
+  >
+    <!-- Dialog close btn -->
+    <DialogCloseBtn @click="isUploadDialogVisible = !isUploadDialogVisible" />
+
+    <!-- Dialog Content -->
+    <VCard title="Upload Documenti Pratica">
+      <VCardText>
+        <DropZone @dropped="selectedFiles" :scope="'paperworks/' + route.params.id + '/documents'" />
+      </VCardText>
+    </VCard>
+  </VDialog>
 </template>

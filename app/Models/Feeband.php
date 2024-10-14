@@ -14,11 +14,11 @@ class Feeband extends Model
         'end_date',
         'fee_type',
         'management_fee',
-        'getter_fee',
-        'agent_fee',
-        'structure_fee',
-        'structure_top_fee',
-        'salesperson_fee',
+        'top_partner_fee',
+        'top_fee',
+        'partner_fee',
+        'collaborator_fee',
+        'smart_fee',
     ];
 
     public function getStartDateAttribute($value)

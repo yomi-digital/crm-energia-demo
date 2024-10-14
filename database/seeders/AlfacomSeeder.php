@@ -67,15 +67,15 @@ class AlfacomSeeder extends Seeder
         dump('Seeding Brands');
         $this->brands($conn);
         dump('Seeding Customers');
-        $this->customers($conn);
+        // $this->customers($conn);
         dump('Seeding Calendar');
-        $this->calendar($conn);
+        // $this->calendar($conn);
         dump('Seeding Links');
-        $this->links($conn);
+        // $this->links($conn);
         dump('Seeding Products');
         $this->products($conn);
         dump('Seeding Paperworks');
-        $this->paperworks($conn);
+        // $this->paperworks($conn);
 
         dump('Cleanup');
         mysqli_query($conn, 'DROP DATABASE IF EXISTS ' . $tmpDb);

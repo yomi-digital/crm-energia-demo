@@ -47,7 +47,7 @@ class Customer extends Model
 
     public function getConfirmedAtAttribute($value)
     {
-        return date(config('app.datetime_format'), strtotime($value));
+        return $value ? date(config('app.datetime_format'), strtotime($value)) : null;
     }
 
     public function paperworks()

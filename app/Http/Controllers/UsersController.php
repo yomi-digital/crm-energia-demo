@@ -220,7 +220,7 @@ class UsersController extends Controller
         foreach ($brands as $brand) {
             $user->brands()->attach($brand, [
                 'race' => $request->get('race'),
-                'bonus' => $request->get('bonus'),
+                'bonus' => $request->get('bonus', 0),
                 'pay_level' => $request->get('pay_level')
             ]);
         }

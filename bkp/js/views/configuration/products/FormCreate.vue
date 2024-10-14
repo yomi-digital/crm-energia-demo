@@ -6,11 +6,11 @@ const name = ref('')
 const notes = ref('')
 const price = ref(0)
 const discountPercentage = ref(0)
-const getterFee = ref(0)
-const agentFee = ref(0)
-const structureFee = ref(0)
-const salespersonFee = ref(0)
-const structureTopFee = ref(0)
+const topPartnerFee = ref(0)
+const topFee = ref(0)
+const partnerFee = ref(0)
+const collaboratorFee = ref(0)
+const smartFee = ref(0)
 const managementFee = ref(0)
 const enabled = ref(true)
 
@@ -174,8 +174,8 @@ const createProduct = async () => {
         md="6"
       >
         <AppTextField
-          v-model="getterFee"
-          label="Procacciatore"
+          v-model="topPartnerFee"
+          label="TOP Partner"
           placeholder="0"
           :rules="[requiredValidator]"
         />
@@ -187,8 +187,8 @@ const createProduct = async () => {
         md="6"
       >
         <AppTextField
-          v-model="agentFee"
-          label="Agente"
+          v-model="topFee"
+          label="TOP"
           placeholder="0"
           :rules="[requiredValidator]"
         />
@@ -200,8 +200,8 @@ const createProduct = async () => {
         md="6"
       >
         <AppTextField
-          v-model="structureFee"
-          label="Struttura"
+          v-model="partnerFee"
+          label="Partner"
           placeholder="0"
           :rules="[requiredValidator]"
         />
@@ -213,8 +213,8 @@ const createProduct = async () => {
         md="6"
       >
         <AppTextField
-          v-model="structureTopFee"
-          label="Struttura Top"
+          v-model="smartFee"
+          label="Smart"
           placeholder="0"
           :rules="[requiredValidator]"
         />
@@ -226,8 +226,8 @@ const createProduct = async () => {
         md="6"
       >
         <AppTextField
-          v-model="salespersonFee"
-          label="Partner"
+          v-model="collaboratorFee"
+          label="Collaboratore"
           placeholder="0"
           :rules="[requiredValidator]"
         />

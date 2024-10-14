@@ -15,6 +15,7 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\UploadsController;
 use App\Http\Controllers\Workflow\CustomersController;
 use App\Http\Controllers\Workflow\PaperworksController;
+use App\Http\Controllers\Workflow\TicketsController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -113,8 +114,14 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('paperworks', [PaperworksController::class, 'index']);
     Route::get('paperworks/{id}', [PaperworksController::class, 'show']);
     Route::put('paperworks/{id}', [PaperworksController::class, 'update']);
+    Route::post('paperworks/{id}/documents', [PaperworksController::class, 'documents']);
     Route::put('paperworks/{id}/confirm', [PaperworksController::class, 'confirm']);
     Route::put('paperworks/{id}/confirm-partner-sent', [PaperworksController::class, 'confirmPartnerSent']);
     Route::post('paperworks', [PaperworksController::class, 'store']);
+
+    Route::post('tickets', [TicketsController::class, 'store']);
+    Route::get('tickets/{id}', [TicketsController::class, 'show']);
+    Route::put('tickets/{id}/close', [TicketsController::class, 'close']);
+    Route::post('tickets/{id}/comments', [TicketsController::class, 'comment']);
 });
 

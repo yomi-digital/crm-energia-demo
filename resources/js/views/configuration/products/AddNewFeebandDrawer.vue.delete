@@ -49,10 +49,10 @@ const onSubmit = () => {
         end_date: endDate.value,
         fee_type: feeType.value,
         management_fee: managementFee.value,
-        agent_fee: agentFee.value,
-        structure_fee: structureFee.value,
-        structure_top_fee: structureTopFee.value,
-        salesperson_fee: salespersonFee.value,
+        top_fee: agentFee.value,
+        partner_fee: structureFee.value,
+        collaborator_fee: structureTopFee.value,
+        smart_fee: salespersonFee.value,
       })
       emit('update:isDrawerOpen', false)
       nextTick(() => {

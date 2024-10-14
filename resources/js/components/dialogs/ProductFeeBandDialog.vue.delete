@@ -8,10 +8,10 @@ const props = defineProps({
       end_date: '',
       fee_type: 'FISSO',
       management_fee: 0,
-      agent_fee: 0,
-      structure_fee: 0,
-      structure_top_fee: 0,
-      salesperson_fee: 0,
+      top_fee: 0,
+      partner_fee: 0,
+      collaborator_fee: 0,
+      smart_fee: 0,
     }),
   },
   isDialogVisible: {
@@ -143,7 +143,7 @@ const doSomething = (e, val) => {
               md="6"
             >
               <AppTextField
-                v-model="feebandData.getter_fee"
+                v-model="feebandData.top_partner_fee"
                 label="Procacciatore"
                 placeholder="0"
                 :rules="[requiredValidator]"
@@ -156,7 +156,7 @@ const doSomething = (e, val) => {
               md="6"
             >
               <AppTextField
-                v-model="feebandData.agent_fee"
+                v-model="feebandData.top_fee"
                 label="Agente"
                 placeholder="0"
                 :rules="[requiredValidator]"
@@ -169,7 +169,7 @@ const doSomething = (e, val) => {
               md="6"
             >
               <AppTextField
-                v-model="feebandData.structure_fee"
+                v-model="feebandData.partner_fee"
                 label="Struttura"
                 placeholder="0"
                 :rules="[requiredValidator]"
@@ -182,7 +182,7 @@ const doSomething = (e, val) => {
               md="6"
             >
               <AppTextField
-                v-model="feebandData.structure_top_fee"
+                v-model="feebandData.collaborator_fee"
                 label="Struttura Top"
                 placeholder="0"
                 :rules="[requiredValidator]"
@@ -195,7 +195,7 @@ const doSomething = (e, val) => {
               md="6"
             >
               <AppTextField
-                v-model="feebandData.salesperson_fee"
+                v-model="feebandData.smart_fee"
                 label="Venditore"
                 placeholder="0"
                 :rules="[requiredValidator]"

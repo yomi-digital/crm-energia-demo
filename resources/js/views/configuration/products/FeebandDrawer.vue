@@ -175,7 +175,7 @@ const onStartDateChange = value => {
               </VCol>
 
               <!-- 👉 Management fee -->
-              <VCol cols="12" md="6">
+              <VCol cols="12" md="12">
                 <AppTextField
                   v-model="feeband.management_fee"
                   label="Gestione"
@@ -185,50 +185,50 @@ const onStartDateChange = value => {
               </VCol>
 
               <!-- 👉 Getter fee -->
-              <VCol cols="12" md="6">
+              <VCol cols="12" md="12">
                 <AppTextField
-                  v-model="feeband.getter_fee"
-                  label="Procacciatore"
+                  v-model="feeband.top_partner_fee"
+                  label="TOP Partner"
                   placeholder="0"
                   :rules="[requiredValidator]"
                 />
               </VCol>
 
               <!-- 👉 Agent fee -->
-              <VCol cols="12" md="6">
+              <VCol cols="12" md="12">
                 <AppTextField
-                  v-model="feeband.agent_fee"
-                  label="Agente"
+                  v-model="feeband.top_fee"
+                  label="TOP"
                   placeholder="0"
                   :rules="[requiredValidator]"
                 />
               </VCol>
 
               <!-- 👉 Structure fee -->
-              <VCol cols="12" md="6">
+              <VCol cols="12" md="12">
                 <AppTextField
-                  v-model="feeband.structure_fee"
-                  label="Struttura"
+                  v-model="feeband.partner_fee"
+                  label="Partner"
                   placeholder="0"
                   :rules="[requiredValidator]"
                 />
               </VCol>
 
               <!-- 👉 Structure top fee -->
-              <VCol cols="12" md="6">
+              <VCol cols="12" md="12">
                 <AppTextField
-                  v-model="feeband.structure_top_fee"
-                  label="Struttura Top"
+                  v-model="feeband.collaborator_fee"
+                  label="Smart"
                   placeholder="0"
                   :rules="[requiredValidator]"
                 />
               </VCol>
 
               <!-- 👉 Salesperson fee -->
-              <VCol cols="12" md="6">
+              <VCol cols="12" md="12">
                 <AppTextField
-                  v-model="feeband.salesperson_fee"
-                  label="Partner"
+                  v-model="feeband.smart_fee"
+                  label="Collaboratore"
                   placeholder="0"
                   :rules="[requiredValidator]"
                 />

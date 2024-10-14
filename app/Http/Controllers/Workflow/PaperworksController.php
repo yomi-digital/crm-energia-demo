@@ -49,7 +49,7 @@ class PaperworksController extends Controller
 
     public function show($id)
     {
-        $paperwork = \App\Models\Paperwork::with(['user', 'customer', 'customer.paperworks', 'mandate', 'product', 'documents', 'createdByUser', 'confirmedByUser'])->whereId($id)->first();
+        $paperwork = \App\Models\Paperwork::with(['user', 'customer', 'customer.paperworks', 'mandate', 'product', 'documents', 'tickets', 'tickets.createdBy', 'createdByUser', 'confirmedByUser'])->whereId($id)->first();
 
         if (!$paperwork) {
             return response()->json(['error' => 'Paperwork not found'], 404);
@@ -144,6 +144,25 @@ class PaperworksController extends Controller
         return response()->json($paperwork);
     }
 
+    public function documents(Request $request, $id)
+    {
+        $paperwork = \App\Models\Paperwork::find($id);
+
+        if (!$paperwork) {
+            return response()->json(['error' => 'Paperwork not found'], 404);
+        }
+
+        foreach ($request->get('documents') as $document) {
+            $doc = new \App\Models\PaperworkDocument;
+            $doc->paperwork_id = $paperwork->id;
+            $doc->name = basename($document['path']);
+            $doc->url = $document['path'];
+            $doc->save();
+        }
+
+        return response()->json(null, 201);
+    }
+
     public function confirm(Request $request, $id)
     {
         $paperwork = \App\Models\Paperwork::find($id);
@@ -162,12 +181,16 @@ class PaperworksController extends Controller
 
     public function confirmPartnerSent(Request $request, $id)
     {
+        $request->validate([
+            'order_code' => 'required',
+        ]);
         $paperwork = \App\Models\Paperwork::find($id);
 
         if (!$paperwork) {
             return response()->json(['error' => 'Paperwork not found'], 404);
         }
 
+        $paperwork->order_code = $request->get('order_code');
         $paperwork->partner_sent_at = now()->format('Y-m-d H:i:s');
 
         $paperwork->save();

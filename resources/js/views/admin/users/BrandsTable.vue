@@ -18,7 +18,7 @@ const isAddDialogVisible = ref(false)
 const selectedBrandsAdd = ref([])
 const selectedBrandsAddPayLevel = ref()
 const selectedBrandsAddRace = ref(0)
-const selectedBrandsAddBonus = ref()
+const selectedBrandsAddBonus = ref(0)
 const isRemoveDialogVisible = ref(false)
 const selectedBrandsRemove = ref()
 
@@ -129,24 +129,24 @@ const payLevels = [
     value: null,
   },
   {
-    title: 'Procacciatore',
-    value: 'PROCACCIATORE',
+    title: 'TOP Partner',
+    value: 'TOP_PARTNER',
   },
   {
-    title: 'Agente',
-    value: 'AGENTE',
+    title: 'TOP',
+    value: 'TOP',
   },
   {
-    title: 'Rete Vendita',
-    value: 'RETE_VENDITA',
+    title: 'Partner',
+    value: 'PARTNER',
   },
   {
-    title: 'Struttura',
-    value: 'STRUTTURA',
+    title: 'Smart',
+    value: 'SMART',
   },
   {
-    title: 'Struttura Top',
-    value: 'STRUTTURA_TOP',
+    title: 'Collaboratore',
+    value: 'COLLABORATORE',
   },
 ]
 
@@ -354,8 +354,8 @@ const updateBrandPayLevel = async (brand, payLevel) => {
             <VCol cols="12">
               <AppTextField
                 v-model="selectedBrandsAddBonus"
-                label="Bonus"
-                placeholder="10"
+                label="Bonus %"
+                placeholder="10%"
               />
             </VCol>
           </VRow>

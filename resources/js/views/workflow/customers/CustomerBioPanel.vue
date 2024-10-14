@@ -329,14 +329,14 @@ const confirmCustomer = async () => {
             Modifica
           </VBtn>
 
-          <VBtn
+          <!-- <VBtn
             v-if="$can('delete', 'customers')"
             variant="tonal"
             color="error"
             disabled="disabled"
           >
             Elimina
-          </VBtn>
+          </VBtn> -->
         </VCardText>
       </VCard>
     </VCol>

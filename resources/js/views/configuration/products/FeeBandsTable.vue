@@ -37,11 +37,11 @@ const selectedFeeband = ref({
     end_date: '',
     fee_type: 'FISSO',
     management_fee: 0,
-    getter_fee: 0,
-    agent_fee: 0,
-    structure_fee: 0,
-    structure_top_fee: 0,
-    salesperson_fee: 0,
+    top_partner_fee: 0,
+    top_fee: 0,
+    partner_fee: 0,
+    collaborator_fee: 0,
+    smart_fee: 0,
   })
 const selectedFeebandRemove = ref(null)
 
@@ -65,24 +65,24 @@ const headers = [
     key: 'management_fee',
   },
   {
-    title: 'Procacciatore',
-    key: 'getter_fee',
+    title: 'TOP Partner',
+    key: 'top_partner_fee',
   },
   {
-    title: 'Agente',
-    key: 'agent_fee',
-  },
-  {
-    title: 'Struttura',
-    key: 'structure_fee',
-  },
-  {
-    title: 'Struttura Top',
-    key: 'structure_top_fee',
+    title: 'TOP',
+    key: 'top_fee',
   },
   {
     title: 'Partner',
-    key: 'salesperson_fee',
+    key: 'partner_fee',
+  },
+  {
+    title: 'Smart',
+    key: 'smart_fee',
+  },
+  {
+    title: 'Collaboratore',
+    key: 'collaborator_fee',
   },
   {
     title: '',
@@ -128,11 +128,11 @@ const addFeeband = () => {
     end_date: '',
     fee_type: 'FISSO',
     management_fee: 0,
-    getter_fee: 0,
-    agent_fee: 0,
-    structure_fee: 0,
-    structure_top_fee: 0,
-    salesperson_fee: 0,
+    top_partner_fee: 0,
+    top_fee: 0,
+    partner_fee: 0,
+    collaborator_fee: 0,
+    smart_fee: 0,
   }
   isFeebandDrawerVisible.value = true
 }
@@ -228,42 +228,42 @@ const editFeeband = feeband => {
           </div>
         </template>
 
-        <template #item.getter_fee="{ item }">
+        <template #item.top_partner_fee="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
-              {{ item.getter_fee }}
+              {{ item.top_partner_fee }}
             </div>
           </div>
         </template>
 
-        <template #item.agent_fee="{ item }">
+        <template #item.top_fee="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
-              {{ item.agent_fee }}
+              {{ item.top_fee }}
             </div>
           </div>
         </template>
 
-        <template #item.structure_fee="{ item }">
+        <template #item.partner_fee="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
-              {{ item.structure_fee }}
+              {{ item.partner_fee }}
             </div>
           </div>
         </template>
 
-        <template #item.structure_top_fee="{ item }">
+        <template #item.collaborator_fee="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
-              {{ item.structure_top_fee }}
+              {{ item.collaborator_fee }}
             </div>
           </div>
         </template>
 
-        <template #item.salesperson_fee="{ item }">
+        <template #item.smart_fee="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
-              {{ item.salesperson_fee }}
+              {{ item.smart_fee }}
             </div>
           </div>
         </template>

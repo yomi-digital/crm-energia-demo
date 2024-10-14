@@ -18,11 +18,11 @@ return new class extends Migration
             $table->timestamp('end_date')->nullable();
             $table->string('fee_type')->nullable();
             $table->float('management_fee')->nullable();
-            $table->float('getter_fee')->nullable();
-            $table->float('agent_fee')->nullable();
-            $table->float('structure_fee')->nullable();
-            $table->float('salesperson_fee')->nullable();
-            $table->float('structure_top_fee')->nullable();
+            $table->float('top_partner_fee')->nullable();
+            $table->float('top_fee')->nullable();
+            $table->float('partner_fee')->nullable();
+            $table->float('smart_fee')->nullable();
+            $table->float('collaborator_fee')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
