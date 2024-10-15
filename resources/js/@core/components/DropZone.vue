@@ -3,7 +3,7 @@ import {
   useDropZone,
   useFileDialog,
   useObjectUrl,
-} from '@vueuse/core'
+} from '@vueuse/core';
 
 const emit = defineEmits([
   'dropped',
@@ -20,24 +20,27 @@ const dropZoneRef = ref()
 const fileData = ref([])
 const { open, onChange } = useFileDialog({ accept: '*/*' })
 function onDrop(DroppedFiles) {
-  DroppedFiles?.forEach(file => {
+  DroppedFiles?.forEach(async file => {
     // if (file.type.slice(0, 6) !== 'image/') {
 
     //   // eslint-disable-next-line no-alert
     //   alert('Only image files are allowed')
-      
+
     //   return
     // }
     fileData.value.push({
       file,
       url: useObjectUrl(file).value ?? '',
     })
+
+    await uploadFiles([file])
+
+    emit('dropped', fileData.value);
   })
 }
-onChange(async selectedFiles => {
-  if (!selectedFiles)
-    return
-  for (const file of selectedFiles) {
+
+async function uploadFiles(files) {
+  for (const file of files) {
     const formData = new FormData()
     formData.append('scope', props.scope)
     formData.append('file', file)
@@ -45,13 +48,18 @@ onChange(async selectedFiles => {
       method: 'POST',
       body: formData,
     })
-    
+
     fileData.value.push({
       file,
       url: useObjectUrl(file).value ?? '',
       path: response.path,
     })
   }
+}
+onChange(async selectedFiles => {
+  if (!selectedFiles)
+    return
+  await uploadFiles(selectedFiles)
 
   emit('dropped', fileData.value)
 })

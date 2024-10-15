@@ -16,6 +16,7 @@ class DocumentsController extends Controller
         $path = $request->get('path', '');
         $data = \Storage::disk('do')->listContents('/documents/' . $path, false);
         $files = [];
+        $cdnPath = 'https://' . config('filesystems.disks.do.bucket') . '.' . (str_replace('https://', '', config('filesystems.disks.do.endpoint'))) . '/';
         foreach ($data as $file) {
             $path = str_replace('documents/', '', $file['path']);
             $split = explode('/', $path);
@@ -44,6 +45,7 @@ class DocumentsController extends Controller
             $files[] = [
                 'type' => $file['type'],
                 'path' => $path,
+                'url' => $cdnPath . $file['path'],
                 'breadcrumbs' => $breadcrumbs,
                 'title' => $name,
                 'icon' => $file['type'] === 'dir' ? 'tabler-folder-filled' : 'tabler-file',
@@ -72,10 +74,12 @@ class DocumentsController extends Controller
         ]);
     }
 
-    public function list(Request $request) {
+    public function list(Request $request)
+    {
         $path = $request->get('path', '');
         $data = \Storage::disk('do')->listContents('/documents/' . $path, false);
         $files = [];
+        $cdnPath = 'https://' . config('filesystems.disks.do.bucket') . '.' . (str_replace('https://', '', config('filesystems.disks.do.endpoint'))) . '/';
         foreach ($data as $file) {
             $path = str_replace('documents/', '', $file['path']);
             $split = explode('/', $path);
@@ -84,6 +88,7 @@ class DocumentsController extends Controller
             $files[] = [
                 'type' => $file['type'],
                 'path' => $path,
+                'url' => $cdnPath . $file['path'],
                 'name' => $name,
             ];
         }

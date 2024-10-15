@@ -26,6 +26,26 @@ const emit = defineEmits([
   'customerData',
 ])
 
+const errors = ref({
+  name: [],
+  lastName: [],
+  businessName: [],
+  taxIdCode: [],
+  vatNumber: [],
+  email: [],
+  phone: [],
+  mobile: [],
+  atecoCode: [],
+  pec: [],
+  uniqueCode: [],
+  category: [],
+  address: [],
+  region: [],
+  province: [],
+  city: [],
+  zip: [],
+})
+
 const categories = ref([
   { title: 'N/A', value: 'all' },
   { title: 'Residenziale', value: 'Residenziale' },
@@ -223,6 +243,7 @@ const createUser = async () => {
           label="Tipologia"
           placeholder="Seleziona"
           :items="categories"
+          :rules="[requiredValidator]"
         />
       </VCol>
 
@@ -349,7 +370,6 @@ const createUser = async () => {
           v-model="phone"
           label="Telefono"
           placeholder="1234567890"
-          :rules="[requiredValidator]"
         />
       </VCol>
 
@@ -362,7 +382,6 @@ const createUser = async () => {
           v-model="mobile"
           label="Cellulare"
           placeholder="1234567890"
-          :rules="[requiredValidator]"
         />
       </VCol>
 

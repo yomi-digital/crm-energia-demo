@@ -174,7 +174,12 @@ const selectedFiles = async (files) => {
 
           <VCardText>
             <div class="text-body-1">
-              <span class="font-weight-medium">Prodotto:</span> {{ paperworkData.product.name || 'N/A' }}
+              <span class="font-weight-medium">Prodotto:</span>
+                <RouterLink
+                  :to="{ name: 'configuration-products-id', params: { id: paperworkData.product.id } }"
+                  class="font-weight-medium text-link"
+                  :title="paperworkData.product.name"
+                >{{ paperworkData.product.name || 'N/A' }}</RouterLink>
             </div>
           </VCardText>
 
@@ -356,7 +361,11 @@ const selectedFiles = async (files) => {
 
           <VCardText>
             <div class="text-body-1">
-              {{ [paperworkData.user.name, paperworkData.user.last_name].join(' ') }}
+              <RouterLink
+                :to="{ name: 'admin-users-id', params: { id: paperworkData.user.id } }"
+                class="font-weight-medium text-link"
+                :title="paperworkData.user.name"
+              >{{ [paperworkData.user.name, paperworkData.user.last_name].join(' ') }}</RouterLink>
             </div>
             <div class="text-body-1">
               Compenso Stimato: € {{ paperworkData.payout || 'N/A' }}
@@ -383,8 +392,14 @@ const selectedFiles = async (files) => {
             <div class="d-flex align-center gap-x-3">
               <div>
                 <h6 class="text-h6">
-                  <template v-if="paperworkData.customer.name">{{ [paperworkData.customer.name, paperworkData.customer.last_name].join(' ') }}</template>
-                  <template v-if="paperworkData.customer.business_name">{{ paperworkData.customer.business_name }}</template>
+                  <RouterLink
+                    :to="{ name: 'workflow-customers-id', params: { id: paperworkData.customer.id } }"
+                    class="font-weight-medium text-link"
+                    :title="paperworkData.customer.name"
+                  >
+                    <template v-if="paperworkData.customer.name">{{ [paperworkData.customer.name, paperworkData.customer.last_name].join(' ') }}</template>
+                    <template v-if="paperworkData.customer.business_name">{{ paperworkData.customer.business_name }}</template>
+                  </RouterLink>
                 </h6>
                 <div class="text-body-1" v-if="paperworkData.customer.tax_id_code">
                   CF: {{ paperworkData.customer.tax_id_code }}

@@ -10,7 +10,20 @@ class UploadsController extends Controller
     {
         $file = $request->file('file');
         $scope = $request->get('scope', 'uploads');
-        $path = $file->storeAs($scope, $file->getClientOriginalName(), 'do');
+        // If scope starts with "documents", set it to "documents"
+        if (strpos($scope, 'documents') === 0) {
+            // Set visibility as public for documents
+            $path = $file->storeAs($scope, $file->getClientOriginalName(), [
+                'disk' => 'do',
+                'visibility' => 'public'
+            ]);
+        } else {
+            // Set visibility as private for everything else
+            $path = $file->storeAs($scope, $file->getClientOriginalName(), [
+                'disk' => 'do',
+                'visibility' => 'private'
+            ]);
+        }
 
         return response()->json(['path' => $path]);
     }

@@ -246,6 +246,14 @@ const navigateBreadcrumbs = item => {
                     v-if="item.type === 'file'"
                     variant="text"
                     color="primary"
+                    icon="tabler-eye"
+                    :href="item.url"
+                    target="_blank"
+                  />
+                  <VBtn
+                    v-if="item.type === 'file'"
+                    variant="text"
+                    color="primary"
                     icon="tabler-download"
                     @click.stop="downloadDocument(item)"
                   />

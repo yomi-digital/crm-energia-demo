@@ -69,7 +69,14 @@ class PaperworksController extends Controller
                 'customer_id' => 'required|exists:customers,id',
                 'appointment_id' => 'exists:calendar,id|nullable',
                 'product_id' => 'required|exists:products,id',
-                'account_pod_pdr' => 'required_unless:category,ALLACCIO|nullable',
+                'account_pod_pdr' => [
+                    'nullable',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ($request->category !== 'ALLACCIO' && $request->energy_type !== 'MOBILE') {
+                            $fail('Account POD/PDR è obbligatorio per i contratti di energia che non siano ALLACCIO.');
+                        }
+                    },
+                ],
                 'annual_consumption' => 'nullable',
                 'contract_type' => 'required',
                 'category' => 'required',
@@ -207,7 +214,9 @@ class PaperworksController extends Controller
 
         // Get product fee band for this product
         $feeband = \App\Models\Feeband::where('product_id', $paperwork->product_id)
-            ->where('start_date', '<=', now())->where('end_date', '>=', now())->first();
+            ->where('start_date', '<=', now())->where(function ($query) {
+                $query->where('end_date', '>=', now())->orWhereNull('end_date');
+            })->orderBy('start_date', 'asc')->first();
 
         $payout = 0;
         if ($brandUser && $feeband) {
@@ -234,21 +243,21 @@ class PaperworksController extends Controller
                     $productFee = 0;
                     break;
             }
-        }
 
-        if ($feeband->fee_type === 'FISSO') {
-            $payout = $productFee;
-        } elseif ($feeband->fee_type === 'PERCENTUALE') {
-            $payout = $productFee * $paperwork->product->price / 100;
-        } elseif ($feeband->fee_type === 'MESE') {
-            $payout = $productFee * $paperwork->product->price;
-        } elseif ($feeband->fee_type === 'CONSUMO') {
-            $payout = $productFee * $paperwork->annual_consumption;
-        }
+            if ($feeband->fee_type === 'FISSO') {
+                $payout = $productFee;
+            } elseif ($feeband->fee_type === 'PERCENTUALE') {
+                $payout = $productFee * $paperwork->product->price / 100;
+            } elseif ($feeband->fee_type === 'MESE') {
+                $payout = $productFee * $paperwork->product->price;
+            } elseif ($feeband->fee_type === 'CONSUMO') {
+                $payout = $productFee * $paperwork->annual_consumption;
+            }
 
-        if ($brandUser->bonus) {
-            // Add bonus percentage to payout
-            $payout += $payout * $brandUser->bonus / 100;
+            if ($brandUser->bonus) {
+                // Add bonus percentage to payout
+                $payout += $payout * $brandUser->bonus / 100;
+            }
         }
 
         return $payout;
