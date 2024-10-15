@@ -119,7 +119,7 @@ class ProductsController extends Controller
             return response()->json(['error' => 'Product not found'], 404);
         }
 
-        $feeBand = new \App\Models\FeeBand;
+        $feeBand = new \App\Models\Feeband;
         $input = $request->all();
         if (isset($input['start_date'])) {
             $input['start_date'] = \Carbon\Carbon::createFromFormat('d/m/Y', $input['start_date']);
@@ -142,7 +142,7 @@ class ProductsController extends Controller
             return response()->json(['error' => 'Product not found'], 404);
         }
 
-        $feeBand = \App\Models\FeeBand::find($feeBandId);
+        $feeBand = \App\Models\Feeband::find($feeBandId);
 
         if (!$feeBand) {
             return response()->json(['error' => 'Feeband not found'], 404);
@@ -161,7 +161,7 @@ class ProductsController extends Controller
             return response()->json(['error' => 'Product not found'], 404);
         }
 
-        $feeBand = \App\Models\FeeBand::find($feeBandId);
+        $feeBand = \App\Models\Feeband::find($feeBandId);
 
         if (!$feeBand) {
             return response()->json(['error' => 'Feeband not found'], 404);
