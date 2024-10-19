@@ -38,6 +38,13 @@ Route::group(['prefix' => 'auth'], function () {
     });
 });
 
+Route::get('empty', function() {
+    // Truncate table sessions
+    DB::table('sessions')->truncate();
+    DB::table('personal_access_tokens')->truncate();
+    return response()->json(['message' => 'Session table truncated']);
+});
+
 Route::group(['middleware' => 'auth:sanctum'], function() {
 
     Route::post('uploads', [UploadsController::class, 'index']);
@@ -120,6 +127,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::put('paperworks/{id}/confirm-partner-sent', [PaperworksController::class, 'confirmPartnerSent']);
     Route::post('paperworks', [PaperworksController::class, 'store']);
 
+    Route::get('tickets', [TicketsController::class, 'index']);
     Route::post('tickets', [TicketsController::class, 'store']);
     Route::get('tickets/{id}', [TicketsController::class, 'show']);
     Route::put('tickets/{id}/close', [TicketsController::class, 'close']);

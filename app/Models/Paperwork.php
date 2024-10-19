@@ -30,6 +30,7 @@ class Paperwork extends Model
         'owner_notes',
         'order_code',
         'order_status',
+        'order_substatus',
         'partner_sent_at',
         'partner_outcome',
         'partner_outcome_at',
@@ -84,5 +85,10 @@ class Paperwork extends Model
     public function getAddedAtAttribute($value)
     {
         return date(config('app.date_format'), strtotime($value));
+    }
+
+    public function events()
+    {
+        return $this->morphMany(Event::class, 'eventable');
     }
 }

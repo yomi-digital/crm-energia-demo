@@ -71,85 +71,110 @@ const dialogModelValueUpdate = val => {
     :model-value="props.isDialogVisible"
     @update:model-value="dialogModelValueUpdate"
   >
-    <!-- Dialog close btn -->
     <DialogCloseBtn @click="dialogModelValueUpdate(false)" />
 
-    <VCard class="pa-sm-4 pa-2">
-      <VCardText>
-        <VBtn type="btn" class="float-right" v-if="ticketData.status != 3"
-          color="info"
-          @click="closeTicket"
-        >
-          Risolvi Ticket
-        </VBtn>
-        <div class="float-right" v-if="ticketData.status == 3"><VIcon icon="tabler-circle-check" size="30" color="success" /></div>
-        <!-- 👉 Title -->
-        <h4 class="text-h4 mb-2">
-          Ticket: {{ ticketData.title }}
-        </h4>
-        <div style="font-size:.8em">Creato da <b>{{ [ticketData.created_by.name, ticketData.created_by.last_name].join(' ') }}</b> il <i>{{ ticketData.created_at }}</i></div>
+    <VCard class="ticket-dialog">
+      <VCardTitle class="py-4 px-6">
+        <div class="d-flex justify-space-between align-center">
+          <h2 class="text-h4 font-weight-bold">{{ ticketData.title }}</h2>
+          <div>
+            <VChip
+              :color="ticketData.status === 3 ? 'success' : 'warning'"
+              class="text-uppercase mr-2"
+            >
+              {{ ticketData.status === 3 ? 'Risolto' : 'Aperto' }}
+            </VChip>
+            <VBtn
+              v-if="ticketData.status !== 3"
+              color="success"
+              @click="closeTicket"
+            >
+              Risolvi Ticket
+            </VBtn>
+          </div>
+        </div>
+        <div class="text-subtitle-1 mt-2">
+          Creato da {{ [ticketData.created_by.name, ticketData.created_by.last_name].join(' ') }} 
+          il {{ ticketData.created_at }}
+        </div>
+      </VCardTitle>
 
-        <div style="font-size: 1.3em" class="my-8 px-4">{{ ticketData.description }}</div>
+      <VDivider />
 
-        <!-- 👉 Comments -->
-        <VDivider class="my-4" />
+      <VCardText class="py-4 px-6">
+        <div class="ticket-description mb-6">
+          <h3 class="text-h6 font-weight-bold mb-2">Descrizione</h3>
+          <div class="text-body-1">{{ ticketData.description }}</div>
+        </div>
 
-        <div>
-          <div v-for="comment in ticketData.comments" class="comment">
-            <div style="font-size:.8em" class="d-flex justify-space-between">
-              <div><b>{{ [comment.user.name, comment.user.last_name].join(' ') }}</b></div>
-              <div><i>{{ comment.created_at }}</i></div>
+        <VDivider class="mb-6" />
+
+        <div class="comments-section">
+          <h3 class="text-h6 font-weight-bold mb-4">Commenti</h3>
+          <div
+            v-for="comment in ticketData.comments"
+            :key="comment.id"
+            class="comment mb-4"
+          >
+            <div class="d-flex justify-space-between align-center mb-1">
+              <span class="font-weight-medium">{{ [comment.user.name, comment.user.last_name].join(' ') }}</span>
+              <span class="text-caption">{{ comment.created_at }}</span>
             </div>
-            <div style="font-size: 1.2em" class="my-3">{{ comment.comment }}</div>
+            <div class="text-body-2 comment-text">{{ comment.comment }}</div>
           </div>
         </div>
 
-        <VDivider class="my-4" />
+        <VDivider class="my-6" />
 
-        <!-- 👉 Form -->
-        <VForm
-          class="mt-6"
-          @submit.prevent="onFormSubmit"
-        >
-          <VRow>
-            <!-- 👉 Comment -->
-            <VCol
-              cols="12"
-              md="12"
+        <VForm @submit.prevent="onFormSubmit" class="reply-form">
+          <VTextField
+            v-model="comment"
+            label="Aggiungi un commento"
+            placeholder="Scrivi la tua risposta..."
+            variant="outlined"
+            rows="3"
+            auto-grow
+          />
+          <div class="d-flex justify-end mt-4">
+            <VBtn
+              type="submit"
+              color="primary"
+              :disabled="!comment.trim()"
             >
-              <AppTextarea
-                v-model="comment"
-                rows="3"
-                placeholder=""
-              />
-            </VCol>
-
-            <!-- 👉 Submit and Cancel -->
-            <VCol
-              cols="12"
-              class="d-flex flex-wrap gap-4"
-            >
-              <VBtn type="submit" color="primary">
-                Invia Risposta
-              </VBtn>
-            </VCol>
-          </VRow>
+              Invia Risposta
+            </VBtn>
+          </div>
         </VForm>
-        <div class="mt-3">
-
-        </div>
       </VCardText>
     </VCard>
   </VDialog>
 </template>
 
 <style scoped>
-.comment {
-  padding: 10px 0;
-  margin: 10px 0;
-  border-bottom: 2px solid #ccc;
+.ticket-dialog {
+  border-radius: 12px;
 }
-.comment:last-child {
-  border-bottom: none;
+
+.ticket-description {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.comment {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  background-color: #ffffff;
+}
+
+.comment-text {
+  white-space: pre-wrap;
+}
+
+.reply-form {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 16px;
 }
 </style>

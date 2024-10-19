@@ -177,8 +177,9 @@ const onStartDateChange = value => {
               <!-- 👉 Management fee -->
               <VCol cols="12" md="12">
                 <AppTextField
-                  v-model="feeband.management_fee"
+                  v-model.number="feeband.management_fee"
                   label="Gestione"
+                  type="number"
                   placeholder="0"
                   :rules="[requiredValidator]"
                 />
@@ -187,8 +188,9 @@ const onStartDateChange = value => {
               <!-- 👉 Getter fee -->
               <VCol cols="12" md="12">
                 <AppTextField
-                  v-model="feeband.top_partner_fee"
+                  v-model.number="feeband.top_partner_fee"
                   label="TOP Partner"
+                  type="number"
                   placeholder="0"
                   :rules="[requiredValidator]"
                 />
@@ -197,8 +199,9 @@ const onStartDateChange = value => {
               <!-- 👉 Agent fee -->
               <VCol cols="12" md="12">
                 <AppTextField
-                  v-model="feeband.top_fee"
+                  v-model.number="feeband.top_fee"
                   label="TOP"
+                  type="number"
                   placeholder="0"
                   :rules="[requiredValidator]"
                 />
@@ -207,8 +210,9 @@ const onStartDateChange = value => {
               <!-- 👉 Structure fee -->
               <VCol cols="12" md="12">
                 <AppTextField
-                  v-model="feeband.partner_fee"
+                  v-model.number="feeband.partner_fee"
                   label="Partner"
+                  type="number"
                   placeholder="0"
                   :rules="[requiredValidator]"
                 />
@@ -217,8 +221,9 @@ const onStartDateChange = value => {
               <!-- 👉 Structure top fee -->
               <VCol cols="12" md="12">
                 <AppTextField
-                  v-model="feeband.collaborator_fee"
+                  v-model.number="feeband.collaborator_fee"
                   label="Smart"
+                  type="number"
                   placeholder="0"
                   :rules="[requiredValidator]"
                 />
@@ -227,8 +232,9 @@ const onStartDateChange = value => {
               <!-- 👉 Salesperson fee -->
               <VCol cols="12" md="12">
                 <AppTextField
-                  v-model="feeband.smart_fee"
+                  v-model.number="feeband.smart_fee"
                   label="Collaboratore"
+                  type="number"
                   placeholder="0"
                   :rules="[requiredValidator]"
                 />

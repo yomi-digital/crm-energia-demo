@@ -18,4 +18,11 @@ export default [
     action: 'access',
     subject: 'paperworks',
   },
+  {
+    title: 'Ticket',
+    icon: { icon: 'tabler-file' },
+    to: 'workflow-tickets',
+    action: 'access',
+    subject: 'tickets',
+  },
 ]

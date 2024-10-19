@@ -114,12 +114,14 @@ const brands = [
   },
 ]
 const fetchBrands = async (query) => {
-  const response = await $api('/brands?itemsPerPage=999999&select=1')
-  for (const brand of response.brands) {
-    brands.push({
-      title: brand.name,
-      value: brand.id,
-    })
+  const response = await useApi(createUrl('/brands?itemsPerPage=999999&select=1'))
+  if (response && response.brands) {
+    for (const brand of response.brands) {
+      brands.push({
+        title: brand.name,
+        value: brand.id,
+      })
+    }
   }
 }
 await fetchBrands()
@@ -131,12 +133,14 @@ const cities = [
   },
 ]
 const fetchCities = async (query) => {
-  const response = await $api('/cities')
-  for (const city of response) {
-    cities.push({
-      title: city.city,
-      value: city.city,
-    })
+  const response = await useApi(createUrl('/cities'))
+  if (response && response.length) {
+    for (const city of response) {
+      cities.push({
+        title: city.city,
+        value: city.city,
+      })
+    }
   }
 }
 await fetchCities()

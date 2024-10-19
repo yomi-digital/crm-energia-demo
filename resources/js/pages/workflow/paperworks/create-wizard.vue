@@ -78,7 +78,6 @@ const createPaperworkData = ref({
   agent: {
     id: null,
     name: null,
-    mandate_id: null,
     mandate_name: null,
   },
   customer: {
@@ -102,8 +101,6 @@ const createPaperworkData = ref({
     brand_name: null,
     product_id: null,
     product_name: null,
-    mandate_id: null,
-    mandate_name: null,
   },
   paperworkReviewComplete: { notes: null, owner_notes: null, isPaperworkDetailsConfirmed: false },
 })
@@ -168,7 +165,6 @@ const onSubmit = async () => {
       user_id: createPaperworkData.value.agent.id,
       customer_id: createPaperworkData.value.customer.id,
       appointment_id: createPaperworkData.value.customer.appointment_id,
-      mandate_id: createPaperworkData.value.agent.mandate_id,
       product_id: createPaperworkData.value.product.product_id,
       account_pod_pdr: createPaperworkData.value.customer.account_pod_pdr,
       annual_consumption: createPaperworkData.value.customer.annual_consumption,

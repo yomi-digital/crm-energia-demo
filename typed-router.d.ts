@@ -92,6 +92,9 @@ declare module 'vue-router/auto/routes' {
     'workflow-paperworks-id': RouteRecordInfo<'workflow-paperworks-id', '/workflow/paperworks/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'workflow-paperworks-create': RouteRecordInfo<'workflow-paperworks-create', '/workflow/paperworks/create', Record<never, never>, Record<never, never>>,
     'workflow-paperworks-create-wizard': RouteRecordInfo<'workflow-paperworks-create-wizard', '/workflow/paperworks/create-wizard', Record<never, never>, Record<never, never>>,
+    'workflow-tickets': RouteRecordInfo<'workflow-tickets', '/workflow/tickets', Record<never, never>, Record<never, never>>,
+    'workflow-tickets-id': RouteRecordInfo<'workflow-tickets-id', '/workflow/tickets/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'workflow-tickets-create': RouteRecordInfo<'workflow-tickets-create', '/workflow/tickets/create', Record<never, never>, Record<never, never>>,
   }
 }
 

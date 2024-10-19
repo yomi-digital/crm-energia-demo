@@ -42,6 +42,8 @@ const selectBrand = () => {
   selectedBrand.value = brands.value.find(brand => brand.id === formData.value.brand_id)
   formData.value.brand_name = selectedBrand.value.name
   formData.value.product_id = null
+  // Remove disabled products
+  selectedBrand.value.products = selectedBrand.value.products.filter(product => product.enabled)
 }
 
 watch(() => formData.value.brand_id, selectBrand)

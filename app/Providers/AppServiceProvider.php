@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\Paperwork;
+use App\Observers\PaperworkObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,5 +24,7 @@ class AppServiceProvider extends ServiceProvider
         if (env('APP_ENV') === 'production') {
             \URL::forceScheme('https');
         }
+
+        Paperwork::observe(PaperworkObserver::class);
     }
 }

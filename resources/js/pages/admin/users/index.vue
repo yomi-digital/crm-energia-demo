@@ -351,7 +351,7 @@ const deleteUser = async id => {
             />
 
             <div class="text-capitalize text-high-emphasis text-body-1">
-              {{ item.role.name }}
+              {{ item.role?.name }}
             </div>
           </div>
         </template>

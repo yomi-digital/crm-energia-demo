@@ -1,4 +1,5 @@
 <script setup>
+import { useApi } from '@/composables/useApi';
 import { watch } from 'vue';
 import { VDivider } from 'vuetify/lib/components/index.mjs';
 
@@ -93,6 +94,13 @@ const statuses = ref([
   { title: 'INSERITO', value: 'INSERITO' },
   { title: 'INVIATO', value: 'INVIATO' },
 ])
+
+const mandates = ref([]);
+const { data: mandatesData, execute: fetchMandates } = await useApi('/mandates');
+mandates.value = mandatesData.value.mandates.map(mandate => ({
+  title: mandate.name,
+  value: mandate.id
+}))
 
 watch(() => paperworkDataClone.value.type, () => {
   paperworkDataClone.value.energy_type = ''
@@ -200,7 +208,7 @@ watch(() => paperworkDataClone.value.type, () => {
               />
             </VCol>
 
-            <VDivider />
+            <VDivider class="mt-4" />
 
             <VCol
               cols="12"
@@ -223,6 +231,20 @@ watch(() => paperworkDataClone.value.type, () => {
                 placeholder="1000"
               />
             </VCol>
+
+            <template v-if="$can('access', 'mandates')">
+              <VDivider class="mt-4" />
+  
+              <!-- New mandate_id field -->
+              <VCol v-if="$can('access', 'mandates')" cols="12" sm="6">
+                <AppSelect
+                  v-model="paperworkDataClone.mandate_id"
+                  label="Mandato"
+                  :items="mandates"
+                  placeholder="Seleziona un mandato"
+                />
+              </VCol>
+            </template>
 
             <!-- 👉 Submit and Cancel -->
             <VCol

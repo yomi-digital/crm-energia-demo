@@ -8,7 +8,7 @@ const isTicketDialogVisible = ref(false)
 const selectedTicket = ref(null)
 const isTicketViewDialogVisible = ref(false)
 const isUploadDialogVisible = ref(false)
-const isUpdateStatusesDialogVisible = ref(false)
+const isUpdatePartnerDialogVisible = ref(false)
 
 const {
   data: paperworkData,
@@ -21,7 +21,36 @@ const formatDateTime = (inputDate) => {
   return formatter.format(date);
 }
 
-const confirmPaperworkUpdateStatuses = async (data) => {
+const confirmPaperwork = async (confirm) => {
+  if (! confirm) {
+    // isConfirmDialogVisible.value = false
+    return
+  }
+  await $api(`/paperworks/${ route.params.id }/confirm`, {
+    method: 'PUT',
+  })
+  fetchPaperwork()
+}
+const confirmPaperworkPartnerSentOld = async (confirm) => {
+  if (! confirm) {
+    // isConfirmPartnerSentDialogVisible.value = false
+    return
+  }
+  await $api(`/paperworks/${ route.params.id }/confirm-partner-sent`, {
+    method: 'PUT',
+  })
+  fetchPaperwork()
+}
+
+const confirmPaperworkPartnerSent = async () => {
+  fetchPaperwork()
+}
+
+const confirmPaperworkUpdatePartner = async (data) => {
+  await $api(`/paperworks/${ route.params.id }/update-partner`, {
+    method: 'PUT',
+    body: data,
+  })
   fetchPaperwork()
 }
 
@@ -49,53 +78,6 @@ const selectedFiles = async (files) => {
     }
   })
   fetchPaperwork()
-}
-
-const prettifyField = (field) => {
-  switch (field) {
-    case 'order_status':
-      return 'Stato Ordine'
-    case 'order_substatus':
-      return 'Sottostato Ordine'
-    case 'partner_outcome':
-      return 'Esito Partner'
-    case 'partner_outcome_at':
-      return 'Data Esito Partner'
-    case 'partner_sent_at':
-      return 'Data Invio'
-    case 'order_code':
-      return 'ID Pratica'
-    case 'energy_type':
-      return 'Tipo Utenza'
-    case 'mobile_type':
-      return 'Tipo Mobile'
-    case 'account_pod_pdr':
-      return 'Account / POD / PDR'
-    case 'annual_consumption':
-      return 'Consumo Annuo'
-    case 'previous_provider':
-      return 'Compagnia Fornitore Uscente'
-    case 'type':
-      return 'Tipo'
-    case 'category':
-      return 'Categoria'
-    case 'contract_type':
-      return 'Tipo Contratto'
-    case 'confirmed_at':
-      return 'Data Confermata'
-    case 'confirmed_by_user_id':
-      return 'Confermata da'
-    case 'created_by_user_id':
-      return 'Creata da'
-    case 'updated_by_user_id':
-      return 'Modificata da'
-    case 'created_at':
-      return 'Creata il'
-    case 'updated_at':
-      return 'Modificata il'
-    default:
-      return field
-  }
 }
 </script>
 
@@ -135,10 +117,19 @@ const prettifyField = (field) => {
 
       <div>
         <VBtn
-          color="info"
-          @click="isUpdateStatusesDialogVisible = !isUpdateStatusesDialogVisible"
+          color="success"
+          v-if="! paperworkData.confirmed_at"
+          @click="isConfirmDialogVisible = !isConfirmDialogVisible"
         >
-          Aggiorna Stato
+          Conferma Pratica
+        </VBtn>&nbsp;
+
+        <VBtn
+          color="success"
+          v-if="paperworkData.confirmed_at && ! paperworkData.partner_sent_at"
+          @click="isConfirmPartnerSentDialogVisible = !isConfirmPartnerSentDialogVisible"
+        >
+          Conferma Inserirmento
         </VBtn>&nbsp;
 
         <!-- <VBtn
@@ -162,6 +153,14 @@ const prettifyField = (field) => {
             <template #title>
               <h5 class="text-h5">
                 Dettagli Pratica
+                <VChip
+                  variant="tonal"
+                  :color="paperworkData.confirmed_at ? 'success' : 'error'"
+                  label
+                  size="small"
+                >
+                  {{ paperworkData.confirmed_at ? 'CONFERMATA da ' + [paperworkData.confirmed_by_user?.name, paperworkData.confirmed_by_user?.last_name].join(' ') : 'NON CONFERMATA' }}
+                </VChip>
               </h5>
             </template>
             <template #append>
@@ -183,6 +182,7 @@ const prettifyField = (field) => {
                 >{{ paperworkData.product.name || 'N/A' }}</RouterLink>
             </div>
           </VCardText>
+
 
           <VRow>
             <VCol
@@ -229,7 +229,7 @@ const prettifyField = (field) => {
                   <span class="font-weight-medium">Stato Ordine:</span> {{ paperworkData.order_status || 'N/A' }}
                 </div>
                 <div class="text-body-1 mb-2">
-                  <span class="font-weight-medium">Data Invio:</span> {{ paperworkData.partner_sent_at || 'N/A' }}
+                  <span class="font-weight-medium">Data Inserimento:</span> {{ paperworkData.partner_sent_at || 'N/A' }}
                 </div>
                 <div class="text-body-1 mb-2">
                   <span class="font-weight-medium">Esito Partner:</span> {{ paperworkData.partner_outcome || 'N/A' }}
@@ -270,7 +270,7 @@ const prettifyField = (field) => {
         </VCard>
 
         <!-- 👉 Paperwork Activity -->
-        <VCard title="Eventi Pratica">
+        <VCard title="Timeline">
           <VCardText>
             <VTimeline
               truncate-line="both"
@@ -298,29 +298,51 @@ const prettifyField = (field) => {
               </VTimelineItem>
 
               <VTimelineItem
-                v-for="event in paperworkData.events"
-                :key="event.id"
-                dot-color="primary"
+                :dot-color="paperworkData.confirmed_at ? 'primary' : 'secondary'"
                 size="x-small"
               >
                 <div class="d-flex justify-space-between align-center">
-                  <div class="app-timeline-title">
-                    {{ event.event_type === 'updated' ? 'Pratica Modificata' : 'Pratica Creata' }} da {{ [event.user.name, event.user.last_name].join(' ') }}
-                  </div>
-                  <div class="app-timeline-meta">
-                    {{ formatDateTime(event.created_at) }}
-                  </div>
+                  <span class="app-timeline-title">Pratica Confermata</span>
+                  <span class="app-timeline-meta">{{ paperworkData.confirmed_at ? formatDateTime(paperworkData.confirmed_at) : '' }}</span>
                 </div>
-                <ul class="changes-list">
-                  <li v-for="change in event.properties.changes" :key="change.field" class="change-item">
-                    <div class="change-field">{{ prettifyField(change.field) }}</div>
-                    <div class="change-values">
-                      <span class="old-value">{{ change.old || 'N/A' }}</span>
-                      <span class="arrow">→</span>
-                      <span class="new-value">{{ change.new || 'N/A' }}</span>
-                    </div>
-                  </li>
-                </ul>
+                <p class="app-timeline-text mb-0 mt-3">
+                  <template v-if="paperworkData.confirmed_at">
+                    La pratica è stata confermata da {{ [paperworkData.confirmed_by_user?.name, paperworkData.confirmed_by_user?.last_name].join(' ') }}
+                  </template>
+                  <template v-else>La pratica è in attesa di essere confermata</template>
+                </p>
+              </VTimelineItem>
+
+              <VTimelineItem
+                :dot-color="paperworkData.partner_sent_at ? 'primary' : 'secondary'"
+                size="x-small"
+              >
+                <div class="d-flex justify-space-between align-center">
+                  <span class="app-timeline-title">Pratica Inserita</span>
+                  <span class="app-timeline-meta">{{ paperworkData.partner_sent_at ? formatDateTime(paperworkData.partner_sent_at) : '' }}</span>
+                </div>
+                <p class="app-timeline-text mb-0 mt-3">
+                  <template v-if="paperworkData.partner_sent_at">
+                    La pratica è stata inserita nel sistema partner
+                  </template>
+                  <template v-else>La pratica è in attesa di essere inserita nel sistema partner</template>
+                </p>
+              </VTimelineItem>
+
+              <VTimelineItem
+                :dot-color="paperworkData.partner_outcome_at ? 'success' : 'secondary'"
+                size="x-small"
+              >
+                <div class="d-flex justify-space-between align-center">
+                  <span class="app-timeline-title">Esito Partner</span>
+                  <span class="app-timeline-meta">{{ paperworkData.partner_outcome_at ? formatDateTime(paperworkData.partner_outcome_at) : '' }}</span>
+                </div>
+                <p class="app-timeline-text mb-0 mt-3">
+                  <template v-if="paperworkData.partner_outcome_at">
+                    Il partner ha dato esito {{ paperworkData.partner_outcome }}
+                  </template>
+                  <template v-else>In attesa di esito da parte del partner</template>
+                </p>
               </VTimelineItem>
             </VTimeline>
           </VCardText>
@@ -512,12 +534,40 @@ const prettifyField = (field) => {
       </VCol>
     </VRow>
 
-    <!-- 👉 Update statuses dialog -->
-    <PaperworkUpdateStatusesDialog
+    <ConfirmDialog
+      v-model:isDialogVisible="isConfirmDialogVisible"
+      confirmation-question="Confermare la pratica?"
+      cancel-msg="La pratica non è stata confermata."
+      cancel-title="Operazione annullata"
+      confirm-msg="La pratica è stata confermata."
+      confirm-title="Confermata!"
+      @confirm="confirmPaperwork"
+    />
+
+    <!-- <ConfirmDialog
+      v-model:isDialogVisible="isConfirmPartnerSentDialogVisible"
+      confirmation-question="Confermare insertimento pratica?"
+      cancel-msg="L'inserimento della pratica non è stata confermato."
+      cancel-title="Operazione annullata"
+      confirm-msg="Inserimento pratica confermato."
+      confirm-title="Confermato!"
+      @confirm="confirmPaperworkPartnerSent"
+    /> -->
+
+    <!-- 👉 Edit paperwor dialog -->
+    <PaperworkConfirmInsertDialog
       v-if="$can('edit', 'paperworks')"
-      v-model:isDialogVisible="isUpdateStatusesDialogVisible"
+      v-model:isDialogVisible="isConfirmPartnerSentDialogVisible"
+      :paperwork-id="paperworkData.id"
+      @submit="confirmPaperworkPartnerSent"
+    />
+
+    <!-- 👉 Edit paperwor dialog -->
+    <PaperworkUpdatePartnerDialog
+      v-if="$can('edit', 'paperworks')"
+      v-model:isDialogVisible="isUpdatePartnerDialogVisible"
       :paperwork-data="paperworkData"
-      @submit="confirmPaperworkUpdateStatuses"
+      @submit="confirmPaperworkUpdatePartner"
     />
 
     <!-- 👉 Edit paperwor dialog -->
@@ -561,58 +611,3 @@ const prettifyField = (field) => {
     </VCard>
   </VDialog>
 </template>
-
-<style scoped>
-.changes-list {
-  list-style-type: none;
-  padding: 0;
-  margin-top: 0.5rem;
-}
-
-.change-item {
-  background-color: #f3f4f6;
-  border-radius: 0.375rem;
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.change-field {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.change-values {
-  display: flex;
-  align-items: center;
-  font-size: 0.875rem;
-}
-
-.old-value {
-  color: #ef4444;
-  text-decoration: line-through;
-}
-
-.arrow {
-  margin: 0 0.5rem;
-  color: #6b7280;
-}
-
-.new-value {
-  color: #10b981;
-}
-
-/* Dark mode styles */
-@media (prefers-color-scheme: dark) {
-  .change-item {
-    background-color: #1f2937;
-  }
-  
-  .old-value {
-    color: #f87171;
-  }
-  
-  .new-value {
-    color: #34d399;
-  }
-}
-</style>

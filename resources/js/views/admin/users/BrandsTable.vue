@@ -353,8 +353,9 @@ const updateBrandPayLevel = async (brand, payLevel) => {
             </VCol>
             <VCol cols="12">
               <AppTextField
-                v-model="selectedBrandsAddBonus"
+                v-model.number="selectedBrandsAddBonus"
                 label="Bonus %"
+                type="number"
                 placeholder="10%"
               />
             </VCol>

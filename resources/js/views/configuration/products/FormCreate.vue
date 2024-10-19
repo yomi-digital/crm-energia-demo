@@ -88,8 +88,9 @@ const createProduct = async () => {
         md="6"
       >
         <AppTextField
-          v-model="price"
+          v-model.number="price"
           label="Prezzo"
+          type="number"
           placeholder="0"
           :rules="[requiredValidator]"
         />

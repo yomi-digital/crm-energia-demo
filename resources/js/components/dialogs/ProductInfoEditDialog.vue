@@ -113,9 +113,10 @@ await fetchBrands()
               md="6"
             >
               <AppTextField
-                v-model="productData.price"
+                v-model.number="productData.price"
                 :rules="[requiredValidator]"
                 label="Prezzo"
+                type="number"
                 placeholder="0"
               />
             </VCol>

@@ -49,7 +49,7 @@ class PaperworksController extends Controller
 
     public function show($id)
     {
-        $paperwork = \App\Models\Paperwork::with(['user', 'customer', 'customer.paperworks', 'mandate', 'product', 'documents', 'tickets', 'tickets.createdBy', 'createdByUser', 'confirmedByUser'])->whereId($id)->first();
+        $paperwork = \App\Models\Paperwork::with(['user', 'customer', 'customer.paperworks', 'mandate', 'product', 'documents', 'tickets', 'tickets.createdBy', 'createdByUser', 'confirmedByUser', 'events', 'events.user'])->whereId($id)->first();
 
         if (!$paperwork) {
             return response()->json(['error' => 'Paperwork not found'], 404);
@@ -108,7 +108,6 @@ class PaperworksController extends Controller
                 'customer_id' => 'required|exists:customers,id',
                 'appointment_id' => 'exists:calendar,id|nullable',
                 'product_id' => 'required|exists:products,id',
-                'mandate_id' => 'exists:agencies,id|nullable',
                 'account_pod_pdr' => 'required_unless:category,ALLACCIO|nullable',
                 'annual_consumption' => 'nullable',
                 'contract_type' => 'required',
@@ -124,6 +123,7 @@ class PaperworksController extends Controller
         }
 
         $paperwork->fill($fields);
+        $paperwork->order_status = 'CARICATO';
 
         if ($request->user()->hasRole('agent')) {
             $agent = $request->user();
@@ -146,6 +146,10 @@ class PaperworksController extends Controller
             return response()->json(['error' => 'Paperwork not found'], 404);
         }
 
+        if ($request->get('partner_outcome') && ! $paperwork->partner_outcome) {
+            $paperwork->partner_outcome_at = now()->format('Y-m-d H:i:s');
+        }
+
         $paperwork->fill($request->all());
 
         $paperwork->save();
@@ -162,6 +166,9 @@ class PaperworksController extends Controller
         }
 
         foreach ($request->get('documents') as $document) {
+            if (! isset($document['path'])) {
+                continue;
+            }
             $doc = new \App\Models\PaperworkDocument;
             $doc->paperwork_id = $paperwork->id;
             $doc->name = basename($document['path']);
@@ -180,6 +187,7 @@ class PaperworksController extends Controller
             return response()->json(['error' => 'Paperwork not found'], 404);
         }
 
+        $paperwork->order_status = 'CONFERMATO';
         $paperwork->confirmed_by = $request->user()->id;
         $paperwork->confirmed_at = now()->format('Y-m-d H:i:s');
 
@@ -198,6 +206,8 @@ class PaperworksController extends Controller
         if (!$paperwork) {
             return response()->json(['error' => 'Paperwork not found'], 404);
         }
+
+        $paperwork->order_status = 'INSERITO';
 
         $paperwork->order_code = $request->get('order_code');
         $paperwork->partner_sent_at = now()->format('Y-m-d H:i:s');

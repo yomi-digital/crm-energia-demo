@@ -2,7 +2,7 @@
 definePage({
   meta: {
     action: 'access',
-    subject: 'paperworks',
+    subject: 'tickets',
   },
 })
 
@@ -16,7 +16,6 @@ const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
 const selectedAgent = ref()
-const selectedCustomer = ref()
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -34,57 +33,20 @@ const headers = [
     key: 'order_code',
   },
   {
-    title: 'Account/POD/PDR',
-    key: 'account_pod_pdr',
+    title: 'Titolo',
+    key: 'title',
   },
   {
-    title: 'Agente',
-    key: 'user_id',
-    sortable: false,
+    title: 'Stato',
+    key: 'status',
   },
   {
-    title: 'Cliente',
-    key: 'customer_id',
-    sortable: false,
+    title: 'Creato Da',
+    key: 'created_by',
   },
   {
-    title: 'Data Invio',
-    key: 'partner_sent_at',
-  },
-  {
-    title: 'Stato Ordine',
-    key: 'order_status',
-  },
-  {
-    title: 'Prodotto',
-    key: 'product_id',
-    sortable: false,
-  },
-  {
-    title: 'Categoria Brand',
-    key: 'brand_category_id',
-  },
-  {
-    title: 'Mandato',
-    key: 'mandate_id',
-    sortable: false,
-  },
-  {
-    title: 'Esito Partner',
-    key: 'partner_outcome',
-  },
-  {
-    title: 'Data Esito Partner',
-    key: 'partner_outcome_at',
-  },
-  {
-    title: 'Pagato',
-    key: 'paid',
-  },
-  {
-    title: 'Compenso',
-    key: 'pay',
-    sortable: false,
+    title: 'Data Creazione',
+    key: 'created_at',
   },
   {
     title: '',
@@ -94,22 +56,21 @@ const headers = [
 ]
 
 const {
-  data: paperworksData,
-  execute: fetchPaperworks,
-} = await useApi(createUrl('/paperworks', {
+  data: ticketsData,
+  execute: fetchTickets,
+} = await useApi(createUrl('/tickets', {
   query: {
     q: searchQuery,
     itemsPerPage,
     user_id: selectedAgent,
-    customer_id: selectedCustomer,
     page,
     sortBy,
     orderBy,
   },
 }))
 
-const paperworks = computed(() => paperworksData.value.paperworks)
-const totalPaperworks = computed(() => paperworksData.value.totalPaperworks)
+const tickets = computed(() => ticketsData.value.tickets)
+const totalTickets = computed(() => ticketsData.value.totalTickets)
 
 const getCustomerName = (customer) => {
   if (! customer) {
@@ -206,16 +167,6 @@ fetchCustomers()
             />
           </VCol>
 
-          <VCol cols="4">
-            <AppAutocomplete
-              v-model="selectedCustomer"
-              label="Filtra per Cliente"
-              clearable
-              :items="customers"
-              placeholder="Seleziona un Cliente"
-            />
-          </VCol>
-
         </VRow>
       </VCardText>
 
@@ -273,8 +224,8 @@ fetchCustomers()
       <VDataTableServer
         v-model:items-per-page="itemsPerPage"
         v-model:page="page"
-        :items="paperworks"
-        :items-length="totalPaperworks"
+        :items="tickets"
+        :items-length="totalTickets"
         :headers="headers"
         class="text-no-wrap"
         show-select
@@ -428,7 +379,7 @@ fetchCustomers()
         <template #item.pay="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ item.pay && typeof item.pay === 'number' && item.pay > 0 ? `€ ${item.pay}` : 'N/A' }}
+              &euro; {{ item.pay }}
             </div>
           </div>
         </template>
@@ -509,7 +460,7 @@ fetchCustomers()
           <TablePagination
             v-model:page="page"
             :items-per-page="itemsPerPage"
-            :total-items="totalPaperworks"
+            :total-items="totalTickets"
           />
         </template>
       </VDataTableServer>
@@ -517,4 +468,3 @@ fetchCustomers()
     </VCard>
   </section>
 </template>
-
