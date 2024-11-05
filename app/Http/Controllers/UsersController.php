@@ -84,8 +84,13 @@ class UsersController extends Controller
 
     public function agents(Request $request)
     {
+        $scopeRoles = ['agente'];
+        if ($request->get('structures') === '1') {
+            $scopeRoles[] = 'struttura';
+        }
+
         $agents = \App\Models\User::where('enabled', 1)
-            ->role('agente')
+            ->role($scopeRoles)
             ->orderBy('name', 'asc');
 
         if ($request->get('id')) {

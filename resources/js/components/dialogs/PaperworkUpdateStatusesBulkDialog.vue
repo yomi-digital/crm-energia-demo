@@ -1,29 +1,9 @@
 <script setup>
 
 const props = defineProps({
-  paperworkData: {
-    type: Object,
+  ids: {
+    type: Array,
     required: true,
-    // default: () => ({
-    //   id: 0,
-    //   name: '',
-    //   last_name: '',
-    //   business_name: '',
-    //   tax_code_id: '',
-    //   vat_number: '',
-    //   email: '',
-    //   phone: '',
-    //   mobile: '',
-    //   ateco_code: '',
-    //   pec: '',
-    //   unique_code: '',
-    //   category: '',
-    //   address: '',
-    //   region: '',
-    //   province: '',
-    //   city: '',
-    //   zip: '',
-    // }),
   },
   isDialogVisible: {
     type: Boolean,
@@ -37,39 +17,36 @@ const emit = defineEmits([
 ])
 
 const onFormSubmit = async () => {
-  await $api(`/paperworks/${ props.paperworkData.id }`, {
-    method: 'PUT',
+  await $api(`/paperworks/bulk-update-statuses`, {
+    method: 'POST',
     body: {
-      order_code: orderCode.value,
+      ids: props.ids,
       order_status: orderStatus.value,
       order_substatus: orderSubStatus.value,
       partner_outcome: partnerOutcome.value,
-      partner_outcome_at: partnerOutcomeAt.value,
     },
   })
   emit('update:isDialogVisible', false)
   emit('submit', null)
 }
 
-const dialogModelStatusValueUpdate = (val) => {
-  // emit('update:isDialogVisible', val)
+const dialogModelValueUpdate = val => {
+  emit('update:isDialogVisible', val)
 }
 
-const orderCode = ref(props.paperworkData.order_code)
-const orderStatus = ref(props.paperworkData.order_status)
-const orderSubStatus = ref(props.paperworkData.order_substatus)
-const partnerOutcome = ref(props.paperworkData.partner_outcome)
-const partnerOutcomeAt = ref(props.paperworkData.partner_outcome_at)
-
-const startDateTimePickerConfig = computed(() => {
-  const config = {
-    dateFormat: `d/m/Y`,
-  }
-
-  return config
-})
+const orderStatus = ref('--- MANTIENI ---')
+const orderSubStatus = ref('--- MANTIENI ---')
+const partnerOutcome = ref('--- MANTIENI ---')
 
 const statuses = ref([
+{
+    title: '--- MANTIENI ---',
+    value: '--- MANTIENI ---',
+  },
+  {
+    title: '--- RIMUOVI ---',
+    value: '--- RIMUOVI ---',
+  },
   {
     title: 'CARICATO',
     value: 'CARICATO',
@@ -85,6 +62,10 @@ const statuses = ref([
   {
     title: 'INSERITO',
     value: 'INSERITO',
+  },
+  {
+    title: 'INVIATO',
+    value: 'INVIATO',
   },
   {
     title: 'DA LAVORARE',
@@ -117,6 +98,14 @@ const statuses = ref([
 ])
 
 const orderSubStatuses = ref([
+  {
+    title: '--- MANTIENI ---',
+    value: '--- MANTIENI ---',
+  },
+  {
+    title: '--- RIMUOVI ---',
+    value: '--- RIMUOVI ---',
+  },
   {
     title: 'OFFERTA CREATA',
     value: 'OFFERTA CREATA',
@@ -177,6 +166,14 @@ const orderSubStatuses = ref([
 
 const partnerOutcomes = ref([
   {
+    title: '--- MANTIENI ---',
+    value: '--- MANTIENI ---',
+  },
+  {
+    title: '--- RIMUOVI ---',
+    value: '--- RIMUOVI ---',
+  },
+  {
     title: 'OK PAGABILE',
     value: 'OK PAGABILE',
   },
@@ -207,16 +204,16 @@ const onFormReset = () => {
   <VDialog
     :width="$vuetify.display.smAndDown ? 'auto' : 700"
     :model-value="props.isDialogVisible"
-    @update:model-value="dialogModelStatusValueUpdate"
+    @update:model-value="dialogModelValueUpdate"
   >
     <!-- Dialog close btn -->
-    <DialogCloseBtn @click="emit('update:isDialogVisible', false)" />
+    <DialogCloseBtn @click="dialogModelValueUpdate(false)" />
 
     <VCard class="pa-sm-10 pa-2">
       <VCardText>
         <!-- 👉 Title -->
         <h4 class="text-h4 text-center mb-2">
-          Aggiorna Stato Pratica
+          Aggiorna Stato Pratiche
         </h4>
 
         <!-- 👉 Form -->
@@ -225,17 +222,6 @@ const onFormReset = () => {
           @submit.prevent="onFormSubmit"
         >
           <VRow>
-            <VCol
-              cols="12"
-              sm="12"
-            >
-              <AppTextField
-                v-model="orderCode"
-                label="ID Pratica"
-                placeholder="000111222"
-              />
-            </VCol>
-            
             <VCol
               cols="12"
               sm="6"
@@ -256,20 +242,6 @@ const onFormReset = () => {
                 label="Sottostato Ordine"
                 :items="orderSubStatuses"
               />
-            </VCol>
-
-            <VCol
-              cols="12"
-              sm="6"
-            >
-              <div @update:model-value.stop>
-                <AppDateTimePicker
-                  :key="JSON.stringify(startDateTimePickerConfig)"
-                  :config="startDateTimePickerConfig"
-                  v-model="partnerOutcomeAt"
-                  label="Data Esito Partner"
-                />
-              </div>
             </VCol>
 
             <VCol

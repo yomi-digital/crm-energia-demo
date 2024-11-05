@@ -10,6 +10,7 @@ use App\Http\Controllers\Configuration\ProductsController;
 use App\Http\Controllers\General\CalendarController;
 use App\Http\Controllers\General\DocumentsController;
 use App\Http\Controllers\General\LinksController;
+use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\UploadsController;
@@ -118,14 +119,22 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::put('customers/{id}/confirm', [CustomersController::class, 'confirm']);
     Route::get('cities', [CustomersController::class, 'cities']);
 
+    Route::get('reports', [ReportsController::class, 'index']);
+    Route::delete('reports/{id}/delete', [ReportsController::class, 'delete']);
+    Route::get('reports/{id}/entries', [ReportsController::class, 'entries']);
+    Route::get('reports/admin', [ReportsController::class, 'admin']);
+    Route::get('reports/production', [ReportsController::class, 'production']);
+    Route::get('reports/appointments', [ReportsController::class, 'appointments']);
+
     Route::get('paperworks', [PaperworksController::class, 'index']);
     Route::get('paperworks/{id}', [PaperworksController::class, 'show']);
     // Route::get('paperworks/{id}/payout', [PaperworksController::class, 'calculatePayout']);
     Route::put('paperworks/{id}', [PaperworksController::class, 'update']);
     Route::post('paperworks/{id}/documents', [PaperworksController::class, 'documents']);
-    Route::put('paperworks/{id}/confirm', [PaperworksController::class, 'confirm']);
-    Route::put('paperworks/{id}/confirm-partner-sent', [PaperworksController::class, 'confirmPartnerSent']);
+    // Route::put('paperworks/{id}/confirm', [PaperworksController::class, 'confirm']);
+    // Route::put('paperworks/{id}/confirm-partner-sent', [PaperworksController::class, 'confirmPartnerSent']);
     Route::post('paperworks', [PaperworksController::class, 'store']);
+    Route::post('paperworks/bulk-update-statuses', [PaperworksController::class, 'bulkUpdate']);
 
     Route::get('tickets', [TicketsController::class, 'index']);
     Route::post('tickets', [TicketsController::class, 'store']);

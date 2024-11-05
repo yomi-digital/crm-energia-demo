@@ -1,6 +1,7 @@
 import amministrazione from './amministrazione'
 import configurazione from './configurazione'
 import general from './general'
+import reports from './reports'
 import workflow from './workflow'
 // import marketing from './marketing'
 
@@ -11,7 +12,7 @@ export default [
     ...configurazione,
     // ...comunicazioni,
     ...amministrazione,
-    // ...reports,
+    ...reports,
     // ...business,
     // ...marketing,
     // ...dashboard,

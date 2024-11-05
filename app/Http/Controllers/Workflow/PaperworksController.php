@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Workflow;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Traits\PaperworkTrait;
 
 class PaperworksController extends Controller
 {
+    use PaperworkTrait;
+
     public function index(Request $request)
     {
         $perPage = $request->get('itemsPerPage', 10);
@@ -152,6 +155,10 @@ class PaperworksController extends Controller
 
         $paperwork->fill($request->all());
 
+        if ($request->get('partner_outcome_at')) {
+            $paperwork->partner_outcome_at = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_outcome_at'))->format('Y-m-d');
+        }
+
         $paperwork->save();
 
         return response()->json($paperwork);
@@ -217,62 +224,6 @@ class PaperworksController extends Controller
         return response()->json($paperwork);
     }
 
-    private function calculatePaperworkPayout($paperwork)
-    {
-        // Get user fee band for this brand
-        $brandUser = \App\Models\BrandUser::where('user_id', $paperwork->user_id)->where('brand_id', $paperwork->product->brand_id)->first();
-
-        // Get product fee band for this product
-        $feeband = \App\Models\Feeband::where('product_id', $paperwork->product_id)
-            ->where('start_date', '<=', now())->where(function ($query) {
-                $query->where('end_date', '>=', now())->orWhereNull('end_date');
-            })->orderBy('start_date', 'asc')->first();
-
-        $payout = 0;
-        if ($brandUser && $feeband) {
-            switch (strtolower($brandUser->pay_level)) {
-                case 'management':
-                    $productFee = $feeband->management_fee;
-                    break;
-                case 'top_partner':
-                    $productFee = $feeband->top_partner_fee;
-                    break;
-                case 'top':
-                    $productFee = $feeband->top_fee;
-                    break;
-                case 'partner':
-                    $productFee = $feeband->partner_fee;
-                    break;
-                case 'smart':
-                    $productFee = $feeband->smart_fee;
-                    break;
-                case 'collaborator':
-                    $productFee = $feeband->collaborator_fee;
-                    break;
-                default:
-                    $productFee = 0;
-                    break;
-            }
-
-            if ($feeband->fee_type === 'FISSO') {
-                $payout = $productFee;
-            } elseif ($feeband->fee_type === 'PERCENTUALE') {
-                $payout = $productFee * $paperwork->product->price / 100;
-            } elseif ($feeband->fee_type === 'MESE') {
-                $payout = $productFee * $paperwork->product->price;
-            } elseif ($feeband->fee_type === 'CONSUMO') {
-                $payout = $productFee * $paperwork->annual_consumption;
-            }
-
-            if ($brandUser->bonus) {
-                // Add bonus percentage to payout
-                $payout += $payout * $brandUser->bonus / 100;
-            }
-        }
-
-        return $payout;
-    }
-
     public function calculatePayout(Request $request, $id)
     {
         if (! $request->user()->hasRole('gestione')) {
@@ -287,5 +238,32 @@ class PaperworksController extends Controller
         $payout = $this->calculatePaperworkPayout($paperwork);
 
         return response()->json(['payout' => $payout]);
+    }
+
+    public function bulkUpdate(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:paperworks,id',
+            'order_status' => 'nullable|string',
+            'order_substatus' => 'nullable|string',
+            'partner_outcome' => 'nullable|string',
+        ]);
+
+        // Only update fields that are not empty. if the field is --- RIMUOVI ---, set it to null
+        $fields = [];
+        foreach ($request->only(['order_status', 'order_substatus', 'partner_outcome']) as $key => $value) {
+            if ($value === '--- RIMUOVI ---') {
+                $fields[$key] = null;
+            } elseif ($value === '--- MANTIENI ---') {
+                continue;
+            } else {
+                $fields[$key] = $value;
+            }
+        }
+
+        \App\Models\Paperwork::whereIn('id', $request->get('ids'))->update($fields);
+
+        return response()->json(['message' => 'Paperworks updated successfully']);
     }
 }

@@ -1,0 +1,336 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Traits\PaperworkTrait;
+
+class ReportsController extends Controller
+{
+    use PaperworkTrait;
+
+    public function index(Request $request)
+    {
+        $perPage = $request->get('itemsPerPage', 10);
+
+        $reports = \App\Models\Report::with('user');
+
+        if ($request->get('id')) {
+            $reports = $reports->where('id', $request->get('id'));
+        }
+
+        if ($request->filled('user_id')) {
+            $reports = $reports->where('user_id', $request->get('user_id'));
+        }
+
+        if ($request->filled('status')) {
+            $reports = $reports->where('status', $request->get('status'));
+        }
+
+        if ($request->get('q')) {
+            $search = $request->get('q');
+            $reports = $reports->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->get('sortBy')) {
+            $reports = $reports->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
+        } else {
+            $reports = $reports->orderBy('created_at', 'desc');
+        }
+
+        $reports = $reports->paginate($perPage);
+
+        return response()->json([
+            'entries' => $reports->getCollection(),
+            'totalPages' => $reports->lastPage(),
+            'totalEntries' => $reports->total(),
+            'page' => $reports->currentPage()
+        ]);
+    }
+
+    public function delete(Request $request, $id)
+    {
+        $report = \App\Models\Report::find($id);
+        $report->delete();
+        return response()->json([
+            'message' => 'Report eliminato con successo',
+        ]);
+    }
+
+    public function entries(Request $request, $id)
+    {
+        $report = \App\Models\Report::find($id);
+        if (! $report) {
+            return response()->json([
+                'error' => 'Report non trovato',
+            ], 404);
+        }
+
+        $perPage = $request->get('itemsPerPage', 10);
+
+        $entries = $report->entries();
+
+        if ($request->get('sortBy')) {
+            $entries = $entries->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
+        } else {
+            $entries = $entries->orderBy('created_at', 'desc');
+        }
+
+        $entries = $entries->paginate($perPage);
+
+        return response()->json([
+            'report' => $report,
+            'entries' => $entries->getCollection(),
+            'totalPages' => $entries->lastPage(),
+            'totalEntries' => $entries->total(),
+            'page' => $entries->currentPage()
+        ]);
+    }
+
+    public function admin(Request $request)
+    {
+        if (! $request->has('from') || ! $request->has('to')) {
+            return response()->json([
+                'error' => 'Selezionare un periodo',
+            ], 400);
+        }
+
+        $paperworks = \App\Models\Paperwork::with(['user', 'product', 'product.brand'])
+            ->whereBetween('created_at', [
+                $request->get('from') . ' 00:00:00',
+                $request->get('to') . ' 23:59:59'
+            ])->whereIn('partner_outcome', ['ATTIVO', 'OK PAGABILE', 'STORNO']);
+
+        $userId = $request->get('user_id', null);
+        $user = null;
+        if ($userId) {
+            $user = \App\Models\User::find($userId);
+            $agents = \App\Models\UserRelationship::where('user_id', $userId)->with('user')->get();
+            $userIds = $agents->pluck('related_id');
+            $userIds[] = $user->id;
+            $paperworks = $paperworks->whereIn('user_id', $userIds);
+        }
+
+        if ($request->filled('brand_id')) {
+            $paperworks = $paperworks->whereHas('product', function ($query) use ($request) {
+                $query->where('brand_id', $request->get('brand_id'));
+            });
+        }
+
+        if ($request->filled('product_id')) {
+            $paperworks = $paperworks->where('product_id', $request->get('product_id'));
+        }
+
+        $paperworks = $paperworks->orderBy('created_at', 'desc');
+
+        if ($request->has('save')) {
+            if (! $userId) {
+                return response()->json([
+                    'error' => 'Selezionare un account',
+                ], 400);
+            }
+            $reportName = 'Report Amministrativo ' . implode(' ', array_filter([$user->name, $user->last_name]));
+            if ($request->get('from')) {
+                $reportName .= ' ' . $request->get('from');
+                if ($request->get('to')) {
+                    $reportName .= ' - ' . $request->get('to');
+                }
+            }
+            $report = \App\Models\Report::create([
+                'name' => $reportName,
+                'user_id' => $userId,
+            ]);
+
+            $allPaperworks = $paperworks->get();
+            foreach ($allPaperworks as $paperwork) {
+                $transformedPaperwork = $this->transformPaperworkAdmin($paperwork, $user);
+                $entry = new \App\Models\ReportEntry();
+                $entry->fill($transformedPaperwork);
+                $entry->report_id = $report->id;
+                $entry->save();
+            }
+
+            return response()->json([
+                'message' => 'Report salvato con successo',
+                'report_id' => $report->id,
+            ]);
+        }
+
+        if ($request->has('export')) {
+            $allPaperworks = $paperworks->get();
+            $csvPath = $this->transformPaperworksToCSV($allPaperworks, $user);
+            
+            return response()->download($csvPath, 'report_produzione.csv');
+        }
+
+        $perPage = $request->get('itemsPerPage', 500);
+        $paperworks = $paperworks->paginate($perPage);
+
+        $paperworks->getCollection()->transform(function ($paperwork) use ($user) {
+            return $this->transformPaperworkAdmin($paperwork, $user);
+        });
+
+        return response()->json([
+            'entries' => $paperworks->getCollection(),
+            'totalPages' => $paperworks->lastPage(),
+            'totalEntries' => $paperworks->total(),
+            'page' => $paperworks->currentPage()
+        ]);
+    }
+
+    public function production(Request $request)
+    {
+        if (! $request->has('from') || ! $request->has('to')) {
+            return response()->json([
+                'error' => 'Selezionare un periodo',
+            ], 400);
+        }
+
+        $paperworks = \App\Models\Paperwork::with(['user', 'product', 'product.brand'])
+            ->whereBetween('created_at', [
+                $request->get('from') . ' 00:00:00',
+                $request->get('to') . ' 23:59:59'
+            ]);
+
+        $userId = $request->get('user_id', null);
+        $user = null;
+        if ($userId) {
+            $user = \App\Models\User::find($userId);
+            $agents = $user->agents;
+            $userIds = $agents->pluck('id');
+            $userIds[] = $user->id;
+            $paperworks = $paperworks->whereIn('user_id', $userIds);
+        }
+
+        if ($request->filled('brand_id')) {
+            $paperworks = $paperworks->whereHas('product', function ($query) use ($request) {
+                $query->where('brand_id', $request->get('brand_id'));
+            });
+        }
+
+        if ($request->filled('product_id')) {
+            $paperworks = $paperworks->where('product_id', $request->get('product_id'));
+        }
+
+        $paperworks = $paperworks->orderBy('created_at', 'desc');
+
+        if ($request->has('export')) {
+            $allPaperworks = $paperworks->get();
+            $csvPath = $this->transformPaperworksToCSV($allPaperworks, $user);
+            
+            return response()->download($csvPath, 'report_produzione.csv');
+        }
+
+        $perPage = $request->get('itemsPerPage', 500);
+        $paperworks = $paperworks->paginate($perPage);
+
+        $paperworks->getCollection()->transform(function ($paperwork) use ($user) {
+            return $this->transformPaperwork($paperwork, $user);
+        });
+
+        return response()->json([
+            'entries' => $paperworks->getCollection(),
+            'totalPages' => $paperworks->lastPage(),
+            'totalEntries' => $paperworks->total(),
+            'page' => $paperworks->currentPage()
+        ]);
+    }
+
+    public function appointments(Request $request)
+    {
+        dd('stop');
+    }
+
+    private function transformPaperworkAdmin($paperwork, $user)
+    {
+        if ($user) {
+            $parent = $user;
+        } else {
+            $parent = \App\Models\UserRelationship::where('related_id', $paperwork->user_id)->first();
+            if ($parent) {
+                $parent = \App\Models\User::find($parent->user_id);
+            }
+        }
+
+        return [
+            'parent_id' => $parent ? $parent->id : null,
+            'parent' => $parent ? implode(' ', array_filter([$parent->name, $parent->last_name])) : null,
+            'agent_id' => $paperwork->user_id,
+            'agent' => implode(' ', array_filter([$paperwork->user->name, $paperwork->user->last_name])),
+            'brand_id' => $paperwork->product->brand_id,
+            'brand' => $paperwork->product->brand->name,
+            'product_id' => $paperwork->product_id,
+            'product' => $paperwork->product->name,
+            'order_code' => $paperwork->order_code,
+            'paperwork_id' => $paperwork->id,
+            'inserted_at' => $paperwork->created_at,
+            'activated_at' => $paperwork->partner_outcome_at,
+            'status' => $paperwork->partner_outcome,
+            'payout' => $this->calculatePaperworkPayout($paperwork, $parent),
+        ];
+    }
+
+    private function transformPaperwork($paperwork, $user)
+    {
+        if ($user) {
+            $parent = $user;
+        } else {
+            $parent = \App\Models\UserRelationship::where('related_id', $paperwork->user_id)->first();
+            if ($parent) {
+                $parent = \App\Models\User::find($parent->user_id);
+            }
+        }
+        return [
+            'parent_id' => $parent ? $parent->id : null,
+            'parent' => $parent ? implode(' ', array_filter([$parent->name, $parent->last_name])) : null,
+            'agent_id' => $paperwork->user_id,
+            'agent' => implode(' ', array_filter([$paperwork->user->name, $paperwork->user->last_name])),
+            'brand_id' => $paperwork->product->brand_id,
+            'brand' => $paperwork->product->brand->name,
+            'product_id' => $paperwork->product_id,
+            'product' => $paperwork->product->name,
+            'order_code' => $paperwork->order_code,
+            'paperwork_id' => $paperwork->id,
+            'inserted_at' => $paperwork->created_at->format(config('app.date_format')),
+            'status' => $paperwork->partner_outcome,
+        ];
+    }
+
+    private function transformPaperworksToCSV($paperworks, $user)
+    {
+        $headers = [
+            'Struttura',
+            'Agente',
+            'Brand',
+            'Prodotto',
+            'Pratica',
+            'Insertita',
+            'Stato',
+        ];
+
+        // Save csv to /tmp 
+        $csvPath = tempnam(sys_get_temp_dir(), 'csv');
+        $fp = fopen($csvPath, 'w');
+        fputcsv($fp, $headers);
+
+        foreach ($paperworks as $paperwork) {
+            $data = $this->transformPaperwork($paperwork, $user);
+            fputcsv($fp, [
+                $data['parent'],
+                $data['agent'],
+                $data['brand'],
+                $data['product'],
+                $data['order_code'],
+                $data['inserted_at'],
+                $data['status'],
+            ]);
+        }
+
+        fclose($fp);
+
+        return $csvPath;
+    }
+}

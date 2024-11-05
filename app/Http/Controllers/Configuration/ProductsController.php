@@ -173,6 +173,9 @@ class ProductsController extends Controller
         }
         if (isset($input['end_date'])) {
             $input['end_date'] = \Carbon\Carbon::createFromFormat('d/m/Y', $input['end_date']);
+            if ($input['end_date'] < $input['start_date']) {
+                $input['end_date'] = null;
+            }
         }
         $feeBand->fill($input);
         $feeBand->save();

@@ -23,6 +23,9 @@ const updateOptions = options => {
   orderBy.value = options.sortBy[0]?.order
 }
 
+const selected = ref([])
+const isBulkActionDialogOpen = ref(false)
+
 // Headers
 const headers = [
   {
@@ -84,11 +87,6 @@ const headers = [
   {
     title: 'Compenso',
     key: 'pay',
-    sortable: false,
-  },
-  {
-    title: '',
-    key: 'actions',
     sortable: false,
   },
 ]
@@ -184,6 +182,23 @@ const fetchCustomers = async () => {
   }
 }
 fetchCustomers()
+
+const onSelectionChanged = (newSelection) => {
+  selected.value = newSelection
+}
+
+const openBulkActionDialog = () => {
+  isBulkActionDialogOpen.value = true
+}
+
+const closeBulkActionDialog = () => {
+  isBulkActionDialogOpen.value = false
+}
+
+const handleBulkAction = (newStatus) => {
+  fetchPaperworks()
+}
+
 </script>
 
 <template>
@@ -235,6 +250,15 @@ fetchCustomers()
             style="inline-size: 6.25rem;"
             @update:model-value="itemsPerPage = parseInt($event, 10)"
           />
+
+          <!-- Add this new button for bulk actions -->
+          <VBtn
+            :disabled="selected.length === 0"
+            color="primary"
+            @click="openBulkActionDialog"
+          >
+            Aggiorna Stato Pratiche
+          </VBtn>
         </div>
         <VSpacer />
 
@@ -256,7 +280,7 @@ fetchCustomers()
             Esporta
           </VBtn> -->
 
-          <!-- 👉 Add user button -->
+          <!-- 👉 Add paperwork button -->
           <VBtn
             :to="{ name: 'workflow-paperworks-create-wizard' }"
             v-if="$can('create', 'paperworks')"
@@ -271,6 +295,7 @@ fetchCustomers()
 
       <!-- SECTION datatable -->
       <VDataTableServer
+        v-model:select="selected"
         v-model:items-per-page="itemsPerPage"
         v-model:page="page"
         :items="paperworks"
@@ -279,6 +304,7 @@ fetchCustomers()
         class="text-no-wrap"
         show-select
         @update:options="updateOptions"
+        @update:model-value="onSelectionChanged"
       >
         <!-- Paperwork -->
         <template #item.id="{ item }">
@@ -433,77 +459,6 @@ fetchCustomers()
           </div>
         </template>
 
-
-        <!-- Status -->
-        <!-- <template #item.enabled="{ item }">
-          <VIcon
-              :size="22"
-              :icon="item.enabled ? 'tabler-check' : 'tabler-x'"
-              :color="resolveUserStatusVariant(item.enabled)"
-            />
-        </template> -->
-
-
-        <!-- Team Leader -->
-        <!-- <template #item.team_leader="{ item }">
-          <VChip
-            :color="item.team_leader ? 'success' : 'error'"
-            size="small"
-            label
-            class="text-capitalize"
-          >
-            {{ item.team_leader ? 'SI' : 'NO' }}
-          </VChip>
-        </template> -->
-
-        <!-- Actions -->
-        <template #item.actions="{ item }">
-          <IconBtn>
-            <VIcon icon="tabler-eye" />
-          </IconBtn>
-
-          <IconBtn>
-            <VIcon icon="tabler-pencil" />
-          </IconBtn>
-
-          <IconBtn @click="deleteUser(item.id)">
-            <VIcon color="error" icon="tabler-trash" />
-          </IconBtn>
-
-          <VBtn
-            icon
-            variant="text"
-            color="medium-emphasis"
-          >
-            <VIcon icon="tabler-dots-vertical" />
-            <VMenu activator="parent">
-              <VList>
-                <VListItem :to="{ name: 'apps-user-view-id', params: { id: item.id } }">
-                  <template #prepend>
-                    <VIcon icon="tabler-eye" />
-                  </template>
-
-                  <VListItemTitle>View</VListItemTitle>
-                </VListItem>
-
-                <VListItem link>
-                  <template #prepend>
-                    <VIcon icon="tabler-pencil" />
-                  </template>
-                  <VListItemTitle>Edit</VListItemTitle>
-                </VListItem>
-
-                <VListItem @click="deleteUser(item.id)">
-                  <template #prepend>
-                    <VIcon icon="tabler-trash" />
-                  </template>
-                  <VListItemTitle>Delete</VListItemTitle>
-                </VListItem>
-              </VList>
-            </VMenu>
-          </VBtn>
-        </template>
-
         <!-- pagination -->
         <template #bottom>
           <TablePagination
@@ -515,6 +470,13 @@ fetchCustomers()
       </VDataTableServer>
       <!-- SECTION -->
     </VCard>
+
+    <!-- Add the BulkActionDialog component -->
+    <PaperworkUpdateStatusesBulkDialog
+      v-if="$can('edit', 'paperworks')"
+      v-model:isDialogVisible="isBulkActionDialogOpen"
+      :ids="selected"
+      @submit="handleBulkAction"
+    />
   </section>
 </template>
-
