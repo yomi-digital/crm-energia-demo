@@ -99,7 +99,7 @@ class ReportsController extends Controller
         }
 
         $paperworks = \App\Models\Paperwork::with(['user', 'product', 'product.brand'])
-            ->whereBetween('created_at', [
+            ->whereBetween('partner_outcome_at', [
                 $request->get('from') . ' 00:00:00',
                 $request->get('to') . ' 23:59:59'
             ])->whereIn('partner_outcome', ['ATTIVO', 'OK PAGABILE', 'STORNO']);
@@ -190,7 +190,7 @@ class ReportsController extends Controller
         }
 
         $paperworks = \App\Models\Paperwork::with(['user', 'product', 'product.brand'])
-            ->whereBetween('created_at', [
+            ->whereBetween('partner_outcome_at', [
                 $request->get('from') . ' 00:00:00',
                 $request->get('to') . ' 23:59:59'
             ]);
@@ -215,7 +215,7 @@ class ReportsController extends Controller
             $paperworks = $paperworks->where('product_id', $request->get('product_id'));
         }
 
-        $paperworks = $paperworks->orderBy('created_at', 'desc');
+        $paperworks = $paperworks->orderBy('partner_outcome_at', 'desc');
 
         if ($request->has('export')) {
             $allPaperworks = $paperworks->get();
@@ -266,7 +266,7 @@ class ReportsController extends Controller
             'product' => $paperwork->product->name,
             'order_code' => $paperwork->order_code,
             'paperwork_id' => $paperwork->id,
-            'inserted_at' => $paperwork->created_at,
+            'inserted_at' => $paperwork->partner_sent_at,
             'activated_at' => $paperwork->partner_outcome_at,
             'status' => $paperwork->partner_outcome,
             'payout' => $this->calculatePaperworkPayout($paperwork, $parent),
@@ -294,7 +294,7 @@ class ReportsController extends Controller
             'product' => $paperwork->product->name,
             'order_code' => $paperwork->order_code,
             'paperwork_id' => $paperwork->id,
-            'inserted_at' => $paperwork->created_at->format(config('app.date_format')),
+            'inserted_at' => $paperwork->partner_sent_at ? $paperwork->partner_sent_at->format(config('app.date_format')) : null,
             'status' => $paperwork->partner_outcome,
         ];
     }
