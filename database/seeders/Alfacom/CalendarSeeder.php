@@ -9,7 +9,12 @@ trait CalendarSeeder
     private function calendar($mysqli)
     {
         $legacy = $mysqli->query("SELECT * FROM datatype_calendarios where data_inizio is not null and data_fine is not null")->fetch_all(MYSQLI_ASSOC);
+        $totCalendar = count($legacy);
+        dump('Total calendar: ' . $totCalendar);
+        $countI = 0;
         foreach ($legacy as $entry) {
+            $countI++;
+            dump('Processing calendar ' . $countI . ' of ' . $totCalendar);
             try {
                 $agent = \App\Models\User::where('legacy_id', $entry['id_account'])->first();
                 $user = \App\Models\User::where('legacy_id', $entry['inserito_da'])->first();

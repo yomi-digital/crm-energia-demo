@@ -65,7 +65,11 @@ const fetchAppointments = async (query) => {
     value: appointment.id,
   }))
 }
-fetchAppointments('')
+// fetchAppointments('')
+// When isAppointment changes, then it should fetch the appointments
+watch(() => isAppointment.value, () => {
+  fetchAppointments('')
+})
 
 // watch(searchAppointment, query => {
 //   query && query !== formData.value.appointment_id && fetchAppointments(query)

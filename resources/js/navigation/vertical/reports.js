@@ -5,6 +5,13 @@ export default [
     subject: 'reports',
   },
   {
+    title: 'Produzione',
+    icon: { icon: 'tabler-chart-line' },
+    to: 'reports-production',
+    action: 'access',
+    subject: 'reports-production',
+  },
+  {
     title: 'Amministrativo',
     icon: { icon: 'tabler-file-analytics' },
     to: 'reports-admin',
@@ -17,13 +24,6 @@ export default [
     to: 'reports-saved',
     action: 'access',
     subject: 'reports-admin',
-  },
-  {
-    title: 'Produzione',
-    icon: { icon: 'tabler-chart-line' },
-    to: 'reports-production',
-    action: 'access',
-    subject: 'reports-production',
   },
   // {
   //   title: 'Appuntamenti',

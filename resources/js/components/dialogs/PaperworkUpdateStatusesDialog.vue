@@ -45,6 +45,7 @@ const onFormSubmit = async () => {
       order_substatus: orderSubStatus.value,
       partner_outcome: partnerOutcome.value,
       partner_outcome_at: partnerOutcomeAt.value,
+      partner_sent_at: partnerSentAt.value,
     },
   })
   emit('update:isDialogVisible', false)
@@ -55,11 +56,21 @@ const dialogModelStatusValueUpdate = (val) => {
   // emit('update:isDialogVisible', val)
 }
 
+// Convert from YYYY-MM-DD to DD/MM/YYYY
+const formatDate = (date) => {
+  // Should only be applied if the date is with format YYYY-MM-DD
+  if (date.includes('-')) {
+    return date.split('-').reverse().join('/')
+  }
+  return date
+}
+
 const orderCode = ref(props.paperworkData.order_code)
 const orderStatus = ref(props.paperworkData.order_status)
 const orderSubStatus = ref(props.paperworkData.order_substatus)
 const partnerOutcome = ref(props.paperworkData.partner_outcome)
-const partnerOutcomeAt = ref(props.paperworkData.partner_outcome_at)
+const partnerOutcomeAt = ref(formatDate(props.paperworkData.partner_outcome_at))
+const partnerSentAt = ref(formatDate(props.paperworkData.partner_sent_at))
 
 const startDateTimePickerConfig = computed(() => {
   const config = {
@@ -254,10 +265,26 @@ const onFormReset = () => {
               <AppSelect
                 v-model="orderSubStatus"
                 label="Sottostato Ordine"
+                clearable
                 :items="orderSubStatuses"
               />
             </VCol>
 
+            <VCol
+              cols="12"
+              sm="6"
+            >
+              <div @update:model-value.stop>
+                <AppDateTimePicker
+                  :key="JSON.stringify(startDateTimePickerConfig)"
+                  :config="startDateTimePickerConfig"
+                  v-model="partnerSentAt"
+                  label="Data Inserimento"
+                />
+              </div>
+            </VCol>
+          </VRow>
+          <VRow>
             <VCol
               cols="12"
               sm="6"

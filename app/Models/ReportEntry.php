@@ -27,4 +27,14 @@ class ReportEntry extends Model
         'payout',
         'payout_confirmed',
     ];
+
+    public function getInsertedAtAttribute($value)
+    {
+        return $value ? date(config('app.date_format'), strtotime($value)) : null;
+    }
+
+    public function getActivatedAtAttribute($value)
+    {
+        return $value ? date(config('app.date_format'), strtotime($value)) : null;
+    }
 }

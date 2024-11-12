@@ -141,12 +141,12 @@ const onStartDateChange = value => {
           >
             <VRow>
               <!-- 👉 Start date -->
-              <VCol cols="6">
+              <VCol cols="6" v-if="!feeband.is_default">
                 <AppDateTimePicker
                   :key="JSON.stringify(startDateTimePickerConfig)"
                   @update:model-value="onStartDateChange"
                   v-model="feeband.start_date"
-                  :rules="[requiredValidator]"
+                  :rules="feeband.is_default ? [] : [requiredValidator]"
                   label="Data Inizio"
                   placeholder="Seleziona una data"
                   :config="startDateTimePickerConfig"
@@ -154,7 +154,7 @@ const onStartDateChange = value => {
               </VCol>
 
               <!-- 👉 End date -->
-              <VCol cols="6">
+              <VCol cols="6" v-if="!feeband.is_default">
                 <AppDateTimePicker
                   :key="JSON.stringify(endDateTimePickerConfig)"
                   v-model="feeband.end_date"

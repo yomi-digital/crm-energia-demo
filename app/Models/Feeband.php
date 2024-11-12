@@ -23,11 +23,11 @@ class Feeband extends Model
 
     public function getStartDateAttribute($value)
     {
-        return date(config('app.date_format'), strtotime($value));
+        return $value ? date(config('app.date_format'), strtotime($value)) : null;
     }
 
     public function getEndDateAttribute($value)
     {
-        return date(config('app.date_format'), strtotime($value));
+        return $value ? date(config('app.date_format'), strtotime($value)) : null;
     }
 }

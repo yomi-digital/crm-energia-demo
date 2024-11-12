@@ -19,6 +19,8 @@ const selectedUser = ref('')
 const selectedBrand = ref('')
 const selectedProduct = ref('')
 
+const router = useRouter()
+
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
   orderBy.value = options.sortBy[0]?.order
@@ -177,7 +179,7 @@ const fetchBrands = async (query) => {
     })
   }
 }
-await fetchBrands()
+fetchBrands()
 
 const fetchUsers = async (query) => {
   const response = await $api('/users?itemsPerPage=999999&enabled=1')
@@ -188,7 +190,7 @@ const fetchUsers = async (query) => {
     })
   }
 }
-await fetchUsers()
+fetchUsers()
 
 const fetchProducts = async (query) => {
   const response = await $api('/products?itemsPerPage=999999&enabled=1')
@@ -199,7 +201,7 @@ const fetchProducts = async (query) => {
     })
   }
 }
-await fetchProducts()
+fetchProducts()
 
 const saveReport = async () => {
   const data = await $api(`/reports/admin`, {
@@ -218,7 +220,8 @@ const saveReport = async () => {
       product_id: selectedProduct.value,
     },
   })
-  console.log(data)
+  // Redirect to the saved report
+  router.push({ name: 'reports-saved-id', params: { id: data.report_id } })
 }
 
 </script>

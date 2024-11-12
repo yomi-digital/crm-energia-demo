@@ -10,6 +10,7 @@ trait PaperworkTrait
             return 0;
         }
 
+
         // Get user fee band for this brand
         $brandUser = \App\Models\BrandUser::where('user_id', $paperwork->user_id)->where('brand_id', $paperwork->product->brand_id)->first();
         if ($parent && $parent->id !== $paperwork->user_id) {
@@ -22,9 +23,12 @@ trait PaperworkTrait
 
         // Get product fee band for this product
         $feeband = \App\Models\Feeband::where('product_id', $paperwork->product_id)
-            ->where('start_date', '<=', $paperwork->partner_outcome_at)->where(function ($query) use ($paperwork) {
+            ->where(function ($query) use ($paperwork) {
+                $query->where('start_date', '>=', $paperwork->partner_outcome_at)->orWhereNull('start_date');
+            })
+            ->where(function ($query) use ($paperwork) {
                 $query->where('end_date', '>=', $paperwork->partner_outcome_at)->orWhereNull('end_date');
-            })->orderBy('start_date', 'asc')->first();
+            })->orderBy('is_default', 'asc')->orderBy('start_date', 'asc')->first();
 
         $payout = 0;
         if ($brandUser && $feeband) {
@@ -92,7 +96,7 @@ trait PaperworkTrait
                 $payout = $productFee * $paperwork->annual_consumption;
             }
 
-            if ($paperwork->product->discount_percent) {
+            if ($paperwork->product->discount_percent && $paperwork->appointment_id) {
                 $payout -= $payout * $paperwork->product->discount_percent / 100;
             }
 
@@ -103,6 +107,10 @@ trait PaperworkTrait
                     $payout += $payout * $brandUser->bonus / 100;
                 }
             }
+        }
+
+        if ($paperwork->partner_outcome === 'STORNO' && $payout > 0) {
+            $payout = -$payout;
         }
 
         return $payout;

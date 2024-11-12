@@ -96,6 +96,13 @@ trait RoleSeeder
             'edit',
             'delete',
         ],
+        'communications' => [
+            'access',
+            'view',
+            'create',
+            'edit',
+            'delete',
+        ],
         'users' => [
             'access',
             'view',

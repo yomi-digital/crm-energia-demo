@@ -9,8 +9,13 @@ trait PaperworkSeeder
     private function paperworks($mysqli)
     {
         mysqli_query($mysqli, 'ALTER TABLE datatype_pratiches ADD new_id BIGINT');
-        $legacy = $mysqli->query("SELECT * FROM datatype_pratiches")->fetch_all(MYSQLI_ASSOC);
+        $legacy = $mysqli->query("SELECT * FROM datatype_pratiches WHERE id > 60000")->fetch_all(MYSQLI_ASSOC);
+        $totPaperworks = count($legacy);
+        dump('Total paperworks: ' . $totPaperworks);
+        $countI = 0;
         foreach ($legacy as $entry) {
+            $countI++;
+            dump('Processing paperwork ' . $countI . ' of ' . $totPaperworks);
             try {
                 $data = [
                     'legacy_id' => $entry['id'],

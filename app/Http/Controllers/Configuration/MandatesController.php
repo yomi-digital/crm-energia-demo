@@ -9,17 +9,6 @@ class MandatesController extends Controller
 {
     public function index(Request $request)
     {
-        // dd($request->user());
-        // $user = \App\Models\User::find(1);
-        // dd($user->roles()->first()->name);
-        // $user = new \App\Models\User;
-        // $user->name = 'Test User';
-        // $user->email = 'admin@alfacom.com';
-        // $user->password = bcrypt('password');
-        // $user->legacy_id = 9999999;
-        // $user->commercial_profile = 'asdfaf';
-        // $user->save();
-        // die;
         $perPage = $request->get('itemsPerPage', 10);
 
         $mandates = new \App\Models\Mandate;

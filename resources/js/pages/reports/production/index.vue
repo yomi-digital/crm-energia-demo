@@ -167,7 +167,7 @@ const fetchBrands = async (query) => {
     })
   }
 }
-await fetchBrands()
+fetchBrands()
 
 const fetchUsers = async (query) => {
   const response = await $api('/users?itemsPerPage=999999&enabled=1')
@@ -178,7 +178,7 @@ const fetchUsers = async (query) => {
     })
   }
 }
-await fetchUsers()
+fetchUsers()
 
 const fetchProducts = async (query) => {
   const response = await $api('/products?itemsPerPage=999999&enabled=1')
@@ -189,7 +189,7 @@ const fetchProducts = async (query) => {
     })
   }
 }
-await fetchProducts()
+fetchProducts()
 
 </script>
 

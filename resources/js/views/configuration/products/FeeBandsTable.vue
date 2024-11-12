@@ -195,7 +195,7 @@ const editFeeband = feeband => {
           <div class="d-flex align-center gap-x-4">
             <div class="d-flex flex-column">
               <h6 class="text-capitalize text-high-emphasis text-body-1">
-                {{ item.start_date }}
+                {{ item.start_date || '-' }}
               </h6>
             </div>
           </div>
@@ -273,7 +273,7 @@ const editFeeband = feeband => {
           <IconBtn @click="editFeeband(item)">
             <VIcon icon="tabler-pencil" />
           </IconBtn>
-          <IconBtn @click="selectFeebandForRemove(item)">
+          <IconBtn @click="selectFeebandForRemove(item)" v-if="!item.is_default">
             <VIcon color="error" icon="tabler-trash" />
           </IconBtn>
 

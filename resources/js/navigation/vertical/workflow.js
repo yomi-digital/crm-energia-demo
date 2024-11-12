@@ -25,4 +25,11 @@ export default [
     action: 'access',
     subject: 'tickets',
   },
+  {
+    title: 'Comunicazioni',
+    icon: { icon: 'tabler-mail' },
+    to: 'workflow-communications',
+    action: 'access',
+    subject: 'communications',
+  },
 ]

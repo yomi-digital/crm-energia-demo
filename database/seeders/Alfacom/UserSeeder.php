@@ -59,7 +59,12 @@ trait UserSeeder
 
         mysqli_query($mysqli, 'ALTER TABLE datatype_accounts ADD new_id BIGINT');
         $legacyUsers = $mysqli->query("SELECT * FROM datatype_accounts")->fetch_all(MYSQLI_ASSOC);
+        $totUsers = count($legacyUsers);
+        dump('Total users: ' . $totUsers);
+        $countI = 0;
         foreach ($legacyUsers as $user) {
+            $countI++;
+            dump('Processing user ' . $countI . ' of ' . $totUsers);
             if (! $user['email']) {
                 if (! $user['username']) {
                     $user['username'] = \Str::random(10);

@@ -70,7 +70,12 @@ const headers = [
     title: 'Compenso confermato',
     key: 'payout_confirmed',
     sortable: false,
-  }
+  },
+  {
+    title: '',
+    key: 'actions',
+    sortable: false,
+  },
 ]
 
 const {
@@ -100,7 +105,7 @@ const exportReport = async () => {
     })
 
     // Get the filename from the response headers
-    const fileName = 'report_amministrativo.csv';
+    const fileName = reportData.value.report.name + '.csv';
 
     const blob = new Blob([data], { type: data.type })
     const url = window.URL.createObjectURL(blob)
@@ -119,15 +124,96 @@ const exportReport = async () => {
 
 const entries = computed(() => reportData.value.entries)
 const totalEntries = computed(() => reportData.value.totalEntries)
+
+const isUpdatePayoutDialogVisible = ref(false)
+const selectedEntry = ref(null)
+const selectedEntryPayoutConfirmed = ref(null)
+
+const updatePayoutConfirmed = (item) => {
+  // Should open up a dialog to update the payout confirmed
+  selectedEntry.value = item
+  isUpdatePayoutDialogVisible.value = true
+}
+
+const savePayoutConfirmed = async () => {
+  await $api(`/reports/${route.params.id}/entries/${selectedEntry.value.id}/payout-confirmed`, {
+    method: 'PUT',
+    body: { payout_confirmed: selectedEntryPayoutConfirmed.value },
+  })
+
+  isUpdatePayoutDialogVisible.value = false
+  selectedEntry.value = null
+  selectedEntryPayoutConfirmed.value = null
+  fetchReport()
+}
+
+const selectedEntryRemove = ref(null)
+const isRemoveDialogVisible = ref(false)
+
+const selectEntryForRemove = entry => {
+  selectedEntryRemove.value = entry
+  isRemoveDialogVisible.value = true
+}
+
+const deleteReportEntry = async id => {
+  await $api(`/reports/${ route.params.id }/entries/${ id }/delete`, { method: 'DELETE' })
+  isRemoveDialogVisible.value = false
+
+  fetchReport()
+}
+
+const isEditNameDialogVisible = ref(false)
+const reportNewName = ref(reportData.value.report.name)
+const reportNewStatus = ref(reportData.value.report.status)
+
+const saveReportName = async () => {
+  await $api(`/reports/${ route.params.id }/update`, { method: 'PUT', body: { name: reportNewName.value, status: reportNewStatus.value } })
+  isEditNameDialogVisible.value = false
+  fetchReport()
+}
+
+const reportStatuses = ref([
+  { value: 1, title: 'Bozza' },
+  { value: 2, title: 'Confermato' },
+  { value: 3, title: 'Inviato' },
+])
+
+const reportStatus = computed(() => reportStatuses.value.find(status => status.value === reportData.value.report.status))
+
+const isAddEntryDialogVisible = ref(false)
+const addEntryDescription = ref('')
+const addEntryPayout = ref(null)
+
+const saveAddEntry = async () => {
+  await $api(`/reports/${ route.params.id }/entries/add`, { method: 'POST', body: { description: addEntryDescription.value, payout: addEntryPayout.value } })
+  isAddEntryDialogVisible.value = false
+  addEntryDescription.value = ''
+  addEntryPayout.value = null
+  fetchReport()
+}
 </script>
 
 <template>
   <section>
     <VCard class="mb-6">
       <VCardText>
-        <h5 class="text-h5">
+        <h5 class="text-h5 d-flex align-center gap-x-2">
+          <IconBtn @click="isEditNameDialogVisible = true">
+            <VIcon color="primary" icon="tabler-pencil" />
+          </IconBtn>
           {{ reportData.report.name }}
+          <VChip
+            variant="tonal"
+            color="info"
+            label
+            size="small"
+          >
+            {{ reportStatus.title }}
+          </VChip>
         </h5>
+        <p class="text-body-2">
+          Totale compenso confermato: <strong>€ {{ reportData.totalPayoutConfirmed }}</strong>
+        </p>
       </VCardText>
       <VCardText class="d-flex flex-wrap gap-4">
         <div class="me-3 d-flex gap-3">
@@ -151,6 +237,7 @@ const totalEntries = computed(() => reportData.value.totalEntries)
           <VBtn
             color="primary"
             prepend-icon="tabler-plus"
+            @click="isAddEntryDialogVisible = true"
           >
             Aggiungi riga
           </VBtn>
@@ -173,11 +260,11 @@ const totalEntries = computed(() => reportData.value.totalEntries)
       <VDataTableServer
         v-model:items-per-page="itemsPerPage"
         v-model:page="page"
+        density="compact"
         :items="entries"
         :items-length="totalEntries"
         :headers="headers"
         class="text-no-wrap"
-        show-select
         @update:options="updateOptions"
       >
         <!-- Agente -->
@@ -213,9 +300,6 @@ const totalEntries = computed(() => reportData.value.totalEntries)
               >
                 {{ item.parent }}
               </RouterLink>
-              <span v-else>
-                {{ item.parent || 'N/A' }}
-              </span>
             </div>
           </div>
         </template>
@@ -234,12 +318,16 @@ const totalEntries = computed(() => reportData.value.totalEntries)
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
               <RouterLink
+                v-if="item.product_id"
                 :to="{ name: 'configuration-products-id', params: { id: item.product_id } }"
                 class="font-weight-medium text-link"
                 :title="item.product"
               >
                 {{ item.product }}
               </RouterLink>
+              <span v-else>
+                {{ item.product || 'N/A' }}
+              </span>
             </div>
           </div>
         </template>
@@ -249,11 +337,12 @@ const totalEntries = computed(() => reportData.value.totalEntries)
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
               <RouterLink
+                v-if="item.paperwork_id"
                 :to="{ name: 'workflow-paperworks-id', params: { id: item.paperwork_id } }"
                 class="font-weight-medium text-link"
                 :title="item.paperwork_id"
               >
-                {{ item.order_code }}
+                {{ item.order_code || 'N/A' }} (#{{ item.paperwork_id }})
               </RouterLink>
             </div>
           </div>
@@ -281,14 +370,14 @@ const totalEntries = computed(() => reportData.value.totalEntries)
         <template #item.status="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
-              {{ item.status || 'N/A' }}
+              {{ item.status || '' }}
             </div>
           </div>
         </template>
 
         <!-- Payout -->
         <template #item.payout="{ item }">
-          <div class="d-flex align-center gap-x-2">
+          <div class="d-flex align-center justify-end gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
               {{ item.payout ? `€ ${item.payout}` : 'N/A' }}
             </div>
@@ -297,13 +386,19 @@ const totalEntries = computed(() => reportData.value.totalEntries)
 
         <!-- Payout Confirmed -->
         <template #item.payout_confirmed="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <AppTextField
-              type="number"
-              v-model="item.payout_confirmed"
-              placeholder="Compenso confermato"
-            />
+          <div class="d-flex align-center justify-end gap-x-2">
+            {{ item.payout_confirmed ? `€ ${item.payout_confirmed}` : 'N/A' }}
+            <IconBtn @click="updatePayoutConfirmed(item)">
+              <VIcon color="primary" icon="tabler-pencil" />
+            </IconBtn>
           </div>
+        </template>
+
+        <!-- Actions -->
+        <template #item.actions="{ item }">
+          <IconBtn @click="selectEntryForRemove(item)" v-if="$can('edit', 'reports')">
+            <VIcon color="error" icon="tabler-trash" />
+          </IconBtn>
         </template>
 
         <!-- pagination -->
@@ -317,5 +412,128 @@ const totalEntries = computed(() => reportData.value.totalEntries)
       </VDataTableServer>
       <!-- SECTION -->
     </VCard>
+    
+    <VDialog
+      v-model="isUpdatePayoutDialogVisible"
+      width="500"
+      v-if="selectedEntry"
+    >
+      <!-- Dialog close btn -->
+      <DialogCloseBtn @click="isUpdatePayoutDialogVisible = !isUpdatePayoutDialogVisible" />
+
+      <!-- Dialog Content -->
+      <VCard title="Modifica compenso">
+        <VCardText>
+          <!-- This should have an input for the payout confirmed -->
+          <p>
+            Vuoi modificare il compenso di <b>€ {{ selectedEntry.payout }}</b>?
+          </p>
+          <AppTextField
+            v-model="selectedEntryPayoutConfirmed"
+            placeholder="Nuovo Compenso"
+          />
+        </VCardText>
+
+        <VCardText class="d-flex justify-end">
+          <VBtn color="success" @click="savePayoutConfirmed">
+            Conferma
+          </VBtn>
+        </VCardText>
+      </VCard>
+    </VDialog>
+
+    <VDialog
+      v-model="isRemoveDialogVisible"
+      width="500"
+      v-if="selectedEntryRemove && $can('edit', 'reports')"
+    >
+      <!-- Dialog close btn -->
+      <DialogCloseBtn @click="isRemoveDialogVisible = !isRemoveDialogVisible" />
+
+      <!-- Dialog Content -->
+      <VCard title="Elimina Riga">
+        <VCardText>
+          Sei sicuro di voler eliminare la riga <b>ID Pratica: {{ selectedEntryRemove.order_code || 'N/A' }}</b> (#{{ selectedEntryRemove.paperwork_id }})?
+        </VCardText>
+
+        <VCardText class="d-flex justify-end">
+          <VBtn color="error" @click="deleteReportEntry(selectedEntryRemove.id)">
+            Elimina
+          </VBtn>
+        </VCardText>
+      </VCard>
+    </VDialog>
+
+    <VDialog
+      v-model="isEditNameDialogVisible"
+      width="500"
+    >
+      <!-- Dialog close btn -->
+      <DialogCloseBtn @click="isEditNameDialogVisible = !isEditNameDialogVisible" />
+
+      <!-- Dialog Content -->
+      <VCard title="Modifica">
+        <VCardText>
+          <VRow>
+            <VCol cols="12" md="12">
+              <AppTextField
+                v-model="reportNewName"
+                label="Nome"
+                placeholder="Nuovo Nome"
+              />
+            </VCol>
+            <VCol cols="12" md="12">
+              <AppSelect
+                v-model="reportNewStatus"
+                label="Stato"
+                :items="reportStatuses"
+              />
+            </VCol>
+          </VRow>
+        </VCardText>
+
+        <VCardText class="d-flex justify-end">
+          <VBtn color="success" @click="saveReportName">
+            Conferma
+          </VBtn>
+        </VCardText>
+      </VCard>
+    </VDialog>
+
+    <VDialog
+      v-model="isAddEntryDialogVisible"
+      width="500"
+    >
+      <!-- Dialog close btn -->
+      <DialogCloseBtn @click="isAddEntryDialogVisible = !isAddEntryDialogVisible" />
+
+      <!-- Dialog Content -->
+      <VCard title="Aggiungi Riga">
+        <VCardText>
+          <VRow>
+            <VCol cols="12" md="12">
+              <AppTextField
+                v-model="addEntryDescription"
+                label="Descrizione"
+                placeholder="Descrizione"
+              />
+            </VCol>
+            <VCol cols="12" md="12">
+              <AppTextField
+                v-model="addEntryPayout"
+                label="Compenso"
+                placeholder="Compenso"
+              />
+            </VCol>
+          </VRow>
+        </VCardText>
+
+        <VCardText class="d-flex justify-end">
+          <VBtn color="success" @click="saveAddEntry">
+            Aggiungi
+          </VBtn>
+        </VCardText>
+      </VCard>
+    </VDialog>
   </section>
 </template>

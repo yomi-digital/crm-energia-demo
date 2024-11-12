@@ -149,14 +149,24 @@ class PaperworksController extends Controller
             return response()->json(['error' => 'Paperwork not found'], 404);
         }
 
+        $paperwork->fill($request->all());
+
         if ($request->get('partner_outcome') && ! $paperwork->partner_outcome) {
             $paperwork->partner_outcome_at = now()->format('Y-m-d H:i:s');
         }
-
-        $paperwork->fill($request->all());
-
         if ($request->get('partner_outcome_at')) {
-            $paperwork->partner_outcome_at = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_outcome_at'))->format('Y-m-d');
+            if ($paperwork->partner_outcome_at !== $request->get('partner_outcome_at')) {
+                $paperwork->partner_outcome_at = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_outcome_at'))->format('Y-m-d');
+            }
+        }
+
+        if ($request->get('order_status') && $request->get('order_status') === 'INSERITO' && ! $paperwork->partner_sent_at) {
+            $paperwork->partner_sent_at = now()->format('Y-m-d H:i:s');
+        }
+        if ($request->get('partner_sent_at')) {
+            if ($paperwork->partner_sent_at !== $request->get('partner_sent_at')) {
+                $paperwork->partner_sent_at = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_sent_at'))->format('Y-m-d');
+            }
         }
 
         $paperwork->save();

@@ -101,7 +101,7 @@ class ProductsController extends Controller
         }
 
         $perPage = $request->get('itemsPerPage', 10);
-        $feeBands = $product->feebands()->orderBy('start_date', 'desc')->paginate($perPage);
+        $feeBands = $product->feebands()->orderBy('is_default', 'desc')->orderBy('start_date', 'desc')->paginate($perPage);
 
         return response()->json([
             'feebands' => $feeBands->getCollection(),

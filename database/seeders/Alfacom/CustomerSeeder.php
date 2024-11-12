@@ -10,7 +10,12 @@ trait CustomerSeeder
     {
         mysqli_query($mysqli, 'ALTER TABLE datatype_clientis ADD new_id BIGINT');
         $legacyCustomers = $mysqli->query("SELECT * FROM datatype_clientis")->fetch_all(MYSQLI_ASSOC);
+        $totCustomers = count($legacyCustomers);
+        dump('Total customers: ' . $totCustomers);
+        $countI = 0;
         foreach ($legacyCustomers as $customer) {
+            $countI++;
+            dump('Processing customer ' . $countI . ' of ' . $totCustomers);
             try {
                 $data = [
                     'legacy_id' => $customer['id'],

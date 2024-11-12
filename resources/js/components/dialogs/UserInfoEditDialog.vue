@@ -14,7 +14,6 @@ const props = defineProps({
       agent_code: '',
       manager_id: '',
       agency_id: '',
-      commercial_profile: '',
       area: '',
       team_leader: 0,
       extractor: 0,

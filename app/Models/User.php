@@ -28,7 +28,6 @@ class User extends Authenticatable
         'extractor',
         'manager_id',
         'agency_id',
-        'commercial_profile',
         'area',
         'agent_code',
     ];

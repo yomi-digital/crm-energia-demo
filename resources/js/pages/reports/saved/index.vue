@@ -102,7 +102,7 @@ const fetchUsers = async (query) => {
     })
   }
 }
-await fetchUsers()
+fetchUsers()
 
 const statusTest = (status) => {
   return status == '1' ? 'Bozza' : status == '2' ? 'Confermato' : 'Inviato'

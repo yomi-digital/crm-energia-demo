@@ -47,7 +47,7 @@ class ReportsController extends Controller
             'entries' => $reports->getCollection(),
             'totalPages' => $reports->lastPage(),
             'totalEntries' => $reports->total(),
-            'page' => $reports->currentPage()
+            'page' => $reports->currentPage(),
         ]);
     }
 
@@ -79,14 +79,25 @@ class ReportsController extends Controller
             $entries = $entries->orderBy('created_at', 'desc');
         }
 
+        if ($request->has('export')) {
+            $allEntries = $entries->get();
+            $csvPath = $this->transformEntriesToCSV($allEntries, $report);
+            
+            return response()->download($csvPath, $report->name . '.csv');
+        }
+
         $entries = $entries->paginate($perPage);
+
+        // Get total sum of payout_confirmed
+        $totalPayoutConfirmed = $entries->getCollection()->sum('payout_confirmed');
 
         return response()->json([
             'report' => $report,
             'entries' => $entries->getCollection(),
             'totalPages' => $entries->lastPage(),
             'totalEntries' => $entries->total(),
-            'page' => $entries->currentPage()
+            'page' => $entries->currentPage(),
+            'totalPayoutConfirmed' => $totalPayoutConfirmed
         ]);
     }
 
@@ -149,6 +160,7 @@ class ReportsController extends Controller
                 $transformedPaperwork = $this->transformPaperworkAdmin($paperwork, $user);
                 $entry = new \App\Models\ReportEntry();
                 $entry->fill($transformedPaperwork);
+                $entry->payout_confirmed = $entry->payout;
                 $entry->report_id = $report->id;
                 $entry->save();
             }
@@ -332,5 +344,99 @@ class ReportsController extends Controller
         fclose($fp);
 
         return $csvPath;
+    }
+
+    private function transformEntriesToCSV($entries, $report)
+    {
+        $headers = [
+            'Struttura',
+            'Agente',
+            'Brand',
+            'Prodotto',
+            'Pratica',
+            'Data Inserimento',
+            'Data Attivazione',
+            'Stato',
+            'Compenso',
+        ];
+
+        // Save csv to /tmp 
+        $csvPath = tempnam(sys_get_temp_dir(), 'csv');
+        $fp = fopen($csvPath, 'w');
+        fputcsv($fp, $headers);
+
+        foreach ($entries as $entry) {
+            fputcsv($fp, [
+                $entry->parent,
+                $entry->agent,
+                $entry->brand,
+                $entry->product,
+                $entry->order_code,
+                $entry->inserted_at,
+                $entry->activated_at,
+                $entry->status,
+                $entry->payout_confirmed,
+            ]);
+        }
+
+        fclose($fp);
+
+        return $csvPath;
+    }
+
+    public function updatePayoutConfirmed(Request $request, $id, $entryId)
+    {
+        $entry = \App\Models\ReportEntry::findOrFail($entryId);
+        $entry->payout_confirmed = $request->get('payout_confirmed');
+        $entry->save();
+
+        return response()->json([
+            'message' => 'Compenso confermato aggiornato con successo',
+        ]);
+    }
+
+    public function deleteEntry(Request $request, $id, $entryId)
+    {
+        $entry = \App\Models\ReportEntry::findOrFail($entryId);
+        $entry->delete();
+
+        return response()->json([
+            'message' => 'Riga eliminata con successo',
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $report = \App\Models\Report::findOrFail($id);
+        $report->name = $request->get('name');
+        $report->status = $request->get('status');
+        $report->save();
+
+        return response()->json([
+            'message' => 'Nome aggiornato con successo',
+        ]);
+    }
+
+    public function addEntry(Request $request, $id)
+    {
+        // Must select one entry of the report to clone
+        $report = \App\Models\Report::findOrFail($id);
+
+        $entry = $report->entries()->first();
+
+        $newEntry = new \App\Models\ReportEntry();
+        $newEntry->report_id = $report->id;
+        $newEntry->agent_id = $entry->agent_id;
+        $newEntry->agent = $entry->agent;
+        $newEntry->brand = $request->get('description');
+        $newEntry->product = $request->get('description');
+        $newEntry->payout = $request->get('payout');
+        $newEntry->payout_confirmed = $request->get('payout');
+
+        $newEntry->save();
+
+        return response()->json([
+            'message' => 'Riga aggiunta con successo',
+        ]);
     }
 }

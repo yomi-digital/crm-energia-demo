@@ -175,12 +175,12 @@ const prettifyField = (field) => {
 
           <VCardText>
             <div class="text-body-1">
-              <span class="font-weight-medium">Prodotto:</span>
-                <RouterLink
-                  :to="{ name: 'configuration-products-id', params: { id: paperworkData.product.id } }"
-                  class="font-weight-medium text-link"
-                  :title="paperworkData.product.name"
-                >{{ paperworkData.product.name || 'N/A' }}</RouterLink>
+              <span class="font-weight-medium">Prodotto: </span>
+              <RouterLink
+                :to="{ name: 'configuration-products-id', params: { id: paperworkData.product.id } }"
+                class="font-weight-medium text-link"
+                :title="paperworkData.product.name"
+              >{{ paperworkData.product.name || 'N/A' }}</RouterLink>
             </div>
           </VCardText>
 
