@@ -17,6 +17,7 @@ const isUploadDialogVisible = ref(false)
 const isUpdateStatusesDialogVisible = ref(false)
 
 const isAdmin = useCookie('userData').value.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+const canViewPayout = useCookie('userData').value.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
 
 const {
   data: paperworkData,
@@ -355,7 +356,7 @@ const prettifyField = (field) => {
                 :title="paperworkData.user.name"
               >{{ [paperworkData.user.name, paperworkData.user.last_name].join(' ') }}</RouterLink>
             </div>
-            <div class="text-body-1" v-if="isAdmin">
+            <div class="text-body-1" v-if="canViewPayout">
               Compenso Stimato: € {{ paperworkData.payout || 'N/A' }}
             </div>
           </VCardText>
@@ -503,7 +504,7 @@ const prettifyField = (field) => {
                   @click="selectedTicket = ticket.id; isTicketViewDialogVisible = true"
                 >
                   <template #prepend>
-                    <VIcon v-if="ticket.status != 3" icon="tabler-mail-opened" :class="ticket.status == 1 ? 'text-warning' : 'text-success'" />
+                    <VIcon v-if="ticket.status != 3" icon="tabler-mail-opened" :class="ticket.status == 1 ? 'text-info' : 'text-success'" />
                     <VIcon v-if="ticket.status == 3" icon="tabler-check" class="text-success" />
                   </template>
 
@@ -549,7 +550,7 @@ const prettifyField = (field) => {
 
   <!-- 👉 Create ticket -->
   <TicketCreateDialog
-    v-if="$can('edit', 'users')"
+    v-if="$can('create', 'tickets')"
     v-model:isDialogVisible="isTicketDialogVisible"
     :paperwork-id="route.params.id"
     @submit="createdTicket"
@@ -557,7 +558,7 @@ const prettifyField = (field) => {
 
   <!-- View Ticket -->
   <TicketViewDialog
-    v-if="$can('edit', 'users') && selectedTicket"
+    v-if="$can('view', 'tickets') && selectedTicket"
     v-model:isDialogVisible="isTicketViewDialogVisible"
     :ticket-id="selectedTicket"
     @submit="closedTicket"

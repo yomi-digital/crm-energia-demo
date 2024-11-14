@@ -2,6 +2,9 @@
 const route = useRoute('admin-users-id')
 const searchQuery = ref('')
 
+const loggedInUser = useCookie('userData').value
+const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
+
 // Data table options
 const itemsPerPage = ref(10)
 const page = ref(1)
@@ -16,7 +19,7 @@ const updateOptions = options => {
 const isLoading = ref(false)
 
 // 👉 headers
-const headers = [
+let headers = [
   {
     title: '#',
     key: 'id',
@@ -52,10 +55,15 @@ const headers = [
   },
   {
     title: 'Compenso',
-    key: 'Pay',
+    key: 'payout',
     sortable: false,
   },
 ]
+
+// Remove compenso if not admin
+if (! isAdmin) {
+  headers = headers.filter(header => header.key !== 'payout')
+}
 
 const {
   data: paperworksData,
@@ -112,6 +120,7 @@ const getCustomerName = (customer) => {
 
             <!-- 👉 Add Paperwork -->
             <VBtn
+              v-if="$can('create', 'paperworks')"
               prepend-icon="tabler-plus"
               :to="{ name: 'workflow-paperworks-create-wizard', query: { agent_id: route.params.id } }"
             >

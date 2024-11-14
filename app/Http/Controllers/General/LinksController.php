@@ -24,6 +24,12 @@ class LinksController extends Controller
             $links->where('brand_id', $request->get('brand'));
         }
 
+        if ($request->user()->hasRole('agente') || $request->user()->hasRole('struttura')) {
+            // Get only the links for the agent's enabled brand
+            $userBrands = $request->user()->brands->pluck('id');
+            $links->whereIn('brand_id', $userBrands);
+        }
+
         if ($request->get('sortBy')) {
             $links->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
         }

@@ -22,6 +22,11 @@ class ProductsController extends Controller
             $products->where('brand_id', $request->get('brand'));
         }
 
+        if ($request->user()->hasRole('agente')) {
+            $agentBrands = $request->user()->brands->pluck('id');
+            $products = $products->whereIn('brand_id', $agentBrands);
+        }
+
         if ($request->get('sortBy')) {
             $products = $products->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
         } else {

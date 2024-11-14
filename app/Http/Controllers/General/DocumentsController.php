@@ -10,7 +10,11 @@ class DocumentsController extends Controller
     public function index(Request $request)
     {
         // TODO Get the brands the user is allowed to see
-        $brands = \App\Models\Brand::orderBy('name', 'asc')->get();
+        if ($request->user()->hasRole('agente') || $request->user()->hasRole('struttura')) {
+            $brands = $request->user()->brands()->orderBy('name', 'asc')->get();
+        } else {
+            $brands = \App\Models\Brand::orderBy('name', 'asc')->get();
+        }
         $brandsWithoutFolder = $brands->pluck('name')->toArray();
 
         $path = $request->get('path', '');

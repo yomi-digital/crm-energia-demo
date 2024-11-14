@@ -11,23 +11,20 @@ class TicketsController extends Controller
     {
         $perPage = $request->get('itemsPerPage', 10);
 
-        $tickets = new \App\Models\Ticket();
+        $tickets = \App\Models\Ticket::with(['createdBy']);
 
-        if ($request->filled('customer_id')) {
-            $tickets = $tickets->where('customer_id', $request->get('customer_id'));
-        }
-
-        if ($request->filled('user_id')) {
-            $tickets = $tickets->where('user_id', $request->get('user_id'));
+        // If the user has role agente, filter only for tickets related to his paperworks.
+        if ($request->user()->hasRole('agente') || $request->user()->hasRole('struttura')) {
+            // Get all paperworks of the agent.
+            $paperworks = \App\Models\Paperwork::where('user_id', $request->user()->id)->pluck('id');
+            $tickets = $tickets->whereIn('paperwork_id', $paperworks);
         }
 
         if ($request->get('q')) {
             $search = $request->get('q');
             $tickets = $tickets->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('area', 'like', "%{$search}%");
+                $query->where('paperwork_id', 'like', "%{$search}%")
+                    ->orWhere('title', 'like', "%{$search}%");
             });
         }
 

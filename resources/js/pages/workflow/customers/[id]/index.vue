@@ -44,6 +44,7 @@ const updatedCustomerData = (newData) => {
       cols="12"
       md="7"
       lg="8"
+      v-if="$can('access', 'paperworks')"
     >
       <CustomerTabPaperworks />
     </VCol>

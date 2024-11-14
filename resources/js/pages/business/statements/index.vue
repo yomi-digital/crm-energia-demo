@@ -189,7 +189,7 @@ fetchBrands()
           <VBtn
             variant="tonal"
             color="primary"
-            prepend-icon="tabler-upload"
+            prepend-icon="tabler-download"
             @click="exportStatement"
           >
             Esporta

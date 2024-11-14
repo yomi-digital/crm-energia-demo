@@ -37,6 +37,10 @@ class PaperworksController extends Controller
         // If the looged in user has role 'agente', filter for only his paperworks
         if ($request->user()->hasRole('agente')) {
             $paperworks = $paperworks->where('user_id', $request->user()->id);
+        } elseif ($request->user()->hasRole('struttura')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', $request->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
+            $paperworks = $paperworks->whereIn('user_id', $ids);
         }
 
         if ($request->get('sortBy')) {
@@ -61,6 +65,10 @@ class PaperworksController extends Controller
 
         if ($request->user()->hasRole('agente')) {
             $paperwork = $paperwork->where('user_id', $request->user()->id);
+        } elseif ($request->user()->hasRole('struttura')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', $request->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
+            $paperwork = $paperwork->whereIn('user_id', $ids);
         }
 
         $paperwork = $paperwork->first();
@@ -166,7 +174,8 @@ class PaperworksController extends Controller
             $paperwork->partner_outcome_at = now()->format('Y-m-d H:i:s');
         }
         if ($request->get('partner_outcome_at')) {
-            if ($paperwork->partner_outcome_at !== $request->get('partner_outcome_at')) {
+            // Check if the format is d/m/Y, then convert it to Y-m-d
+            if (\Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_outcome_at'))->format('Y-m-d') !== $paperwork->partner_outcome_at) {
                 $paperwork->partner_outcome_at = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_outcome_at'))->format('Y-m-d');
             }
         }
@@ -175,7 +184,7 @@ class PaperworksController extends Controller
             $paperwork->partner_sent_at = now()->format('Y-m-d H:i:s');
         }
         if ($request->get('partner_sent_at')) {
-            if ($paperwork->partner_sent_at !== $request->get('partner_sent_at')) {
+            if (\Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_sent_at'))->format('Y-m-d') !== $paperwork->partner_sent_at) {
                 $paperwork->partner_sent_at = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_sent_at'))->format('Y-m-d');
             }
         }

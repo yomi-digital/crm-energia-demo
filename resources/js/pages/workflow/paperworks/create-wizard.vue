@@ -241,7 +241,7 @@ const onSubmit = async () => {
             </VWindowItem>
 
             <VWindowItem>
-              <PaperworkProduct v-model:form-data="createPaperworkData.product" :ptype="createPaperworkData.paperworkType" />
+              <PaperworkProduct v-model:form-data="createPaperworkData.product" :ptype="createPaperworkData.paperworkType" :agent="createPaperworkData.agent.id" />
             </VWindowItem>
 
             <VWindowItem>

@@ -1,4 +1,14 @@
 <script setup>
+definePage({
+  meta: {
+    action: 'access',
+    subject: 'users',
+  },
+})
+
+const loggedInUser = useCookie('userData').value
+const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+
 import AddNewUserDrawer from '@/views/admin/users/AddNewUserDrawer.vue';
 
 // 👉 Store
@@ -90,14 +100,16 @@ const roles = [
   },
 ]
 
-await $api('/roles').then(response => {
-  for (let i = 0; i < response.roles.length; i++) {
+if (isAdmin) {
+  await $api('/roles').then(response => {
+    for (let i = 0; i < response.roles.length; i++) {
     roles.push({
       title: ucfirst(response.roles[i].name),
       value: response.roles[i].name,
     })
-  }
-})
+    }
+  })
+}
 
 const enabled = [
   {
@@ -202,11 +214,11 @@ const deleteUser = async id => {
 <template>
   <section>
     <VCard class="mb-6">
-      <VCardItem class="pb-4">
+      <VCardItem class="pb-4" v-if="isAdmin">
         <VCardTitle>Filtri</VCardTitle>
       </VCardItem>
 
-      <VCardText>
+      <VCardText v-if="isAdmin">
         <VRow>
           <!-- 👉 Select Role -->
           <VCol
@@ -291,6 +303,7 @@ const deleteUser = async id => {
           <VBtn
             prepend-icon="tabler-plus"
             @click="isAddNewUserDrawerVisible = true"
+            v-if="$can('create', 'users')"
           >
             Crea Account
           </VBtn>

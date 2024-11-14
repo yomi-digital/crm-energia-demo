@@ -32,6 +32,16 @@ class BrandsController extends Controller
             $brands = $brands->where('category', $request->get('category'));
         }
 
+        if ($request->get('agent')) {
+            $agentBrands = \App\Models\User::whereId($request->get('agent'))->first()->brands->pluck('id');
+            $brands = $brands->whereIn('id', $agentBrands);
+        } else {
+            if ($request->user()->hasRole('agente')) {
+                $agentBrands = $request->user()->brands->pluck('id');
+                $brands = $brands->whereIn('id', $agentBrands);
+            }
+        }
+
         if ($request->get('q')) {
             $search = $request->get('q');
             $brands = $brands->where(function ($query) use ($search) {

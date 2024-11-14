@@ -184,21 +184,51 @@ trait RoleSeeder
         }
 
         if ($role->name === 'backoffice') {
-            $exclude = ['business-economy', 'business-reconciliation', 'business-appointments'];
-            foreach ($this->permissions as $subject => $actions) {
-                if (in_array($subject, $exclude)) {
-                    continue;
-                }
-                foreach ($actions as $action) {
-                    $role->givePermissionTo($action . ' ' . $subject);
-                }
+            foreach ($this->permissions['dashboard'] as $action) {
+                $role->givePermissionTo($action . ' dashboard');
+            }
+            foreach ($this->permissions['calendar'] as $action) {
+                $role->givePermissionTo($action . ' calendar');
+            }
+            foreach ($this->permissions['links'] as $action) {
+                $role->givePermissionTo($action . ' links');
+            }
+            foreach ($this->permissions['documents'] as $action) {
+                $role->givePermissionTo($action . ' documents');
+            }
+            foreach ($this->permissions['customers'] as $action) {
+                $role->givePermissionTo($action . ' customers');
+            }
+            foreach ($this->permissions['paperworks'] as $action) {
+                $role->givePermissionTo($action . ' paperworks');
+            }
+            foreach ($this->permissions['mandates'] as $action) {
+                $role->givePermissionTo($action . ' mandates');
+            }
+            foreach ($this->permissions['communications'] as $action) {
+                $role->givePermissionTo($action . ' communications');
+            }
+            foreach ($this->permissions['tickets'] as $action) {
+                $role->givePermissionTo($action . ' tickets');
+            }
+            foreach ($this->permissions['reports-production'] as $action) {
+                $role->givePermissionTo($action . ' reports-production');
+            }
+            foreach ($this->permissions['reports-appointments'] as $action) {
+                $role->givePermissionTo($action . ' reports-appointments');
             }
         }
 
         if ($role->name === 'agente' || $role->name === 'struttura') {
-            foreach ($this->permissions['calendar'] as $action) {
-                $role->givePermissionTo($action . ' calendar');
+            foreach ($this->permissions['dashboard'] as $action) {
+                $role->givePermissionTo($action . ' dashboard');
             }
+            $role->givePermissionTo('access links');
+            $role->givePermissionTo('view links');
+            $role->givePermissionTo('access documents');
+            $role->givePermissionTo('view documents');
+            $role->givePermissionTo('access calendar');
+            $role->givePermissionTo('view calendar');
             foreach ($this->permissions['customers'] as $action) {
                 if ($action === 'delete') {
                     continue;
@@ -213,32 +243,78 @@ trait RoleSeeder
             }
             $role->givePermissionTo('view brands');
             $role->givePermissionTo('view products');
-        }
-
-        if ($role->name === 'telemarketing' || $role->name === 'team leader') {
-            foreach ($this->permissions['calendar'] as $action) {
-                $role->givePermissionTo($action . ' calendar');
-            }
-            foreach ($this->permissions['customers'] as $action) {
-                if ($action === 'delete') {
-                    continue;
-                }
-                $role->givePermissionTo($action . ' customers');
-            }
+            $role->givePermissionTo('access communications');
+            $role->givePermissionTo('view communications');
             foreach ($this->permissions['tickets'] as $action) {
                 if ($action === 'delete') {
                     continue;
                 }
-                $role->givePermissionTo($action . ' paperworks');
+                $role->givePermissionTo($action . ' tickets');
+            }
+            foreach ($this->permissions['reports-production'] as $action) {
+                $role->givePermissionTo($action . ' reports-production');
+            }
+
+            if ($role->name === 'struttura') {
+                $role->givePermissionTo('access users');
+                $role->givePermissionTo('view users');
+            }
+        }
+
+        if ($role->name === 'telemarketing' || $role->name === 'team leader') {
+            $role->givePermissionTo('access links');
+            $role->givePermissionTo('view links');
+            $role->givePermissionTo('access documents');
+            $role->givePermissionTo('view documents');
+            foreach ($this->permissions['calendar'] as $action) {
+                $role->givePermissionTo($action . ' calendar');
+            }
+            $role->givePermissionTo('access customers');
+            $role->givePermissionTo('view customers');
+            $role->givePermissionTo('access communications');
+            $role->givePermissionTo('view communications');
+            if ($role->name === 'team leader') {
+                $role->givePermissionTo('access users');
+                $role->givePermissionTo('view users');
             }
         }
 
         if ($role->name === 'amministrazione') {
+            foreach ($this->permissions['dashboard'] as $action) {
+                $role->givePermissionTo($action . ' dashboard');
+            }
+            foreach ($this->permissions['calendar'] as $action) {
+                $role->givePermissionTo($action . ' calendar');
+            }
+            foreach ($this->permissions['links'] as $action) {
+                $role->givePermissionTo($action . ' links');
+            }
+            foreach ($this->permissions['documents'] as $action) {
+                $role->givePermissionTo($action . ' documents');
+            }
+            foreach ($this->permissions['customers'] as $action) {
+                $role->givePermissionTo($action . ' customers');
+            }
+            foreach ($this->permissions['paperworks'] as $action) {
+                $role->givePermissionTo($action . ' paperworks');
+            }
+            foreach ($this->permissions['mandates'] as $action) {
+                $role->givePermissionTo($action . ' mandates');
+            }
+            foreach ($this->permissions['agencies'] as $action) {
+                $role->givePermissionTo($action . ' agencies');
+            }
             foreach ($this->permissions['brands'] as $action) {
                 $role->givePermissionTo($action . ' brands');
             }
             foreach ($this->permissions['products'] as $action) {
                 $role->givePermissionTo($action . ' products');
+            }
+            foreach ($this->permissions['communications'] as $action) {
+                $role->givePermissionTo($action . ' communications');
+            }
+            foreach ($this->permissions['tickets'] as $action) {
+                $role->givePermissionTo($action . ' tickets');
             }
             foreach ($this->permissions['reports-admin'] as $action) {
                 $role->givePermissionTo($action . ' reports-admin');
@@ -248,6 +324,12 @@ trait RoleSeeder
             }
             foreach ($this->permissions['reports-appointments'] as $action) {
                 $role->givePermissionTo($action . ' reports-appointments');
+            }
+            foreach ($this->permissions['business-economy'] as $action) {
+                $role->givePermissionTo($action . ' business-economy');
+            }
+            foreach ($this->permissions['business-reconciliation'] as $action) {
+                $role->givePermissionTo($action . ' business-reconciliation');
             }
         }
     }

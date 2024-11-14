@@ -43,7 +43,7 @@ class CustomersController extends Controller
         }
 
         // If the looged in user has role 'agente', filter for only his customers
-        if ($request->user()->hasRole('agente')) {
+        if ($request->user()->hasRole('agente') || $request->user()->hasRole('struttura')) {
             $customers = $customers->where(function ($query) use ($request) {
                 $query->whereHas('paperworks', function ($query) use ($request) {
                     $query->where('user_id', $request->user()->id);
@@ -53,6 +53,13 @@ class CustomersController extends Controller
 
         if ($request->get('sortBy')) {
             $customers = $customers->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
+        }
+
+        if ($request->has('export')) {
+            $allCustomers = $customers->get();
+            $csvPath = $this->transformEntriesToCSV($allCustomers);
+            
+            return response()->download($csvPath, 'customers_' . now()->format('Y-m-d_H-i-s') . '.csv');
         }
 
         if ($request->get('select') === '1') {
@@ -73,7 +80,7 @@ class CustomersController extends Controller
     {
         $customer = \App\Models\Customer::with(['addedByUser', 'confirmedByUser'])->whereId($id);
 
-        if ($request->user()->hasRole('agente')) {
+        if ($request->user()->hasRole('agente') || $request->user()->hasRole('struttura')) {
             $customer = $customer->where(function ($query) use ($request) {
                 $query->whereHas('paperworks', function ($query) use ($request) {
                     $query->where('user_id', $request->user()->id);
@@ -228,5 +235,55 @@ class CustomersController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    private function transformEntriesToCSV($entries)
+    {
+        $headers = [
+            'ID',
+            'Nome',
+            'Cognome',
+            'Ragione Sociale',
+            'P.IVA',
+            'CF',
+            'Email',
+            'Telefono',
+            'Città',
+            'Indirizzo',
+            'CAP',
+            'Aggiunto da',
+            'Aggiunto il',
+            'Confermato da',
+            'Confermato il',
+        ];
+
+        // Save csv to /tmp 
+        $csvPath = tempnam(sys_get_temp_dir(), 'csv');
+        $fp = fopen($csvPath, 'w');
+        fputcsv($fp, $headers);
+
+        foreach ($entries as $customer) {
+            fputcsv($fp, [
+                $customer->id,
+                $customer->name,
+                $customer->last_name,
+                $customer->business_name,
+                $customer->vat_number,
+                $customer->tax_id_code,
+                $customer->email,
+                $customer->phone,
+                $customer->city,
+                $customer->address,
+                $customer->zip_code,
+                $customer->addedByUser ? $customer->addedByUser->name . ' ' . $customer->addedByUser->last_name : '',
+                $customer->added_at,
+                $customer->confirmedByUser ? $customer->confirmedByUser->name . ' ' . $customer->confirmedByUser->last_name : '',
+                $customer->confirmed_at,
+            ]);
+        }
+
+        fclose($fp);
+
+        return $csvPath;
     }
 }

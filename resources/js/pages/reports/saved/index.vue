@@ -2,7 +2,7 @@
 definePage({
   meta: {
     action: 'access',
-    subject: 'reports',
+    subject: 'reports-admin',
   },
 })
 

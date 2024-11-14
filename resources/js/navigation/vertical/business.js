@@ -11,11 +11,11 @@ export default [
     action: 'access',
     subject: 'business-economy',
   },
-  {
-    title: 'Riconciliazione Rendicontazioni',
-    icon: { icon: 'tabler-plus-equal' },
-    to: 'workflow-customers',
-    action: 'access',
-    subject: 'business-reconciliation',
-  },
+  // {
+  //   title: 'Riconciliazione Rendicontazioni',
+  //   icon: { icon: 'tabler-plus-equal' },
+  //   to: 'workflow-customers',
+  //   action: 'access',
+  //   subject: 'business-reconciliation',
+  // },
 ]

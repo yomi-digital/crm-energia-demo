@@ -54,6 +54,10 @@ class CalendarController extends Controller
         // If the looged in user has role 'agente', filter for only his customers
         if ($request->user()->hasRole('agente')) {
             $calendar = $calendar->where('agent_id', $request->user()->id);
+        } elseif ($request->user()->hasRole('struttura')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', $request->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
+            $calendar = $calendar->whereIn('agent_id', $ids);
         }
 
         $calendar = $calendar->get();
@@ -185,6 +189,10 @@ class CalendarController extends Controller
         // If the looged in user has role 'agente', filter for only his customers
         if ($request->user()->hasRole('agente')) {
             $users = $users->where('agent_id', $request->user()->id);
+        } elseif ($request->user()->hasRole('struttura')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', $request->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
+            $users = $users->whereIn('agent_id', $ids);
         }
 
         return response()->json($users->get());
@@ -197,6 +205,10 @@ class CalendarController extends Controller
         // If the looged in user has role 'agente', filter for only his customers
         if ($request->user()->hasRole('agente')) {
             $cities = $cities->where('agent_id', $request->user()->id);
+        } elseif ($request->user()->hasRole('struttura')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', $request->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
+            $cities = $cities->whereIn('agent_id', $ids);
         }
 
         return response()->json($cities->get());

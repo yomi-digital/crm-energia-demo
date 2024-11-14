@@ -148,24 +148,39 @@ await fetchCities()
 const isExporting = ref(false)
 const exportCustomers = async () => {
   isExporting.value = true
-  const response = await $api('/customers-export', {
-    method: 'GET',
-    query: {
-      q: searchQuery.value,
-      brand: selectedBrand.value,
-      city: selectedCity.value,
-    },
-  })
-  isExporting.value = false
+  try {
+    const data = await $api(`/customers`, {
+      method: 'GET',
+      query: {
+        itemsPerPage: itemsPerPage.value,
+        page: page.value,
+        sortBy: sortBy.value,
+        orderBy: orderBy.value,
+        export: 'csv',
+        q: searchQuery.value,
+        brand: selectedBrand.value,
+        city: selectedCity.value,
+      },
+      responseType: 'blob'
+    })
 
-  // Export as csv
-  const blob = new Blob([response], { type: 'text/csv' })
-  const url = window.URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'Client.csv'
-  a.click()
-  window.URL.revokeObjectURL(url)
+    const fileName = 'clienti.csv';
+
+    const blob = new Blob([data], { type: data.type })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Error exporting customers:', error)
+    // Handle the error (e.g., show a notification to the user)
+  } finally {
+    isExporting.value = false
+  }
 }
 
 
@@ -277,7 +292,7 @@ const widgetData = ref([
           <!-- 👉 Export button -->
           <VBtn
             variant="tonal"
-            color="secondary"
+            color="primary"
             :prepend-icon="isExporting ? 'tabler-loader' : 'tabler-download'"
             :disabled="isExporting"
             @click="exportCustomers"

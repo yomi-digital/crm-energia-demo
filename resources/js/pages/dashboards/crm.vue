@@ -1,4 +1,10 @@
 <script setup>
+definePage({
+  meta: {
+    action: 'access',
+    subject: 'dashboard',
+  },
+})
 
 const simpleStatisticsDemoCards = [
   {

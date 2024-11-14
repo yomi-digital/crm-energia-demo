@@ -42,6 +42,11 @@ class Paperwork extends Model
         'created_by',
     ];
 
+    protected $dates = [
+        'partner_sent_at',
+        'partner_outcome_at',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

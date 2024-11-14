@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('feebands', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('product_id')->index();
-            $table->tinyInteger('is_default')->default(0);
             $table->timestamp('start_date')->nullable();
             $table->timestamp('end_date')->nullable();
             $table->string('fee_type')->nullable();

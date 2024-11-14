@@ -10,6 +10,10 @@ const props = defineProps({
     type: null,
     required: true,
   },
+  agent: {
+    type: null,
+    required: true,
+  },
 })
 
 const emit = defineEmits(['update:formData'])
@@ -29,7 +33,7 @@ watch(props.ptype, () => {
 const brands = ref([])
 
 const fetchBrands = async (query) => {
-  const response = await $api(`/brands?itemsPerPage=999999&with=products&product_details=1&type=${props.ptype.user_type}&category=${props.ptype.type}`)
+  const response = await $api(`/brands?itemsPerPage=999999&with=products&product_details=1&type=${props.ptype.user_type}&category=${props.ptype.type}&agent=${props.agent}`)
   brands.value = response.brands
 }
 await fetchBrands('')

@@ -2,7 +2,7 @@
 definePage({
   meta: {
     action: 'access',
-    subject: 'reports',
+    subject: 'reports-admin',
   },
 })
 
@@ -308,7 +308,7 @@ const saveReport = async () => {
           <VBtn
             variant="tonal"
             color="primary"
-            prepend-icon="tabler-upload"
+            prepend-icon="tabler-download"
             @click="exportReport"
           >
             Esporta

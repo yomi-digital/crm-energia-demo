@@ -23,7 +23,7 @@ const isRemoveDialogVisible = ref(false)
 const selectedBrandsRemove = ref()
 
 // 👉 headers
-const headers = [
+let headers = [
 {
     title: 'Brand',
     key: 'name',
@@ -61,6 +61,27 @@ const headers = [
   },
 ]
 
+const loggedInUser = useCookie('userData').value
+const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
+if (! isAdmin) {
+  headers = [
+    {
+      title: 'Brand',
+      key: 'name',
+      sortable: false,
+    },
+    {
+      title: 'Tipo',
+      key: 'type',
+      sortable: false,
+    },
+    {
+      title: 'Settore',
+      key: 'category',
+      sortable: false,
+    },
+  ]
+}
 const {
   data: brandsData,
   execute: fetchUserBrands,
@@ -189,6 +210,7 @@ const updateBrandPayLevel = async (brand, payLevel) => {
             <VBtn
               prepend-icon="tabler-link"
               @click="isAddDialogVisible = true"
+              v-if="$can('edit', 'users')"
             >
               Abilita Brand
             </VBtn>
@@ -273,7 +295,7 @@ const updateBrandPayLevel = async (brand, payLevel) => {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="selectBrandForRemove(item)">
+          <IconBtn @click="selectBrandForRemove(item)" v-if="$can('edit', 'users')">
             <VIcon
               color="error"
               icon="tabler-unlink"

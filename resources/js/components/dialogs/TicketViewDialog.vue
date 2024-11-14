@@ -63,6 +63,9 @@ const onFormReset = () => {
 const dialogModelValueUpdate = val => {
   emit('update:isDialogVisible', val)
 }
+
+const loggedInUser = useCookie('userData').value
+const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 </script>
 
 <template>
@@ -79,13 +82,13 @@ const dialogModelValueUpdate = val => {
           <h2 class="text-h4 font-weight-bold">{{ ticketData.title }}</h2>
           <div>
             <VChip
-              :color="ticketData.status === 3 ? 'success' : 'warning'"
+              :color="ticketData.status === 3 ? 'success' : 'info'"
               class="text-uppercase mr-2"
             >
               {{ ticketData.status === 3 ? 'Risolto' : 'Aperto' }}
             </VChip>
             <VBtn
-              v-if="ticketData.status !== 3"
+              v-if="ticketData.status !== 3 && isAdmin"
               color="success"
               @click="closeTicket"
             >
@@ -141,7 +144,7 @@ const dialogModelValueUpdate = val => {
               color="primary"
               :disabled="!comment.trim()"
             >
-              Invia Risposta
+              Invia
             </VBtn>
           </div>
         </VForm>

@@ -16,7 +16,7 @@ const route = useRoute('admin-users-id')
 const router = useRouter()
 const userTab = ref(null)
 
-const tabs = [
+let tabs = [
   {
     icon: 'tabler-users',
     title: 'Account Collegati',
@@ -46,6 +46,20 @@ const {
 
 const updatedUserData = (newData) => {
   fetchUser()
+}
+
+const isMarketing = userData.value.role?.name === 'telemarketing'
+const isTeamLeader = userData.value.role?.name === 'team leader'
+
+if (isMarketing) {
+  tabs = []
+} else if (isTeamLeader) {
+  tabs = [
+    {
+      icon: 'tabler-users',
+      title: 'Account Collegati',
+    },
+  ]
 }
 </script>
 
@@ -86,19 +100,19 @@ const updatedUserData = (newData) => {
         class="mt-6 disable-tab-transition"
         :touch="false"
       >
-        <VWindowItem>
+        <VWindowItem v-if="$can('access', 'users') && !isMarketing">
           <UserTabRelationships />
         </VWindowItem>
 
-        <VWindowItem>
+        <VWindowItem v-if="$can('access', 'brands') && (!isMarketing && !isTeamLeader)">
           <UserTabBrands />
         </VWindowItem>
 
-        <VWindowItem>
+        <VWindowItem v-if="$can('access', 'calendar') && (!isMarketing && !isTeamLeader)">
           <UserTabAppointments />
         </VWindowItem>
 
-        <VWindowItem>
+        <VWindowItem v-if="$can('access', 'paperworks') && (!isMarketing && !isTeamLeader)">
           <UserTabPaperworks />
         </VWindowItem>
       </VWindow>

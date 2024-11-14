@@ -110,7 +110,7 @@ const fetchUsers = async (query) => {
         value: user.id,
       })
     }
-    if (user.role?.name === 'agente') {
+    if (user.role?.name === 'agente' || user.role?.name === 'struttura') {
       agents.push({
         title: [user.name, user.last_name].join(' ').trim(),
         value: user.id,
@@ -133,6 +133,13 @@ const fetchCalendarUsers = async (query) => {
   }
 }
 await fetchCalendarUsers()
+
+const loggedInUser = useCookie('userData').value
+// Check if in the roles array there is a role with name 'agente'
+const isAgent = loggedInUser.roles.some(role => role.name === 'agente')
+const isStructure = loggedInUser.roles.some(role => role.name === 'struttura')
+const isTelemarketing = loggedInUser.roles.some(role => role.name === 'telemarketing' || role.name === 'team leader')
+const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 </script>
 
 <template>
@@ -144,7 +151,7 @@ await fetchCalendarUsers()
         </VExpansionPanelTitle>
         <VExpansionPanelText>
           <VRow>
-            <VCol cols="4" v-if="$can('access', 'users')">
+            <VCol cols="4" v-if="$can('access', 'users') && (! isAgent && ! isStructure)">
               <AppAutocomplete
                 v-model="store.selectedOperators"
                 label="Filtra per Operatore"
@@ -156,7 +163,7 @@ await fetchCalendarUsers()
                 placeholder="Seleziona un Operatore"
               />
             </VCol>
-            <VCol cols="4" v-if="$can('access', 'users')">
+            <VCol cols="4" v-if="$can('access', 'users') && (! isAgent || isStructure)">
               <AppAutocomplete
                 v-model="store.selectedAgents"
                 label="Filtra per Agente"

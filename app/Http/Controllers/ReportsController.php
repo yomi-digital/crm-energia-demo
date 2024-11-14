@@ -211,10 +211,18 @@ class ReportsController extends Controller
         $user = null;
         if ($userId) {
             $user = \App\Models\User::find($userId);
-            $agents = $user->agents;
-            $userIds = $agents->pluck('id');
-            $userIds[] = $user->id;
-            $paperworks = $paperworks->whereIn('user_id', $userIds);
+            $relationships = \App\Models\UserRelationship::where('user_id', $userId)->with('user')->get();
+            $ids = $relationships->pluck('related_id')->merge([$userId]);
+            $paperworks = $paperworks->whereIn('user_id', $ids);
+        } else {
+            // Check if role agent, then should only take paperworks for the logged in user
+            if ($request->user()->hasRole('agente')) {
+                $paperworks = $paperworks->where('user_id', $request->user()->id);
+            } elseif ($request->user()->hasRole('struttura')) {
+                $relationships = \App\Models\UserRelationship::where('user_id', $request->user()->id)->with('user')->get();
+                $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
+                $paperworks = $paperworks->whereIn('user_id', $ids);
+            }
         }
 
         if ($request->filled('brand_id')) {
@@ -295,6 +303,7 @@ class ReportsController extends Controller
                 $parent = \App\Models\User::find($parent->user_id);
             }
         }
+
         return [
             'parent_id' => $parent ? $parent->id : null,
             'parent' => $parent ? implode(' ', array_filter([$parent->name, $parent->last_name])) : null,
@@ -306,7 +315,7 @@ class ReportsController extends Controller
             'product' => $paperwork->product->name,
             'order_code' => $paperwork->order_code,
             'paperwork_id' => $paperwork->id,
-            'inserted_at' => $paperwork->partner_sent_at ? $paperwork->partner_sent_at->format(config('app.date_format')) : null,
+            'inserted_at' => $paperwork->partner_sent_at ? \Carbon\Carbon::parse($paperwork->partner_sent_at)->format(config('app.date_format')) : null,
             'status' => $paperwork->partner_outcome,
         ];
     }

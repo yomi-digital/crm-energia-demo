@@ -9,6 +9,9 @@ const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
 
+const loggedInUser = useCookie('userData').value
+const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
   orderBy.value = options.sortBy[0]?.order
@@ -183,6 +186,7 @@ await fetchAllUsers()
             <VBtn
               prepend-icon="tabler-link"
               @click="isAddDialogVisible = true"
+              v-if="$can('edit', 'users')"
             >
               Collega Account
             </VBtn>
@@ -280,7 +284,7 @@ await fetchAllUsers()
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="selectRelationshipForRemove(item)">
+          <IconBtn @click="selectRelationshipForRemove(item)" v-if="$can('edit', 'users')">
             <VIcon
               color="error"
               icon="tabler-unlink"

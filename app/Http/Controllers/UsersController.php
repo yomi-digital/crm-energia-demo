@@ -27,6 +27,14 @@ class UsersController extends Controller
             $users->where('team_leader', $request->get('isTeamLeader'));
         }
 
+        if ($request->user()->hasRole('agente') || $request->user()->hasRole('telemarketing')) {
+            $users->where('id', $request->user()->id);
+        } elseif ($request->user()->hasRole('struttura') || $request->user()->hasRole('team leader')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', $request->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
+            $users->whereIn('id', $ids);
+        }
+
         if ($request->get('q')) {
             $search = $request->get('q');
             $users->where(function ($query) use ($search) {
@@ -85,8 +93,8 @@ class UsersController extends Controller
     public function agents(Request $request)
     {
         $scopeRoles = ['agente'];
+        $scopeRoles[] = 'struttura';
         if ($request->get('structures') === '1') {
-            $scopeRoles[] = 'struttura';
         }
 
         $agents = \App\Models\User::where('enabled', 1)
@@ -104,6 +112,10 @@ class UsersController extends Controller
         // If the looged in user has role 'agente', filter for only his customers
         if ($request->user()->hasRole('agente')) {
             $agents = $agents->where('id', $request->user()->id);
+        } elseif ($request->user()->hasRole('struttura')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', $request->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
+            $agents = $agents->whereIn('id', $ids);
         }
 
         return response()->json(['agents' => $agents->get()]);
@@ -128,6 +140,18 @@ class UsersController extends Controller
 
         if (! $user) {
             return response()->json(['message' => 'User not found'], 404);
+        }
+
+        if ($request->user()->hasRole('agent') || $request->user()->hasRole('telemarketing')) {
+            if ($user->id !== $request->user()->id) {
+                return response()->json(['message' => 'User not found'], 404);
+            }
+        } elseif ($request->user()->hasRole('struttura') || $request->user()->hasRole('team leader')) {
+            $hasUser = \App\Models\UserRelationship::where('user_id', $request->user()->id)->where('related_id', $id)->get();
+
+            if ($user->id !== $request->user()->id && ! $hasUser->count()) {
+                return response()->json(['message' => 'User not found'], 404);
+            }
         }
 
         $user->related_users = \App\Models\UserRelationship::where('user_id', $id)->with('user', 'user.roles')->get();

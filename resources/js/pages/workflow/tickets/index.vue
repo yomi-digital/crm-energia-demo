@@ -29,8 +29,8 @@ const headers = [
     key: 'id',
   },
   {
-    title: 'ID Pratica',
-    key: 'order_code',
+    title: 'Pratica',
+    key: 'paperwork_id',
   },
   {
     title: 'Titolo',
@@ -48,11 +48,11 @@ const headers = [
     title: 'Data Creazione',
     key: 'created_at',
   },
-  {
-    title: '',
-    key: 'actions',
-    sortable: false,
-  },
+  // {
+  //   title: '',
+  //   key: 'actions',
+  //   sortable: false,
+  // },
 ]
 
 const {
@@ -62,7 +62,6 @@ const {
   query: {
     q: searchQuery,
     itemsPerPage,
-    user_id: selectedAgent,
     page,
     sortBy,
     orderBy,
@@ -72,106 +71,15 @@ const {
 const tickets = computed(() => ticketsData.value.tickets)
 const totalTickets = computed(() => ticketsData.value.totalTickets)
 
-const getCustomerName = (customer) => {
-  if (! customer) {
-    return 'N/A'
-  }
-  if (customer.name) {
-    return [customer.name, customer.last_name].join(' ')
-  } else if (customer.business_name) {
-    return customer.business_name
-  } else {
-    return '#' + customer.id
-  }
+const ticketStatusText = (status) => {
+  return ['Aperto', 'In Lavorazione', 'Risolto'][status - 1]
 }
-
-const widgetData = ref([
-  {
-    title: 'Session',
-    value: '21,459',
-    change: 29,
-    desc: 'Total Users',
-    icon: 'tabler-users',
-    iconColor: 'primary',
-  },
-  {
-    title: 'Paid Users',
-    value: '4,567',
-    change: 18,
-    desc: 'Last Week Analytics',
-    icon: 'tabler-user-plus',
-    iconColor: 'error',
-  },
-  {
-    title: 'Active Users',
-    value: '19,860',
-    change: -14,
-    desc: 'Last Week Analytics',
-    icon: 'tabler-user-check',
-    iconColor: 'success',
-  },
-  {
-    title: 'Pending Users',
-    value: '237',
-    change: 42,
-    desc: 'Last Week Analytics',
-    icon: 'tabler-user-search',
-    iconColor: 'warning',
-  },
-])
-
-const agents = ref([])
-const fetchAgents = async () => {
-  agents.value = []
-  const response = await $api('/agents?itemsPerPage=99999999&select=1')
-  for (let i = 0; i < response.agents.length; i++) {
-    agents.value.push({
-      title: [response.agents[i].name, response.agents[i].last_name].join(' '),
-      value: response.agents[i].id,
-    })
-  }
-}
-fetchAgents()
-
-const customers = ref([])
-const fetchCustomers = async () => {
-  customers.value = []
-  const response = await $api('/customers?itemsPerPage=99999999&select=1')
-  for (let i = 0; i < response.customers.length; i++) {
-    customers.value.push({
-      title: getCustomerName(response.customers[i]),
-      value: response.customers[i].id,
-    })
-  }
-}
-fetchCustomers()
 </script>
 
 <template>
   <section>
 
     <VCard class="mb-6">
-      <VCardItem class="pb-4">
-        <VCardTitle>Filtri</VCardTitle>
-      </VCardItem>
-
-      <VCardText>
-        <VRow>
-          <VCol cols="4">
-            <AppAutocomplete
-              v-model="selectedAgent"
-              label="Filtra per Agente"
-              clearable
-              :items="agents"
-              placeholder="Seleziona un Agente"
-            />
-          </VCol>
-
-        </VRow>
-      </VCardText>
-
-      <VDivider />
-
       <VCardText class="d-flex flex-wrap gap-4">
         <div class="me-3 d-flex gap-3">
           <AppSelect
@@ -191,30 +99,12 @@ fetchCustomers()
 
         <div class="app-user-search-filter d-flex align-center flex-wrap gap-4">
           <!-- 👉 Search  -->
-          <!-- <div style="inline-size: 15.625rem;">
+          <div style="inline-size: 15.625rem;">
             <AppTextField
               v-model="searchQuery"
               placeholder="Cerca"
             />
-          </div> -->
-
-          <!-- 👉 Export button -->
-          <!-- <VBtn
-            variant="tonal"
-            color="secondary"
-            prepend-icon="tabler-upload"
-          >
-            Esporta
-          </VBtn> -->
-
-          <!-- 👉 Add user button -->
-          <VBtn
-            :to="{ name: 'workflow-paperworks-create-wizard' }"
-            v-if="$can('create', 'paperworks')"
-            prepend-icon="tabler-plus"
-          >
-            Crea Pratica
-          </VBtn>
+          </div>
         </div>
       </VCardText>
 
@@ -237,7 +127,7 @@ fetchCustomers()
             <div class="d-flex flex-column">
               <h6 class="text-base">
                 <RouterLink
-                  :to="{ name: 'workflow-paperworks-id', params: { id: item.id } }"
+                  :to="{ name: 'workflow-tickets-id', params: { id: item.id } }"
                   class="font-weight-medium text-link"
                   :title="item.id"
                 >
@@ -249,163 +139,49 @@ fetchCustomers()
         </template>
 
         <!-- 👉 Order Code -->
-        <template #item.order_code="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.order_code }}
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Account/POD/PDR -->
-        <template #item.account_pod_pdr="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.account_pod_pdr }}
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Agent -->
-        <template #item.user_id="{ item }">
+        <template #item.paperwork_id="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
               <RouterLink
-                v-if="item.user && $can('view', 'users')"
-                :to="{ name: 'admin-users-id', params: { id: item.user.id } }"
-                class="font-weight-medium text-link"
-              >
-                {{ [item.user.name, item.user.last_name].join(' ') }}
-              </RouterLink>
-              <template v-else>
-                {{ [item.user?.name, item.user?.last_name].join(' ') }}
-              </template>
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Customer -->
-        <template #item.customer_id="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              <RouterLink
-                :to="{ name: 'workflow-customers-id', params: { id: item.customer.id } }"
-                class="font-weight-medium text-link"
-                :title="getCustomerName(item.customer)"
-              >
-                {{ getCustomerName(item.customer) }}
-              </RouterLink>
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Partner Sent At -->
-        <template #item.partner_sent_at="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.partner_sent_at }}
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Order Status -->
-        <template #item.order_status="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.order_status }}
+                  :to="{ name: 'workflow-paperworks-id', params: { id: item.paperwork_id } }"
+                  class="font-weight-medium text-link"
+                  :title="item.paperwork_id"
+                >
+                  {{ item.paperwork_id }}
+                </RouterLink>
             </div>
           </div>
         </template>
 
 
-        <!-- 👉 Prodotto -->
-        <template #item.product_id="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.product?.name }}
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Brand Category -->
-        <template #item.brand_category_id="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.brand?.typology }}
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Agency -->
-        <template #item.mandate_id="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.mandate?.name }}
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Partner Outcome -->
-        <template #item.partner_outcome="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.partner_outcome }}
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Partner Outcome At -->
-        <template #item.partner_outcome_at="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.partner_outcome_at }}
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Paid -->
-        <template #item.paid="{ item }">
-          <VChip
-            :color="item.paid ? 'success' : 'error'"
-            size="small"
-            label
-            class="text-capitalize"
-          >
-            {{ item.paid ? 'SI' : 'NO' }}
-          </VChip>
-        </template>
-
-        <!-- 👉 Pay -->
-        <template #item.pay="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              &euro; {{ item.pay }}
-            </div>
-          </div>
-        </template>
 
 
         <!-- Status -->
-        <!-- <template #item.enabled="{ item }">
-          <VIcon
-              :size="22"
-              :icon="item.enabled ? 'tabler-check' : 'tabler-x'"
-              :color="resolveUserStatusVariant(item.enabled)"
-            />
-        </template> -->
+        <template #item.status="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ ticketStatusText(item.status) }}
+            </div>
+          </div>
+        </template>
 
+        <!-- Creato Da -->
+        <template #item.created_by="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ [item.created_by.name, item.created_by.last_name].join(' ') }}
+            </div>
+          </div>
+        </template>
 
-        <!-- Team Leader -->
-        <!-- <template #item.team_leader="{ item }">
-          <VChip
-            :color="item.team_leader ? 'success' : 'error'"
-            size="small"
-            label
-            class="text-capitalize"
-          >
-            {{ item.team_leader ? 'SI' : 'NO' }}
-          </VChip>
-        </template> -->
+        <!-- Data Creazione -->
+        <template #item.created_at="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.created_at }}
+            </div>
+          </div>
+        </template>
 
         <!-- Actions -->
         <template #item.actions="{ item }">
