@@ -58,6 +58,9 @@ const dialogModelStatusValueUpdate = (val) => {
 
 // Convert from YYYY-MM-DD to DD/MM/YYYY
 const formatDate = (date) => {
+  if (! date) {
+    return date
+  }
   // Should only be applied if the date is with format YYYY-MM-DD
   if (date.includes('-')) {
     return date.split('-').reverse().join('/')

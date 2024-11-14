@@ -42,6 +42,15 @@ class CustomersController extends Controller
             });
         }
 
+        // If the looged in user has role 'agente', filter for only his customers
+        if ($request->user()->hasRole('agente')) {
+            $customers = $customers->where(function ($query) use ($request) {
+                $query->whereHas('paperworks', function ($query) use ($request) {
+                    $query->where('user_id', $request->user()->id);
+                })->orWhere('added_by', $request->user()->id);
+            });
+        }
+
         if ($request->get('sortBy')) {
             $customers = $customers->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
         }
@@ -60,9 +69,19 @@ class CustomersController extends Controller
         ]);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $customer = \App\Models\Customer::with(['addedByUser', 'confirmedByUser'])->whereId($id)->first();
+        $customer = \App\Models\Customer::with(['addedByUser', 'confirmedByUser'])->whereId($id);
+
+        if ($request->user()->hasRole('agente')) {
+            $customer = $customer->where(function ($query) use ($request) {
+                $query->whereHas('paperworks', function ($query) use ($request) {
+                    $query->where('user_id', $request->user()->id);
+                })->orWhere('added_by', $request->user()->id);
+            });
+        }
+
+        $customer = $customer->first();
 
         if (!$customer) {
             return response()->json(['error' => 'Customer not found'], 404);

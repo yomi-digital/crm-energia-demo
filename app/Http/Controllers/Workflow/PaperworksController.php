@@ -34,6 +34,11 @@ class PaperworksController extends Controller
             });
         }
 
+        // If the looged in user has role 'agente', filter for only his paperworks
+        if ($request->user()->hasRole('agente')) {
+            $paperworks = $paperworks->where('user_id', $request->user()->id);
+        }
+
         if ($request->get('sortBy')) {
             $paperworks = $paperworks->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
         } else {
@@ -50,9 +55,15 @@ class PaperworksController extends Controller
         ]);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $paperwork = \App\Models\Paperwork::with(['user', 'customer', 'customer.paperworks', 'mandate', 'product', 'documents', 'tickets', 'tickets.createdBy', 'createdByUser', 'confirmedByUser', 'events', 'events.user'])->whereId($id)->first();
+        $paperwork = \App\Models\Paperwork::with(['user', 'customer', 'customer.paperworks', 'mandate', 'product', 'documents', 'tickets', 'tickets.createdBy', 'createdByUser', 'confirmedByUser', 'events', 'events.user'])->whereId($id);
+
+        if ($request->user()->hasRole('agente')) {
+            $paperwork = $paperwork->where('user_id', $request->user()->id);
+        }
+
+        $paperwork = $paperwork->first();
 
         if (!$paperwork) {
             return response()->json(['error' => 'Paperwork not found'], 404);

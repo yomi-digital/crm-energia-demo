@@ -101,6 +101,11 @@ class UsersController extends Controller
             $agents = $agents->select('id', 'name', 'last_name');
         }
 
+        // If the looged in user has role 'agente', filter for only his customers
+        if ($request->user()->hasRole('agente')) {
+            $agents = $agents->where('id', $request->user()->id);
+        }
+
         return response()->json(['agents' => $agents->get()]);
     }
 

@@ -1,4 +1,10 @@
 <script setup>
+definePage({
+  meta: {
+    action: 'create',
+    subject: 'customers',
+  },
+})
 import FormCreate from '@/views/workflow/customers/FormCreate.vue';
 </script>
 

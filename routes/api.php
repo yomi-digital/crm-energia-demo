@@ -17,6 +17,8 @@ use App\Http\Controllers\UploadsController;
 use App\Http\Controllers\Workflow\CustomersController;
 use App\Http\Controllers\Workflow\PaperworksController;
 use App\Http\Controllers\Workflow\TicketsController;
+use App\Http\Controllers\Workflow\CommunicationsController;
+use App\Http\Controllers\StatementsController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -120,8 +122,12 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('cities', [CustomersController::class, 'cities']);
 
     Route::get('reports', [ReportsController::class, 'index']);
+    Route::put('reports/{id}/update', [ReportsController::class, 'update']);
     Route::delete('reports/{id}/delete', [ReportsController::class, 'delete']);
     Route::get('reports/{id}/entries', [ReportsController::class, 'entries']);
+    Route::post('reports/{id}/entries/add', [ReportsController::class, 'addEntry']);
+    Route::put('reports/{id}/entries/{entryId}/payout-confirmed', [ReportsController::class, 'updatePayoutConfirmed']);
+    Route::delete('reports/{id}/entries/{entryId}/delete', [ReportsController::class, 'deleteEntry']);
     Route::get('reports/admin', [ReportsController::class, 'admin']);
     Route::get('reports/production', [ReportsController::class, 'production']);
     Route::get('reports/appointments', [ReportsController::class, 'appointments']);
@@ -141,5 +147,12 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('tickets/{id}', [TicketsController::class, 'show']);
     Route::put('tickets/{id}/close', [TicketsController::class, 'close']);
     Route::post('tickets/{id}/comments', [TicketsController::class, 'comment']);
+
+    Route::get('communications', [CommunicationsController::class, 'index']);
+    Route::post('communications', [CommunicationsController::class, 'store']);
+    Route::get('communications/{id}', [CommunicationsController::class, 'show']);
+    Route::put('communications/{id}', [CommunicationsController::class, 'update']);
+
+    Route::get('statements', [StatementsController::class, 'index']);
 });
 

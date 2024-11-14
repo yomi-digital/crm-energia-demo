@@ -168,7 +168,9 @@ const fetchAgents = async () => {
     })
   }
 }
-fetchAgents()
+if (useAbility().can('view', 'users')) {
+  fetchAgents()
+}
 
 const customers = ref([])
 const fetchCustomers = async () => {
@@ -211,7 +213,7 @@ const handleBulkAction = (newStatus) => {
 
       <VCardText>
         <VRow>
-          <VCol cols="4">
+          <VCol cols="4" v-if="$can('view', 'users')">
             <AppAutocomplete
               v-model="selectedAgent"
               label="Filtra per Agente"

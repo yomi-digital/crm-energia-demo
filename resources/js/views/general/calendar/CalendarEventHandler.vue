@@ -15,6 +15,12 @@ const props = defineProps({
   },
 })
 
+const loggedInUser = useCookie('userData').value
+// Check if in the roles array there is a role with name 'agente'
+const isAgent = loggedInUser.roles.some(role => role.name === 'agente' || role.name === 'struttura')
+const isTelemarketing = loggedInUser.roles.some(role => role.name === 'telemarketing' || role.name === 'team leader')
+const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+
 const emit = defineEmits([
   'update:isDrawerOpen',
   'addEvent',
@@ -355,7 +361,7 @@ const onStartDateChange = value => {
               </VCol>
 
               <!-- 👉 Note Call Center -->
-              <VCol cols="12">
+              <VCol cols="12" v-if="isTelemarketing || isAdmin">
                 <AppTextarea
                   v-model="event.extendedProps.notes_call_center"
                   label="Note Call Center"
@@ -364,7 +370,7 @@ const onStartDateChange = value => {
               </VCol>
 
               <!-- 👉 Note Agente -->
-              <VCol cols="12">
+              <VCol cols="12" v-if="isAgent || isAdmin">
                 <AppTextarea
                   v-model="event.extendedProps.notes_agent"
                   label="Note Agente"
@@ -373,7 +379,7 @@ const onStartDateChange = value => {
               </VCol>
 
               <!-- 👉 Note Alfacom -->
-              <VCol cols="12">
+              <VCol cols="12" v-if="isAdmin">
                 <AppTextarea
                   v-model="event.extendedProps.notes"
                   label="Note Alfacom"

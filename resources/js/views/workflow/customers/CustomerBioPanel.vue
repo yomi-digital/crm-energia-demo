@@ -10,6 +10,8 @@ const emit = defineEmits([
   'updateCustomerData',
 ])
 
+const isAdmin = useCookie('userData').value.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+
 
 const isCustomerInfoEditDialogVisible = ref(false)
 
@@ -313,7 +315,7 @@ const confirmCustomer = async () => {
         <!-- 👉 Edit and Suspend button -->
         <VCardText class="d-flex justify-center gap-x-4">
           <VBtn
-            v-if="! props.customerData.confirmed_at && $can('edit', 'customers')"
+            v-if="! props.customerData.confirmed_at && $can('edit', 'customers') && isAdmin"
             variant="elevated"
             color="success"
             @click="confirmCustomer"

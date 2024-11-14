@@ -103,6 +103,9 @@ trait RoleSeeder
             'edit',
             'delete',
         ],
+        'statements' => [
+            'access',
+        ],
         'users' => [
             'access',
             'view',

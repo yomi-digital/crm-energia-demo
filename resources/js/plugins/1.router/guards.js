@@ -28,6 +28,19 @@ export const setupGuards = router => {
       else
         return undefined
     }
+    // Check if route has action/subject defined in meta
+    console.log('Navigation check:', {
+      route: to,
+      canNavigate: canNavigate(to),
+      matched: to.matched.length,
+      meta: to.meta,
+      userAbilityRules: JSON.parse(useLocalStorage('userAbilityRules').value || '[]'),
+      routeRequirements: {
+        action: to.meta?.action,
+        subject: to.meta?.subject
+      }
+    });
+
     if (!canNavigate(to) && to.matched.length) {
       /* eslint-disable indent */
             return isLoggedIn

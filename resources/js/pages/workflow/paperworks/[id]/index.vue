@@ -1,4 +1,10 @@
 <script setup>
+definePage({
+  meta: {
+    action: 'view',
+    subject: 'paperworks',
+  },
+})
 
 const route = useRoute('workflow-paperworks-id')
 const isConfirmDialogVisible = ref(false)
@@ -9,6 +15,8 @@ const selectedTicket = ref(null)
 const isTicketViewDialogVisible = ref(false)
 const isUploadDialogVisible = ref(false)
 const isUpdateStatusesDialogVisible = ref(false)
+
+const isAdmin = useCookie('userData').value.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 
 const {
   data: paperworkData,
@@ -100,7 +108,7 @@ const prettifyField = (field) => {
 </script>
 
 <template>
-  <div>
+  <div v-if="paperworkData">
     <div class="d-flex justify-space-between align-center flex-wrap gap-y-4 mb-6">
       <div>
         <div class="d-flex gap-2 align-center mb-2 flex-wrap">
@@ -135,6 +143,7 @@ const prettifyField = (field) => {
 
       <div>
         <VBtn
+          v-if="isAdmin"
           color="info"
           @click="isUpdateStatusesDialogVisible = !isUpdateStatusesDialogVisible"
         >
@@ -165,7 +174,7 @@ const prettifyField = (field) => {
               </h5>
             </template>
             <template #append>
-              <div class="text-base font-weight-medium text-primary cursor-pointer" @click="isPaperworkEditDialogVisible = true">
+              <div v-if="isAdmin" class="text-base font-weight-medium text-primary cursor-pointer" @click="isPaperworkEditDialogVisible = true">
                 Modifica
               </div>
             </template>
@@ -256,6 +265,7 @@ const prettifyField = (field) => {
               </VCardText>
             </VCol>
             <VCol
+              v-if="isAdmin"
               cols="12"
               md="6"
             >
@@ -345,7 +355,7 @@ const prettifyField = (field) => {
                 :title="paperworkData.user.name"
               >{{ [paperworkData.user.name, paperworkData.user.last_name].join(' ') }}</RouterLink>
             </div>
-            <div class="text-body-1">
+            <div class="text-body-1" v-if="isAdmin">
               Compenso Stimato: € {{ paperworkData.payout || 'N/A' }}
             </div>
           </VCardText>
@@ -527,6 +537,14 @@ const prettifyField = (field) => {
       :paperwork-data="paperworkData"
       @submit="updatePaperwork"
     />
+  </div>
+  <div v-else>
+    <VAlert
+      type="error"
+      variant="tonal"
+    >
+      Pratica ID {{ route.params.id }} non trovata!
+    </VAlert>
   </div>
 
   <!-- 👉 Create ticket -->

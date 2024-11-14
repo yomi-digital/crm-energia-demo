@@ -1,4 +1,10 @@
 <script setup>
+definePage({
+  meta: {
+    action: 'create',
+    subject: 'paperworks',
+  },
+})
 import { $api } from '@/utils/api';
 import PaperworkAgent from '@/views/workflow/paperworks/PaperworkAgent.vue';
 import PaperworkCustomer from '@/views/workflow/paperworks/PaperworkCustomer.vue';
@@ -35,6 +41,15 @@ const createPaperworkSteps = [
     icon: 'tabler-checkbox',
   },
 ]
+
+// If current logged in user has role agent, remove step 1
+const loggedInUser = useCookie('userData').value
+// Check if in the roles array there is a role with name 'agente'
+const isAgent = loggedInUser.roles.some(role => role.name === 'agente')
+
+if (isAgent) {
+  createPaperworkSteps.splice(0, 1)
+}
 
 const currentStep = ref(0)
 const isCurrentStepValid = ref(true)
@@ -76,8 +91,8 @@ const validateProductSelected = () => {
 
 const createPaperworkData = ref({
   agent: {
-    id: null,
-    name: null,
+    id: isAgent ? loggedInUser.id : null,
+    name: isAgent ? loggedInUser.name + ' ' + loggedInUser.last_name : null,
     mandate_name: null,
   },
   customer: {
@@ -213,7 +228,7 @@ const onSubmit = async () => {
             v-model="currentStep"
             class="disable-tab-transition"
           >
-            <VWindowItem>
+            <VWindowItem v-if="!isAgent">
               <PaperworkAgent v-model:form-data="createPaperworkData.agent" />
             </VWindowItem>
 

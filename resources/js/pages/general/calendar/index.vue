@@ -1,7 +1,13 @@
 <script setup>
+definePage({
+  meta: {
+    action: 'access',
+    subject: 'calendar',
+  },
+})
 import {
-blankEvent,
-useCalendar,
+  blankEvent,
+  useCalendar,
 } from '@/views/general/calendar/useCalendar';
 import { useCalendarStore } from '@/views/general/calendar/useCalendarStore';
 import FullCalendar from '@fullcalendar/vue3';
@@ -112,7 +118,9 @@ const fetchUsers = async (query) => {
     }
   }
 }
-await fetchUsers()
+if (useAbility().can('access', 'users')) {
+  await fetchUsers()
+}
 
 const calendarUsers = []
 const fetchCalendarUsers = async (query) => {
@@ -136,7 +144,7 @@ await fetchCalendarUsers()
         </VExpansionPanelTitle>
         <VExpansionPanelText>
           <VRow>
-            <VCol cols="4">
+            <VCol cols="4" v-if="$can('access', 'users')">
               <AppAutocomplete
                 v-model="store.selectedOperators"
                 label="Filtra per Operatore"
@@ -148,7 +156,7 @@ await fetchCalendarUsers()
                 placeholder="Seleziona un Operatore"
               />
             </VCol>
-            <VCol cols="4">
+            <VCol cols="4" v-if="$can('access', 'users')">
               <AppAutocomplete
                 v-model="store.selectedAgents"
                 label="Filtra per Agente"
@@ -160,7 +168,7 @@ await fetchCalendarUsers()
                 placeholder="Seleziona un Agente"
               />
             </VCol>
-            <VCol cols="4">
+            <VCol cols="3">
               <AppSelect
                 v-model="store.selectedType"
                 label="Filtra per Tipo di Appuntamento"
@@ -169,7 +177,7 @@ await fetchCalendarUsers()
                 clearable
               />
             </VCol>
-            <VCol cols="6">
+            <VCol cols="5">
               <AppAutocomplete
                 v-model="store.selecterUserName"
                 label="Filtra per Ragione Sociale"
@@ -210,6 +218,7 @@ await fetchCalendarUsers()
               block
               prepend-icon="tabler-plus"
               @click="isEventHandlerSidebarActive = true"
+              v-if="$can('create', 'calendar')"
             >
               Aggiungi Appuntamento
             </VBtn>

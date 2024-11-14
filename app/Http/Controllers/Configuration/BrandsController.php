@@ -32,7 +32,6 @@ class BrandsController extends Controller
             $brands = $brands->where('category', $request->get('category'));
         }
 
-
         if ($request->get('q')) {
             $search = $request->get('q');
             $brands = $brands->where(function ($query) use ($search) {
@@ -50,6 +49,7 @@ class BrandsController extends Controller
         if ($request->get('select') === '1') {
             $brands = $brands->select('id', 'name', 'type', 'category');
         }
+
 
         $brands = $brands->paginate($perPage);
 

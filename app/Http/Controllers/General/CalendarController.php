@@ -51,6 +51,11 @@ class CalendarController extends Controller
             $calendar = $calendar->where('user_city', $request->city);
         }
 
+        // If the looged in user has role 'agente', filter for only his customers
+        if ($request->user()->hasRole('agente')) {
+            $calendar = $calendar->where('agent_id', $request->user()->id);
+        }
+
         $calendar = $calendar->get();
 
         $calendar = $calendar->map(function ($item) {
@@ -175,15 +180,25 @@ class CalendarController extends Controller
 
     public function users(Request $request)
     {
-        $users = \App\Models\Calendar::select('user_name')->where('user_name', '!=', '')->distinct()->orderBy('user_name', 'asc')->get();
+        $users = \App\Models\Calendar::select('user_name')->where('user_name', '!=', '')->distinct()->orderBy('user_name', 'asc');
 
-        return response()->json($users);
+        // If the looged in user has role 'agente', filter for only his customers
+        if ($request->user()->hasRole('agente')) {
+            $users = $users->where('agent_id', $request->user()->id);
+        }
+
+        return response()->json($users->get());
     }
 
     public function cities(Request $request)
     {
-        $cities = \App\Models\Calendar::select('user_city')->where('user_city', '!=', '')->distinct()->orderBy('user_city', 'asc')->get();
+        $cities = \App\Models\Calendar::select('user_city')->where('user_city', '!=', '')->distinct()->orderBy('user_city', 'asc');
 
-        return response()->json($cities);
+        // If the looged in user has role 'agente', filter for only his customers
+        if ($request->user()->hasRole('agente')) {
+            $cities = $cities->where('agent_id', $request->user()->id);
+        }
+
+        return response()->json($cities->get());
     }
 }

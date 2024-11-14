@@ -48,6 +48,7 @@ declare module 'vue-router/auto/routes' {
     'authentication-reset-password-v1': RouteRecordInfo<'authentication-reset-password-v1', '/authentication/reset-password-v1', Record<never, never>, Record<never, never>>,
     'authentication-two-steps-v1': RouteRecordInfo<'authentication-two-steps-v1', '/authentication/two-steps-v1', Record<never, never>, Record<never, never>>,
     'authentication-verify-email-v1': RouteRecordInfo<'authentication-verify-email-v1', '/authentication/verify-email-v1', Record<never, never>, Record<never, never>>,
+    'business-statements': RouteRecordInfo<'business-statements', '/business/statements', Record<never, never>, Record<never, never>>,
     'components-alert': RouteRecordInfo<'components-alert', '/components/alert', Record<never, never>, Record<never, never>>,
     'components-avatar': RouteRecordInfo<'components-avatar', '/components/avatar', Record<never, never>, Record<never, never>>,
     'components-badge': RouteRecordInfo<'components-badge', '/components/badge', Record<never, never>, Record<never, never>>,
