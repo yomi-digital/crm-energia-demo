@@ -10,10 +10,12 @@ export const redirects = [
     redirect: to => {
       // TODO: Get type from backend
       const userData = useCookie('userData').value
-      const isMarketing = userData.roles.some(role => role.name === 'telemarketing' || role.name === 'team leader')
+      if (userData && userData.roles) {
+        const isMarketing = userData.roles.some(role => role.name === 'telemarketing' || role.name === 'team leader')
 
-      if (isMarketing) {
-        return { name: 'general-calendar' }
+        if (isMarketing) {
+          return { name: 'general-calendar' }
+        }
       }
 
       // ALFACOM_TODO: Redirect based on user role
