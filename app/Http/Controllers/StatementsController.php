@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Traits\PaperworkTrait;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class StatementsController extends Controller
 {
@@ -66,6 +68,23 @@ class StatementsController extends Controller
 
         if ($request->has('export')) {
             $csvPath = $this->transformEntriesToCSV($brands->getCollection());
+
+            // Transform csv to excel
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private $data;
+    
+                public function __construct($data)
+                {
+                    $this->data = $data;
+                }
+    
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, 'statements.xlsx');
             
             return response()->download($csvPath, 'statements.csv');
         }

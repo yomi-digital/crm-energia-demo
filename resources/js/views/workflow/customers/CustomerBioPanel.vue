@@ -11,6 +11,7 @@ const emit = defineEmits([
 ])
 
 const isAdmin = useCookie('userData').value.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+const isAgent = useCookie('userData').value.roles.some(role => role.name === 'agente')
 
 
 const isCustomerInfoEditDialogVisible = ref(false)
@@ -55,7 +56,7 @@ const confirmCustomer = async () => {
                 <h6 class="text-h6">
                   Tipologia:
                   <div class="d-inline-block text-body-1">
-                    {{ props.customerData.category || 'N/A' }}
+                    {{ props.customerData.category || 'Ditta Individuale' }}
                   </div>
                 </h6>
               </VListItemTitle>
@@ -209,7 +210,7 @@ const confirmCustomer = async () => {
             </VListItem>
 
             <!-- Pec -->
-            <VListItem v-if="props.customerData.pec">
+            <!-- <VListItem v-if="props.customerData.pec">
               <VListItemTitle>
                 <h6 class="text-h6">
                   PEC:
@@ -218,7 +219,7 @@ const confirmCustomer = async () => {
                   </div>
                 </h6>
               </VListItemTitle>
-            </VListItem>
+            </VListItem> -->
 
             <!-- Ateco code -->
             <VListItem v-if="props.customerData.ateco_code">
@@ -233,7 +234,7 @@ const confirmCustomer = async () => {
             </VListItem>
 
             <!-- Unique code -->
-            <VListItem v-if="props.customerData.unique_code">
+            <!-- <VListItem v-if="props.customerData.unique_code">
               <VListItemTitle>
                 <h6 class="text-h6">
                   Codice Unico:
@@ -242,7 +243,7 @@ const confirmCustomer = async () => {
                   </div>
                 </h6>
               </VListItemTitle>
-            </VListItem>
+            </VListItem> -->
 
             <!-- Added at -->
             <VListItem v-if="props.customerData.added_at">
@@ -324,7 +325,7 @@ const confirmCustomer = async () => {
           </VBtn>
 
           <VBtn
-            v-if="$can('edit', 'customers')"
+            v-if="$can('edit', 'customers') && (!isAgent || !props.customerData.confirmed_at)"
             variant="elevated"
             @click="isCustomerInfoEditDialogVisible = true"
           >

@@ -38,6 +38,9 @@ Route::group(['prefix' => 'auth'], function () {
     Route::group(['middleware' => 'auth:sanctum'], function() {
         Route::get('logout', [AuthController::class, 'logout']);
         Route::get('user', [AuthController::class, 'user']);
+        Route::get('notifications', [UsersController::class, 'notifications']);
+        Route::post('notifications/{id}/read', [UsersController::class, 'read']);
+        Route::post('notifications/{id}/unread', [UsersController::class, 'unread']);
     });
 });
 
@@ -137,6 +140,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     // Route::get('paperworks/{id}/payout', [PaperworksController::class, 'calculatePayout']);
     Route::put('paperworks/{id}', [PaperworksController::class, 'update']);
     Route::post('paperworks/{id}/documents', [PaperworksController::class, 'documents']);
+    Route::get('paperworks/{id}/documents/{documentId}/download', [PaperworksController::class, 'downloadDocument']);
     // Route::put('paperworks/{id}/confirm', [PaperworksController::class, 'confirm']);
     // Route::put('paperworks/{id}/confirm-partner-sent', [PaperworksController::class, 'confirmPartnerSent']);
     Route::post('paperworks', [PaperworksController::class, 'store']);

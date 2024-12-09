@@ -40,6 +40,8 @@ class UsersController extends Controller
             $users->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhereRaw("CONCAT(name, ' ', last_name) LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("CONCAT(last_name, ' ', name) LIKE ?", ["%{$search}%"])
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('area', 'like', "%{$search}%");
             });
@@ -329,5 +331,74 @@ class UsersController extends Controller
             'totalAppointments' => $appointments->total(),
             'page' => $appointments->currentPage()
         ]);
+    }
+
+    public function notifications(Request $request)
+    {
+        $user = $request->user();
+
+        $perPage = $request->get('itemsPerPage', 30);
+
+        $notifications = $user->notifications()->paginate($perPage);
+
+        // Format the notfications
+        $notifications->getCollection()->transform(function ($notification) {
+            $transformed = new \stdClass();
+            $transformed->id = $notification->id;
+            $transformed->type = $notification->type;
+            if ($transformed->type === 'calendar-created') {
+                $transformed->title = 'Nuova appuntamento';
+                $transformed->subtitle = $notification->data['status'] . ' - ' . $notification->data['title'] . ' il ' . $notification->data['start'];
+                $transformed->icon = 'tabler-calendar';
+                $transformed->color = 'primary';
+            } elseif ($transformed->type === 'calendar-updated') {
+                $transformed->title = 'Appuntamento modificato';
+                $transformed->subtitle = $notification->data['status'] . ' - ' . $notification->data['title'] . ' del ' . $notification->data['start'];
+                $transformed->icon = 'tabler-calendar';
+                $transformed->color = 'warning';
+            } elseif ($transformed->type === 'calendar-deleted') {
+                $transformed->title = 'Appuntamento eliminato';
+                $transformed->subtitle = $notification->data['title'] . ' del ' . $notification->data['start'];
+                $transformed->icon = 'tabler-calendar';
+                $transformed->color = 'error';
+            } elseif ($transformed->type === 'paperwork-created') {
+                $transformed->title = 'Nuova pratica';
+                $transformed->subtitle = $notification->data['brand'] . ' | ' . $notification->data['product'];
+                $transformed->icon = 'tabler-file-text';
+                $transformed->color = 'success';
+                $transformed->link = '/workflow/paperworks/' . $notification->data['paperwork_id'];
+            } elseif ($transformed->type === 'ticket-created') {
+                $transformed->title = 'Nuovo ticket per la pratica #' . $notification->data['paperwork_id'];
+                $transformed->subtitle = $notification->data['ticket_title'] . ' da ' . $notification->data['created_by_name'];
+                $transformed->icon = 'tabler-mail-opened';
+                $transformed->color = 'info';
+                $transformed->link = '/workflow/tickets/' . $notification->data['ticket_id'];
+            } elseif ($transformed->type === 'ticket-comment-created') {
+                $transformed->title = $notification->data['user_name'] . ' ha risposto al ticket ' . $notification->data['ticket_title'];
+                $transformed->subtitle = strlen($notification->data['comment_text']) > 50 ? substr($notification->data['comment_text'], 0, 50) . '...' : $notification->data['comment_text'];
+                $transformed->icon = 'tabler-message-circle';
+                $transformed->color = 'info';
+                $transformed->link = '/workflow/tickets/' . $notification->data['ticket_id'];
+            }
+            $transformed->time = \Carbon\Carbon::parse($notification->created_at)->format(config('app.datetime_format'));
+            $transformed->isSeen = $notification->read_at ? true : false;
+            return $transformed;
+        });
+
+        return response()->json($notifications);
+    }
+
+    public function read(Request $request, $id)
+    {
+        $user = $request->user();
+        $user->notifications()->where('id', $id)->update(['read_at' => \Carbon\Carbon::now()]);
+        return response()->json(null, 204);
+    }
+
+    public function unread(Request $request, $id)
+    {
+        $user = $request->user();
+        $user->notifications()->where('id', $id)->update(['read_at' => null]);
+        return response()->json(null, 204);
     }
 }

@@ -119,7 +119,7 @@ const exportReport = async () => {
     })
 
     // Get the filename from the response headers
-    const fileName = 'report_produzione.csv';
+    const fileName = 'report_produzione.xlsx';
 
     const blob = new Blob([data], { type: data.type })
     const url = window.URL.createObjectURL(blob)

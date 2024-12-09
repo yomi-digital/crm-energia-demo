@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Paperwork;
+use App\Notifications\PaperworkCreated;
 
 class PaperworkObserver
 {
@@ -14,7 +15,24 @@ class PaperworkObserver
      */
     public function created(Paperwork $paperwork): void
     {
-        //
+        // Check who created the paperwork, if has role agente, then send it to the backoffice, otherwise send it to the agent
+        if ($paperwork->created_by) {
+            $creator = \App\Models\User::find($paperwork->created_by);
+            
+            if ($creator->hasRole('agente')) {
+                // Get all backoffice users that have this brand enabled
+                $users = \App\Models\User::whereHas('brands', function ($query) use ($paperwork) {
+                    $query->where('brand_id', $paperwork->product->brand_id);
+                })->role('backoffice')->where('enabled', true)->get();
+        
+                $users->each(function ($user) use ($paperwork) {
+                    $user->notify(new PaperworkCreated($paperwork));
+                });
+            } else {
+                $agent = \App\Models\User::find($paperwork->user_id);
+                $agent->notify(new PaperworkCreated($paperwork));
+            }
+        }
     }
 
     /**

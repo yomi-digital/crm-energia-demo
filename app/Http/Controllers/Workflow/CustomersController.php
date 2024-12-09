@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Workflow;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class CustomersController extends Controller
 {
@@ -58,6 +60,23 @@ class CustomersController extends Controller
         if ($request->has('export')) {
             $allCustomers = $customers->get();
             $csvPath = $this->transformEntriesToCSV($allCustomers);
+
+            // Transform csv to excel
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private $data;
+    
+                public function __construct($data)
+                {
+                    $this->data = $data;
+                }
+    
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, 'customers_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
             
             return response()->download($csvPath, 'customers_' . now()->format('Y-m-d_H-i-s') . '.csv');
         }

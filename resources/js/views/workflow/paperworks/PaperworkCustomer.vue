@@ -99,6 +99,15 @@ watch(() => formData.value.appointment_id, () => {
           :items="customers"
           placeholder="Seleziona un Cliente"
         />
+        <div class="d-flex align-center gap-2 mt-2">
+          <RouterLink
+            :to="{ name: 'workflow-customers-create' }"
+            class="text-sm"
+            title="Crea nuovo cliente"
+          >
+            Crea nuovo cliente <VIcon icon="tabler-external-link" size="small" />
+          </RouterLink>
+        </div>
       </VCol>
 
       <VCol

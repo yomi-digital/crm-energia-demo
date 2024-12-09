@@ -3,9 +3,9 @@ import navItems from '@/navigation/vertical'
 
 // Components
 import Footer from '@/layouts/components/Footer.vue'
+import NavBarNotifications from '@/layouts/components/NavBarNotifications.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import UserProfile from '@/layouts/components/UserProfile.vue'
-
 // @layouts plugin
 import { VerticalNavLayout } from '@layouts'
 
@@ -47,7 +47,7 @@ watch([
 
         <NavbarThemeSwitcher />
         <!-- <NavbarShortcuts /> -->
-        <!-- <NavBarNotifications class="me-1" /> -->
+        <NavBarNotifications class="me-1" />
         <UserProfile />
       </div>
     </template>

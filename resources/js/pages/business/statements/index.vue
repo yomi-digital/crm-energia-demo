@@ -100,7 +100,7 @@ const exportStatement = async () => {
     })
 
     // Get the filename from the response headers
-    const fileName = 'conto_economico.csv';
+    const fileName = 'conto_economico.xlsx';
 
     const blob = new Blob([data], { type: data.type })
     const url = window.URL.createObjectURL(blob)

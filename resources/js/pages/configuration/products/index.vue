@@ -230,9 +230,6 @@ const selectProductForRemove = product => {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn>
-            <VIcon icon="tabler-pencil" />
-          </IconBtn>
           <IconBtn @click="selectProductForRemove(item)">
             <VIcon color="error" icon="tabler-trash" />
           </IconBtn>

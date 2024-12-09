@@ -99,6 +99,17 @@ const updateUserInfo = async (data) => {
               </VListItemTitle>
             </VListItem>
 
+            <VListItem v-if="props.userData.phone">
+              <VListItemTitle>
+                <h6 class="text-h6">
+                  Telefono:
+                  <div class="d-inline-block text-body-1">
+                    {{ props.userData.phone }}
+                  </div>
+                </h6>
+              </VListItemTitle>
+            </VListItem>
+
             <VListItem v-if="props.userData.agent_code">
               <VListItemTitle>
                 <h6 class="text-h6">

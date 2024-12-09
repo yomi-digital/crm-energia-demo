@@ -106,6 +106,29 @@ const prettifyField = (field) => {
       return field
   }
 }
+
+const downloadDocument = async doc => {
+  const data = await $api(`/paperworks/${ route.params.id }/documents/${ doc.id }/download`, {
+    method: 'GET',
+    query: {
+      path: doc.path,
+    },
+    responseType: 'blob'
+  })
+
+  // Get the extension from document.path
+  const fileName = doc.name
+
+  const blob = new Blob([data], { type: data.type })
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', fileName)
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
+}
 </script>
 
 <template>
@@ -367,15 +390,24 @@ const prettifyField = (field) => {
           <VCardText class="d-flex flex-column gap-y-6">
             <h5 class="text-h5">
               Dettagli Cliente
-              <VChip
-                v-if="! paperworkData.customer.confirmed_at"
-                variant="tonal"
-                color="warning"
-                size="small"
-                class="ml-2"
-              >
-                NON CONFERMATO
-              </VChip>
+              <template v-if="! paperworkData.customer.confirmed_at">
+                <VChip
+                  v-if="! paperworkData.customer.confirmed_at"
+                  variant="tonal"
+                  color="warning"
+                  size="small"
+                  class="ml-2"
+                >
+                  NON CONFERMATO
+                </VChip>
+                <RouterLink
+                  :to="{ name: 'workflow-customers-id', params: { id: paperworkData.customer.id } }"
+                  class="text-sm"
+                  :title="paperworkData.customer.name"
+                >
+                  Conferma <VIcon icon="tabler-external-link" />
+                </RouterLink>
+              </template>
             </h5>
 
             <div class="d-flex align-center gap-x-3">
@@ -463,6 +495,10 @@ const prettifyField = (field) => {
                 >
                   <template #prepend>
                     <VIcon icon="tabler-file" />
+                  </template>
+
+                  <template #append>
+                    <VIcon icon="tabler-download" @click="downloadDocument(doc)" />
                   </template>
 
                   <VListItemTitle>

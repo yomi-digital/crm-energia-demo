@@ -193,6 +193,12 @@ trait RoleSeeder
             foreach ($this->permissions['links'] as $action) {
                 $role->givePermissionTo($action . ' links');
             }
+            foreach ($this->permissions['brands'] as $action) {
+                $role->givePermissionTo($action . ' brands');
+            }
+            foreach ($this->permissions['products'] as $action) {
+                $role->givePermissionTo($action . ' products');
+            }
             foreach ($this->permissions['documents'] as $action) {
                 $role->givePermissionTo($action . ' documents');
             }

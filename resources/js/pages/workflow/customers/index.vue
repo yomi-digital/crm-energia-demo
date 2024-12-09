@@ -164,7 +164,7 @@ const exportCustomers = async () => {
       responseType: 'blob'
     })
 
-    const fileName = 'clienti.csv';
+    const fileName = 'clienti.xlsx';
 
     const blob = new Blob([data], { type: data.type })
     const url = window.URL.createObjectURL(blob)

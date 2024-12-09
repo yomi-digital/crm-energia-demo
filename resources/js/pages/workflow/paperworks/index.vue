@@ -98,6 +98,7 @@ let headers = [
 ]
 
 if (! canViewPayout) {
+  headers = headers.filter(header => header.key !== 'paid')
   headers = headers.filter(header => header.key !== 'pay')
 }
 

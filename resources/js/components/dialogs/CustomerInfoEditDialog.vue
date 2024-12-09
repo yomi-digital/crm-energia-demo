@@ -310,7 +310,7 @@ const provinces = [
             </VCol>
 
             <!-- 👉 Unique Code -->
-            <VCol
+            <!-- <VCol
               cols="12"
               md="6"
             >
@@ -319,7 +319,7 @@ const provinces = [
                 label="Codice Unico"
                 placeholder="123456"
               />
-            </VCol>
+            </VCol> -->
 
             <!-- 👉 Phone -->
             <VCol
@@ -358,7 +358,7 @@ const provinces = [
             </VCol>
 
             <!-- 👉 PEC -->
-            <VCol
+            <!-- <VCol
               cols="12"
               md="6"
             >
@@ -367,7 +367,7 @@ const provinces = [
                 label="PEC"
                 placeholder="mail@pec.com"
               />
-            </VCol>
+            </VCol> -->
 
             <!-- 👉 Address -->
             <VCol

@@ -170,6 +170,19 @@ await fetchAgencies()
               />
             </VCol>
 
+            <!-- 👉 Phone -->
+            <VCol
+              cols="12"
+              md="12"
+            >
+              <AppTextField
+                v-model="userData.phone"
+                :rules="[]"
+                label="Telefono"
+                placeholder=""
+              />
+            </VCol>
+
             <!-- 👉 Agent Code -->
             <VCol
               cols="12"
@@ -177,7 +190,7 @@ await fetchAgencies()
             >
               <AppTextField
                 v-model="userData.agent_code"
-                :rules="[requiredValidator]"
+                :rules="[]"
                 label="Codice Agente"
                 placeholder="12345"
               />
@@ -188,10 +201,13 @@ await fetchAgencies()
               cols="12"
               md="6"
             >
-              <AppTextField
+              <AppSelect
                 v-model="userData.area"
                 label="Area"
                 placeholder="Catania"
+                :items="['Catania', 'Lecce']"
+                clearable
+                :rules="[requiredValidator]"
               />
             </VCol>
 

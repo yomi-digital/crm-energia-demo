@@ -89,14 +89,6 @@ const statuses = ref([
     value: 'CARICATO',
   },
   {
-    title: 'LAVORATO',
-    value: 'LAVORATO',
-  },
-  {
-    title: 'IN LAVORAZIONE',
-    value: 'IN LAVORAZIONE',
-  },
-  {
     title: 'INSERITO',
     value: 'INSERITO',
   },
@@ -124,24 +116,12 @@ const statuses = ref([
     title: 'OFFERTA CREATA',
     value: 'OFFERTA CREATA',
   },
-  {
-    title: 'PREVENTIVO INVIATO',
-    value: 'PREVENTIVO INVIATO',
-  },
 ])
 
 const orderSubStatuses = ref([
   {
-    title: 'OFFERTA CREATA',
-    value: 'OFFERTA CREATA',
-  },
-  {
-    title: 'PREVENTIVO INVIATO',
-    value: 'PREVENTIVO INVIATO',
-  },
-  {
-    title: 'IN ATTESA DI QC',
-    value: 'IN ATTESA DI QC',
+    title: 'NON RISPONDE QC',
+    value: 'NON RISPONDE QC',
   },
   {
     title: 'INDIRIZZO DA CENSIRE',
@@ -179,14 +159,6 @@ const orderSubStatuses = ref([
     title: 'KO DISCONOSCIMENTO',
     value: 'KO DISCONOSCIMENTO',
   },
-  {
-    title: 'KO DINIEGO',
-    value: 'KO DINIEGO',
-  },
-  {
-    title: 'KO CONTESTAZIONE',
-    value: 'KO CONTESTAZIONE',
-  },
 ])
 
 const partnerOutcomes = ref([
@@ -195,20 +167,12 @@ const partnerOutcomes = ref([
     value: 'OK PAGABILE',
   },
   {
-    title: 'ATTIVO',
-    value: 'ATTIVO',
-  },
-  {
     title: 'KO',
     value: 'KO',
   },
   {
     title: 'STORNO',
     value: 'STORNO',
-  },
-  {
-    title: 'SOSPESO',
-    value: 'SOSPESO',
   },
 ])
 

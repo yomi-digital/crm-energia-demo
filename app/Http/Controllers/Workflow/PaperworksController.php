@@ -41,6 +41,12 @@ class PaperworksController extends Controller
             $relationships = \App\Models\UserRelationship::where('user_id', $request->user()->id)->get(['related_id']);
             $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
             $paperworks = $paperworks->whereIn('user_id', $ids);
+        } elseif ($request->user()->hasRole('backoffice')) {
+            $paperworks = $paperworks->whereHas('product', function ($query) use ($request) {
+                $query->whereHas('brand', function ($query) use ($request) {
+                    $query->whereIn('id', $request->user()->brands->pluck('id'));
+                });
+            });
         }
 
         if ($request->get('sortBy')) {
@@ -295,5 +301,22 @@ class PaperworksController extends Controller
         \App\Models\Paperwork::whereIn('id', $request->get('ids'))->update($fields);
 
         return response()->json(['message' => 'Paperworks updated successfully']);
+    }
+
+    public function downloadDocument(Request $request, $id, $documentId)
+    {
+        $paperwork = \App\Models\Paperwork::find($id);
+
+        if (!$paperwork) {
+            return response()->json(['error' => 'Paperwork not found'], 404);
+        }
+
+        $document = \App\Models\PaperworkDocument::find($documentId);
+
+        if (!$document) {
+            return response()->json(['error' => 'Document not found'], 404);
+        }
+
+        return \Storage::disk('do')->download($document->url);
     }
 }

@@ -24,6 +24,7 @@ const onFormSubmit = async () => {
       order_status: orderStatus.value,
       order_substatus: orderSubStatus.value,
       partner_outcome: partnerOutcome.value,
+      partner_outcome_at: partnerOutcomeAt.value,
     },
   })
   emit('update:isDialogVisible', false)
@@ -31,13 +32,13 @@ const onFormSubmit = async () => {
 }
 
 const dialogModelValueUpdate = val => {
-  emit('update:isDialogVisible', val)
+  // emit('update:isDialogVisible', val)
 }
 
 const orderStatus = ref('--- MANTIENI ---')
 const orderSubStatus = ref('--- MANTIENI ---')
 const partnerOutcome = ref('--- MANTIENI ---')
-
+const partnerOutcomeAt = ref(null)
 const statuses = ref([
 {
     title: '--- MANTIENI ---',
@@ -50,14 +51,6 @@ const statuses = ref([
   {
     title: 'CARICATO',
     value: 'CARICATO',
-  },
-  {
-    title: 'LAVORATO',
-    value: 'LAVORATO',
-  },
-  {
-    title: 'IN LAVORAZIONE',
-    value: 'IN LAVORAZIONE',
   },
   {
     title: 'INSERITO',
@@ -91,10 +84,6 @@ const statuses = ref([
     title: 'OFFERTA CREATA',
     value: 'OFFERTA CREATA',
   },
-  {
-    title: 'PREVENTIVO INVIATO',
-    value: 'PREVENTIVO INVIATO',
-  },
 ])
 
 const orderSubStatuses = ref([
@@ -107,16 +96,8 @@ const orderSubStatuses = ref([
     value: '--- RIMUOVI ---',
   },
   {
-    title: 'OFFERTA CREATA',
-    value: 'OFFERTA CREATA',
-  },
-  {
-    title: 'PREVENTIVO INVIATO',
-    value: 'PREVENTIVO INVIATO',
-  },
-  {
-    title: 'IN ATTESA DI QC',
-    value: 'IN ATTESA DI QC',
+    title: 'NON RISPONDE QC',
+    value: 'NON RISPONDE QC',
   },
   {
     title: 'INDIRIZZO DA CENSIRE',
@@ -154,14 +135,6 @@ const orderSubStatuses = ref([
     title: 'KO DISCONOSCIMENTO',
     value: 'KO DISCONOSCIMENTO',
   },
-  {
-    title: 'KO DINIEGO',
-    value: 'KO DINIEGO',
-  },
-  {
-    title: 'KO CONTESTAZIONE',
-    value: 'KO CONTESTAZIONE',
-  },
 ])
 
 const partnerOutcomes = ref([
@@ -178,10 +151,6 @@ const partnerOutcomes = ref([
     value: 'OK PAGABILE',
   },
   {
-    title: 'ATTIVO',
-    value: 'ATTIVO',
-  },
-  {
     title: 'KO',
     value: 'KO',
   },
@@ -189,13 +158,18 @@ const partnerOutcomes = ref([
     title: 'STORNO',
     value: 'STORNO',
   },
-  {
-    title: 'SOSPESO',
-    value: 'SOSPESO',
-  },
 ])
 
+const startDateTimePickerConfig = computed(() => {
+  const config = {
+    dateFormat: `d/m/Y`,
+  }
+
+  return config
+})
+
 const onFormReset = () => {
+  emit('update:isDialogVisible', false)
   orderCode.value = ''
 }
 </script>
@@ -207,13 +181,13 @@ const onFormReset = () => {
     @update:model-value="dialogModelValueUpdate"
   >
     <!-- Dialog close btn -->
-    <DialogCloseBtn @click="dialogModelValueUpdate(false)" />
+    <DialogCloseBtn @click="emit('update:isDialogVisible', false)" />
 
     <VCard class="pa-sm-10 pa-2">
       <VCardText>
         <!-- 👉 Title -->
         <h4 class="text-h4 text-center mb-2">
-          Aggiorna Stato Pratiche
+          Aggiorna Stato Pratiche ({{ props.ids.length }} selezionate)
         </h4>
 
         <!-- 👉 Form -->
@@ -242,6 +216,20 @@ const onFormReset = () => {
                 label="Sottostato Ordine"
                 :items="orderSubStatuses"
               />
+            </VCol>
+
+            <VCol
+              cols="12"
+              sm="6"
+            >
+              <div @update:model-value.stop>
+                <AppDateTimePicker
+                  :key="JSON.stringify(startDateTimePickerConfig)"
+                  :config="startDateTimePickerConfig"
+                  v-model="partnerOutcomeAt"
+                  label="Data Esito Partner"
+                />
+              </div>
             </VCol>
 
             <VCol

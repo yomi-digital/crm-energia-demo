@@ -1,5 +1,5 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 
 const props = defineProps({
   notifications: {
@@ -74,7 +74,7 @@ const toggleReadUnread = (isSeen, Id) => {
         <!-- 👉 Header -->
         <VCardItem class="notification-section">
           <VCardTitle class="text-h6">
-            Notifications
+            Notifiche
           </VCardTitle>
 
           <template #append>
@@ -84,9 +84,9 @@ const toggleReadUnread = (isSeen, Id) => {
               color="primary"
               class="me-2"
             >
-              {{ totalUnseenNotifications }} New
+              {{ totalUnseenNotifications }} Nuove
             </VChip>
-            <IconBtn
+            <!-- <IconBtn
               v-show="props.notifications.length"
               size="34"
               @click="markAllReadOrUnread"
@@ -101,9 +101,9 @@ const toggleReadUnread = (isSeen, Id) => {
                 activator="parent"
                 location="start"
               >
-                {{ !isAllMarkRead ? 'Mark all as unread' : 'Mark all as read' }}
+                {{ !isAllMarkRead ? 'Segna tutte come non lette' : 'Segna tutte come lette' }}
               </VTooltip>
-            </IconBtn>
+            </IconBtn> -->
           </template>
         </VCardItem>
 
@@ -169,12 +169,12 @@ const toggleReadUnread = (isSeen, Id) => {
                       @click.stop="toggleReadUnread(notification.isSeen, notification.id)"
                     />
 
-                    <VIcon
+                    <!-- <VIcon
                       size="20"
                       icon="tabler-x"
                       class="visible-in-hover"
                       @click="$emit('remove', notification.id)"
-                    />
+                    /> -->
                   </div>
                 </div>
               </VListItem>
@@ -185,7 +185,7 @@ const toggleReadUnread = (isSeen, Id) => {
               class="text-center text-medium-emphasis"
               style="block-size: 56px;"
             >
-              <VListItemTitle>No Notification Found!</VListItemTitle>
+              <VListItemTitle>Nessuna notifica trovata!</VListItemTitle>
             </VListItem>
           </VList>
         </PerfectScrollbar>
@@ -193,7 +193,7 @@ const toggleReadUnread = (isSeen, Id) => {
         <VDivider />
 
         <!-- 👉 Footer -->
-        <VCardText
+        <!-- <VCardText
           v-show="props.notifications.length"
           class="pa-4"
         >
@@ -201,9 +201,9 @@ const toggleReadUnread = (isSeen, Id) => {
             block
             size="small"
           >
-            View All Notifications
+            Visualizza tutte le notifiche
           </VBtn>
-        </VCardText>
+        </VCardText> -->
       </VCard>
     </VMenu>
   </IconBtn>

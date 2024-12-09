@@ -47,7 +47,7 @@ const errors = ref({
 })
 
 const categories = ref([
-  { title: 'N/A', value: 'all' },
+  { title: 'Ditta Individuale', value: 'all' },
   { title: 'Residenziale', value: 'Residenziale' },
   { title: 'Business', value: 'Business' },
 ])
@@ -340,7 +340,7 @@ const createUser = async () => {
       </VCol>
 
       <!-- 👉 Unique Code -->
-      <VCol
+      <!-- <VCol
         cols="12"
         md="6"
         v-if="category !== 'Residenziale'"
@@ -350,7 +350,7 @@ const createUser = async () => {
           label="Codice Unico"
           placeholder="123456"
         />
-      </VCol>
+      </VCol> -->
 
       <VCol
         cols="12"
@@ -382,6 +382,7 @@ const createUser = async () => {
           v-model="mobile"
           label="Cellulare"
           placeholder="1234567890"
+          :rules="[requiredValidator]"
         />
       </VCol>
 
@@ -399,7 +400,7 @@ const createUser = async () => {
       </VCol>
 
       <!-- 👉 PEC -->
-      <VCol
+      <!-- <VCol
         cols="12"
         md="6"
         v-if="category !== 'Residenziale'"
@@ -409,7 +410,7 @@ const createUser = async () => {
           label="PEC"
           placeholder="mail@pec.com"
         />
-      </VCol>
+      </VCol> -->
 
       <VCol
         cols="12"
@@ -483,7 +484,6 @@ const createUser = async () => {
           v-model="zip"
           label="CAP"
           placeholder="00100"
-          :rules="[requiredValidator]"
         />
       </VCol>
 

@@ -5,6 +5,12 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Models\Paperwork;
 use App\Observers\PaperworkObserver;
+use App\Models\Calendar;
+use App\Observers\CalendarObserver;
+use App\Models\Ticket;
+use App\Observers\TicketObserver;
+use App\Models\TicketComment;
+use App\Observers\TicketCommentObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,5 +32,8 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Paperwork::observe(PaperworkObserver::class);
+        Calendar::observe(CalendarObserver::class);
+        Ticket::observe(TicketObserver::class);
+        TicketComment::observe(TicketCommentObserver::class);
     }
 }

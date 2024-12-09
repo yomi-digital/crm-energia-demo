@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Traits\PaperworkTrait;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class ReportsController extends Controller
 {
@@ -82,6 +84,23 @@ class ReportsController extends Controller
         if ($request->has('export')) {
             $allEntries = $entries->get();
             $csvPath = $this->transformEntriesToCSV($allEntries, $report);
+
+            // Transform csv to excel
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private $data;
+    
+                public function __construct($data)
+                {
+                    $this->data = $data;
+                }
+    
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, $report->name . '.xlsx');
             
             return response()->download($csvPath, $report->name . '.csv');
         }
@@ -174,6 +193,23 @@ class ReportsController extends Controller
         if ($request->has('export')) {
             $allPaperworks = $paperworks->get();
             $csvPath = $this->transformPaperworksToCSV($allPaperworks, $user);
+
+            // Transform csv to excel
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private $data;
+    
+                public function __construct($data)
+                {
+                    $this->data = $data;
+                }
+    
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, 'report_produzione.xlsx');
             
             return response()->download($csvPath, 'report_produzione.csv');
         }
@@ -240,6 +276,23 @@ class ReportsController extends Controller
         if ($request->has('export')) {
             $allPaperworks = $paperworks->get();
             $csvPath = $this->transformPaperworksToCSV($allPaperworks, $user);
+
+            // Transform csv to excel
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private $data;
+    
+                public function __construct($data)
+                {
+                    $this->data = $data;
+                }
+    
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, 'report_produzione.xlsx');
             
             return response()->download($csvPath, 'report_produzione.csv');
         }
