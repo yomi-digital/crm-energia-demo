@@ -14,6 +14,9 @@ import CreatePaperworkType from '@/views/workflow/paperworks/PaperworkType.vue';
 
 const route = useRoute('workflow-paperworks-create-wizard')
 
+const isPaperworkCreated = ref(false)
+const isPaperworkCreatedDialogVisible = ref(false)
+
 const createPaperworkSteps = [
   {
     title: 'Agente',
@@ -193,7 +196,14 @@ const onSubmit = async () => {
     }
   })
   isCreating.value = false
-  router.push({ name: 'workflow-paperworks-id', params: { id: response.id } })
+
+  isPaperworkCreated.value = true
+  isPaperworkCreatedDialogVisible.value = true
+
+  // Set a 5 seconds delay before redirecting to the paperwork page
+  setTimeout(() => {
+    router.push({ name: 'workflow-paperworks-id', params: { id: response.id } })
+  }, 5000)
 }
 </script>
 
@@ -266,7 +276,7 @@ const onSubmit = async () => {
 
             <VBtn
               v-if="createPaperworkSteps.length - 1 === currentStep"
-              :disabled="isCreating"
+              :disabled="isCreating || !createPaperworkData.paperworkReviewComplete.isPaperworkDetailsConfirmed"
               color="success"
               @click="onSubmit"
             >
@@ -288,5 +298,24 @@ const onSubmit = async () => {
         </VCardText>
       </VCol>
     </VRow>
+
+    <!-- 👉 Dialog saying the paperwork has been created -->
+    <VDialog
+      v-model="isPaperworkCreatedDialogVisible"
+      max-width="500"
+    >
+      <VCard class="text-center px-10 py-6">
+        <VCardText>
+          <VIcon
+            icon="tabler-check"
+          color="success"
+            size="60"
+          />
+          <h6 class="text-lg font-weight-medium">
+            La pratica è stata creata con successo.
+          </h6>
+        </VCardText>
+      </VCard>
+    </VDialog>
   </VCard>
 </template>

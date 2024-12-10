@@ -135,11 +135,20 @@ watch(formData, () => {
         placeholder="Note"
       />
 
+      <VAlert
+        v-if="!formData.isPaperworkDetailsConfirmed"
+        type="warning"
+        variant="tonal"
+        class="mt-2"
+      >
+        Per procedere è necessario confermare che le informazioni inserite sono corrette
+      </VAlert>
       <VSwitch
         v-model="formData.isPaperworkDetailsConfirmed"
         label="Confermo che le informazioni sono corrette."
         class="mb-3"
       />
+      
     </VCol>
   </VRow>
 </template>
