@@ -372,16 +372,89 @@ const downloadDocument = async doc => {
           </VCardItem>
 
           <VCardText>
-            <div class="text-body-1">
-              <RouterLink
-                :to="{ name: 'admin-users-id', params: { id: paperworkData.user.id } }"
-                class="font-weight-medium text-link"
-                :title="paperworkData.user.name"
-              >{{ [paperworkData.user.name, paperworkData.user.last_name].join(' ') }}</RouterLink>
+
+            <div class="d-flex gap-x-3">
+              <div>
+                <VAvatar
+                  v-if="paperworkData.user.avatar"
+                  :image="paperworkData.user.avatar"
+                  size="48"
+                  class="mb-3"
+                />
+                <VAvatar
+                  v-else
+                  color="primary"
+                  size="48" 
+                  class="mb-3"
+                >
+                  {{ paperworkData.user.name?.charAt(0).toUpperCase() }}{{ paperworkData.user.last_name?.charAt(0).toUpperCase() }}
+                </VAvatar>
+              </div>
+              <div>
+                <div class="text-body-1">
+                  <RouterLink
+                    :to="{ name: 'admin-users-id', params: { id: paperworkData.user.id } }"
+                    class="font-weight-medium text-link"
+                    :title="paperworkData.user.name"
+                  >{{ [paperworkData.user.name, paperworkData.user.last_name].join(' ') }}</RouterLink>
+                </div>
+                <div class="text-body-1">
+                  Email: {{ paperworkData.user.email || 'N/A' }}
+                </div>
+                <div class="text-body-1">
+                  Telefono: {{ paperworkData.user.phone || 'N/A' }}
+                </div>
+                <div class="text-body-1" v-if="canViewPayout">
+                  Compenso Stimato: € {{ paperworkData.payout || 'N/A' }}
+                </div>
+              </div>
             </div>
-            <div class="text-body-1" v-if="canViewPayout">
-              Compenso Stimato: € {{ paperworkData.payout || 'N/A' }}
+            
+          </VCardText>
+        </VCard>
+
+        <!-- 👉 Agent -->
+        <VCard class="mb-6">
+          <VCardItem>
+            <VCardTitle>Backoffice</VCardTitle>
+          </VCardItem>
+
+          <VCardText v-if="paperworkData.confirmed_by_user">
+
+            <div class="d-flex gap-x-3">
+              <div>
+                <VAvatar
+                  v-if="paperworkData.confirmed_by_user.avatar"
+                  :image="paperworkData.confirmed_by_user.avatar"
+                  size="48"
+                  class="mb-3"
+                />
+                <VAvatar
+                  v-else
+                  color="primary"
+                  size="48" 
+                  class="mb-3"
+                >
+                  {{ paperworkData.confirmed_by_user.name?.charAt(0).toUpperCase() }}{{ paperworkData.confirmed_by_user.last_name?.charAt(0).toUpperCase() }}
+                </VAvatar>
+              </div>
+              <div>
+                <div class="text-body-1">
+                  <RouterLink
+                    :to="{ name: 'admin-users-id', params: { id: paperworkData.confirmed_by_user.id } }"
+                    class="font-weight-medium text-link"
+                    :title="paperworkData.confirmed_by_user.name"
+                  >{{ [paperworkData.confirmed_by_user.name, paperworkData.confirmed_by_user.last_name].join(' ') }}</RouterLink>
+                </div>
+                <div class="text-body-1">
+                  Email: {{ paperworkData.confirmed_by_user.email || 'N/A' }}
+                </div>
+                <div class="text-body-1">
+                  Telefono: {{ paperworkData.confirmed_by_user.phone || 'N/A' }}
+                </div>
+              </div>
             </div>
+
           </VCardText>
         </VCard>
 

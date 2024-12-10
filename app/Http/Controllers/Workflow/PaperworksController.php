@@ -187,6 +187,8 @@ class PaperworksController extends Controller
         }
 
         if ($request->get('order_status') && $request->get('order_status') === 'INSERITO' && ! $paperwork->partner_sent_at) {
+            $paperwork->confirmed_at = now()->format('Y-m-d H:i:s');
+            $paperwork->confirmed_by = $request->user()->id;
             $paperwork->partner_sent_at = now()->format('Y-m-d H:i:s');
         }
         if ($request->get('partner_sent_at')) {

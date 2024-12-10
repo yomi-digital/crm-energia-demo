@@ -401,4 +401,29 @@ class UsersController extends Controller
         $user->notifications()->where('id', $id)->update(['read_at' => null]);
         return response()->json(null, 204);
     }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        $user->update($request->only(['name', 'last_name', 'email', 'phone', 'avatar']));
+        
+        return response()->json($user);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        // Check if the current password is correct
+        if (!\Hash::check($request->get('current_password'), $request->user()->password)) {
+            return response()->json(['message' => 'La password corrente non è corretta'], 400);
+        }
+
+        // Check if the new password and the confirm password are the same
+        if ($request->get('new_password') !== $request->get('confirm_password')) {
+            return response()->json(['message' => 'La nuova password e la password di conferma non corrispondono'], 400);
+        }
+
+        $user = $request->user();
+        $user->update(['password' => bcrypt($request->get('new_password'))]);
+        return response()->json($user);
+    }
 }

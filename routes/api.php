@@ -55,6 +55,9 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
 
     Route::post('uploads', [UploadsController::class, 'index']);
 
+    Route::put('profile', [UsersController::class, 'updateProfile']);
+    Route::put('profile/password', [UsersController::class, 'updatePassword']);
+
     Route::get('agencies', [AgenciesController::class, 'index']);
     Route::post('agencies', [AgenciesController::class, 'store']);
     Route::put('agencies/{id}', [AgenciesController::class, 'update']);

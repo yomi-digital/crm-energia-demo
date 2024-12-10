@@ -17,6 +17,12 @@ class UploadsController extends Controller
                 'disk' => 'do',
                 'visibility' => 'public'
             ]);
+        } elseif ($scope === 'avatars') {
+            $path = $file->storeAs($scope . '/' . $request->user()->id, $file->getClientOriginalName(), [
+                'disk' => 'do',
+                'visibility' => 'public'
+            ]);
+            $path = 'https://' . config('filesystems.disks.do.bucket') . '.' . str_replace('https://', '', config('filesystems.disks.do.endpoint')) . '/' . $path;
         } else {
             // Set visibility as private for everything else
             $path = $file->storeAs($scope, $file->getClientOriginalName(), [

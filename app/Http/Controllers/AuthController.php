@@ -75,7 +75,7 @@ class AuthController extends Controller
         // Fill required data for theme
         $user->fullName = trim(implode(' ', [$user->name, $user->last_name]));
         // $user->role = $user->roles()->first()->name;
-        $user->avatar = 'https://ui-avatars.com/api/?name=' . urlencode($user->fullName) . '&background=random&color=fff';
+        $user->avatar = $user->avatar ?: 'https://ui-avatars.com/api/?name=' . urlencode($user->fullName) . '&background=random&color=fff';
 
         $userAbilities = $this->getUserAbilties($user);
 

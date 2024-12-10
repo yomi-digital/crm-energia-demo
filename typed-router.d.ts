@@ -41,6 +41,7 @@ declare module 'vue-router/auto/routes' {
   export interface RouteNamedMap {
     '$error': RouteRecordInfo<'$error', '/:error(.*)', { error: ParamValue<true> }, { error: ParamValue<false> }>,
     'access-control': RouteRecordInfo<'access-control', '/access-control', Record<never, never>, Record<never, never>>,
+    'account-settings-tab': RouteRecordInfo<'account-settings-tab', '/account-settings/:tab', { tab: ParamValue<true> }, { tab: ParamValue<false> }>,
     'admin-users': RouteRecordInfo<'admin-users', '/admin/users', Record<never, never>, Record<never, never>>,
     'admin-users-id': RouteRecordInfo<'admin-users-id', '/admin/users/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'authentication-register-multi-steps': RouteRecordInfo<'authentication-register-multi-steps', '/authentication/register-multi-steps', Record<never, never>, Record<never, never>>,

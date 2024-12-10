@@ -28,25 +28,25 @@ const logout = async () => {
 }
 
 const userProfileList = [
-  // { type: 'divider' },
+  { type: 'divider' },
   // {
   //   type: 'navItem',
   //   icon: 'tabler-user',
-  //   title: 'Profile',
+  //   title: 'Profilo',
   //   to: {
-  //     name: 'apps-user-view-id',
+  //     name: 'admin-users',
   //     params: { id: 21 },
   //   },
   // },
-  // {
-  //   type: 'navItem',
-  //   icon: 'tabler-settings',
-  //   title: 'Settings',
-  //   to: {
-  //     name: 'pages-account-settings-tab',
-  //     params: { tab: 'account' },
-  //   },
-  // },
+  {
+    type: 'navItem',
+    icon: 'tabler-settings',
+    title: 'Impostazioni Account',
+    to: {
+      name: 'account-settings-tab',
+      params: { tab: 'account' },
+    },
+  },
   // {
   //   type: 'navItem',
   //   icon: 'tabler-file-dollar',

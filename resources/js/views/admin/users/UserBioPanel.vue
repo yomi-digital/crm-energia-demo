@@ -42,6 +42,38 @@ const updateUserInfo = async (data) => {
 
           <VDivider class="my-4" />
 
+          <div class="d-flex align-center mb-4">
+            <VAvatar
+              v-if="props.userData.avatar"
+              :image="props.userData.avatar"
+              size="100"
+              class="me-6"
+            />
+            <VAvatar
+              v-else
+              color="primary"
+              size="100"
+              class="me-6"
+            >
+              {{ props.userData.name?.charAt(0).toUpperCase() }}{{ props.userData.last_name?.charAt(0).toUpperCase() }}
+            </VAvatar>
+            <div>
+              <h3 class="text-h3">
+                {{ props.userData.name }} {{ props.userData.last_name }}
+              </h3>
+            </div>
+          </div>
+          <div v-if="props.userData.avatar" class="mb-4">
+            <VBtn
+              variant="text"
+              color="error"
+              size="small"
+              @click="updateUserInfo({ avatar: null })"
+            >
+              Rimuovi Avatar
+            </VBtn>
+          </div>
+
           <!-- 👉 Customer Details list -->
           <VList class="card-list mt-2">
             <VListItem>

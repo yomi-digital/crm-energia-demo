@@ -209,6 +209,14 @@ const deleteUser = async id => {
   // refetch User
   fetchUsers()
 }
+
+const getAvatar = (user) => {
+  if (user.avatar) {
+    return user.avatar
+  }
+
+  return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name + ' ' + user.last_name) + '&background=random&color=fff'
+}
 </script>
 
 <template>
@@ -327,16 +335,13 @@ const deleteUser = async id => {
         <template #item.name="{ item }">
           <div class="d-flex align-center gap-x-4">
             <VAvatar
-              v-if="item.avatar"
               size="34"
               :variant="!item.avatar ? 'tonal' : undefined"
               :color="!item.avatar ? resolveUserRoleVariant(item.role).color : undefined"
             >
               <VImg
-                v-if="item.avatar"
-                :src="item.avatar"
+                :src="getAvatar(item)"
               />
-              <span v-else>{{ avatarText(item.fullName) }}</span>
             </VAvatar>
             <div class="d-flex flex-column">
               <h6 class="text-base">
