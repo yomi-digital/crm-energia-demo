@@ -41,7 +41,7 @@ class Ticket extends Model
 
     public function paperwork()
     {
-        return $this->hasOne(Paperwork::class);
+        return $this->belongsTo(Paperwork::class);
     }
 
     public function comments()

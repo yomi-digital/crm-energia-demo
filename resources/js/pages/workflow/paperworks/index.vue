@@ -69,10 +69,10 @@ let headers = [
     key: 'product_id',
     sortable: false,
   },
-  {
-    title: 'Categoria Brand',
-    key: 'brand_category_id',
-  },
+  // {
+  //   title: 'Categoria Brand',
+  //   key: 'brand_category_id',
+  // },
   {
     title: 'Mandato',
     key: 'mandate_id',
@@ -278,12 +278,12 @@ const handleBulkAction = (newStatus) => {
 
         <div class="app-user-search-filter d-flex align-center flex-wrap gap-4">
           <!-- 👉 Search  -->
-          <!-- <div style="inline-size: 15.625rem;">
+          <div style="inline-size: 15.625rem;">
             <AppTextField
               v-model="searchQuery"
               placeholder="Cerca"
             />
-          </div> -->
+          </div>
 
           <!-- 👉 Export button -->
           <!-- <VBtn

@@ -33,6 +33,10 @@ const headers = [
     key: 'paperwork_id',
   },
   {
+    title: 'Cliente',
+    key: 'customer',
+  },
+  {
     title: 'Titolo',
     key: 'title',
   },
@@ -134,6 +138,15 @@ const ticketStatusText = (status) => {
                   {{ item.id }}
                 </RouterLink>
               </h6>
+            </div>
+          </div>
+        </template>
+
+        <!-- 👉 Customer -->
+        <template #item.customer="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.paperwork.customer.name ? item.paperwork.customer.name : item.paperwork.customer.business_name }}
             </div>
           </div>
         </template>

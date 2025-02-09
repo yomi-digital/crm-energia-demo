@@ -18,6 +18,7 @@ const orderBy = ref()
 const selectedUser = ref('')
 const selectedBrand = ref('')
 const selectedProduct = ref('')
+// const selectedMandate = ref('')
 
 const router = useRouter()
 
@@ -29,13 +30,38 @@ const updateOptions = options => {
 // Headers
 const headers = [
   {
+    title: 'Pratica',
+    key: 'paperwork_id',
+    sortable: false,
+  },
+  {
+    title: 'Account POD/PDR',
+    key: 'account_pod_pdr',
+    sortable: false,
+  },
+  {
     title: 'Struttura',
     key: 'parent',
     sortable: false,
   },
   {
-    title: 'Agente',
+    title: 'Collaboratore',
     key: 'agent',
+    sortable: false,
+  },
+  {
+    title: 'Cliente',
+    key: 'customer',
+    sortable: false,
+  },
+  {
+    title: 'CF',
+    key: 'tax_id_code',
+    sortable: false,
+  },
+  {
+    title: 'Partita IVA',
+    key: 'vat_number',
     sortable: false,
   },
   {
@@ -49,8 +75,8 @@ const headers = [
     sortable: false,
   },
   {
-    title: 'Pratica',
-    key: 'paperwork_id',
+    title: 'Stato',
+    key: 'status',
     sortable: false,
   },
   {
@@ -59,13 +85,8 @@ const headers = [
     sortable: false,
   },
   {
-    title: 'Data Attivazione',
+    title: 'Data Esito Partner',
     key: 'activated_at',
-    sortable: false,
-  },
-  {
-    title: 'Stato',
-    key: 'status',
     sortable: false,
   },
   {
@@ -346,6 +367,54 @@ const saveReport = async () => {
                   {{ item.agent || 'N/A' }}
                 </span>
               </h6>
+            </div>
+          </div>
+        </template>
+
+        <!-- Cliente -->
+        <template #item.customer="{ item }">
+          <div class="d-flex align-center gap-x-4">
+            <div class="d-flex flex-column">
+              <h6 class="text-capitalize text-high-emphasis text-body-1">
+                <RouterLink
+                  v-if="item.customer_id"
+                  :to="{ name: 'workflow-customers-id', params: { id: item.customer_id } }"
+                  class="font-weight-medium text-link"
+                  :title="item.customer"
+                >
+                  {{ item.customer }}
+                </RouterLink>
+                <span v-else>
+                  {{ item.customer || 'N/A' }}
+                </span>
+              </h6>
+            </div>
+          </div>
+        </template>
+
+        <!-- CF -->
+        <template #item.tax_id_code="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              {{ item.tax_id_code }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Partita IVA -->
+        <template #item.vat_number="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              {{ item.vat_number }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Account POD/PDR -->
+        <template #item.account_pod_pdr="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              {{ item.account_pod_pdr }}
             </div>
           </div>
         </template>

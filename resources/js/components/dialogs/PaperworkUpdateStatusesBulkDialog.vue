@@ -48,10 +48,10 @@ const statuses = ref([
     title: '--- RIMUOVI ---',
     value: '--- RIMUOVI ---',
   },
-  {
-    title: 'CARICATO',
-    value: 'CARICATO',
-  },
+  // {
+  //   title: 'CARICATO',
+  //   value: 'CARICATO',
+  // },
   {
     title: 'INSERITO',
     value: 'INSERITO',
@@ -80,10 +80,10 @@ const statuses = ref([
     title: 'STORNO',
     value: 'STORNO',
   },
-  {
-    title: 'OFFERTA CREATA',
-    value: 'OFFERTA CREATA',
-  },
+  // {
+  //   title: 'OFFERTA CREATA',
+  //   value: 'OFFERTA CREATA',
+  // },
 ])
 
 const orderSubStatuses = ref([
@@ -145,6 +145,10 @@ const partnerOutcomes = ref([
   {
     title: '--- RIMUOVI ---',
     value: '--- RIMUOVI ---',
+  },
+  {
+    title: '',
+    value: '',
   },
   {
     title: 'OK PAGABILE',

@@ -129,31 +129,6 @@ const editLink = link => {
 <template>
   <section>
     <VCard class="mb-6">
-      <VCardItem class="pb-4">
-        <VCardTitle>Filtri</VCardTitle>
-      </VCardItem>
-
-      <VCardText>
-        <VRow>
-          <!-- 👉 Select Brand -->
-          <VCol
-            cols="12"
-            sm="4"
-          >
-            <AppAutocomplete
-              v-model="selectedBrand"
-              label="Filtra per Brand"
-              clearable
-              :items="brands"
-              placeholder="Seleziona un brand"
-            />
-          </VCol>
-
-        </VRow>
-      </VCardText>
-
-      <VDivider />
-
       <VCardText class="d-flex flex-wrap gap-4">
         <div class="me-3 d-flex gap-3">
           <AppSelect

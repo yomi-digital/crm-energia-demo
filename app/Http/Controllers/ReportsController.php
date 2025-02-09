@@ -128,9 +128,10 @@ class ReportsController extends Controller
             ], 400);
         }
 
-        $paperworks = \App\Models\Paperwork::with(['user', 'product', 'product.brand'])
+        $paperworks = \App\Models\Paperwork::with(['user', 'product', 'product.brand', 'customer'])
             ->whereBetween('partner_outcome_at', [
                 $request->get('from') . ' 00:00:00',
+                // '2023-01-01' . ' 00:00:00',
                 $request->get('to') . ' 23:59:59'
             ])->whereIn('partner_outcome', ['ATTIVO', 'OK PAGABILE', 'STORNO']);
 
@@ -333,11 +334,16 @@ class ReportsController extends Controller
             'parent' => $parent ? implode(' ', array_filter([$parent->name, $parent->last_name])) : null,
             'agent_id' => $paperwork->user_id,
             'agent' => implode(' ', array_filter([$paperwork->user->name, $paperwork->user->last_name])),
+            'customer_id' => $paperwork->customer_id,
+            'customer' => $paperwork->customer->name ?: $paperwork->customer->business_name,
+            'tax_id_code' => $paperwork->customer->tax_id_code,
+            'vat_number' => $paperwork->customer->vat_number,
             'brand_id' => $paperwork->product->brand_id,
             'brand' => $paperwork->product->brand->name,
             'product_id' => $paperwork->product_id,
             'product' => $paperwork->product->name,
             'order_code' => $paperwork->order_code,
+            'account_pod_pdr' => $paperwork->account_pod_pdr,
             'paperwork_id' => $paperwork->id,
             'inserted_at' => $paperwork->partner_sent_at,
             'activated_at' => $paperwork->partner_outcome_at,

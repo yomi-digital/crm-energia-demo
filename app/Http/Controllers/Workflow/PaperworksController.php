@@ -29,6 +29,9 @@ class PaperworksController extends Controller
             $paperworks = $paperworks->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('business_name', 'like', "%{$search}%")
+                    ->orWhere('tax_id_code', 'like', "%{$search}%")
+                    ->orWhere('vat_number', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('area', 'like', "%{$search}%");
             });
@@ -151,7 +154,7 @@ class PaperworksController extends Controller
         }
 
         $paperwork->fill($fields);
-        $paperwork->order_status = 'CARICATO';
+        // $paperwork->order_status = 'CARICATO';
 
         if ($request->user()->hasRole('agent')) {
             $agent = $request->user();
@@ -195,6 +198,16 @@ class PaperworksController extends Controller
             if (\Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_sent_at'))->format('Y-m-d') !== $paperwork->partner_sent_at) {
                 $paperwork->partner_sent_at = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_sent_at'))->format('Y-m-d');
             }
+        }
+
+        if ($request->get('send_notification')) {
+            $ticket = new \App\Models\Ticket;
+            $ticket->title = 'Cambio sottostato pratica: ' . $request->get('order_substatus');
+            $ticket->description = 'La pratica è stata aggiornata con il seguente sottostato: ' . $request->get('order_substatus');
+            $ticket->paperwork_id = $paperwork->id;
+            $ticket->created_by = $request->user()->id;
+            $ticket->status = 1;
+            $ticket->save();
         }
 
         $paperwork->save();
@@ -300,7 +313,11 @@ class PaperworksController extends Controller
             }
         }
 
-        \App\Models\Paperwork::whereIn('id', $request->get('ids'))->update($fields);
+        // Get all paperworks first so we can trigger update events
+        $paperworks = \App\Models\Paperwork::whereIn('id', $request->get('ids'))->get();
+        foreach ($paperworks as $paperwork) {
+            $paperwork->update($fields);
+        }
 
         return response()->json(['message' => 'Paperworks updated successfully']);
     }

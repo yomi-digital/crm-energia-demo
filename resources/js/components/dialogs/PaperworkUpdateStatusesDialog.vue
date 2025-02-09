@@ -46,6 +46,7 @@ const onFormSubmit = async () => {
       partner_outcome: partnerOutcome.value,
       partner_outcome_at: partnerOutcomeAt.value,
       partner_sent_at: partnerSentAt.value,
+      send_notification: sendNotification.value,
     },
   })
   emit('update:isDialogVisible', false)
@@ -74,6 +75,7 @@ const orderSubStatus = ref(props.paperworkData.order_substatus)
 const partnerOutcome = ref(props.paperworkData.partner_outcome)
 const partnerOutcomeAt = ref(formatDate(props.paperworkData.partner_outcome_at))
 const partnerSentAt = ref(formatDate(props.paperworkData.partner_sent_at))
+const sendNotification = ref(false)
 
 const startDateTimePickerConfig = computed(() => {
   const config = {
@@ -84,10 +86,10 @@ const startDateTimePickerConfig = computed(() => {
 })
 
 const statuses = ref([
-  {
-    title: 'CARICATO',
-    value: 'CARICATO',
-  },
+  // {
+  //   title: 'CARICATO',
+  //   value: 'CARICATO',
+  // },
   {
     title: 'INSERITO',
     value: 'INSERITO',
@@ -112,10 +114,10 @@ const statuses = ref([
     title: 'STORNO',
     value: 'STORNO',
   },
-  {
-    title: 'OFFERTA CREATA',
-    value: 'OFFERTA CREATA',
-  },
+  // {
+  //   title: 'OFFERTA CREATA',
+  //   value: 'OFFERTA CREATA',
+  // },
 ])
 
 const orderSubStatuses = ref([
@@ -274,6 +276,18 @@ const onFormReset = () => {
                 v-model="partnerOutcome"
                 label="Esito Partner"
                 :items="partnerOutcomes"
+                clearable
+              />
+            </VCol>
+
+            <VCol
+              cols="12"
+              sm="12"
+            >
+              <VCheckbox
+                v-model="sendNotification"
+                label="Notifica agente cambio sottostato?"
+                color="primary"
               />
             </VCol>
 

@@ -261,6 +261,9 @@ const downloadDocument = async doc => {
                 <div class="text-body-1 mb-2">
                   <span class="font-weight-medium">Stato Ordine:</span> {{ paperworkData.order_status || 'N/A' }}
                 </div>
+                <div class="text-body-1 mb-2" v-if="paperworkData.order_status === 'KO' && paperworkData.order_substatus !== 'SOSPESO'">
+                  <span class="font-weight-medium">Sottostato Ordine:</span> {{ paperworkData.order_substatus || 'N/A' }}
+                </div>
                 <div class="text-body-1 mb-2">
                   <span class="font-weight-medium">Data Invio:</span> {{ paperworkData.partner_sent_at || 'N/A' }}
                 </div>
