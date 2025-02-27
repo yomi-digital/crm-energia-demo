@@ -1,3 +1,20 @@
+Local development
+
+```
+./vendor/bin/sail up
+```
+in another tab
+```
+pnpm run dev
+```
+
+open in browser at
+```
+http://0.0.0.0
+```
+
+
+
 # vue
 
 This template should help get you started developing with Vue 3 in Vite.
