@@ -247,7 +247,7 @@ const processDocument = async (item) => {
             size="20"
             class="ms-2"
           />
-          <VBtn
+          <!-- <VBtn
             v-if="item.status === 0 && !loadingStates.get(item.id)"
             icon
             variant="text"
@@ -257,7 +257,7 @@ const processDocument = async (item) => {
             @click="processDocument(item)"
           >
             <VIcon icon="tabler-player-play" />
-          </VBtn>
+          </VBtn> -->
         </template>
 
         <!-- Created At -->
