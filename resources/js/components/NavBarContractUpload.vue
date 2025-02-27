@@ -21,7 +21,7 @@ const uploadContract = async (files) => {
   formData.append('contract', files[0])
   
   try {
-    await $api('/contracts/upload', {
+    await $api('/upload-contract', {
       method: 'POST',
       body: formData,
     })

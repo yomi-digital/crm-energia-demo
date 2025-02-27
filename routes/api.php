@@ -56,7 +56,7 @@ Route::get('empty', function() {
 
 Route::group(['middleware' => 'auth:sanctum'], function() {
 
-    Route::post('contracts/upload', [ContractUploadsController::class, 'store'])->name('contracts.upload');
+    Route::post('upload-contract', [ContractUploadsController::class, 'store'])->name('contracts.upload');
 
     Route::post('uploads', [UploadsController::class, 'index']);
 
