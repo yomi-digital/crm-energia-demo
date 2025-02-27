@@ -1,0 +1,228 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\AIPaperwork;
+use App\Services\ContractProcessingService;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+
+class AIController extends Controller
+{
+    protected $contractProcessingService;
+
+    public function __construct(ContractProcessingService $contractProcessingService)
+    {
+        $this->contractProcessingService = $contractProcessingService;
+    }
+
+    public function paperworks(Request $request)
+    {
+        $perPage = $request->get('itemsPerPage', 10);
+
+        $aiPaperworks = AIPaperwork::with('user');
+
+        if ($request->get('id')) {
+            $aiPaperworks = $aiPaperworks->where('id', $request->get('id'));
+        }
+
+        if ($request->filled('user_id')) {
+            $aiPaperworks = $aiPaperworks->where('user_id', $request->get('user_id'));
+        }
+
+        if ($request->filled('status')) {
+            $aiPaperworks = $aiPaperworks->where('status', $request->get('status'));
+        }
+
+        if ($request->get('sortBy')) {
+            $aiPaperworks = $aiPaperworks->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
+        } else {
+            $aiPaperworks = $aiPaperworks->orderBy('created_at', 'desc');
+        }
+
+        $aiPaperworks = $aiPaperworks->paginate($perPage);
+
+        return response()->json([
+            'entries' => $aiPaperworks->getCollection(),
+            'totalPages' => $aiPaperworks->lastPage(),
+            'totalEntries' => $aiPaperworks->total(),
+            'page' => $aiPaperworks->currentPage(),
+        ]);
+    }
+
+    public function process(Request $request, $id)
+    {
+        try {
+            $aiPaperwork = AIPaperwork::findOrFail($id);
+            
+            if ($aiPaperwork->status === 1) {
+                return response()->json([
+                    'message' => 'This document has already been processed',
+                    'ai_paperwork' => $aiPaperwork
+                ], 400);
+            }
+
+            $processedAiPaperwork = $this->contractProcessingService->processContract($aiPaperwork);
+
+            return response()->json([
+                'message' => 'Document processed successfully',
+                'ai_paperwork' => $processedAiPaperwork
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to process document: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function show($id)
+    {
+        $aiPaperwork = AIPaperwork::with('user')->findOrFail($id);
+
+        return response()->json([
+            'id' => $aiPaperwork->id,
+            'user_id' => $aiPaperwork->user_id,
+            'filepath' => $aiPaperwork->filepath,
+            'status' => $aiPaperwork->status,
+            'extracted_text' => $aiPaperwork->extracted_text,
+            'ai_extracted_customer' => $aiPaperwork->ai_extracted_customer,
+            'ai_extracted_paperwork' => $aiPaperwork->ai_extracted_paperwork,
+            'prompt_output' => $aiPaperwork->prompt_output,
+            'created_at' => $aiPaperwork->created_at,
+            'updated_at' => $aiPaperwork->updated_at,
+            'user' => $aiPaperwork->user
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $aiPaperwork = AIPaperwork::findOrFail($id);
+
+        // Update the extracted data
+        if ($request->has('ai_extracted_customer')) {
+            $aiPaperwork->ai_extracted_customer = json_encode($request->ai_extracted_customer);
+        }
+        
+        if ($request->has('ai_extracted_paperwork')) {
+            $aiPaperwork->ai_extracted_paperwork = json_encode($request->ai_extracted_paperwork);
+        }
+
+        $aiPaperwork->save();
+
+        return response()->json($aiPaperwork);
+    }
+
+    public function confirm(Request $request, $id)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+        ]);
+
+        $aiPaperwork = AIPaperwork::findOrFail($id);
+        
+        try {
+            DB::beginTransaction();
+            
+            // Extract data
+            $customerData = json_decode($aiPaperwork->ai_extracted_customer, true) ?: [];
+            $paperworkData = json_decode($aiPaperwork->ai_extracted_paperwork, true) ?: [];
+
+            // Create or update customer
+            $customer = null;
+            if (!empty($customerData['id'])) {
+                $customer = \App\Models\Customer::find($customerData['id']);
+            }
+
+            if (!$customer) {
+                $customer = new \App\Models\Customer;
+                $customer->added_at = now()->format('Y-m-d');
+                $customer->added_by = $request->user()->id;
+            }
+
+            // Map customer data
+            $customer->fill([
+                'name' => $customerData['name'] ?? null,
+                'last_name' => $customerData['last_name'] ?? null,
+                'email' => $customerData['email'] ?? null,
+                'phone' => $customerData['phone'] ?? null,
+                'mobile' => $customerData['mobile'] ?? null,
+                'address' => $customerData['address'] ?? null,
+                'city' => $customerData['city'] ?? null,
+                'zip_code' => $customerData['zip_code'] ?? null,
+                'province' => $customerData['province'] ?? null,
+                'region' => $customerData['region'] ?? null,
+                'tax_id_code' => $customerData['tax_id_code'] ?? null,
+                'vat_number' => $customerData['vat_number'] ?? null,
+            ]);
+
+            $customer->save();
+
+            // Create paperwork
+            $paperwork = new \App\Models\Paperwork;
+            $paperwork->fill([
+                'customer_id' => $customer->id,
+                'user_id' => $request->user()->id,
+                'product_id' => $request->product_id,
+                'account_pod_pdr' => $paperworkData['account_pod_pdr'] ?? null,
+                'annual_consumption' => $paperworkData['annual_consumption'] ?? null,
+                'contract_type' => $paperworkData['contract_type'] ?? null,
+                'category' => $paperworkData['category'] ?? null,
+                'type' => $paperworkData['type'] ?? null,
+                'previous_provider' => $paperworkData['previous_provider'] ?? null,
+            ]);
+
+            $paperwork->created_by = $request->user()->id;
+            $paperwork->save();
+
+            // Link document
+            $doc = new \App\Models\PaperworkDocument;
+            $doc->paperwork_id = $paperwork->id;
+            $doc->name = basename($aiPaperwork->filepath);
+            $doc->url = $aiPaperwork->filepath;
+            $doc->save();
+
+            // Update AI paperwork status to 5 (Confirmed)
+            $aiPaperwork->status = 5;
+            $aiPaperwork->save();
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Paperwork confirmed successfully',
+                'customer' => $customer,
+                'paperwork' => $paperwork,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Failed to confirm paperwork: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function download($id)
+    {
+        $aiPaperwork = AIPaperwork::findOrFail($id);
+        
+        if (!Storage::disk('do')->exists($aiPaperwork->filepath)) {
+            abort(404, 'File not found');
+        }
+
+        return Storage::disk('do')->download($aiPaperwork->filepath);
+    }
+
+    public function cancel($id)
+    {
+        $aiPaperwork = AIPaperwork::findOrFail($id);
+        
+        // Update status to cancelled (8)
+        $aiPaperwork->status = 8;
+        $aiPaperwork->save();
+
+        return response()->json($aiPaperwork);
+    }
+}

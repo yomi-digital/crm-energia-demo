@@ -2,6 +2,7 @@
 import navItems from '@/navigation/vertical'
 
 // Components
+import NavBarContractUpload from '@/components/NavBarContractUpload.vue'
 import Footer from '@/layouts/components/Footer.vue'
 import NavBarNotifications from '@/layouts/components/NavBarNotifications.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
@@ -45,6 +46,7 @@ watch([
 
         <VSpacer />
 
+        <NavBarContractUpload class="me-1" />
         <NavbarThemeSwitcher />
         <!-- <NavbarShortcuts /> -->
         <NavBarNotifications class="me-1" />

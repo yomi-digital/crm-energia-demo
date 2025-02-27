@@ -19,6 +19,9 @@ use App\Http\Controllers\Workflow\PaperworksController;
 use App\Http\Controllers\Workflow\TicketsController;
 use App\Http\Controllers\Workflow\CommunicationsController;
 use App\Http\Controllers\StatementsController;
+use App\Http\Controllers\ContractUploadsController;
+use App\Http\Controllers\AIController;
+use App\Http\Controllers\DashboardController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -52,6 +55,8 @@ Route::get('empty', function() {
 });
 
 Route::group(['middleware' => 'auth:sanctum'], function() {
+
+    Route::post('contracts/upload', [ContractUploadsController::class, 'store'])->name('contracts.upload');
 
     Route::post('uploads', [UploadsController::class, 'index']);
 
@@ -138,6 +143,14 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('reports/production', [ReportsController::class, 'production']);
     Route::get('reports/appointments', [ReportsController::class, 'appointments']);
 
+    Route::get('ai-paperworks', [AIController::class, 'paperworks']);
+    Route::get('ai-paperworks/{id}', [AIController::class, 'show']);
+    Route::get('ai-paperworks/{id}/download', [AIController::class, 'download']);
+    Route::post('ai-paperworks/{id}/process', [AIController::class, 'process']);
+    Route::put('ai-paperworks/{id}', [AIController::class, 'update']);
+    Route::post('ai-paperworks/{id}/confirm', [AIController::class, 'confirm']);
+    Route::post('ai-paperworks/{id}/cancel', [AIController::class, 'cancel']);
+
     Route::get('paperworks', [PaperworksController::class, 'index']);
     Route::get('paperworks/{id}', [PaperworksController::class, 'show']);
     // Route::get('paperworks/{id}/payout', [PaperworksController::class, 'calculatePayout']);
@@ -161,5 +174,13 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::put('communications/{id}', [CommunicationsController::class, 'update']);
 
     Route::get('statements', [StatementsController::class, 'index']);
-});
 
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/paperworks', [DashboardController::class, 'searchPaperwork']);
+        Route::get('/stats', [DashboardController::class, 'getPaperworkStats']);
+        Route::get('/brand-stats', [DashboardController::class, 'getBrandStats']);
+        Route::get('/time-series', [DashboardController::class, 'getTimeSeriesData']);
+        Route::get('/agents', [DashboardController::class, 'getAgents']);
+        Route::get('/customers', [DashboardController::class, 'getCustomers']);
+    });
+});

@@ -92,6 +92,8 @@ declare module 'vue-router/auto/routes' {
     'reports-production': RouteRecordInfo<'reports-production', '/reports/production', Record<never, never>, Record<never, never>>,
     'reports-saved': RouteRecordInfo<'reports-saved', '/reports/saved', Record<never, never>, Record<never, never>>,
     'reports-saved-id': RouteRecordInfo<'reports-saved-id', '/reports/saved/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'workflow-aipaperworks': RouteRecordInfo<'workflow-aipaperworks', '/workflow/aipaperworks', Record<never, never>, Record<never, never>>,
+    'workflow-aipaperworks-id': RouteRecordInfo<'workflow-aipaperworks-id', '/workflow/aipaperworks/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'workflow-communications': RouteRecordInfo<'workflow-communications', '/workflow/communications', Record<never, never>, Record<never, never>>,
     'workflow-communications-id': RouteRecordInfo<'workflow-communications-id', '/workflow/communications/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'workflow-communications-create': RouteRecordInfo<'workflow-communications-create', '/workflow/communications/create', Record<never, never>, Record<never, never>>,

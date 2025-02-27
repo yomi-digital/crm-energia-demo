@@ -19,6 +19,13 @@ export default [
     subject: 'paperworks',
   },
   {
+    title: 'Pratiche AI',
+    icon: { icon: 'tabler-file-text' },
+    to: 'workflow-aipaperworks',
+    action: 'access',
+    subject: 'aipaperworks',
+  },
+  {
     title: 'Ticket',
     icon: { icon: 'tabler-file' },
     to: 'workflow-tickets',
