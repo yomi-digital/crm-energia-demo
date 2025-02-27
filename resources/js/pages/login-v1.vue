@@ -8,8 +8,8 @@ import { themeConfig } from '@themeConfig'
 definePage({ meta: { layout: 'blank' } })
 
 const form = ref({
-  email: 'admin@alfacom.com',
-  password: 'password',
+  email: '',
+  password: '',
   remember: false,
 })
 

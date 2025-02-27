@@ -28,8 +28,8 @@ const errors = ref({
 const refVForm = ref()
 
 const credentials = ref({
-  email: 'admin@alfacom.com',
-  password: 'pas_sw&8o?.t6rd',
+  email: '',
+  password: '',
   // email: 'admin@demo.com',
   // password: 'admin',
 })
