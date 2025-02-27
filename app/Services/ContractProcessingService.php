@@ -24,6 +24,9 @@ class ContractProcessingService
             if (!file_exists($tempDir)) {
                 mkdir($tempDir, 0777, true);
             }
+
+            $aiPaperwork->status = 1;
+            $aiPaperwork->save();
             
             // Get contents and put file
             $contents = Storage::disk('do')->get($aiPaperwork->filepath);
