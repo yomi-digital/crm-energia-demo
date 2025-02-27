@@ -50,7 +50,7 @@ class DashboardController extends Controller
 
         $query->where(function($q) {
             $q->whereNull('order_status')
-              ->orWhereIn('order_status', ['', 'DA LAVORARE', 'SOSPESO', 'INVIATO']);
+              ->orWhereIn('order_status', ['', 'DA LAVORARE', 'SOSPESO', 'INVIATO', 'INSERITO']);
         });
 
         $loggedInUserId = $request->user()->id;
@@ -61,13 +61,14 @@ class DashboardController extends Controller
                     'id' => $paperwork->id,
                     'customer' => $paperwork->customer->business_name ?: implode(' ', [$paperwork->customer->name, $paperwork->customer->last_name]),
                     'customer_id' => $paperwork->customer->id,
-                    'agent' => $paperwork->user->name ?? 'N/A',
+                    'agent' => $paperwork->user->name . ' ' . $paperwork->user->last_name,
                     'agent_id' => $paperwork->user->id,
                     'brand' => $paperwork->product->brand->name ?? 'N/A',
                     'brand_id' => $paperwork->product->brand->id,
                     'product' => $paperwork->product->name ?? 'N/A',
                     'product_id' => $paperwork->product->id,
                     'state' => $paperwork->order_status,
+                    'created_at' => $paperwork->created_at->format(config('app.date_format')),
                     'hasTicket' => $paperwork->tickets->contains(function ($ticket) use ($loggedInUserId) {
                         return $ticket->comments->where('user_id', '!=', $loggedInUserId)->isNotEmpty();
                     }),

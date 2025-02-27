@@ -57,10 +57,10 @@ const hasLoadedCustomers = ref(false)
 
 const router = useRouter()
 
-const updateOptions = options => {
-  sortBy.value = options.sortBy[0]?.key
-  orderBy.value = options.sortBy[0]?.order
-  fetchPaperworks(true)
+const updateOptions = async ({ page: newPage, itemsPerPage: newItemsPerPage }) => {
+  page.value = newPage
+  itemsPerPage.value = newItemsPerPage
+  await fetchPaperworks()
 }
 
 const stats = ref({
@@ -80,6 +80,10 @@ const searchFilters = ref({
 const agents = ref([])
 const customers = ref([])
 const customerSearch = ref('')
+
+// Add refs for paperworks data
+const clientData = ref([])
+const totalItems = ref(0)
 
 // Chart configurations
 const getDonutOptions = (title) => ({
@@ -267,21 +271,18 @@ const lastMonthChartOptions = ref({
 })
 
 // Data fetching functions
-const fetchPaperworks = async (useFilters = false) => {
+const fetchPaperworks = async () => {
   try {
-    isSaving.value = true
-    const params = {
-      ...(useFilters ? searchFilters.value : {}),
-      itemsPerPage: itemsPerPage.value,
-      page: page.value,
-      sortBy: sortBy.value,
-      orderBy: orderBy.value,
-    }
-    const { data } = await $api('/dashboard/paperworks', { params })
+    const response = await $api('/dashboard/paperworks', {
+      params: {
+        page: page.value,
+        itemsPerPage: itemsPerPage.value,
+      },
+    })
+    clientData.value = response.data.data
+    totalItems.value = response.data.total
   } catch (error) {
     console.error('Error fetching paperworks:', error)
-  } finally {
-    isSaving.value = false
   }
 }
 
@@ -566,13 +567,14 @@ watch(chartFilters, () => {
 }, { deep: true })
 
 // Initial data fetch
-onMounted(() => {
-  fetchStats()
-  fetchTimeSeriesData()
-  loadBrands()
-  loadProducts()
-  loadAgents()
-  loadCustomers()
+onMounted(async () => {
+  await fetchPaperworks()
+  await fetchStats()
+  await fetchTimeSeriesData()
+  await loadBrands()
+  await loadProducts()
+  await loadAgents()
+  await loadCustomers()
 })
 
 const handleSearch = () => {
@@ -622,7 +624,7 @@ const handleSearch = () => {
     </VRow>
 
     <!-- Filters Section -->
-    <VCard class="mt-6">
+    <VCard class="mt-6 d-none">
       <VCardTitle class="text-h6 px-6 py-4">
         Ricerca pratica
       </VCardTitle>
@@ -676,6 +678,97 @@ const handleSearch = () => {
         </div>
       </VCardText>
     </VCard>
+
+    <VRow class="mt-6">
+      <VCol cols="12">
+        <VCard variant="outlined" class="pa-4">
+          <VCardTitle class="text-h5 mb-4">
+            Le mie pratiche
+          </VCardTitle>
+          <VDataTableServer
+            v-model:items-per-page="itemsPerPage"
+            v-model:page="page"
+            :items="clientData"
+            :items-length="totalItems"
+            :headers="[
+              { title: '#', key: 'id', width: '80' },
+              { title: 'Agente', key: 'agent', sortable: false },
+              { title: 'Cliente', key: 'customer', sortable: false },
+              { title: 'Prodotto', key: 'product', sortable: false },
+              { title: 'Stato', key: 'state' },
+              { title: 'Ticket', key: 'hasTicket', sortable: false, align: 'center', width: '80' },
+              { title: 'Data', key: 'created_at', sortable: false },
+            ]"
+            class="text-no-wrap"
+            @update:options="updateOptions"
+          >
+            <!-- Paperwork ID -->
+            <template #item.id="{ item }">
+              <RouterLink
+                :to="{ name: 'workflow-paperworks-id', params: { id: item.id } }"
+                class="font-weight-medium text-link"
+              >
+                {{ item.id }}
+              </RouterLink>
+            </template>
+
+            <!-- Agent -->
+            <template #item.agent="{ item }">
+              <RouterLink
+                :to="{ name: 'admin-users-id', params: { id: item.agent_id } }"
+                class="font-weight-medium text-link"
+              >
+                {{ item.agent }}
+              </RouterLink>
+            </template>
+
+            <!-- Customer -->
+            <template #item.customer="{ item }">
+              <RouterLink
+                :to="{ name: 'workflow-customers-id', params: { id: item.customer_id } }"
+                class="font-weight-medium text-link"
+              >
+                {{ item.customer }}
+              </RouterLink>
+            </template>
+
+            <!-- Product -->
+            <template #item.product="{ item }">
+              <RouterLink
+                :to="{ name: 'configuration-products-id', params: { id: item.product_id } }"
+                class="font-weight-medium text-link"
+              >
+                {{ item.product }}
+              </RouterLink>
+            </template>
+
+            <!-- State -->
+            <template #item.state="{ item }">
+              {{ item.state }}
+            </template>
+
+            <!-- Has Ticket -->
+            <template #item.hasTicket="{ item }">
+              <VIcon
+                v-if="item.hasTicket"
+                icon="tabler-bell"
+                color="warning"
+                size="20"
+              />
+            </template>
+
+            <!-- pagination -->
+            <template #bottom>
+              <TablePagination
+                v-model:page="page"
+                :items-per-page="itemsPerPage"
+                :total-items="totalItems"
+              />
+            </template>
+          </VDataTableServer>
+        </VCard>
+      </VCol>
+    </VRow>
 
     <!-- Filters for Stats -->
     <VRow class="mt-6">
@@ -815,6 +908,8 @@ const handleSearch = () => {
         </VCard>
       </VCol>
     </VRow>
+
+    
   </div>
 </template>
 
