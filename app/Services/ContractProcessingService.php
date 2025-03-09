@@ -250,7 +250,9 @@ class ContractProcessingService
         if ($matchingProducts->count() > 0) {
             if (! $contract['mandato_sepa_iban']) {
                 // Get the product that has in the name the words "NO SDD"
-                $product = $matchingProducts->where('name', 'like', '%NO SDD%')->first();
+                $product = $matchingProducts->filter(function($product) {
+                    return str_contains(strtoupper($product->name), 'NO SDD');
+                })->first();
             } else {
                 $product = $matchingProducts->first();
             }

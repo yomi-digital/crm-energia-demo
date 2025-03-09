@@ -152,6 +152,7 @@ const saveModifications = async () => {
     })
     // Simple success message
     alert('Modifiche salvate')
+    window.location.reload()
   } catch (error) {
     console.error('Error saving modifications:', error)
   } finally {

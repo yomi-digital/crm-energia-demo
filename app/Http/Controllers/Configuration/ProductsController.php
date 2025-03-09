@@ -27,6 +27,10 @@ class ProductsController extends Controller
             $products = $products->whereIn('brand_id', $agentBrands);
         }
 
+        if ($request->get('enabled')) {
+            $products = $products->where('enabled', $request->get('enabled'));
+        }
+
         if ($request->get('sortBy')) {
             $products = $products->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
         } else {

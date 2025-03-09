@@ -21,11 +21,15 @@ const uploadContract = async (files) => {
   formData.append('contract', files[0])
   
   try {
-    await $api('/upload-contract', {
+    const response = await $api('/upload-contract', {
       method: 'POST',
       body: formData,
     })
-    
+
+    if (!response.id) {
+      throw new Error('Upload failed')
+    }
+
     // Show success message
     alert.value = {
       show: true,

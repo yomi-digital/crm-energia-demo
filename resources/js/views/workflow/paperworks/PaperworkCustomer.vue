@@ -35,22 +35,34 @@ const getCustomerName = (customer) => {
   return name
 }
 
-const fetchCustomers = async (query) => {
-  const response = await $api('/customers?itemsPerPage=999999&select=1&q=' + query)
-  customers.value = response.customers.map(customer => ({
-    title: getCustomerName(customer),
-    value: customer.id,
-  }))
-}
-if (formData.value.id) {
-  await fetchCustomers('')
-} else {
-  fetchCustomers('')
+const fetchCustomers = async (query, id = null) => {
+  try {
+    loading.value = true
+    const response = await $api('/customers?itemsPerPage=10&select=1&q=' + query + (id ? '&id=' + id : ''))
+    customers.value = response.customers.map(customer => ({
+      title: getCustomerName(customer),
+      value: customer.id,
+    }))
+  } finally {
+    loading.value = false
+  }
 }
 
-// watch(search, query => {
-//   query && query !== formData.value.id && fetchCustomers(query)
-// })
+// Load initial customer if we have an ID
+if (formData.value.id) {
+  await fetchCustomers('', formData.value.id)
+}
+
+// Watch for search changes and fetch customers
+watch(search, (query) => {
+  if (!query && !formData.value.id) {
+    customers.value = []
+    return
+  }
+  if (query && query.length >= 2) {
+    fetchCustomers(query)
+  }
+})
 
 const isAppointment = ref(false)
 

@@ -11,7 +11,7 @@ class ContractUploadsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'contract' => 'required|file|mimes:pdf|max:10240', // 10MB max
+            'contract' => 'required|file|mimes:pdf|max:20480', // 20MB max
         ]);
 
         try {
