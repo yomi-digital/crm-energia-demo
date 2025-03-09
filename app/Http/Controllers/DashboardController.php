@@ -48,6 +48,21 @@ class DashboardController extends Controller
             $query->where('order_number', 'like', '%' . $request->order_number . '%');
         }
 
+        // If the looged in user has role 'agente', filter for only his paperworks
+        if ($request->user()->hasRole('agente')) {
+            $query->where('user_id', $request->user()->id);
+        } elseif ($request->user()->hasRole('struttura')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', $request->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
+            $query->whereIn('user_id', $ids);
+        } elseif ($request->user()->hasRole('backoffice')) {
+            $query->whereHas('product', function ($query) use ($request) {
+                $query->whereHas('brand', function ($query) use ($request) {
+                    $query->whereIn('id', $request->user()->brands->pluck('id'));
+                });
+            });
+        }
+
         $query->where(function($q) {
             $q->whereNull('order_status')
               ->orWhereIn('order_status', ['', 'DA LAVORARE', 'SOSPESO', 'INVIATO', 'INSERITO']);
@@ -183,6 +198,21 @@ class DashboardController extends Controller
             ->when(isset($filters['agentId']), function ($query) use ($filters) {
                 return $query->where('paperworks.user_id', $filters['agentId']);
             });
+        
+        // If the looged in user has role 'agente', filter for only his paperworks
+        if (request()->user()->hasRole('agente')) {
+            $query->where('user_id', request()->user()->id);
+        } elseif (request()->user()->hasRole('struttura')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', request()->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([request()->user()->id]);
+            $query->whereIn('user_id', $ids);
+        } elseif (request()->user()->hasRole('backoffice')) {
+            $query->whereHas('product', function ($query) use ($request) {
+                $query->whereHas('brand', function ($query) use ($request) {
+                    $query->whereIn('id', request()->user()->brands->pluck('id'));
+                });
+            });
+        }
 
         $stats = $query->groupBy('paperworks.order_status')
             ->select(
@@ -213,6 +243,21 @@ class DashboardController extends Controller
                 DB::raw('HOUR(created_at) as period'),
                 DB::raw('count(*) as count')
             );
+        
+        // If the looged in user has role 'agente', filter for only his paperworks
+        if (request()->user()->hasRole('agente')) {
+            $totalQuery->where('user_id', request()->user()->id);
+        } elseif (request()->user()->hasRole('struttura')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', request()->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([request()->user()->id]);
+            $totalQuery->whereIn('user_id', $ids);
+        } elseif (request()->user()->hasRole('backoffice')) {
+            $totalQuery->whereHas('product', function ($query) use ($request) {
+                $query->whereHas('brand', function ($query) use ($request) {
+                    $query->whereIn('id', request()->user()->brands->pluck('id'));
+                });
+            });
+        }
 
         // Get brand-specific counts
         $brandQuery = DB::table('paperworks')
@@ -229,6 +274,21 @@ class DashboardController extends Controller
                 DB::raw('HOUR(paperworks.created_at) as period'),
                 DB::raw('count(*) as count')
             );
+        
+        // If the looged in user has role 'agente', filter for only his paperworks
+        if (request()->user()->hasRole('agente')) {
+            $brandQuery->where('user_id', request()->user()->id);
+        } elseif (request()->user()->hasRole('struttura')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', request()->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([request()->user()->id]);
+            $brandQuery->whereIn('user_id', $ids);
+        } elseif (request()->user()->hasRole('backoffice')) {
+            $brandQuery->whereHas('product', function ($query) use ($request) {
+                $query->whereHas('brand', function ($query) use ($request) {
+                    $query->whereIn('id', request()->user()->brands->pluck('id'));
+                });
+            });
+        }
 
         return [
             'total' => $totalQuery->get(),
@@ -252,6 +312,21 @@ class DashboardController extends Controller
                 DB::raw('DATE(created_at) as period'),
                 DB::raw('count(*) as count')
             );
+        
+        // If the looged in user has role 'agente', filter for only his paperworks
+        if (request()->user()->hasRole('agente')) {
+            $totalQuery->where('user_id', request()->user()->id);
+        } elseif (request()->user()->hasRole('struttura')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', request()->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([request()->user()->id]);
+            $totalQuery->whereIn('user_id', $ids);
+        } elseif (request()->user()->hasRole('backoffice')) {
+            $totalQuery->whereHas('product', function ($query) use ($request) {
+                $query->whereHas('brand', function ($query) use ($request) {
+                    $query->whereIn('id', request()->user()->brands->pluck('id'));
+                });
+            });
+        }
 
         // Get brand-specific counts
         $brandQuery = DB::table('paperworks')
@@ -268,6 +343,21 @@ class DashboardController extends Controller
                 DB::raw('DATE(paperworks.created_at) as period'),
                 DB::raw('count(*) as count')
             );
+        
+        // If the looged in user has role 'agente', filter for only his paperworks
+        if (request()->user()->hasRole('agente')) {
+            $brandQuery->where('user_id', request()->user()->id);
+        } elseif (request()->user()->hasRole('struttura')) {
+            $relationships = \App\Models\UserRelationship::where('user_id', request()->user()->id)->get(['related_id']);
+            $ids = $relationships->pluck('related_id')->merge([request()->user()->id]);
+            $brandQuery->whereIn('user_id', $ids);
+        } elseif (request()->user()->hasRole('backoffice')) {
+            $brandQuery->whereHas('product', function ($query) use ($request) {
+                $query->whereHas('brand', function ($query) use ($request) {
+                    $query->whereIn('id', request()->user()->brands->pluck('id'));
+                });
+            });
+        }
 
         return [
             'total' => $totalQuery->get(),

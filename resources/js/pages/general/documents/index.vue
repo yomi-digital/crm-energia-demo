@@ -8,6 +8,8 @@ definePage({
   },
 })
 
+const loggedInUser = useCookie('userData').value
+const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 
 // 👉 Store
 const searchQuery = ref('')
@@ -201,6 +203,7 @@ const navigateBreadcrumbs = item => {
               variant="tonal"
               color="success"
               prepend-icon="tabler-upload"
+              v-if="isAdmin"
               @click="isUploadDialogVisible = true"
             >
               Upload

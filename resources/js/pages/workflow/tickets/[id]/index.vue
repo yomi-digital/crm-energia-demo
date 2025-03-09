@@ -62,7 +62,7 @@ const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role
     <VRow>
       <VCol
         cols="12"
-        md="12"
+        md="8"
       >
         <VCard class="ticket-dialog">
           <VCardTitle class="py-4 px-6">
@@ -143,6 +143,124 @@ const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role
                 </VBtn>
               </div>
             </VForm>
+          </VCardText>
+        </VCard>
+      </VCol>
+
+      <VCol
+        cols="12"
+        md="4"
+      >
+        <!-- Paperwork Section -->
+        <VCard class="mb-6">
+          <VCardText class="py-4 px-6">
+            <div class="d-flex flex-column gap-2">
+              <h5 class="text-h5 mb-4">
+                Dettagli Pratica
+              </h5>
+              <div>
+                <RouterLink
+                  :to="{ name: 'workflow-paperworks-id', params: { id: ticketData.paperwork.id } }"
+                >
+                  #{{ ticketData.paperwork.id }}
+                </RouterLink>
+              </div>
+              <div>
+                <span class="font-weight-medium">ID Pratica:</span>
+                {{ ticketData.paperwork.order_code || 'N/A' }}
+              </div>
+              <div>
+                <span class="font-weight-medium">Prodotto:</span>
+                <span class="ml-2">{{ ticketData.paperwork.product.name }}</span>
+              </div>
+              <div>
+                <span class="font-weight-medium">Account/POD/PDR:</span>
+                <span class="ml-2">{{ ticketData.paperwork.account_pod_pdr || 'N/A' }}</span>
+              </div>
+              <div>
+                <span class="font-weight-medium">Stato:</span>
+                <VChip
+                  :color="ticketData.paperwork.order_status === 'SOSPESO' ? 'warning' : 'info'"
+                  size="small"
+                  class="ml-2"
+                >
+                  {{ ticketData.paperwork.order_status }}
+                </VChip>
+              </div>
+              <div v-if="ticketData.paperwork.order_substatus">
+                <span class="font-weight-medium">Sottostato:</span>
+                <VChip
+                  color="error"
+                  size="small"
+                  class="ml-2"
+                >
+                  {{ ticketData.paperwork.order_substatus }}
+                </VChip>
+              </div>
+              <div>
+                <span class="font-weight-medium">Tipo:</span>
+                <span class="ml-2">{{ ticketData.paperwork.type }}</span>
+              </div>
+              <div>
+                <span class="font-weight-medium">Categoria:</span>
+                <span class="ml-2">{{ ticketData.paperwork.category }}</span>
+              </div>
+            </div>
+          </VCardText>
+        </VCard>
+
+        <!-- Customer Section -->
+        <VCard>
+          <VCardText class="py-4 px-6">
+            <div class="d-flex flex-column gap-y-6">
+              <h5 class="text-h5">
+                Dettagli Cliente
+              </h5>
+              <div class="d-flex align-center gap-x-3">
+                <div>
+                  <h6 class="text-h6">
+                    <RouterLink
+                      :to="{ name: 'workflow-customers-id', params: { id: ticketData.paperwork.customer.id } }"
+                      class="font-weight-medium text-link"
+                    >
+                      <template v-if="ticketData.paperwork.customer.name">
+                        {{ [ticketData.paperwork.customer.name, ticketData.paperwork.customer.last_name].join(' ') }}
+                      </template>
+                      <template v-if="ticketData.paperwork.customer.business_name">
+                        {{ ticketData.paperwork.customer.business_name }}
+                      </template>
+                    </RouterLink>
+                  </h6>
+                  <div class="text-body-1" v-if="ticketData.paperwork.customer.tax_id_code">
+                    CF: {{ ticketData.paperwork.customer.tax_id_code }}
+                  </div>
+                  <div class="text-body-1" v-if="ticketData.paperwork.customer.vat_number">
+                    P.IVA: {{ ticketData.paperwork.customer.vat_number }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex flex-column gap-y-1">
+                <div class="d-flex justify-space-between align-center">
+                  <h6 class="text-h6">
+                    Informazioni di contatto
+                  </h6>
+                </div>
+                <span>Email: {{ ticketData.paperwork.customer.email || 'N/A' }}</span>
+                <span v-if="ticketData.paperwork.customer.pec">PEC: {{ ticketData.paperwork.customer.pec }}</span>
+                <span>Telefono: {{ ticketData.paperwork.customer.phone || 'N/A' }}</span>
+                <span>Mobile: {{ ticketData.paperwork.customer.mobile || 'N/A' }}</span>
+              </div>
+
+              <div class="d-flex flex-column gap-y-1">
+                <div class="d-flex justify-space-between align-center">
+                  <h6 class="text-h6">
+                    Indirizzo
+                  </h6>
+                </div>
+                <span>{{ [ticketData.paperwork.customer.address, ticketData.paperwork.customer.city, ticketData.paperwork.customer.province, ticketData.paperwork.customer.region, ticketData.paperwork.customer.zip].filter(a => a).join(', ') }}</span>
+              </div>
+            </div>
           </VCardText>
         </VCard>
       </VCol>

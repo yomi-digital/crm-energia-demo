@@ -164,7 +164,7 @@ class AIController extends Controller
             $paperwork = new \App\Models\Paperwork;
             $paperwork->fill([
                 'customer_id' => $customer->id,
-                'user_id' => $request->user()->id,
+                'user_id' => $aiPaperwork->user_id,
                 'product_id' => $request->product_id,
                 'account_pod_pdr' => $paperworkData['account_pod_pdr'] ?? null,
                 'annual_consumption' => $paperworkData['annual_consumption'] ?? null,

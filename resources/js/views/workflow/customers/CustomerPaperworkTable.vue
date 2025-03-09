@@ -27,6 +27,10 @@ const headers = [
     key: 'order_code',
   },
   {
+    title: 'POD/PDR',
+    key: 'pod_pdr',
+  },
+  {
     title: 'Agente',
     key: 'user_id',
   },
@@ -126,6 +130,14 @@ const totalPaperworks = computed(() => paperworkData.value?.totalPaperworks)
           </div>
         </template>
 
+        <!-- POD/PDR -->
+        <template #item.pod_pdr="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.pod_pdr }}
+            </div>
+          </div>
+        </template>
         <!-- 👉 Agent -->
         <template #item.user_id="{ item }">
           <div class="d-flex align-center gap-x-2">

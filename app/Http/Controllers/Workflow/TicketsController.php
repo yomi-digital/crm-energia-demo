@@ -99,7 +99,7 @@ class TicketsController extends Controller
 
     public function show(Request $request, $id)
     {
-        $ticket = \App\Models\Ticket::with(['createdBy', 'comments', 'comments.user'])->whereId($id)->first();
+        $ticket = \App\Models\Ticket::with(['createdBy', 'comments', 'comments.user', 'paperwork', 'paperwork.product', 'paperwork.customer'])->whereId($id)->first();
 
         if (!$ticket) {
             return response()->json(['error' => 'Ticket not found'], 404);

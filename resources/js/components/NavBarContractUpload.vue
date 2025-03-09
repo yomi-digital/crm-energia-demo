@@ -59,7 +59,7 @@ const uploadContract = async (files) => {
 
 <template>
   <div>
-    <IconBtn @click="dialog = true">
+    <IconBtn @click="dialog = true" id="ai-contract-upload-btn">
       <span class="font-weight-bold">AI</span>
     </IconBtn>
 

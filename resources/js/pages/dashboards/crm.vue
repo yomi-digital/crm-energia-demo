@@ -10,11 +10,17 @@ definePage({
   },
 })
 
-const quickLinks = [
-  { name: 'Crea Pratica', icon: 'tabler-file-plus', to: '/workflow/paperworks/create-wizard' },
+const loggedInUser = useCookie('userData').value
+const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+
+let quickLinks = [
+  { name: 'Crea Pratica AI', icon: 'tabler-file-plus', action: () => document.querySelector('#ai-contract-upload-btn').click() },
   { name: 'Clienti', icon: 'tabler-users', to: '/workflow/customers' },
-  { name: 'Report', icon: 'tabler-report', to: '/reports/admin' },
 ]
+
+if (isAdmin) {
+  quickLinks.push({ name: 'Report', icon: 'tabler-report', to: '/reports/admin' })
+}
 
 const dateFilters = ref({
   startDate: '',
@@ -601,12 +607,31 @@ const handleSearch = () => {
       <VCol
         v-for="link in quickLinks"
         :key="link.name"
-        cols="4"
+        :cols="quickLinks.length === 2 ? 6 : 4"
       >
         <VCard
           class="quick-link-card"
           :to="link.to"
+          v-if="link.to"
           flat
+        >
+          <VCardItem>
+            <template #prepend>
+              <VIcon
+                :icon="link.icon"
+                size="24"
+              />
+            </template>
+            <VCardTitle>
+              {{ link.name }}
+            </VCardTitle>
+          </VCardItem>
+        </VCard>
+        <VCard
+          v-else
+          class="quick-link-card"
+          flat
+          @click="link.action"
         >
           <VCardItem>
             <template #prepend>
@@ -805,6 +830,7 @@ const handleSearch = () => {
               </VCol>
               <VCol cols="12" md="4">
                 <AppSelect
+                  v-if="isAdmin"
                   v-model="chartFilters.agentId"
                   label="Agente"
                   placeholder="Seleziona Agente"

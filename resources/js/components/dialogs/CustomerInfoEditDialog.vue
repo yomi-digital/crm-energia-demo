@@ -265,6 +265,7 @@ const provinces = [
             <VCol
               cols="12"
               md="12"
+              v-if="customerData.category !== 'Residenziale'"
             >
               <AppTextField
                 v-model="customerData.business_name"
