@@ -9,6 +9,7 @@ definePage({
 const route = useRoute('workflow-tickets-id')
 
 const comment = ref('')
+const showConfirmDialog = ref(false)
 
 const {
   data: ticketData,
@@ -20,7 +21,13 @@ const formatDateTime = (inputDate) => {
   const formatter = new Intl.DateTimeFormat('it-IT', { dateStyle: 'full', timeStyle: 'short'});
   return formatter.format(date);
 }
+
+const handleCloseTicket = () => {
+  showConfirmDialog.value = true
+}
+
 const closeTicket = async () => {
+  showConfirmDialog.value = false
   await $api(`/tickets/${route.params.id}/close`, {
     method: 'PUT',
     body: {
@@ -78,7 +85,7 @@ const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role
                 <VBtn
                   v-if="ticketData.status !== 3 && isAdmin"
                   color="success"
-                  @click="closeTicket"
+                  @click="handleCloseTicket"
                 >
                   Risolvi Ticket
                 </VBtn>
@@ -265,5 +272,35 @@ const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role
         </VCard>
       </VCol>
     </VRow>
+
+    <VDialog
+      v-model="showConfirmDialog"
+      max-width="500"
+    >
+      <VCard>
+        <VCardTitle class="text-h5 pa-4">
+          Conferma chiusura ticket
+        </VCardTitle>
+        <VCardText class="pa-4">
+          Sei sicuro di voler chiudere questo ticket? Questa azione non può essere annullata.
+        </VCardText>
+        <VCardActions class="pa-4">
+          <VSpacer />
+          <VBtn
+            color="grey-darken-1"
+            variant="text"
+            @click="showConfirmDialog = false"
+          >
+            Annulla
+          </VBtn>
+          <VBtn
+            color="success"
+            @click="closeTicket"
+          >
+            Conferma
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </div>
 </template>

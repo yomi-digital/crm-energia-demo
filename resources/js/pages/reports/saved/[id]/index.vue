@@ -264,7 +264,7 @@ const saveAddEntry = async () => {
         :items="entries"
         :items-length="totalEntries"
         :headers="headers"
-        class="text-no-wrap"
+        class="text-no-wrap v-table--has-column-borders"
         @update:options="updateOptions"
       >
         <!-- Agente -->
@@ -537,3 +537,14 @@ const saveAddEntry = async () => {
     </VDialog>
   </section>
 </template>
+
+<style lang="scss" scoped>
+.v-data-table {
+  :deep(td), :deep(th) {
+    border-left: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+    &:first-child {
+      border-left: none;
+    }
+  }
+}
+</style>
