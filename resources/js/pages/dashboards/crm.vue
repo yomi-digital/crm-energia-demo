@@ -63,6 +63,22 @@ const hasLoadedCustomers = ref(false)
 
 const router = useRouter()
 
+// Add refs for paperworks data
+const clientData = ref([])
+const totalItems = ref(0)
+
+// Add refs for AI paperworks data
+const aiPaperworksData = ref([])
+const totalAiPaperworks = ref(0)
+const aiPaperworksPage = ref(1)
+const aiPaperworksItemsPerPage = ref(10)
+
+// Add refs for tickets data
+const ticketsData = ref([])
+const totalTickets = ref(0)
+const ticketsPage = ref(1)
+const ticketsItemsPerPage = ref(10)
+
 const updateOptions = async ({ page: newPage, itemsPerPage: newItemsPerPage }) => {
   page.value = newPage
   itemsPerPage.value = newItemsPerPage
@@ -86,10 +102,6 @@ const searchFilters = ref({
 const agents = ref([])
 const customers = ref([])
 const customerSearch = ref('')
-
-// Add refs for paperworks data
-const clientData = ref([])
-const totalItems = ref(0)
 
 // Chart configurations
 const getDonutOptions = (title) => ({
@@ -290,6 +302,98 @@ const fetchPaperworks = async () => {
   } catch (error) {
     console.error('Error fetching paperworks:', error)
   }
+}
+
+// Function to fetch AI paperworks
+const fetchAiPaperworks = async () => {
+  try {
+    const response = await $api('/ai-paperworks', {
+      params: {
+        status: 2,
+        page: aiPaperworksPage.value,
+        itemsPerPage: aiPaperworksItemsPerPage.value,
+      },
+    })
+    aiPaperworksData.value = response.entries || []
+    totalAiPaperworks.value = response.totalEntries || 0
+  } catch (error) {
+    console.error('Error fetching AI paperworks:', error)
+  }
+}
+
+// Function to update AI paperworks options
+const updateAiPaperworksOptions = async ({ page: newPage, itemsPerPage: newItemsPerPage }) => {
+  aiPaperworksPage.value = newPage
+  aiPaperworksItemsPerPage.value = newItemsPerPage
+  await fetchAiPaperworks()
+}
+
+// Helper function for AI paperwork status
+const getStatusChipColor = (status) => {
+  switch (status) {
+    case 0:
+      return 'warning'
+    case 1:
+      return 'info'
+    case 2:
+      return 'success'
+    case 5:
+      return 'success'
+    case 8:
+      return 'error'
+    case 9:
+      return 'error'
+    default:
+      return 'error'
+  }
+}
+
+const getStatusText = (status) => {
+  switch (status) {
+    case 0:
+      return 'In attesa'
+    case 1:
+      return 'In elaborazione'
+    case 2:
+      return 'Processato'
+    case 8:
+      return 'Annullato'
+    case 9:
+      return 'Errore'
+    case 5:
+      return 'Confermato'
+    default:
+      return 'Errore'
+  }
+}
+
+// Helper function for ticket status
+const ticketStatusText = (status) => {
+  return ['Aperto', 'In Lavorazione', 'Risolto'][status - 1]
+}
+
+// Function to fetch tickets
+const fetchTickets = async () => {
+  try {
+    const response = await $api('/tickets', {
+      params: {
+        status: '1,2',
+        page: ticketsPage.value,
+        itemsPerPage: ticketsItemsPerPage.value,
+      },
+    })
+    ticketsData.value = response.tickets || []
+    totalTickets.value = response.totalTickets || 0
+  } catch (error) {
+    console.error('Error fetching tickets:', error)
+  }
+}
+
+// Function to update tickets options
+const updateTicketsOptions = async ({ page: newPage, itemsPerPage: newItemsPerPage }) => {
+  ticketsPage.value = newPage
+  ticketsItemsPerPage.value = newItemsPerPage
+  await fetchTickets()
 }
 
 const fetchStats = async () => {
@@ -575,6 +679,8 @@ watch(chartFilters, () => {
 // Initial data fetch
 onMounted(async () => {
   await fetchPaperworks()
+  await fetchAiPaperworks()
+  await fetchTickets()
   await fetchStats()
   await fetchTimeSeriesData()
   await loadBrands()
@@ -704,6 +810,90 @@ const handleSearch = () => {
       </VCardText>
     </VCard>
 
+    <!-- Pratiche AI Section -->
+    <VRow class="mt-6">
+      <VCol cols="12">
+        <VCard variant="outlined" class="pa-4">
+          <VCardTitle class="text-h5 mb-4">
+            Pratiche AI
+          </VCardTitle>
+          <VDataTableServer
+            v-model:items-per-page="aiPaperworksItemsPerPage"
+            v-model:page="aiPaperworksPage"
+            :items="aiPaperworksData"
+            :items-length="totalAiPaperworks"
+            :headers="[
+              { title: '#', key: 'id', width: '80' },
+              { title: 'Agente', key: 'user_id', sortable: false },
+              { title: 'File', key: 'filepath', sortable: false },
+              { title: 'Stato', key: 'status' },
+              { title: 'Data', key: 'created_at', sortable: false },
+            ]"
+            class="text-no-wrap"
+            @update:options="updateAiPaperworksOptions"
+          >
+            <!-- Paperwork ID -->
+            <template #item.id="{ item }">
+              <RouterLink
+                :to="{ name: 'workflow-aipaperworks-id', params: { id: item.id } }"
+                class="font-weight-medium text-link"
+              >
+                {{ item.id }}
+              </RouterLink>
+            </template>
+
+            <!-- Agent -->
+            <template #item.user_id="{ item }">
+              <RouterLink
+                v-if="item.user && $can('view', 'users')"
+                :to="{ name: 'admin-users-id', params: { id: item.user.id } }"
+                class="font-weight-medium text-link"
+              >
+                {{ [item.user.name, item.user.last_name].join(' ') }}
+              </RouterLink>
+              <template v-else>
+                {{ [item.user?.name, item.user?.last_name].join(' ') }}
+              </template>
+            </template>
+
+            <!-- File -->
+            <template #item.filepath="{ item }">
+              <div class="text-high-emphasis text-body-1">
+                {{ item.filepath ? item.filepath.split('/').pop() : '' }}
+              </div>
+            </template>
+
+            <!-- Status -->
+            <template #item.status="{ item }">
+              <VChip
+                :color="getStatusChipColor(item.status)"
+                size="small"
+                class="text-capitalize"
+              >
+                {{ getStatusText(item.status) }}
+              </VChip>
+            </template>
+
+            <!-- Created At -->
+            <template #item.created_at="{ item }">
+              <div class="text-high-emphasis text-body-1">
+                {{ item.created_at }}
+              </div>
+            </template>
+
+            <!-- pagination -->
+            <template #bottom>
+              <TablePagination
+                v-model:page="aiPaperworksPage"
+                :items-per-page="aiPaperworksItemsPerPage"
+                :total-items="totalAiPaperworks"
+              />
+            </template>
+          </VDataTableServer>
+        </VCard>
+      </VCol>
+    </VRow>
+
     <VRow class="mt-6">
       <VCol cols="12">
         <VCard variant="outlined" class="pa-4">
@@ -788,6 +978,98 @@ const handleSearch = () => {
                 v-model:page="page"
                 :items-per-page="itemsPerPage"
                 :total-items="totalItems"
+              />
+            </template>
+          </VDataTableServer>
+        </VCard>
+      </VCol>
+    </VRow>
+
+    <!-- Tickets Section -->
+    <VRow class="mt-6">
+      <VCol cols="12">
+        <VCard variant="outlined" class="pa-4">
+          <VCardTitle class="text-h5 mb-4">
+            Tickets
+          </VCardTitle>
+          <VDataTableServer
+            v-model:items-per-page="ticketsItemsPerPage"
+            v-model:page="ticketsPage"
+            :items="ticketsData"
+            :items-length="totalTickets"
+            :headers="[
+              { title: '#', key: 'id', width: '80' },
+              { title: 'Pratica', key: 'paperwork_id', sortable: false },
+              { title: 'Cliente', key: 'customer', sortable: false },
+              { title: 'Titolo', key: 'title', sortable: false },
+              { title: 'Stato', key: 'status' },
+              { title: 'Creato Da', key: 'created_by', sortable: false },
+              { title: 'Data Creazione', key: 'created_at', sortable: false },
+            ]"
+            class="text-no-wrap"
+            @update:options="updateTicketsOptions"
+          >
+            <!-- Ticket ID -->
+            <template #item.id="{ item }">
+              <RouterLink
+                :to="{ name: 'workflow-tickets-id', params: { id: item.id } }"
+                class="font-weight-medium text-link"
+              >
+                {{ item.id }}
+              </RouterLink>
+            </template>
+
+            <!-- Paperwork -->
+            <template #item.paperwork_id="{ item }">
+              <RouterLink
+                :to="{ name: 'workflow-paperworks-id', params: { id: item.paperwork_id } }"
+                class="font-weight-medium text-link"
+              >
+                {{ item.paperwork_id }}
+              </RouterLink>
+            </template>
+
+            <!-- Customer -->
+            <template #item.customer="{ item }">
+              <div class="text-high-emphasis text-body-1">
+                {{ item.paperwork.customer.name ? item.paperwork.customer.name : item.paperwork.customer.business_name }}
+              </div>
+            </template>
+
+            <!-- Title -->
+            <template #item.title="{ item }">
+              <div class="text-high-emphasis text-body-1">
+                {{ item.title }}
+              </div>
+            </template>
+
+            <!-- Status -->
+            <template #item.status="{ item }">
+              <div class="text-high-emphasis text-body-1">
+                {{ ticketStatusText(item.status) }}
+              </div>
+            </template>
+
+            <!-- Created By -->
+            <template #item.created_by="{ item }">
+              <div class="text-high-emphasis text-body-1">
+                {{ [item.created_by.name, item.created_by.last_name].join(' ') }}
+              </div>
+            </template>
+
+            <!-- Created At -->
+            <template #item.created_at="{ item }">
+              <div class="text-high-emphasis text-body-1">
+                {{ item.created_at }}
+              </div>
+            </template>
+
+            <!-- pagination -->
+            <template #bottom>
+              <TablePagination
+                v-model:page="ticketsPage"
+                :items-per-page="ticketsItemsPerPage"
+                :total-items="totalTickets"
               />
             </template>
           </VDataTableServer>

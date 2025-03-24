@@ -28,6 +28,11 @@ class TicketsController extends Controller
             });
         }
 
+        if ($request->get('status')) {
+            $statuses = explode(',', $request->get('status'));
+            $tickets = $tickets->whereIn('status', $statuses);
+        }
+
         if ($request->get('sortBy')) {
             $tickets = $tickets->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
         } else {
