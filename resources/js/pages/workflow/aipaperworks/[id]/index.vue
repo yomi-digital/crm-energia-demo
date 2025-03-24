@@ -37,21 +37,29 @@ const fetchProducts = async () => {
 // Fetch products on component mount
 await fetchProducts()
 
-const extractedCustomer = computed(() => {
-  try {
-    return JSON.parse(aiPaperwork.value?.ai_extracted_customer || '{}')
-  } catch (e) {
-    return {}
-  }
-})
+const extractedCustomer = ref({})
+const extractedPaperwork = ref({})
 
-const extractedPaperwork = computed(() => {
-  try {
-    return JSON.parse(aiPaperwork.value?.ai_extracted_paperwork || '{}')
-  } catch (e) {
-    return {}
+// Watch for changes in the API response and update the refs
+watch(() => aiPaperwork.value?.ai_extracted_customer, (newVal) => {
+  if (newVal) {
+    try {
+      extractedCustomer.value = JSON.parse(newVal)
+    } catch (e) {
+      extractedCustomer.value = {}
+    }
   }
-})
+}, { immediate: true })
+
+watch(() => aiPaperwork.value?.ai_extracted_paperwork, (newVal) => {
+  if (newVal) {
+    try {
+      extractedPaperwork.value = JSON.parse(newVal)
+    } catch (e) {
+      extractedPaperwork.value = {}
+    }
+  }
+}, { immediate: true })
 
 const extractedText = computed({
   get() {
@@ -407,10 +415,11 @@ const cancelPaperwork = async () => {
 
                 <VRow>
                   <VCol cols="12">
-                    <AppTextField
+                    <AppAutocomplete
                       v-model="extractedPaperwork.type"
                       label="Tipo Fornitura"
                       :readonly="aiPaperwork?.status === 5"
+                      :items="['ENERGIA', 'TELEFONIA']"
                     />
                   </VCol>
                 </VRow>
@@ -441,20 +450,22 @@ const cancelPaperwork = async () => {
 
                 <VRow>
                   <VCol cols="12">
-                    <AppTextField
+                    <AppAutocomplete
                       v-model="extractedPaperwork.category"
                       label="Categoria"
                       :readonly="aiPaperwork?.status === 5"
+                      :items="['ALLACCIO', 'OTP', 'SUBENTRO', 'VOLTURA', 'SWITCH']"
                     />
                   </VCol>
                 </VRow>
 
                 <VRow>
                   <VCol cols="12">
-                    <AppTextField
+                    <AppAutocomplete
                       v-model="extractedPaperwork.contract_type"
                       label="Tipo Contratto"
                       :readonly="aiPaperwork?.status === 5"
+                      :items="['Residenziale', 'Business']"
                     />
                   </VCol>
                 </VRow>
