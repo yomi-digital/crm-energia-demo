@@ -1,4 +1,6 @@
 <script setup>
+import { useRoute, useRouter } from 'vue-router'
+
 definePage({
   meta: {
     action: 'view',
@@ -7,7 +9,8 @@ definePage({
 })
 
 const route = useRoute('workflow-paperworks-id')
-const isConfirmDialogVisible = ref(false)
+const router = useRouter()
+const isConfirmDeleteDialogVisible = ref(false)
 const isConfirmPartnerSentDialogVisible = ref(false)
 const isPaperworkEditDialogVisible = ref(false)
 const isTicketDialogVisible = ref(false)
@@ -15,6 +18,7 @@ const selectedTicket = ref(null)
 const isTicketViewDialogVisible = ref(false)
 const isUploadDialogVisible = ref(false)
 const isUpdateStatusesDialogVisible = ref(false)
+const isDeleting = ref(false)
 
 const isAdmin = useCookie('userData').value.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 const canViewPayout = useCookie('userData').value.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
@@ -58,6 +62,22 @@ const selectedFiles = async (files) => {
     }
   })
   fetchPaperwork()
+}
+
+const deletePaperwork = async () => {
+  try {
+    isDeleting.value = true
+    await $api(`/paperworks/${ route.params.id }`, {
+      method: 'DELETE',
+    })
+    // Redirect to paperworks list after successful deletion
+    router.push('/workflow/paperworks')
+  } catch (error) {
+    console.error('Error deleting paperwork:', error)
+  } finally {
+    isDeleting.value = false
+    isConfirmDeleteDialogVisible.value = false
+  }
 }
 
 const prettifyField = (field) => {
@@ -174,13 +194,13 @@ const downloadDocument = async doc => {
           Aggiorna Stato
         </VBtn>&nbsp;
 
-        <!-- <VBtn
+        <VBtn
           variant="tonal"
           color="error"
-          @click="isConfirmDialogVisible = !isConfirmDialogVisible"
+          @click="isConfirmDeleteDialogVisible = !isConfirmDeleteDialogVisible"
         >
           Elimina Pratica
-        </VBtn> -->
+        </VBtn>
       </div>
     </div>
 
@@ -689,6 +709,39 @@ const downloadDocument = async doc => {
       <VCardText>
         <DropZone @dropped="selectedFiles" :scope="'paperworks/' + route.params.id + '/documents'" />
       </VCardText>
+    </VCard>
+  </VDialog>
+
+  <!-- Delete confirmation dialog -->
+  <VDialog
+    v-model="isConfirmDeleteDialogVisible"
+    width="500"
+    persistent
+  >
+    <VCard title="Conferma Eliminazione">
+      <VCardText>
+        <p>Sei sicuro di voler eliminare questa pratica? Questa azione non può essere annullata.</p>
+        <p>Tutti i dati associati a questa pratica verranno eliminati permanentemente, inclusi documenti, eventi e ticket. Verrà inoltre eliminata dai report associati.</p>
+      </VCardText>
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="secondary"
+          variant="tonal"
+          @click="isConfirmDeleteDialogVisible = false"
+          :disabled="isDeleting"
+        >
+          Annulla
+        </VBtn>
+        <VBtn
+          color="error"
+          @click="deletePaperwork"
+          :loading="isDeleting"
+          :disabled="isDeleting"
+        >
+          Elimina
+        </VBtn>
+      </VCardActions>
     </VCard>
   </VDialog>
 </template>

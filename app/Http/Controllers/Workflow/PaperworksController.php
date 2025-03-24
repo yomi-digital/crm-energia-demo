@@ -338,4 +338,28 @@ class PaperworksController extends Controller
 
         return \Storage::disk('do')->download($document->url);
     }
+
+    public function destroy(Request $request, $id)
+    {
+        $paperwork = \App\Models\Paperwork::find($id);
+
+        if (!$paperwork) {
+            return response()->json(['error' => 'Paperwork not found'], 404);
+        }
+
+        // Delete all documents associated with the paperwork
+        $paperwork->documents()->delete();
+
+        // Delete all tickets associated with the paperwork
+        $paperwork->tickets()->delete();
+
+        // Delete all events associated with the paperwork
+        $paperwork->events()->delete();
+
+        \App\Models\ReportEntry::where('paperwork_id', $id)->delete();
+
+        $paperwork->delete();
+
+        return response()->json(['message' => 'Paperwork deleted successfully']);
+    }
 }
