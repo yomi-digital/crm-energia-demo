@@ -65,7 +65,7 @@ class DashboardController extends Controller
 
         $query->where(function($q) {
             $q->whereNull('order_status')
-              ->orWhereIn('order_status', ['', 'DA LAVORARE', 'SOSPESO', 'INVIATO', 'INSERITO']);
+              ->orWhereIn('order_status', ['', 'DA LAVORARE', 'SOSPESO', 'INSERITO']);
         });
 
         $loggedInUserId = $request->user()->id;

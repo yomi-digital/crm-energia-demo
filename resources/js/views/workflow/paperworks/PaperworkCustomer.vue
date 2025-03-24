@@ -43,6 +43,11 @@ const fetchCustomers = async (query, id = null) => {
       title: getCustomerName(customer),
       value: customer.id,
     }))
+    
+    // If this was an initial load with ID, set the formData properly
+    if (id && customers.value.length === 1) {
+      formData.value.id = customers.value[0]
+    }
   } finally {
     loading.value = false
   }
@@ -50,7 +55,8 @@ const fetchCustomers = async (query, id = null) => {
 
 // Load initial customer if we have an ID
 if (formData.value.id) {
-  await fetchCustomers('', formData.value.id)
+  const numericId = typeof formData.value.id === 'object' ? formData.value.id.value : formData.value.id
+  await fetchCustomers('', numericId)
 }
 
 // Watch for search changes and fetch customers
@@ -86,9 +92,18 @@ watch(() => isAppointment.value, () => {
 // watch(searchAppointment, query => {
 //   query && query !== formData.value.appointment_id && fetchAppointments(query)
 // })
-watch(() => formData.value.id, () => {
-  const selected = customers.value.find(customer => customer.value === formData.value.id)
-  formData.value.name = selected.title
+watch(() => formData.value.id, (newVal, oldVal) => {
+  if (!newVal) {
+    formData.value.name = null
+    return
+  }
+  
+  if (typeof newVal === 'object') {
+    formData.value.name = newVal.title
+  } else if (typeof newVal === 'number' && oldVal && typeof oldVal === 'object') {
+    // If we're getting a numeric ID but had an object before, restore the object
+    formData.value.id = oldVal
+  }
 })
 watch(() => formData.value.appointment_id, () => {
   const selected = appointments.value.find(appointment => appointment.value === formData.value.appointment_id)
@@ -110,6 +125,10 @@ watch(() => formData.value.appointment_id, () => {
           label="Cliente"
           :items="customers"
           placeholder="Seleziona un Cliente"
+          return-object
+          item-title="title"
+          item-value="value"
+          clearable
         />
         <div class="d-flex align-center gap-2 mt-2">
           <RouterLink
