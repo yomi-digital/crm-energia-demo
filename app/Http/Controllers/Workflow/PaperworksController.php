@@ -195,8 +195,13 @@ class PaperworksController extends Controller
             $paperwork->partner_sent_at = now()->format('Y-m-d H:i:s');
         }
         if ($request->get('partner_sent_at')) {
-            if (\Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_sent_at'))->format('Y-m-d') !== $paperwork->partner_sent_at) {
-                $paperwork->partner_sent_at = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_sent_at'))->format('Y-m-d');
+            try {
+                $partnerSentAt = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_sent_at'))->format('Y-m-d');
+            } catch (\Exception $e) {
+                $partnerSentAt = \Carbon\Carbon::parse($request->get('partner_sent_at'))->format('Y-m-d');
+            }
+            if ($partnerSentAt !== $paperwork->partner_sent_at) {
+                $paperwork->partner_sent_at = $partnerSentAt;
             }
         }
 
