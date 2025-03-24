@@ -195,7 +195,7 @@ const createUser = async () => {
     phone: phone.value,
     mobile: mobile.value,
     address: address.value,
-    region: region.value,
+    region: typeof region.value === 'object' ? region.value.value : region.value,
     province: province.value,
     city: city.value,
     zip: zip.value,
@@ -232,7 +232,8 @@ const createUser = async () => {
 const filteredProvinces = computed(() => {
   if (!region.value) return []
   
-  return provinces.filter(province => province.region === region.value)
+  const regionValue = typeof region.value === 'object' ? region.value.value : region.value
+  return provinces.filter(province => province.region === regionValue)
 })
 
 </script>
@@ -452,6 +453,8 @@ const filteredProvinces = computed(() => {
           placeholder="Seleziona"
           :rules="[requiredValidator]"
           :items="regions"
+          item-title="title"
+          item-value="value"
           clearable
         />
       </VCol>
@@ -467,6 +470,8 @@ const filteredProvinces = computed(() => {
           placeholder="Seleziona"
           :rules="[requiredValidator]"
           :items="filteredProvinces"
+          item-title="title"
+          item-value="value"
           clearable
         />
       </VCol>
