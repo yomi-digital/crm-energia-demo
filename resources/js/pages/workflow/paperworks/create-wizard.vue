@@ -181,7 +181,7 @@ const onSubmit = async () => {
     method: 'POST',
     body: {
       user_id: createPaperworkData.value.agent.id,
-      customer_id: createPaperworkData.value.customer.id,
+      customer_id: createPaperworkData.value.customer.id.value,
       appointment_id: createPaperworkData.value.customer.appointment_id,
       product_id: createPaperworkData.value.product.product_id,
       account_pod_pdr: createPaperworkData.value.customer.account_pod_pdr,
