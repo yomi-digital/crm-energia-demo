@@ -28,6 +28,7 @@ class ContractUploadsController extends Controller
             $aiPaperwork = AIPaperwork::create([
                 'user_id' => auth()->id(),
                 'filepath' => $path,
+                'original_filename' => $file->getClientOriginalName(),
                 'status' => 0, // Pending
             ]);
 

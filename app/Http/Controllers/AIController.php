@@ -212,7 +212,7 @@ class AIController extends Controller
             abort(404, 'File not found');
         }
 
-        return Storage::disk('do')->download($aiPaperwork->filepath);
+        return Storage::disk('do')->download($aiPaperwork->filepath, $aiPaperwork->original_filename);
     }
 
     public function cancel($id)

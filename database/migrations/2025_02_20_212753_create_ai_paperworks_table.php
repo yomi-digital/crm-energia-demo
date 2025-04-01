@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->string('filepath');
+            $table->string('original_filename');
             $table->longText('extracted_text')->nullable();
             $table->longText('prompt_input')->nullable();
             $table->longText('prompt_output')->nullable();
