@@ -246,13 +246,13 @@ trait RoleSeeder
             $role->givePermissionTo('access calendar');
             $role->givePermissionTo('view calendar');
             foreach ($this->permissions['customers'] as $action) {
-                if ($action === 'delete') {
+                if ($action === 'delete' || $action === 'edit') {
                     continue;
                 }
                 $role->givePermissionTo($action . ' customers');
             }
             foreach ($this->permissions['paperworks'] as $action) {
-                if ($action === 'delete') {
+                if ($action === 'delete' || $action === 'edit') {
                     continue;
                 }
                 $role->givePermissionTo($action . ' paperworks');
