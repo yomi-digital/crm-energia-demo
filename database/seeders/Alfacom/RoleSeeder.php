@@ -47,6 +47,13 @@ trait RoleSeeder
             'edit',
             'delete',
         ],
+        'aipaperworks' => [
+            'access',
+            'view',
+            'create',
+            'edit',
+            'delete',
+        ],
         'mandates' => [
             'access',
             'view',
@@ -208,6 +215,9 @@ trait RoleSeeder
             foreach ($this->permissions['paperworks'] as $action) {
                 $role->givePermissionTo($action . ' paperworks');
             }
+            foreach ($this->permissions['aipaperworks'] as $action) {
+                $role->givePermissionTo($action . ' aipaperworks');
+            }
             foreach ($this->permissions['mandates'] as $action) {
                 $role->givePermissionTo($action . ' mandates');
             }
@@ -303,6 +313,9 @@ trait RoleSeeder
             }
             foreach ($this->permissions['paperworks'] as $action) {
                 $role->givePermissionTo($action . ' paperworks');
+            }
+            foreach ($this->permissions['aipaperworks'] as $action) {
+                $role->givePermissionTo($action . ' aipaperworks');
             }
             foreach ($this->permissions['mandates'] as $action) {
                 $role->givePermissionTo($action . ' mandates');
