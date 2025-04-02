@@ -9,6 +9,7 @@ class AIPaperwork extends Model
     protected $fillable = [
         'user_id',
         'filepath',
+        'original_filename',
         'extracted_text',
         'prompt_input',
         'prompt_output',
