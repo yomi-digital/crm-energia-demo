@@ -142,4 +142,26 @@ class TicketsController extends Controller
 
         return response()->json($ticket);
     }
+
+    public function downloadAttachment(Request $request, $id, $attachmentId)
+    {
+        $ticket = \App\Models\Ticket::find($id);
+
+        if (!$ticket) {
+            return response()->json(['error' => 'Ticket not found'], 404);
+        }
+
+        $attachment = \App\Models\TicketAttachment::find($attachmentId);
+
+        if (!$attachment) {
+            return response()->json(['error' => 'Attachment not found'], 404);
+        }
+
+        // Verifica che l'allegato appartenga al ticket
+        if ($attachment->ticket_id != $ticket->id) {
+            return response()->json(['error' => 'Attachment does not belong to this ticket'], 403);
+        }
+
+        return \Storage::disk('do')->download($attachment->url);
+    }
 }

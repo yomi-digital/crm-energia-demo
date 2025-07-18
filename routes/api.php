@@ -168,6 +168,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('tickets/{id}', [TicketsController::class, 'show']);
     Route::put('tickets/{id}/close', [TicketsController::class, 'close']);
     Route::post('tickets/{id}/comments', [TicketsController::class, 'comment']);
+    Route::get('tickets/{id}/attachments/{attachmentId}/download', [TicketsController::class, 'downloadAttachment']);
 
     Route::get('communications', [CommunicationsController::class, 'index']);
     Route::post('communications', [CommunicationsController::class, 'store']);

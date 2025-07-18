@@ -15,6 +15,7 @@ const emit = defineEmits([
 
 const ticketData = ref({})
 const comment = ref('')
+const downloadingAttachments = ref(new Set())
 // const isFormVisible = ref(false)
 
 const fetchTicket = async () => {
@@ -66,6 +67,42 @@ const dialogModelValueUpdate = val => {
 
 const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+
+const downloadAttachment = async (attachment) => {
+  try {
+    // Aggiungi l'allegato alla lista dei download in corso
+    downloadingAttachments.value.add(attachment.id)
+    console.log('Downloading attachment:', attachment)
+    
+    const response = await $api(`/tickets/${props.ticketId}/attachments/${attachment.id}/download`, {
+      method: 'GET',
+      responseType: 'blob'
+    })
+
+    // Determina il tipo MIME dal nome del file o usa un tipo generico
+    const mimeType = attachment.mime_type || 'application/octet-stream'
+    
+    const blob = new Blob([response], { type: mimeType })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', attachment.name)
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    
+    console.log('Download completed for:', attachment.name)
+  } catch (error) {
+    console.error('Errore nel download dell\'allegato:', error)
+    // Mostra un messaggio di errore all'utente
+    alert('Errore nel download del file: ' + attachment.name)
+  } finally {
+    // Rimuovi l'allegato dalla lista dei download in corso
+    downloadingAttachments.value.delete(attachment.id)
+  }
+}
 </script>
 
 <template>
@@ -109,6 +146,14 @@ const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role
           <h3 class="text-h6 font-weight-bold mb-2">Descrizione</h3>
           <div class="text-body-1">{{ ticketData.description }}</div>
         </div>
+
+        <!-- Allegati -->
+        <AppAttachmentsList
+          :attachments="ticketData.attachments"
+          title="Allegati"
+          :downloading-attachments="downloadingAttachments"
+          @download="downloadAttachment"
+        />
 
         <VDivider class="mb-6" />
 

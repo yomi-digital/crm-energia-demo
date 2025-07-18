@@ -74,7 +74,7 @@ class PaperworksController extends Controller
         
         // Aggiungi il conteggio degli allegati per ogni ticket
         $paperwork = $paperwork->with(['tickets' => function($query) {
-            $query->withCount('attachments');
+            $query->withCount('attachments')->with('attachments');
         }]);
 
         if ($request->user()->hasRole('agente')) {

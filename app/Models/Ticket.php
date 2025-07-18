@@ -58,4 +58,18 @@ class Ticket extends Model
     {
         return $this->attachments()->count();
     }
+
+    public function getAttachmentsLinksAttribute()
+    {
+        return $this->attachments->map(function ($attachment) {
+            return [
+                'id' => $attachment->id,
+                'name' => $attachment->name,
+                'url' => $attachment->url,
+                'mime_type' => $attachment->mime_type,
+                'size' => $attachment->size,
+                'download_url' => url("/api/tickets/{$this->id}/attachments/{$attachment->id}/download")
+            ];
+        });
+    }
 }
