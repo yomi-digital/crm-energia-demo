@@ -347,7 +347,8 @@ class ReportsController extends Controller
             'paperwork_id' => $paperwork->id,
             'inserted_at' => $paperwork->partner_sent_at,
             'activated_at' => $paperwork->partner_outcome_at,
-            'status' => $paperwork->partner_outcome,
+            'status' => $paperwork->partner_outcome . ($paperwork->order_status ? ', ' . $paperwork->order_status : ''),
+            'order_status' => $paperwork->order_status,
             'payout' => $this->calculatePaperworkPayout($paperwork, $parent),
         ];
     }
@@ -375,7 +376,8 @@ class ReportsController extends Controller
             'order_code' => $paperwork->order_code,
             'paperwork_id' => $paperwork->id,
             'inserted_at' => $paperwork->partner_sent_at ? \Carbon\Carbon::parse($paperwork->partner_sent_at)->format(config('app.date_format')) : null,
-            'status' => $paperwork->partner_outcome,
+            'status' => $paperwork->partner_outcome . ($paperwork->order_status ? ', ' . $paperwork->order_status : ''),
+            'order_status' => $paperwork->order_status,
         ];
     }
 

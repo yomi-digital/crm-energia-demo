@@ -810,12 +810,12 @@ const handleSearch = () => {
       </VCardText>
     </VCard>
 
-    <!-- Pratiche AI Section -->
+    <!-- Pratiche AI Section 
     <VRow class="mt-6">
       <VCol cols="12">
         <VCard variant="outlined" class="pa-4">
           <VCardTitle class="text-h5 mb-4">
-            Pratiche AI
+            Pratiche AI ahahha
           </VCardTitle>
           <VDataTableServer
             v-model:items-per-page="aiPaperworksItemsPerPage"
@@ -832,7 +832,7 @@ const handleSearch = () => {
             class="text-no-wrap"
             @update:options="updateAiPaperworksOptions"
           >
-            <!-- Paperwork ID -->
+            
             <template #item.id="{ item }">
               <RouterLink
                 :to="{ name: 'workflow-aipaperworks-id', params: { id: item.id } }"
@@ -842,7 +842,7 @@ const handleSearch = () => {
               </RouterLink>
             </template>
 
-            <!-- Agent -->
+            
             <template #item.user_id="{ item }">
               <RouterLink
                 v-if="item.user && $can('view', 'users')"
@@ -856,14 +856,14 @@ const handleSearch = () => {
               </template>
             </template>
 
-            <!-- File -->
+            
             <template #item.filepath="{ item }">
               <div class="text-high-emphasis text-body-1">
                 {{ item.filepath ? item.filepath.split('/').pop() : '' }}
               </div>
             </template>
 
-            <!-- Status -->
+            
             <template #item.status="{ item }">
               <VChip
                 :color="getStatusChipColor(item.status)"
@@ -874,14 +874,14 @@ const handleSearch = () => {
               </VChip>
             </template>
 
-            <!-- Created At -->
+            
             <template #item.created_at="{ item }">
               <div class="text-high-emphasis text-body-1">
                 {{ item.created_at }}
               </div>
             </template>
 
-            <!-- pagination -->
+            
             <template #bottom>
               <TablePagination
                 v-model:page="aiPaperworksPage"
@@ -892,7 +892,7 @@ const handleSearch = () => {
           </VDataTableServer>
         </VCard>
       </VCol>
-    </VRow>
+    </VRow> -->
 
     <VRow class="mt-6">
       <VCol cols="12">
