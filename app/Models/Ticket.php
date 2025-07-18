@@ -53,4 +53,9 @@ class Ticket extends Model
     {
         return $this->hasMany(TicketAttachment::class);
     }
+
+    public function getAttachmentsCountAttribute()
+    {
+        return $this->attachments()->count();
+    }
 }

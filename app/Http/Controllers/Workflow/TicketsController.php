@@ -11,7 +11,7 @@ class TicketsController extends Controller
     {
         $perPage = $request->get('itemsPerPage', 10);
 
-        $tickets = \App\Models\Ticket::with(['createdBy', 'paperwork', 'paperwork.customer']);
+        $tickets = \App\Models\Ticket::with(['createdBy', 'paperwork', 'paperwork.customer'])->withCount('attachments');
 
         // If the user has role agente, filter only for tickets related to his paperworks.
         if ($request->user()->hasRole('agente') || $request->user()->hasRole('struttura')) {
@@ -129,7 +129,7 @@ class TicketsController extends Controller
 
     public function show(Request $request, $id)
     {
-        $ticket = \App\Models\Ticket::with(['createdBy', 'comments', 'comments.user', 'paperwork', 'paperwork.product', 'paperwork.customer', 'attachments'])->whereId($id)->first();
+        $ticket = \App\Models\Ticket::with(['createdBy', 'comments', 'comments.user', 'paperwork', 'paperwork.product', 'paperwork.customer', 'attachments'])->withCount('attachments')->whereId($id)->first();
 
         if (!$ticket) {
             return response()->json(['error' => 'Ticket not found'], 404);

@@ -641,7 +641,18 @@ const downloadDocument = async doc => {
                   </template>
 
                   <VListItemTitle>
-                    <div style="font-size:1.2em;line-height: 1.5em;">{{ ticket.title }}</div>
+                    <div style="font-size:1.2em;line-height: 1.5em;" class="d-flex align-center gap-2">
+                      {{ ticket.title }}
+                      <VChip
+                        v-if="ticket.attachments_count > 0"
+                        size="x-small"
+                        color="primary"
+                        variant="tonal"
+                      >
+                        <VIcon icon="tabler-paperclip" size="small" class="mr-1" />
+                        {{ ticket.attachments_count }}
+                      </VChip>
+                    </div>
                     <div>Creato da <b>{{ [ticket.created_by.name, ticket.created_by.last_name].join(' ') }}</b> il <i>{{ ticket.created_at }}</i></div>
                   </VListItemTitle>
                 </VListItem>

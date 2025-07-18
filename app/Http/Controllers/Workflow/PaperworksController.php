@@ -71,6 +71,11 @@ class PaperworksController extends Controller
     public function show(Request $request, $id)
     {
         $paperwork = \App\Models\Paperwork::with(['user', 'customer', 'customer.paperworks', 'mandate', 'product', 'documents', 'tickets', 'tickets.createdBy', 'createdByUser', 'confirmedByUser', 'events', 'events.user'])->whereId($id);
+        
+        // Aggiungi il conteggio degli allegati per ogni ticket
+        $paperwork = $paperwork->with(['tickets' => function($query) {
+            $query->withCount('attachments');
+        }]);
 
         if ($request->user()->hasRole('agente')) {
             $paperwork = $paperwork->where('user_id', $request->user()->id);
