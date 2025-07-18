@@ -212,6 +212,17 @@ const handleBulkAction = (newStatus) => {
   fetchPaperworks()
 }
 
+const router = useRouter()
+
+const openPaperwork = (event, item) => {
+  if(!item.item?.id){
+    alert('Item ID non trovato')
+    return
+  }
+  router.push({ name: 'workflow-paperworks-id', params: { id: item.item?.id } })
+
+}
+
 </script>
 
 <template>
@@ -319,6 +330,7 @@ const handleBulkAction = (newStatus) => {
         show-select
         @update:options="updateOptions"
         @update:model-value="onSelectionChanged"
+        @click:row="openPaperwork"
       >
         <!-- Paperwork -->
         <template #item.id="{ item }">
@@ -329,6 +341,7 @@ const handleBulkAction = (newStatus) => {
                   :to="{ name: 'workflow-paperworks-id', params: { id: item.id } }"
                   class="font-weight-medium text-link"
                   :title="item.id"
+                  @click.stop
                 >
                   {{ item.id }}
                 </RouterLink>
@@ -363,6 +376,7 @@ const handleBulkAction = (newStatus) => {
                 v-if="item.user && $can('view', 'users')"
                 :to="{ name: 'admin-users-id', params: { id: item.user.id } }"
                 class="font-weight-medium text-link"
+                @click.stop
               >
                 {{ [item.user.name, item.user.last_name].join(' ') }}
               </RouterLink>
@@ -381,6 +395,7 @@ const handleBulkAction = (newStatus) => {
                 :to="{ name: 'workflow-customers-id', params: { id: item.customer.id } }"
                 class="font-weight-medium text-link"
                 :title="getCustomerName(item.customer)"
+                @click.stop
               >
                 {{ getCustomerName(item.customer) }}
               </RouterLink>
