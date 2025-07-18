@@ -77,6 +77,11 @@ class Paperwork extends Model
         return $this->hasMany(Ticket::class);
     }
 
+    public function ticketAttachments()
+    {
+        return $this->hasMany(TicketAttachment::class);
+    }
+
     public function confirmedByUser()
     {
         return $this->belongsTo(User::class, 'confirmed_by');

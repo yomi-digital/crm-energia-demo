@@ -18,20 +18,72 @@ const ticketData = ref({
   paperwork_id: props.paperworkId,
   title: '',
   description: '',
+  attachments: [],
 })
 
+// Handler per gestire l'aggiunta di file
+const handleFileChange = (files) => {
+  console.log('Files ricevuti:', files)
+  
+  if (files && files.length > 0) {
+    if (ticketData.value.attachments.length > 0) {
+      const existingFiles = [...ticketData.value.attachments]
+      const newFiles = Array.from(files)
+      
+      newFiles.forEach(newFile => {
+        const isDuplicate = existingFiles.some(existingFile => 
+          existingFile.name === newFile.name && 
+          existingFile.size === newFile.size
+        )
+        if (!isDuplicate) {
+          existingFiles.push(newFile)
+        }
+      })
+      
+      ticketData.value.attachments = existingFiles
+    } else {
+      // Se non ci sono file esistenti, usiamo direttamente i nuovi
+      ticketData.value.attachments = Array.from(files)
+    }
+  }
+  
+  console.log('File finali dopo aggiunta:', ticketData.value.attachments)
+}
+
+// Handler per rimuovere un file specifico
+const removeFile = (index) => {
+  ticketData.value.attachments.splice(index, 1)
+}
 
 const onFormSubmit = async () => {
+  // Create FormData to handle file uploads
+  const formData = new FormData()
+  formData.append('paperwork_id', ticketData.value.paperwork_id)
+  formData.append('title', ticketData.value.title)
+  formData.append('description', ticketData.value.description)
+  
+  // Append each attachment
+  ticketData.value.attachments.forEach((file, index) => {
+    formData.append(`attachments[${index}]`, file)
+  })
+
   await $api('/tickets', {
       method: 'POST',
-      body: ticketData.value,
+      body: formData,
   }).then(response => {
-    emit('update:isDialogVisible', false)
+    onFormReset()
     emit('submit', response)
   })
 }
 
 const onFormReset = () => {
+  // Reset form data
+  ticketData.value = {
+    paperwork_id: props.paperworkId,
+    title: '',
+    description: '',
+    attachments: [],
+  }
   emit('update:isDialogVisible', false)
 }
 
@@ -87,6 +139,46 @@ const dialogModelValueUpdate = val => {
                 label="Descrizione"
                 placeholder=""
               />
+            </VCol>
+
+            <!-- 👉 Attachments -->
+            <VCol
+              cols="12"
+              md="12"
+            >
+              <VLabel class="text-body-1 mb-2">
+                Allegati (Opzionale)
+              </VLabel>
+              <VFileInput
+                :model-value="ticketData.attachments"
+                @update:model-value="handleFileChange"
+                placeholder="Carica da 1 a N file"
+                multiple
+                accept="*"
+                :rules="[]"
+                variant="outlined"
+                density="compact"
+              />
+              
+              <!-- Lista dei file selezionati con pulsanti di rimozione -->
+              <div v-if="ticketData.attachments.length > 0" class="mt-3">
+                <div class="text-caption text-medium-emphasis mb-2">
+                  File selezionati ({{ ticketData.attachments.length }}):
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <VChip
+                    v-for="(file, index) in ticketData.attachments"
+                    :key="`${file.name}-${index}`"
+                    size="small"
+                    label
+                    color="primary"
+                    closable
+                    @click:close="removeFile(index)"
+                  >
+                    {{ file.name }} ({{ (file.size / 1024).toFixed(1) }} KB)
+                  </VChip>
+                </div>
+              </div>
             </VCol>
 
             <!-- 👉 Submit and Cancel -->

@@ -62,6 +62,31 @@ class TicketsController extends Controller
 
         $ticket->save();
 
+        // Handle attachments if present
+
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                // Upload file using the existing upload mechanism
+                $scope = 'tickets/' . $ticket->id;
+                $path = $file->storeAs($scope, $file->getClientOriginalName(), [
+                    'disk' => 'do',
+                    'visibility' => 'private'
+                ]);
+
+                // Create attachment record
+                $attachment = new \App\Models\TicketAttachment;
+                $attachment->ticket_id = $ticket->id;
+                $attachment->paperwork_id = $ticket->paperwork_id;
+                $attachment->name = $file->getClientOriginalName();
+                $attachment->url = $path;
+                $attachment->mime_type = $file->getMimeType();
+                $attachment->size = $file->getSize();
+                $attachment->save();
+            }
+        }
+
+        $ticket->load('attachments');
+
         return response()->json($ticket, 201);
     }
 
@@ -104,7 +129,7 @@ class TicketsController extends Controller
 
     public function show(Request $request, $id)
     {
-        $ticket = \App\Models\Ticket::with(['createdBy', 'comments', 'comments.user', 'paperwork', 'paperwork.product', 'paperwork.customer'])->whereId($id)->first();
+        $ticket = \App\Models\Ticket::with(['createdBy', 'comments', 'comments.user', 'paperwork', 'paperwork.product', 'paperwork.customer', 'attachments'])->whereId($id)->first();
 
         if (!$ticket) {
             return response()->json(['error' => 'Ticket not found'], 404);
