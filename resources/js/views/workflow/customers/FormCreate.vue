@@ -235,18 +235,26 @@ const createUser = async () => {
   }
 
   isSaving.value = true
-  const response = await $api('/customers', {
-    method: 'POST',
-    body: customerData,
-  })
-  isSaving.value = false
-  // Redirect to the customer detail page
-  if (response.id) {
-    emit('customerData', response)
-    nextTick(() => {
-      refForm.value?.reset()
-      refForm.value?.resetValidation()
+  
+  try {
+    const response = await $api('/customers', {
+      method: 'POST',
+      body: customerData,
     })
+    
+    isSaving.value = false
+    
+    // Redirect to the customer detail page
+    if (response.id) {
+      emit('customerData', response)
+      nextTick(() => {
+        refForm.value?.reset()
+        refForm.value?.resetValidation()
+      })
+    }
+  } catch (error) {
+    isSaving.value = false
+    alert('Errore durante il salvataggio del cliente. Riprova.')
   }
 }
 
