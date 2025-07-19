@@ -21,6 +21,7 @@
 </template>
 
 <script setup>
+import { $api } from '@/utils/api'
 import { onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
@@ -86,22 +87,13 @@ if (!number || number.length < 10) {
   }
 
   try {
-    const url = `/api/customers/mobile/${props.type}/check/${encodeURIComponent(number)}`
+    const url = `/customers/mobile/${props.type}/check/${encodeURIComponent(number)}`
     
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      }
+    const response = await $api(url, {
+      method: 'GET'
     })
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    
-    const data = await response.json()
+    const data = response
     
     const result = {
       available: data.available,
@@ -112,6 +104,7 @@ if (!number || number.length < 10) {
     emit('onCheckUpdate', result)
     
   } catch (error) {
+    console.log('API check error:', error) // Debug
     errorMessage.value = 'Errore durante la verifica'
     emit('onCheckUpdate', { available: false, message: 'Errore durante la verifica' })
   }
