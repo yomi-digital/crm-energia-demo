@@ -53,6 +53,10 @@ const closedTicket = () => {
   fetchPaperwork()
 }
 
+const attachmentsUpdated = () => {
+  fetchPaperwork()
+}
+
 const selectedFiles = async (files) => {
   isUploadDialogVisible.value = false
   await $api(`/paperworks/${ route.params.id }/documents`, {
@@ -705,6 +709,7 @@ const downloadDocument = async doc => {
     v-model:isDialogVisible="isTicketViewDialogVisible"
     :ticket-id="selectedTicket"
     @submit="closedTicket"
+    @attachments-updated="attachmentsUpdated"
   />
 
   <!-- Upload document -->

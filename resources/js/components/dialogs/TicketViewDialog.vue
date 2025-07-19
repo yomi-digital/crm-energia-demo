@@ -11,12 +11,13 @@ const props = defineProps({
 
 const emit = defineEmits([
   'update:isDialogVisible',
+  'attachments-updated',
 ])
 
 const ticketData = ref({})
 const comment = ref('')
 const downloadingAttachments = ref(new Set())
-// const isFormVisible = ref(false)
+const showUploadDialog = ref(false)
 
 const fetchTicket = async () => {
   await $api(`/tickets/${props.ticketId}`).then(response => {
@@ -48,11 +49,7 @@ const onFormSubmit = async () => {
         comment: comment.value,
       },
   }).then(response => {
-    console.log(response)
-    // emit('update:isDialogVisible', false)
-    // emit('submit', response)
     comment.value = ''
-    // isFormVisible.value = false
     fetchTicket()
   })
 }
@@ -70,18 +67,12 @@ const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role
 
 const downloadAttachment = async (attachment) => {
   try {
-    // Aggiungi l'allegato alla lista dei download in corso
     downloadingAttachments.value.add(attachment.id)
-    console.log('Downloading attachment:', attachment)
-    
     const response = await $api(`/tickets/${props.ticketId}/attachments/${attachment.id}/download`, {
       method: 'GET',
       responseType: 'blob'
     })
-
-    // Determina il tipo MIME dal nome del file o usa un tipo generico
     const mimeType = attachment.mime_type || 'application/octet-stream'
-    
     const blob = new Blob([response], { type: mimeType })
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -92,15 +83,30 @@ const downloadAttachment = async (attachment) => {
     link.click()
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
-    
-    console.log('Download completed for:', attachment.name)
   } catch (error) {
-    console.error('Errore nel download dell\'allegato:', error)
-    // Mostra un messaggio di errore all'utente
     alert('Errore nel download del file: ' + attachment.name)
   } finally {
-    // Rimuovi l'allegato dalla lista dei download in corso
     downloadingAttachments.value.delete(attachment.id)
+  }
+}
+
+const openUploadDialog = () => {
+  showUploadDialog.value = true
+}
+
+const handleUploadAttachments = async (files) => {
+  try {
+    const formData = new FormData()
+    files.forEach((file, index) => formData.append('attachments[]', file))
+    
+    const response = await $api(`/tickets/${props.ticketId}/attachments/add`, {
+      method: 'POST',
+      body: formData
+    })
+    await fetchTicket()
+    emit('attachments-updated')
+  } catch (error) {
+    alert('Errore nel caricamento degli allegati: ' + (error.response?.data?.message || error.message || 'Errore sconosciuto'))
   }
 }
 </script>
@@ -148,9 +154,21 @@ const downloadAttachment = async (attachment) => {
         </div>
 
         <!-- Allegati -->
+        <div class="d-flex justify-space-between align-center mb-4">
+          <h3 class="text-h6 font-weight-bold">Allegati</h3>
+          <VBtn
+            color="primary"
+            size="small"
+            @click="openUploadDialog"
+          >
+            <VIcon start>mdi-plus</VIcon>
+            Aggiungi Allegati
+          </VBtn>
+        </div>
+        
         <AppAttachmentsList
           :attachments="ticketData.attachments"
-          title="Allegati"
+          title=""
           :downloading-attachments="downloadingAttachments"
           @download="downloadAttachment"
         />
@@ -196,6 +214,12 @@ const downloadAttachment = async (attachment) => {
       </VCardText>
     </VCard>
   </VDialog>
+
+  <!-- Componente per upload allegati -->
+  <AddAttachmentDialog
+    v-model:is-dialog-visible="showUploadDialog"
+    @upload-attachments="handleUploadAttachments"
+  />
 </template>
 
 <style scoped>

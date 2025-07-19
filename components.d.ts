@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     2: typeof import('./resources/js/components/dialogs/UserInfoEditDialog copy 2.vue')['default']
+    AddAttachmentDialog: typeof import('./resources/js/components/dialogs/AddAttachmentDialog.vue')['default']
     AddAuthenticatorAppDialog: typeof import('./resources/js/components/dialogs/AddAuthenticatorAppDialog.vue')['default']
     AddEditAddressDialog: typeof import('./resources/js/components/dialogs/AddEditAddressDialog.vue')['default']
     AddEditPermissionDialog: typeof import('./resources/js/components/dialogs/AddEditPermissionDialog.vue')['default']

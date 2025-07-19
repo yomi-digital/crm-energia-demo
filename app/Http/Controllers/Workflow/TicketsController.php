@@ -164,4 +164,60 @@ class TicketsController extends Controller
 
         return \Storage::disk('do')->download($attachment->url);
     }
+
+    public function addAttachments(Request $request, $id)
+    {
+        $ticket = \App\Models\Ticket::find($id);
+
+        if (!$ticket) {
+            return response()->json(['error' => 'Ticket not found'], 404);
+        }
+
+        $attachments = [];
+
+        if ($request->hasFile('attachments')) {
+            
+            foreach ($request->file('attachments') as $index => $file) {
+
+                try {
+                    // Upload file using the existing upload mechanism
+                    $scope = 'tickets/' . $ticket->id;
+                    $path = $file->storeAs($scope, $file->getClientOriginalName(), [
+                        'disk' => 'do',
+                        'visibility' => 'private'
+                    ]);
+
+                    // Create attachment record
+                    $attachment = new \App\Models\TicketAttachment;
+                    $attachment->ticket_id = $ticket->id;
+                    $attachment->paperwork_id = $ticket->paperwork_id;
+                    $attachment->name = $file->getClientOriginalName();
+                    $attachment->url = $path;
+                    $attachment->mime_type = $file->getMimeType();
+                    $attachment->size = $file->getSize();
+                    $attachment->save();
+
+                    $attachments[] = $attachment;
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'error' => 'Error processing file',
+                        'message' => $e->getMessage()
+                    ], 500);
+                }
+            }
+        } else {
+            return response()->json([
+                'error' => 'No attachments provided',
+                'message' => 'Please select at least one file to upload'
+            ], 400);
+        }
+
+        $ticket->load('attachments');
+
+        return response()->json([
+            'message' => 'Attachments added successfully',
+            'attachments' => $attachments,
+            'ticket' => $ticket
+        ], 201);
+    }
 }
