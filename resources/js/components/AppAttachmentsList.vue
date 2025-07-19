@@ -65,7 +65,7 @@ const formatFileSize = (bytes) => {
 <template>
   <div v-if="attachments && attachments.length > 0" class="attachments-section">
     <h3 class="text-h6 font-weight-bold mb-3">
-      {{ title }}{{ showCount ? ` (${attachments.length})` : '' }}
+      {{ title }}
     </h3>
     
     <VTable class="attachments-table">

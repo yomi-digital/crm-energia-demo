@@ -1,5 +1,4 @@
 <script setup>
-import { useTheme } from 'vuetify'
 import ScrollToTop from '@core/components/ScrollToTop.vue'
 import initCore from '@core/initCore'
 import {
@@ -7,6 +6,8 @@ import {
   useConfigStore,
 } from '@core/stores/config'
 import { hexToRgb } from '@layouts/utils'
+import '@lbgm/phone-number-input/style'
+import { useTheme } from 'vuetify'
 
 const { global } = useTheme()
 

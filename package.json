@@ -17,6 +17,7 @@
     "@floating-ui/dom": "1.6.1",
     "@iconify-json/fa": "1.1.8",
     "@iconify-json/tabler": "1.1.106",
+    "@lbgm/phone-number-input": "1.1.6-alpha.2",
     "@sindresorhus/is": "6.2.0",
     "@tiptap/extension-highlight": "2.2.4",
     "@tiptap/extension-image": "2.2.4",

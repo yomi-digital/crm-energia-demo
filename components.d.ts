@@ -45,6 +45,7 @@ declare module 'vue' {
     CustomCheckboxesWithIcon: typeof import('./resources/js/@core/components/app-form-elements/CustomCheckboxesWithIcon.vue')['default']
     CustomCheckboxesWithImage: typeof import('./resources/js/@core/components/app-form-elements/CustomCheckboxesWithImage.vue')['default']
     CustomerInfoEditDialog: typeof import('./resources/js/components/dialogs/CustomerInfoEditDialog.vue')['default']
+    CustomerTelPhoneInput: typeof import('./resources/js/components/CustomerTelPhoneInput.vue')['default']
     CustomizerSection: typeof import('./resources/js/@core/components/CustomizerSection.vue')['default']
     CustomRadios: typeof import('./resources/js/@core/components/app-form-elements/CustomRadios.vue')['default']
     CustomRadiosWithIcon: typeof import('./resources/js/@core/components/app-form-elements/CustomRadiosWithIcon.vue')['default']

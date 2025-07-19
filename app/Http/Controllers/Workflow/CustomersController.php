@@ -169,6 +169,44 @@ class CustomersController extends Controller
         return response()->json($customer);
     }
 
+    public function checkMobile(Request $request, $type, $number)
+    {
+        // Validazione del tipo
+        if (!in_array($type, ['phone', 'mobile'])) {
+            return response()->json([
+                'error' => 'Tipo non valido. Deve essere "phone" o "mobile"'
+            ], 400);
+        }
+
+        // Validazione formato numero base
+        if (empty($number)) {
+            return response()->json([
+                'available' => false,
+                'message' => 'Numero non valido'
+            ]);
+        }
+
+        // Query diretta sul campo
+        $field = $type === 'phone' ? 'phone' : 'mobile';
+        
+        $existingCustomer = \App\Models\Customer::where($field, $number)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if ($existingCustomer) {
+            $typeLabel = $type === 'phone' ? 'telefono' : 'cellulare';
+            return response()->json([
+                'available' => false,
+                'message' => "Questo {$typeLabel} è già associato a un altro cliente"
+            ]);
+        }
+
+        return response()->json([
+            'available' => true,
+            'message' => 'Numero disponibile'
+        ]);
+    }
+
     public function export(Request $request)
     {
         $customers = new \App\Models\Customer;
@@ -305,4 +343,6 @@ class CustomersController extends Controller
 
         return $csvPath;
     }
+
+    // Rimossa la logica di normalizzazione - ora gestita nel Model Customer
 }

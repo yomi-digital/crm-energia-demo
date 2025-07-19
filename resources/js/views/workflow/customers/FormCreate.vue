@@ -19,12 +19,33 @@ const province = ref('')
 const city = ref('')
 const zip = ref('')
 
+
+
 const refForm = ref()
 const isSaving = ref(false)
 
 const emit = defineEmits([
   'customerData',
 ])
+
+// Funzioni per gestire i callback del componente
+const handlePhoneCheckUpdate = (result) => {
+  console.log('Phone check result:', result)
+}
+
+const handlePhoneValue = (value) => {
+  phone.value = value
+  console.log('Phone value:', value)
+}
+
+const handleMobileCheckUpdate = (result) => {
+  console.log('Mobile check result:', result)
+}
+
+const handleMobileValue = (value) => {
+  mobile.value = value
+  console.log('Mobile value:', value)
+}
 
 const errors = ref({
   name: [],
@@ -374,10 +395,14 @@ const filteredProvinces = computed(() => {
         cols="12"
         md="6"
       >
-        <AppTextField
+        <CustomerTelPhoneInput
           v-model="phone"
+          type="phone"
           label="Telefono"
-          placeholder="1234567890"
+          placeholder="Telefono fisso"
+          name="phone"
+          @onCheckUpdate="handlePhoneCheckUpdate"
+          @onValue="handlePhoneValue"
         />
       </VCol>
 
@@ -386,11 +411,15 @@ const filteredProvinces = computed(() => {
         cols="12"
         md="6"
       >
-        <AppTextField
+        <CustomerTelPhoneInput
           v-model="mobile"
+          type="mobile"
           label="Cellulare"
-          placeholder="1234567890"
-          :rules="[requiredValidator]"
+          placeholder="Cellulare"
+          name="mobile"
+          required
+          @onCheckUpdate="handleMobileCheckUpdate"
+          @onValue="handleMobileValue"
         />
       </VCol>
 
@@ -406,6 +435,8 @@ const filteredProvinces = computed(() => {
           :rules="[requiredValidator]"
         />
       </VCol>
+
+
 
       <!-- 👉 PEC -->
       <!-- <VCol
@@ -441,6 +472,8 @@ const filteredProvinces = computed(() => {
           :rules="[requiredValidator]"
         />
       </VCol>
+
+      
 
       <!-- 👉 Region -->
       <VCol

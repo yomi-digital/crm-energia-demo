@@ -25,6 +25,9 @@ dependencies:
   '@iconify-json/tabler':
     specifier: 1.1.106
     version: 1.1.106
+  '@lbgm/phone-number-input':
+    specifier: 1.1.6-alpha.2
+    version: 1.1.6-alpha.2(typescript@5.8.3)
   '@sindresorhus/is':
     specifier: 6.2.0
     version: 6.2.0
@@ -1289,6 +1292,17 @@ packages:
 
   /@kurkle/color@0.3.4:
     resolution: {integrity: sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==}
+    dev: false
+
+  /@lbgm/phone-number-input@1.1.6-alpha.2(typescript@5.8.3):
+    resolution: {integrity: sha512-bLUAfkFI8hmPi+ARLsUfS9MM/Fi8EnxL+hd6sZSsrcpuonvRFr6ihw6dqkgQDJY39a55g1ovdSGo7jBJiiOGEg==}
+    engines: {node: '>=16.20.1', npm: please-use-yarn, yarn: '>=1.22.21'}
+    dependencies:
+      libphonenumber-js: 1.12.10
+      sass: 1.71.1
+      vue: 3.4.21(typescript@5.8.3)
+    transitivePeerDependencies:
+      - typescript
     dev: false
 
   /@mapbox/geojson-rewind@0.5.2:
@@ -5285,6 +5299,10 @@ packages:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+
+  /libphonenumber-js@1.12.10:
+    resolution: {integrity: sha512-E91vHJD61jekHHR/RF/E83T/CMoaLXT7cwYA75T4gim4FZjnM6hbJjVIGg7chqlSqRsSvQ3izGmOjHy1SQzcGQ==}
+    dev: false
 
   /lilconfig@2.1.0:
     resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}

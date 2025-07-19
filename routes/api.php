@@ -130,6 +130,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::post('customers', [CustomersController::class, 'store']);
     Route::put('customers/{id}', [CustomersController::class, 'update']);
     Route::put('customers/{id}/confirm', [CustomersController::class, 'confirm']);
+    Route::get('customers/mobile/{type}/check/{number}', [CustomersController::class, 'checkMobile']);
     Route::get('cities', [CustomersController::class, 'cities']);
 
     Route::get('reports', [ReportsController::class, 'index']);
