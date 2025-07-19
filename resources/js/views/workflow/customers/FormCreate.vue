@@ -217,7 +217,7 @@ const createUser = async () => {
     mobile: mobile.value,
     address: address.value,
     region: typeof region.value === 'object' ? region.value.value : region.value,
-    province: province.value,
+    province: typeof province.value === 'object' ? province.value.value : province.value,
     city: city.value,
     zip: zip.value,
   }

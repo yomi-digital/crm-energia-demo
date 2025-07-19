@@ -118,6 +118,39 @@ class CustomersController extends Controller
 
     public function store(Request $request)
     {
+        // Validazione unicità telefono e cellulare
+        $errors = [];
+        
+        // Controllo telefono
+        if ($request->filled('phone')) {
+            $existingPhone = \App\Models\Customer::where('phone', $request->phone)
+                ->whereNull('deleted_at')
+                ->first();
+                
+            if ($existingPhone) {
+                $errors['phone'] = 'Questo telefono è già associato a un altro cliente';
+            }
+        }
+        
+        // Controllo cellulare
+        if ($request->filled('mobile')) {
+            $existingMobile = \App\Models\Customer::where('mobile', $request->mobile)
+                ->whereNull('deleted_at')
+                ->first();
+                
+            if ($existingMobile) {
+                $errors['mobile'] = 'Questo cellulare è già associato a un altro cliente';
+            }
+        }
+        
+        // Se ci sono errori, restituisci errore 422
+        if (!empty($errors)) {
+            return response()->json([
+                'message' => 'I dati forniti non sono validi.',
+                'errors' => $errors
+            ], 422);
+        }
+
         $customer = new \App\Models\Customer;
 
         $customer->fill($request->all());
@@ -135,6 +168,41 @@ class CustomersController extends Controller
 
         if (!$customer) {
             return response()->json(['error' => 'Customer not found'], 404);
+        }
+
+        // Validazione unicità telefono e cellulare (escludendo il customer corrente)
+        $errors = [];
+        
+        // Controllo telefono
+        if ($request->filled('phone')) {
+            $existingPhone = \App\Models\Customer::where('phone', $request->phone)
+                ->where('id', '!=', $id)
+                ->whereNull('deleted_at')
+                ->first();
+                
+            if ($existingPhone) {
+                $errors['phone'] = 'Questo telefono è già associato a un altro cliente';
+            }
+        }
+        
+        // Controllo cellulare
+        if ($request->filled('mobile')) {
+            $existingMobile = \App\Models\Customer::where('mobile', $request->mobile)
+                ->where('id', '!=', $id)
+                ->whereNull('deleted_at')
+                ->first();
+                
+            if ($existingMobile) {
+                $errors['mobile'] = 'Questo cellulare è già associato a un altro cliente';
+            }
+        }
+        
+        // Se ci sono errori, restituisci errore 422
+        if (!empty($errors)) {
+            return response()->json([
+                'message' => 'I dati forniti non sono validi.',
+                'errors' => $errors
+            ], 422);
         }
 
         $customer->fill($request->all());
