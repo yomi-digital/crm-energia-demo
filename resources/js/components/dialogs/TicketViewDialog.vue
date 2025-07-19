@@ -17,7 +17,6 @@ const emit = defineEmits([
 const ticketData = ref({})
 const comment = ref('')
 const downloadingAttachments = ref(new Set())
-const showUploadDialog = ref(false)
 
 const fetchTicket = async () => {
   await $api(`/tickets/${props.ticketId}`).then(response => {
@@ -65,49 +64,13 @@ const dialogModelValueUpdate = val => {
 const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 
-const downloadAttachment = async (attachment) => {
-  try {
-    downloadingAttachments.value.add(attachment.id)
-    const response = await $api(`/tickets/${props.ticketId}/attachments/${attachment.id}/download`, {
-      method: 'GET',
-      responseType: 'blob'
-    })
-    const mimeType = attachment.mime_type || 'application/octet-stream'
-    const blob = new Blob([response], { type: mimeType })
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', attachment.name)
-    link.style.display = 'none'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-  } catch (error) {
-    alert('Errore nel download del file: ' + attachment.name)
-  } finally {
-    downloadingAttachments.value.delete(attachment.id)
-  }
-}
+// Rimossa la funzione downloadAttachment duplicata - ora gestita in AppAttachmentsList
 
-const openUploadDialog = () => {
-  showUploadDialog.value = true
-}
+// Rimossa la logica di upload duplicata - ora gestita in AppAttachmentZone
 
-const handleUploadAttachments = async (files) => {
-  try {
-    const formData = new FormData()
-    files.forEach((file, index) => formData.append('attachments[]', file))
-    
-    const response = await $api(`/tickets/${props.ticketId}/attachments/add`, {
-      method: 'POST',
-      body: formData
-    })
-    await fetchTicket()
-    emit('attachments-updated')
-  } catch (error) {
-    alert('Errore nel caricamento degli allegati: ' + (error.response?.data?.message || error.message || 'Errore sconosciuto'))
-  }
+const handleAttachmentsUpdated = async () => {
+  await fetchTicket()
+  emit('attachments-updated')
 }
 </script>
 
@@ -154,23 +117,12 @@ const handleUploadAttachments = async (files) => {
         </div>
 
         <!-- Allegati -->
-        <div class="d-flex justify-space-between align-center mb-4">
-          <h3 class="text-h6 font-weight-bold">Allegati</h3>
-          <VBtn
-            color="primary"
-            size="small"
-            @click="openUploadDialog"
-          >
-            <VIcon start>mdi-plus</VIcon>
-            Aggiungi Allegati
-          </VBtn>
-        </div>
-        
-        <AppAttachmentsList
+        <AppAttachmentZone
           :attachments="ticketData.attachments"
-          title=""
+          title="Allegati"
           :downloading-attachments="downloadingAttachments"
-          @download="downloadAttachment"
+          :ticket-id="props.ticketId"
+          @attachments-updated="handleAttachmentsUpdated"
         />
 
         <VDivider class="mb-6" />
@@ -215,11 +167,6 @@ const handleUploadAttachments = async (files) => {
     </VCard>
   </VDialog>
 
-  <!-- Componente per upload allegati -->
-  <AddAttachmentDialog
-    v-model:is-dialog-visible="showUploadDialog"
-    @upload-attachments="handleUploadAttachments"
-  />
 </template>
 
 <style scoped>

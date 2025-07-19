@@ -16,12 +16,41 @@ const props = defineProps({
     type: Set,
     default: () => new Set(),
   },
+  ticketId: {
+    type: [String, Number],
+    required: true,
+  },
 })
 
 const emit = defineEmits(['download'])
 
-const downloadAttachment = (attachment) => {
-  emit('download', attachment)
+const downloadAttachment = async (attachment) => {
+  try {
+
+    props.downloadingAttachments.add(attachment.id)
+    
+    const response = await $api(`/tickets/${props.ticketId}/attachments/${attachment.id}/download`, {
+      method: 'GET',
+      responseType: 'blob'
+    })
+
+    const mimeType = attachment.mime_type || 'application/octet-stream'
+    const blob = new Blob([response], { type: mimeType })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', attachment.name)
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    alert('Errore nel download del file: ' + attachment.name)
+  } finally {
+    // Rimuovi l'allegato dalla lista dei download in corso
+    props.downloadingAttachments.delete(attachment.id)
+  }
 }
 
 const formatFileSize = (bytes) => {

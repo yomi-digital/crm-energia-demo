@@ -10,6 +10,7 @@ const route = useRoute('workflow-tickets-id')
 
 const comment = ref('')
 const showConfirmDialog = ref(false)
+const downloadingAttachments = ref(new Set())
 
 const {
   data: ticketData,
@@ -52,6 +53,10 @@ const commentTicket = async () => {
 
 const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+
+// Rimossa la funzione downloadAttachment duplicata - ora gestita in AppAttachmentsList
+
+// Rimossa la logica di upload duplicata - ora gestita in AppAttachmentZone
 </script>
 
 <template>
@@ -108,6 +113,20 @@ const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role
           </VCardText>
         </VCard>
 
+        <!-- Allegati -->
+        <VCard class="mt-6">
+          <VCardText class="py-4 px-6">
+            <AppAttachmentZone
+              :attachments="ticketData.attachments"
+              title="Allegati"
+              :downloading-attachments="downloadingAttachments"
+              :ticket-id="route.params.id"
+              @attachments-updated="fetchTicket"
+            />
+          </VCardText>
+        </VCard>
+
+        <!-- Commenti -->
         <VCard class="mt-6">
           <VCardText class="py-4 px-6">
 
