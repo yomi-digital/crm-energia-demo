@@ -118,29 +118,58 @@ class CustomersController extends Controller
 
     public function store(Request $request)
     {
-        // Validazione unicità telefono e cellulare
+        // Validazione incrociata di unicità telefono e cellulare
         $errors = [];
         
-        // Controllo telefono
+        // Controllo telefono fisso
         if ($request->filled('phone')) {
-            $existingPhone = \App\Models\Customer::where('phone', $request->phone)
+            $phoneNumber = $request->phone;
+            
+            // Controllo se il numero esiste già come telefono fisso
+            $existingPhone = \App\Models\Customer::where('phone', $phoneNumber)
                 ->whereNull('deleted_at')
                 ->first();
                 
             if ($existingPhone) {
-                $errors['phone'] = 'Questo telefono è già associato a un altro cliente';
+                $errors['phone'] = 'Questo telefono fisso è già associato a un altro cliente';
+            }
+            
+            // Controllo incrociato: se il numero esiste già come cellulare
+            $existingMobile = \App\Models\Customer::where('mobile', $phoneNumber)
+                ->whereNull('deleted_at')
+                ->first();
+                
+            if ($existingMobile) {
+                $errors['phone'] = 'Questo numero è già registrato come cellulare di un altro cliente';
             }
         }
         
         // Controllo cellulare
         if ($request->filled('mobile')) {
-            $existingMobile = \App\Models\Customer::where('mobile', $request->mobile)
+            $mobileNumber = $request->mobile;
+            
+            // Controllo se il numero esiste già come cellulare
+            $existingMobile = \App\Models\Customer::where('mobile', $mobileNumber)
                 ->whereNull('deleted_at')
                 ->first();
                 
             if ($existingMobile) {
                 $errors['mobile'] = 'Questo cellulare è già associato a un altro cliente';
             }
+            
+            // Controllo incrociato: se il numero esiste già come telefono fisso
+            $existingPhone = \App\Models\Customer::where('phone', $mobileNumber)
+                ->whereNull('deleted_at')
+                ->first();
+                
+            if ($existingPhone) {
+                $errors['mobile'] = 'Questo numero è già registrato come telefono fisso di un altro cliente';
+            }
+        }
+        
+        // Controllo che telefono e cellulare non siano uguali
+        if ($request->filled('phone') && $request->filled('mobile') && $request->phone === $request->mobile) {
+            $errors['mobile'] = 'Telefono fisso e cellulare non possono essere uguali';
         }
         
         // Se ci sono errori, restituisci errore 422
@@ -254,19 +283,36 @@ class CustomersController extends Controller
             ]);
         }
 
-        // Query diretta sul campo
-        $field = $type === 'phone' ? 'phone' : 'mobile';
-        
-        $existingCustomer = \App\Models\Customer::where($field, $number)
+        // Controllo incrociato: verifica se il numero esiste in entrambi i campi
+        $existingInPhone = \App\Models\Customer::where('phone', $number)
+            ->whereNull('deleted_at')
+            ->first();
+            
+        $existingInMobile = \App\Models\Customer::where('mobile', $number)
             ->whereNull('deleted_at')
             ->first();
 
-        if ($existingCustomer) {
-            $typeLabel = $type === 'phone' ? 'telefono' : 'cellulare';
-            return response()->json([
-                'available' => false,
-                'message' => "Questo {$typeLabel} è già associato a un altro cliente"
-            ]);
+        if ($existingInPhone || $existingInMobile) {
+            $typeLabel = $type === 'phone' ? 'telefono fisso' : 'cellulare';
+            
+            // Messaggio specifico per controllo incrociato
+            if ($type === 'phone' && $existingInMobile) {
+                return response()->json([
+                    'available' => false,
+                    'message' => 'Questo numero è già registrato come cellulare di un altro cliente'
+                ]);
+            } elseif ($type === 'mobile' && $existingInPhone) {
+                return response()->json([
+                    'available' => false,
+                    'message' => 'Questo numero è già registrato come telefono fisso di un altro cliente'
+                ]);
+            } else {
+                // Controllo normale (stesso campo)
+                return response()->json([
+                    'available' => false,
+                    'message' => "Questo {$typeLabel} è già associato a un altro cliente"
+                ]);
+            }
         }
 
         return response()->json([
