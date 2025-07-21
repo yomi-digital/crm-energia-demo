@@ -239,7 +239,7 @@ class ReportsController extends Controller
         }
 
         $paperworks = \App\Models\Paperwork::with(['user', 'product', 'product.brand'])
-            ->whereBetween('partner_outcome_at', [
+            ->whereBetween('partner_sent_at', [
                 $request->get('from') . ' 00:00:00',
                 $request->get('to') . ' 23:59:59'
             ]);
