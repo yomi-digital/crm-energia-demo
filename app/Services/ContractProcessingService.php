@@ -156,8 +156,8 @@ class ContractProcessingService
             "nome": "Nome del Cliente",
             "cognome": "Cognome del Cliente",
             "email": "email.cliente@example.com",
-            "telefono": "+39 0123456789",
-            "mobile": "+39 3333333333",
+            "telefono": "+390123456789",
+            "mobile": "+393333333333",
             "ragione_sociale": "",
             "codice_fiscale": "",
             "partita_iva": "",
@@ -185,6 +185,10 @@ class ContractProcessingService
         }
         </contratto>
             
+        IMPORTANTE: I numeri di telefono e mobile DEVONO sempre essere restituiti in formato internazionale completo (esempio: "+393342114696", "+390871234567"). 
+        Se il numero non ha il prefisso internazionale, aggiungi "+39" per i numeri italiani.
+        Non lasciare mai numeri senza prefisso internazionale, se il prefisso non è presente o non sai determinarlo, aggiungi "+39" come prefisso di fallback
+        
         Si prega di fornire i dati completi ed eventualmente annotare se alcune informazioni non sono presenti nel testo.
         EOF;
     }
@@ -219,8 +223,8 @@ class ContractProcessingService
             $customerDb->last_name = $customer['cognome'];
             $customerDb->business_name = $customer['ragione_sociale'];
             $customerDb->email = $customer['email'];
-            $customerDb->phone = $customer['telefono'];
-            $customerDb->mobile = $customer['mobile'];
+            $customerDb->phone = $this->sanitizePhoneNumber($customer['telefono']);
+            $customerDb->mobile = $this->sanitizePhoneNumber($customer['mobile']);
             $customerDb->address = $customer['indirizzo'];
             $customerDb->city = $customer['citta'];
             $customerDb->province = $customer['provincia'];
@@ -277,5 +281,20 @@ class ContractProcessingService
         $paperwork->previous_provider = $contract['fornitore_precedente'] ?? null;
 
         return $paperwork;
+    }
+
+    /**
+     * Sanitizza un numero di telefono rimuovendo lettere, spazi e caratteri non numerici
+     * Mantiene solo numeri e il simbolo + all'inizio
+     */
+    private function sanitizePhoneNumber($phoneNumber)
+    {
+        if (!$phoneNumber) {
+            return '';
+        }
+        
+        $phoneNumber = trim($phoneNumber);
+        $phoneNumber = preg_replace('/[^+\d]/', '', $phoneNumber);
+        return $phoneNumber;
     }
 } 
