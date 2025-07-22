@@ -147,6 +147,7 @@ const downloadFile = async () => {
 }
 
 const isSaving = ref(false)
+const isUpdatingEmail = ref(false)
 
 const saveModifications = async () => {
   isSaving.value = true
@@ -208,6 +209,40 @@ const cancelPaperwork = async () => {
   } catch (error) {
     console.error('Error canceling paperwork:', error)
     alert('Errore durante l\'annullamento della pratica')
+  }
+}
+
+const updateEmailAndRefresh = async () => {
+  if (!extractedCustomer.value.email || !extractedCustomer.value.email.trim()) {
+    alert('Inserisci un\'email valida')
+    return
+  }
+  
+  isUpdatingEmail.value = true
+  
+  try {
+    const response = await $api(`/ai-paperworks/${id}/update-email`, {
+      method: 'POST',
+      body: {
+        email: extractedCustomer.value.email
+      }
+    })
+    
+    // Mostra messaggio di successo
+    const message = response.customer_found 
+      ? `Email aggiornata! Cliente esistente trovato (ID: ${response.customer_id})`
+      : 'Email aggiornata! Nessun cliente esistente trovato con questa email'
+    
+    alert(message)
+    
+    // Refresh della pagina per ricaricare tutti i dati
+    window.location.reload()
+    
+  } catch (error) {
+    console.error('Error updating email:', error)
+    alert('Errore durante l\'aggiornamento dell\'email')
+  } finally {
+    isUpdatingEmail.value = false
   }
 }
 </script>
@@ -319,12 +354,26 @@ const cancelPaperwork = async () => {
                 </VRow>
 
                 <VRow>
-                  <VCol cols="12">
+                  <VCol cols="9">
                     <AppTextField
                       v-model="extractedCustomer.email"
                       label="Email"
                       :readonly="aiPaperwork?.status === 5"
                     />
+                  </VCol>
+                  <VCol cols="3" class="d-flex align-center">
+                    <VBtn
+                      v-if="aiPaperwork?.status !== 5"
+                      color="primary"
+                      variant="outlined"
+                      size="small"
+                      class="mt-6"
+                      @click="updateEmailAndRefresh"
+                      :loading="isUpdatingEmail"
+                      :disabled="!extractedCustomer.email || !extractedCustomer.email.trim()"
+                    >
+                      Aggiorna Email
+                    </VBtn>
                   </VCol>
                 </VRow>
 

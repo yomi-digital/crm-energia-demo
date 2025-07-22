@@ -336,4 +336,51 @@ class AIController extends Controller
 
         return response()->json($aiPaperwork);
     }
+
+    public function updateEmail(Request $request, $id)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $aiPaperwork = AIPaperwork::findOrFail($id);
+        
+        // Sanitizza email (usando la stessa logica del ContractProcessingService)
+        $sanitizedEmail = trim(strtolower($request->email));
+        
+        // Cerca cliente esistente con questa email
+        $existingCustomer = \App\Models\Customer::where('email', $sanitizedEmail)
+            ->whereNull('deleted_at')
+            ->first();
+        
+        // Aggiorna i dati estratti
+        $customerData = json_decode($aiPaperwork->ai_extracted_customer, true) ?: [];
+        $customerData['email'] = $sanitizedEmail;
+        
+        // Se trova un cliente esistente, aggiorna anche l'ID
+        if ($existingCustomer) {
+            $customerData['id'] = $existingCustomer->id;
+            
+            // Aggiorna anche nei dati paperwork per i componenti telefono
+            $paperworkData = json_decode($aiPaperwork->ai_extracted_paperwork, true) ?: [];
+            $paperworkData['customer_id'] = $existingCustomer->id;
+            $aiPaperwork->ai_extracted_paperwork = json_encode($paperworkData);
+        } else {
+            // Rimuovi ID se il cliente non esiste più
+            unset($customerData['id']);
+            
+            $paperworkData = json_decode($aiPaperwork->ai_extracted_paperwork, true) ?: [];
+            unset($paperworkData['customer_id']);
+            $aiPaperwork->ai_extracted_paperwork = json_encode($paperworkData);
+        }
+        
+        $aiPaperwork->ai_extracted_customer = json_encode($customerData);
+        $aiPaperwork->save();
+
+        return response()->json([
+            'message' => 'Email aggiornata con successo',
+            'customer_found' => $existingCustomer ? true : false,
+            'customer_id' => $existingCustomer ? $existingCustomer->id : null,
+        ]);
+    }
 }

@@ -149,6 +149,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('ai-paperworks/{id}/download', [AIController::class, 'download']);
     Route::post('ai-paperworks/{id}/process', [AIController::class, 'process']);
     Route::put('ai-paperworks/{id}', [AIController::class, 'update']);
+    Route::post('ai-paperworks/{id}/update-email', [AIController::class, 'updateEmail']);
     Route::post('ai-paperworks/{id}/confirm', [AIController::class, 'confirm']);
     Route::post('ai-paperworks/{id}/cancel', [AIController::class, 'cancel']);
 
