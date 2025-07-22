@@ -366,11 +366,11 @@ class AIController extends Controller
             $paperworkData['customer_id'] = $existingCustomer->id;
             $aiPaperwork->ai_extracted_paperwork = json_encode($paperworkData);
         } else {
-            // Rimuovi ID se il cliente non esiste più
-            unset($customerData['id']);
+            // Imposta ID a null se il cliente non esiste
+            $customerData['id'] = null;
             
             $paperworkData = json_decode($aiPaperwork->ai_extracted_paperwork, true) ?: [];
-            unset($paperworkData['customer_id']);
+            $paperworkData['customer_id'] = null;
             $aiPaperwork->ai_extracted_paperwork = json_encode($paperworkData);
         }
         
