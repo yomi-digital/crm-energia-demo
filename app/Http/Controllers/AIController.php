@@ -101,6 +101,102 @@ class AIController extends Controller
     {
         $aiPaperwork = AIPaperwork::findOrFail($id);
 
+        // Validazione telefono e cellulare se i dati cliente sono stati modificati
+        if ($request->has('ai_extracted_customer')) {
+            $customerData = $request->ai_extracted_customer;
+            $errors = [];
+            
+            // Ottieni il customerId se presente (da ai_extracted_paperwork)
+            $customerId = null;
+            if ($request->has('ai_extracted_paperwork')) {
+                $paperworkData = $request->ai_extracted_paperwork;
+                $customerId = $paperworkData['customer_id'] ?? null;
+            }
+            
+            // Controllo telefono fisso
+            if (!empty($customerData['phone'])) {
+                $phoneNumber = $customerData['phone'];
+                
+                // Controllo se il numero esiste già come telefono fisso in altri clienti
+                $existingPhone = \App\Models\Customer::where('phone', $phoneNumber)
+                    ->whereNull('deleted_at');
+                    
+                // Se customerId è presente, escludilo dalla ricerca
+                if ($customerId) {
+                    $existingPhone = $existingPhone->where('id', '!=', $customerId);
+                }
+                
+                $existingPhone = $existingPhone->first();
+                    
+                if ($existingPhone) {
+                    $errors['phone'] = 'Questo telefono fisso è già associato a un altro cliente';
+                }
+                
+                // Controllo incrociato: se il numero esiste già come cellulare in altri clienti
+                $existingMobile = \App\Models\Customer::where('mobile', $phoneNumber)
+                    ->whereNull('deleted_at');
+                    
+                // Se customerId è presente, escludilo dalla ricerca
+                if ($customerId) {
+                    $existingMobile = $existingMobile->where('id', '!=', $customerId);
+                }
+                
+                $existingMobile = $existingMobile->first();
+                    
+                if ($existingMobile) {
+                    $errors['phone'] = 'Questo numero è già registrato come cellulare di un altro cliente';
+                }
+            }
+            
+            // Controllo cellulare
+            if (!empty($customerData['mobile'])) {
+                $mobileNumber = $customerData['mobile'];
+                
+                // Controllo se il numero esiste già come cellulare in altri clienti
+                $existingMobile = \App\Models\Customer::where('mobile', $mobileNumber)
+                    ->whereNull('deleted_at');
+                    
+                // Se customerId è presente, escludilo dalla ricerca
+                if ($customerId) {
+                    $existingMobile = $existingMobile->where('id', '!=', $customerId);
+                }
+                
+                $existingMobile = $existingMobile->first();
+                    
+                if ($existingMobile) {
+                    $errors['mobile'] = 'Questo cellulare è già associato a un altro cliente';
+                }
+                
+                // Controllo incrociato: se il numero esiste già come telefono fisso in altri clienti
+                $existingPhone = \App\Models\Customer::where('phone', $mobileNumber)
+                    ->whereNull('deleted_at');
+                    
+                // Se customerId è presente, escludilo dalla ricerca
+                if ($customerId) {
+                    $existingPhone = $existingPhone->where('id', '!=', $customerId);
+                }
+                
+                $existingPhone = $existingPhone->first();
+                    
+                if ($existingPhone) {
+                    $errors['mobile'] = 'Questo numero è già registrato come telefono fisso di un altro cliente';
+                }
+            }
+            
+            // Controllo che telefono e cellulare non siano uguali
+            if (!empty($customerData['phone']) && !empty($customerData['mobile']) && $customerData['phone'] === $customerData['mobile']) {
+                $errors['mobile'] = 'Telefono fisso e cellulare non possono essere uguali';
+            }
+            
+            // Se ci sono errori, restituisci errore 422
+            if (!empty($errors)) {
+                return response()->json([
+                    'message' => 'I dati forniti non sono validi.',
+                    'errors' => $errors
+                ], 422);
+            }
+        }
+
         // Update the extracted data
         if ($request->has('ai_extracted_customer')) {
             $aiPaperwork->ai_extracted_customer = json_encode($request->ai_extracted_customer);

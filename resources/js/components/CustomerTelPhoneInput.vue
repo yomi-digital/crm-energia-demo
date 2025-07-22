@@ -13,6 +13,7 @@
       :list-height="listHeight"
       :has-error="!!errorMessage"
       :error-message="errorMessage"
+      :disabled="readonly"
       @phone="handlePhoneChange"
       @country="handleCountryChange"
       @phoneData="handlePhoneData"
@@ -35,7 +36,8 @@ const props = defineProps({
   arrow: {type: Boolean,default: true},
   listHeight: {type: Number,default: 150},
   allowed: {type: Array, default: () => []},
-  customerId: {type: [String, Number],default: null}
+  customerId: {type: [String, Number],default: null},
+  readonly: {type: Boolean,default: false}
 })
 
 const emit = defineEmits(['update:modelValue', 'onCheckUpdate', 'onValue'])

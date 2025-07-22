@@ -163,6 +163,7 @@ const saveModifications = async () => {
     window.location.reload()
   } catch (error) {
     console.error('Error saving modifications:', error)
+    alert('Errore durante il salvataggio delle modifiche')
   } finally {
     isSaving.value = false
   }
@@ -329,17 +330,23 @@ const cancelPaperwork = async () => {
 
                 <VRow>
                   <VCol cols="6">
-                    <AppTextField
+                    <CustomerTelPhoneInput
                       v-model="extractedCustomer.phone"
+                      :type="'phone'"
                       label="Telefono"
+                      placeholder="Telefono fisso"
                       :readonly="aiPaperwork?.status === 5"
+                      :customer-id="extractedPaperwork.customer_id"
                     />
                   </VCol>
                   <VCol cols="6">
-                    <AppTextField
+                    <CustomerTelPhoneInput
                       v-model="extractedCustomer.mobile"
+                      :type="'mobile'"
                       label="Cellulare"
+                      placeholder="Cellulare"
                       :readonly="aiPaperwork?.status === 5"
+                      :customer-id="extractedPaperwork.customer_id"
                     />
                   </VCol>
                 </VRow>

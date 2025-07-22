@@ -215,14 +215,15 @@ class ContractProcessingService
     {
         $customerDb = null;
         if (isset($customer['email']) && $customer['email']) {
-            $customerDb = Customer::where('email', $customer['email'])->first();
+            $sanitizedEmail = $this->sanitizeEmail($customer['email']);
+            $customerDb = Customer::where('email', $sanitizedEmail)->first();
         }
         if (!$customerDb) {
             $customerDb = new Customer();
             $customerDb->name = $customer['nome'];
             $customerDb->last_name = $customer['cognome'];
             $customerDb->business_name = $customer['ragione_sociale'];
-            $customerDb->email = $customer['email'];
+            $customerDb->email = $this->sanitizeEmail($customer['email']);
             $customerDb->phone = $this->sanitizePhoneNumber($customer['telefono']);
             $customerDb->mobile = $this->sanitizePhoneNumber($customer['mobile']);
             $customerDb->address = $customer['indirizzo'];
@@ -296,5 +297,19 @@ class ContractProcessingService
         $phoneNumber = trim($phoneNumber);
         $phoneNumber = preg_replace('/[^+\d]/', '', $phoneNumber);
         return $phoneNumber;
+    }
+
+    /**
+     * Sanitizza un indirizzo email convertendolo in minuscolo e rimuovendo spazi
+     */
+    private function sanitizeEmail($email)
+    {
+        if (!$email) {
+            return '';
+        }
+        
+        $email = trim($email);
+        $email = strtolower($email);
+        return $email;
     }
 } 
