@@ -1,24 +1,60 @@
 <script setup>
 import DropZoneContracts from '@/components/DropZoneContracts.vue'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const dialog = ref(false)
 const isUploading = ref(false)
 const dropZoneRef = ref()
+const brands = ref([])
+const selectedBrand = ref(null)
+const isLoadingBrands = ref(false)
 const alert = ref({
   show: false,
   type: 'success',
   message: ''
 })
 
+// Fetch brands on component mount
+const fetchBrands = async () => {
+  isLoadingBrands.value = true
+  try {
+    const response = await $api('/brands?itemsPerPage=999999&enabled=1')
+    brands.value = response.brands || []
+  } catch (error) {
+    console.error('Failed to load brands:', error)
+    alert.value = {
+      show: true,
+      type: 'error',
+      message: 'Errore nel caricamento dei brand'
+    }
+  } finally {
+    isLoadingBrands.value = false
+  }
+}
+
+onMounted(() => {
+  fetchBrands()
+})
+
 const uploadContract = async (files) => {
   if (!files.length) return
+  
+  // Validazione brand obbligatorio
+  if (!selectedBrand.value) {
+    alert.value = {
+      show: true,
+      type: 'warning',
+      message: 'Seleziona un brand prima di caricare il contratto'
+    }
+    return
+  }
   
   isUploading.value = true
   alert.value.show = false
   
   const formData = new FormData()
   formData.append('contract', files[0])
+  formData.append('brand_id', selectedBrand.value)
   
   try {
     const response = await $api('/upload-contract', {
@@ -37,11 +73,12 @@ const uploadContract = async (files) => {
       message: 'File caricato con successo!'
     }
     
-    // Clear dropzone and close dialog after a short delay
+    // Clear dropzone and reset form after a short delay
     dropZoneRef.value.clearDropzone()
     setTimeout(() => {
       dialog.value = false
       alert.value.show = false
+      selectedBrand.value = null // Reset brand selection
     }, 1500)
     
   } catch (error) {
@@ -80,6 +117,21 @@ const uploadContract = async (files) => {
           <p class="text-body-1 mb-4">
             Carica il contratto completo di documenti di identità e bollette precedenti.<br>L'AI analizzera' il file e caricherà i dati nel sistema.
           </p>
+
+          <VSelect
+            v-model="selectedBrand"
+            :items="brands"
+            item-title="name"
+            item-value="id"
+            label="Seleziona Brand *"
+            placeholder="Scegli il brand per questa pratica"
+            :loading="isLoadingBrands"
+            :disabled="isUploading"
+            :error="!selectedBrand && alert.show && alert.type === 'warning'"
+            class="mb-4"
+            outlined
+            required
+          />
 
           <DropZoneContracts
             @dropped="uploadContract"

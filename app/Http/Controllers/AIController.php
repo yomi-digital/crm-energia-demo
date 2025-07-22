@@ -204,6 +204,15 @@ class AIController extends Controller
         
         if ($request->has('ai_extracted_paperwork')) {
             $aiPaperwork->ai_extracted_paperwork = json_encode($request->ai_extracted_paperwork);
+            
+            // Se è stato modificato il product_id, facciamo un aggiornamento automatico del brand_id
+            $paperworkData = $request->ai_extracted_paperwork;
+            if (isset($paperworkData['product_id']) && $paperworkData['product_id']) {
+                $product = \App\Models\Product::find($paperworkData['product_id']);
+                if ($product && $product->brand_id) {
+                    $aiPaperwork->brand_id = $product->brand_id;
+                }
+            }
         }
 
         $aiPaperwork->save();
@@ -280,6 +289,12 @@ class AIController extends Controller
             $doc->url = $aiPaperwork->filepath;
             $doc->save();
 
+            // Get the brand_id from the selected product and update AI paperwork
+            $product = \App\Models\Product::find($request->product_id);
+            if ($product && $product->brand_id) {
+                $aiPaperwork->brand_id = $product->brand_id;
+            }
+            
             // Update AI paperwork status to 5 (Confirmed)
             $aiPaperwork->status = 5;
             $aiPaperwork->save();

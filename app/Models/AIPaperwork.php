@@ -8,6 +8,7 @@ class AIPaperwork extends Model
 {
     protected $fillable = [
         'user_id',
+        'brand_id',
         'filepath',
         'original_filename',
         'extracted_text',
@@ -34,6 +35,11 @@ class AIPaperwork extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class);
     }
 
     public function getCreatedAtAttribute($value)
