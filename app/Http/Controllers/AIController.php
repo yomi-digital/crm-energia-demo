@@ -183,11 +183,6 @@ class AIController extends Controller
                 }
             }
             
-            // Controllo che telefono e cellulare non siano uguali
-            if (!empty($customerData['phone']) && !empty($customerData['mobile']) && $customerData['phone'] === $customerData['mobile']) {
-                $errors['mobile'] = 'Telefono fisso e cellulare non possono essere uguali';
-            }
-            
             // Se ci sono errori, restituisci errore 422
             if (!empty($errors)) {
                 return response()->json([

@@ -167,10 +167,6 @@ class CustomersController extends Controller
             }
         }
         
-        // Controllo che telefono e cellulare non siano uguali
-        if ($request->filled('phone') && $request->filled('mobile') && $request->phone === $request->mobile) {
-            $errors['mobile'] = 'Telefono fisso e cellulare non possono essere uguali';
-        }
         
         // Se ci sono errori, restituisci errore 422
         if (!empty($errors)) {
@@ -251,11 +247,7 @@ class CustomersController extends Controller
                 $errors['mobile'] = 'Questo numero è già registrato come telefono fisso di un altro cliente';
             }
         }
-        
-        // Controllo che telefono e cellulare non siano uguali nello stesso cliente
-        if ($request->filled('phone') && $request->filled('mobile') && $request->phone === $request->mobile) {
-            $errors['mobile'] = 'Telefono fisso e cellulare non possono essere uguali';
-        }
+
         
         // Se ci sono errori, restituisci errore 422
         if (!empty($errors)) {
