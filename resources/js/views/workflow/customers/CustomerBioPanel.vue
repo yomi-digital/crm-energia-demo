@@ -17,11 +17,16 @@ const isAgent = useCookie('userData').value.roles.some(role => role.name === 'ag
 const isCustomerInfoEditDialogVisible = ref(false)
 
 const updateCustomerInfo = async (data) => {
-  const response = await $api(`/customers/${ props.customerData.id }`, {
-    method: 'PUT',
-    body: data,
-  })
-  emit('updateCustomerData', response)
+  try {
+    const response = await $api(`/customers/${ props.customerData.id }`, {
+      method: 'PUT',
+      body: data,
+    })
+    emit('updateCustomerData', response)
+    
+  } catch (error) {
+    alert('Errore durante il salvataggio del cliente. Riprova.')
+  }
 }
 
 const confirmCustomer = async () => {

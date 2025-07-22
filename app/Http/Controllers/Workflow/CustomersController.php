@@ -199,24 +199,40 @@ class CustomersController extends Controller
             return response()->json(['error' => 'Customer not found'], 404);
         }
 
-        // Validazione unicità telefono e cellulare (escludendo il customer corrente)
+        // Validazione avanzata telefono e cellulare con controllo incrociato
         $errors = [];
         
-        // Controllo telefono
+        // Controllo telefono fisso
         if ($request->filled('phone')) {
-            $existingPhone = \App\Models\Customer::where('phone', $request->phone)
+            $phoneNumber = $request->phone;
+            
+            // Controllo se il numero esiste già come telefono fisso in altri clienti
+            $existingPhone = \App\Models\Customer::where('phone', $phoneNumber)
                 ->where('id', '!=', $id)
                 ->whereNull('deleted_at')
                 ->first();
                 
             if ($existingPhone) {
-                $errors['phone'] = 'Questo telefono è già associato a un altro cliente';
+                $errors['phone'] = 'Questo telefono fisso è già associato a un altro cliente';
+            }
+            
+            // Controllo incrociato: se il numero esiste già come cellulare in altri clienti
+            $existingMobile = \App\Models\Customer::where('mobile', $phoneNumber)
+                ->where('id', '!=', $id)
+                ->whereNull('deleted_at')
+                ->first();
+                
+            if ($existingMobile) {
+                $errors['phone'] = 'Questo numero è già registrato come cellulare di un altro cliente';
             }
         }
         
         // Controllo cellulare
         if ($request->filled('mobile')) {
-            $existingMobile = \App\Models\Customer::where('mobile', $request->mobile)
+            $mobileNumber = $request->mobile;
+            
+            // Controllo se il numero esiste già come cellulare in altri clienti
+            $existingMobile = \App\Models\Customer::where('mobile', $mobileNumber)
                 ->where('id', '!=', $id)
                 ->whereNull('deleted_at')
                 ->first();
@@ -224,6 +240,21 @@ class CustomersController extends Controller
             if ($existingMobile) {
                 $errors['mobile'] = 'Questo cellulare è già associato a un altro cliente';
             }
+            
+            // Controllo incrociato: se il numero esiste già come telefono fisso in altri clienti
+            $existingPhone = \App\Models\Customer::where('phone', $mobileNumber)
+                ->where('id', '!=', $id)
+                ->whereNull('deleted_at')
+                ->first();
+                
+            if ($existingPhone) {
+                $errors['mobile'] = 'Questo numero è già registrato come telefono fisso di un altro cliente';
+            }
+        }
+        
+        // Controllo che telefono e cellulare non siano uguali nello stesso cliente
+        if ($request->filled('phone') && $request->filled('mobile') && $request->phone === $request->mobile) {
+            $errors['mobile'] = 'Telefono fisso e cellulare non possono essere uguali';
         }
         
         // Se ci sono errori, restituisci errore 422
