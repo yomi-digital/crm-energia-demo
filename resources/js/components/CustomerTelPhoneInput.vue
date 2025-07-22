@@ -2,6 +2,7 @@
   <div>
     <!-- Mostra il componente solo quando è pronto con il valore corretto -->
     <phone-input
+      :id="telephoneInputId"
       :value="formattedValueForLibrary"
       :label="label"
       :placeholder="placeholder"
@@ -142,10 +143,19 @@ const handlePhoneChange = (phone) => {
 
 </script>
 
-<style scoped>
+<style>
 .error-message {
   color: #d32f2f;
   font-size: 0.75rem;
   margin-top: 0.5rem;
+}
+
+.baseinput-core {
+  height: 38px !important;
+}
+
+.baseinput-label {
+  margin: 3px !important;
+  font-weight: normal !important;
 }
 </style> 
