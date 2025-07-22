@@ -327,8 +327,10 @@ const provinces = [
               cols="12"
               md="6"
             >
-              <AppTextField
+              <CustomerTelPhoneInput
                 v-model="customerData.phone"
+                :type="'phone'"
+                :customerId="customerData.id"
                 label="Telefono"
                 placeholder="1234567890"
               />
@@ -339,8 +341,10 @@ const provinces = [
               cols="12"
               md="6"
             >
-              <AppTextField
+              <CustomerTelPhoneInput
                 v-model="customerData.mobile"
+                :type="'mobile'"
+                :customerId="customerData.id"
                 label="Cellulare"
                 placeholder="1234567890"
               />

@@ -292,33 +292,53 @@ class CustomersController extends Controller
             ->whereNull('deleted_at')
             ->first();
 
-        if ($existingInPhone || $existingInMobile) {
-            $typeLabel = $type === 'phone' ? 'telefono fisso' : 'cellulare';
+        // Se non esiste nessun numero, è disponibile
+        if (!$existingInPhone && !$existingInMobile) {
+            return response()->json([
+                'available' => true,
+                'message' => 'Numero disponibile'
+            ]);
+        }
+
+        // Se siamo in modalità aggiornamento (customerId presente)
+        $customerId = $request->query('customerId');
+        if ($customerId) {
+            // Verifica se il numero trovato appartiene al cliente che sta aggiornando
+            $customer = \App\Models\Customer::find($customerId);
             
-            // Messaggio specifico per controllo incrociato
-            if ($type === 'phone' && $existingInMobile) {
-                return response()->json([
-                    'available' => false,
-                    'message' => 'Questo numero è già registrato come cellulare di un altro cliente'
-                ]);
-            } elseif ($type === 'mobile' && $existingInPhone) {
-                return response()->json([
-                    'available' => false,
-                    'message' => 'Questo numero è già registrato come telefono fisso di un altro cliente'
-                ]);
-            } else {
-                // Controllo normale (stesso campo)
-                return response()->json([
-                    'available' => false,
-                    'message' => "Questo {$typeLabel} è già associato a un altro cliente"
-                ]);
+            if ($customer) {
+                // Se il numero appartiene al cliente che sta aggiornando, è disponibile
+                if (($existingInPhone && $existingInPhone->id == $customerId) || 
+                    ($existingInMobile && $existingInMobile->id == $customerId)) {
+                    return response()->json([
+                        'available' => true,
+                        'message' => 'Numero disponibile per aggiornamento'
+                    ]);
+                }
             }
         }
 
-        return response()->json([
-            'available' => true,
-            'message' => 'Numero disponibile'
-        ]);
+        // Se arriviamo qui, il numero è occupato da un altro cliente
+        $typeLabel = $type === 'phone' ? 'telefono fisso' : 'cellulare';
+        
+        // Messaggio specifico per controllo incrociato
+        if ($type === 'phone' && $existingInMobile) {
+            return response()->json([
+                'available' => false,
+                'message' => 'Questo numero è già registrato come cellulare di un altro cliente'
+            ]);
+        } elseif ($type === 'mobile' && $existingInPhone) {
+            return response()->json([
+                'available' => false,
+                'message' => 'Questo numero è già registrato come telefono fisso di un altro cliente'
+            ]);
+        } else {
+            // Controllo normale (stesso campo)
+            return response()->json([
+                'available' => false,
+                'message' => "Questo {$typeLabel} è già associato a un altro cliente"
+            ]);
+        }
     }
 
     public function export(Request $request)

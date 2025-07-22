@@ -1,7 +1,8 @@
 <template>
   <div>
+    <!-- Mostra il componente solo quando è pronto con il valore corretto -->
     <phone-input
-      :value="phoneNumber"
+      :value="formattedValueForLibrary"
       :label="label"
       :placeholder="placeholder"
       :name="name"
@@ -9,78 +10,66 @@
       :default-country="defaultCountry"
       :arrow="arrow"
       :list-height="listHeight"
-      :allowed="allowed"
       :has-error="!!errorMessage"
       :error-message="errorMessage"
       @phone="handlePhoneChange"
       @country="handleCountryChange"
       @phoneData="handlePhoneData"
     />
-    
   </div>
 </template>
 
 <script setup>
 import { $api } from '@/utils/api'
-import { onMounted, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
-  modelValue: {
-    type: String,
-    default: ''
-  },
-  type: {
-    type: String,
-    required: true,
-    validator: (value) => ['phone', 'mobile'].includes(value)
-  },
-  label: {
-    type: String,
-    default: 'Telefono'
-  },
-  placeholder: {
-    type: String,
-    default: 'Inserisci numero'
-  },
-  name: {
-    type: String,
-    default: ''
-  },
-  required: {
-    type: Boolean,
-    default: false
-  },
-  defaultCountry: {
-    type: String,
-    default: 'IT'
-  },
-  arrow: {
-    type: Boolean,
-    default: true
-  },
-  listHeight: {
-    type: Number,
-    default: 150
-  },
-  allowed: {
-    type: Array,
-    default: () => ['IT', 'US', 'GB', 'DE', 'FR']
-  }
+  modelValue: {type: String,default: ''},
+  type: {type: String,required: true,validator: (value) => ['phone', 'mobile'].includes(value)},
+  label: {type: String,default: 'Telefono'},
+  placeholder: {type: String,default: 'Inserisci numero'},
+  name: {type: String,default: ''},
+  required: {type: Boolean,default: false},
+  defaultCountry: {type: String,default: 'IT'},
+  arrow: {type: Boolean,default: true},
+  listHeight: {type: Number,default: 150},
+  allowed: {type: Array, default: () => []},
+  customerId: {type: [String, Number],default: null}
 })
 
 const emit = defineEmits(['update:modelValue', 'onCheckUpdate', 'onValue'])
 
 // Stato interno
-const phoneNumber = ref(props.modelValue || '')
+const phoneNumber = ref('')
 const errorMessage = ref('')
+
+// Computed value per la libreria (rimuove il + dal numero)
+const formattedValueForLibrary = computed(() => {
+  if (!phoneNumber.value) return ''
+  const valueWithoutPlus = phoneNumber.value.startsWith('+') 
+    ? phoneNumber.value.slice(1) 
+    : phoneNumber.value
+  return valueWithoutPlus
+})
+
+// Inizializza il valore interno
+const initializePhoneNumber = () => {
+  if (props.modelValue && props.modelValue.trim() !== '') {
+    phoneNumber.value = props.modelValue
+  } else {
+    phoneNumber.value = ''
+  }
+}
+
+// Inizializzazione immediata
+initializePhoneNumber()
 
 // Debounce per evitare troppe chiamate API
 let debounceTimer = null
 
 // Funzione per controllare la disponibilità del numero
 const checkAvailability = async (number) => {
-    
-if (!number || number.length < 10) {
+  if (!number || number.length < 10) {
     errorMessage.value = ''
     emit('onCheckUpdate', { available: true, message: '' })
     return
@@ -88,23 +77,26 @@ if (!number || number.length < 10) {
 
   try {
     const url = `/customers/mobile/${props.type}/check/${encodeURIComponent(number)}`
+    const params = {}
     
-    const response = await $api(url, {
-      method: 'GET'
-    })
-    
-    const data = response
-    
-    const result = {
-      available: data.available,
-      message: data.message
+    if (props.customerId) {
+      params.customerId = props.customerId
     }
     
-    errorMessage.value = data.available ? '' : data.message
+    const response = await $api(url, {
+      method: 'GET',
+      params: params
+    })
+    
+    const result = {
+      available: response.available,
+      message: response.message
+    }
+    
+    errorMessage.value = response.available ? '' : response.message
     emit('onCheckUpdate', result)
     
   } catch (error) {
-    console.log('API check error:', error) // Debug
     errorMessage.value = 'Errore durante la verifica'
     emit('onCheckUpdate', { available: false, message: 'Errore durante la verifica' })
   }
@@ -112,6 +104,11 @@ if (!number || number.length < 10) {
 
 // Gestione cambio telefono
 const handlePhoneChange = (phone) => {
+  // Se il phone è vuoto e abbiamo già un valore, non aggiornare
+  if (!phone && phoneNumber.value) {
+    return
+  }
+  
   // Aggiungi il + se non presente
   let formattedPhone = phone
   if (phone && !phone.startsWith('+')) {
@@ -131,7 +128,6 @@ const handlePhoneChange = (phone) => {
   
   debounceTimer = setTimeout(() => {
     if (phone) {
-      // Usa il numero formattato per il check
       let checkNumber = phone
       if (!phone.startsWith('+')) {
         checkNumber = '+' + phone
@@ -144,29 +140,6 @@ const handlePhoneChange = (phone) => {
   }, 500)
 }
 
-// Gestione cambio paese
-const handleCountryChange = (country) => {
-  console.log('Paese cambiato:', country)
-}
-
-// Gestione phone data
-const handlePhoneData = (phoneData) => {
-  console.log('Phone data:', phoneData)
-}
-
-// Watch per aggiornamenti esterni del modelValue
-watch(() => props.modelValue, (newValue) => {
-  if (newValue !== phoneNumber.value) {
-    phoneNumber.value = newValue || ''
-  }
-})
-
-// Inizializzazione
-onMounted(() => {
-  if (props.modelValue) {
-    phoneNumber.value = props.modelValue
-  }
-})
 </script>
 
 <style scoped>
