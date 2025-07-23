@@ -242,6 +242,8 @@ const confirmPaperwork = async () => {
       body: {
         product_id: extractedPaperwork.value.product_id,
         brand_id: extractedPaperwork.value.brand_id,
+        ai_extracted_customer: extractedCustomer.value,
+        ai_extracted_paperwork: extractedPaperwork.value,
         status: 5
       }
     })

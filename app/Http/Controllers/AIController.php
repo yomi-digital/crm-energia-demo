@@ -253,7 +253,26 @@ class AIController extends Controller
         try {
             DB::beginTransaction();
             
-            // Extract data
+            // Aggiorna l'AI paperwork con gli ultimi dati se forniti
+            if ($request->has('ai_extracted_customer')) {
+                $aiPaperwork->ai_extracted_customer = json_encode($request->ai_extracted_customer);
+            }
+            
+            if ($request->has('ai_extracted_paperwork')) {
+                $paperworkData = $request->ai_extracted_paperwork;
+                
+                // Se non è da appuntamento, forza appointment_id a null
+                if (isset($paperworkData['is_from_appointment']) && !$paperworkData['is_from_appointment']) {
+                    $paperworkData['appointment_id'] = null;
+                }
+                
+                $aiPaperwork->ai_extracted_paperwork = json_encode($paperworkData);
+            }
+            
+            // Salva l'AI paperwork aggiornato
+            $aiPaperwork->save();
+            
+            // Extract data (ora aggiornati)
             $customerData = json_decode($aiPaperwork->ai_extracted_customer, true) ?: [];
             $paperworkData = json_decode($aiPaperwork->ai_extracted_paperwork, true) ?: [];
 
@@ -293,6 +312,9 @@ class AIController extends Controller
                 'customer_id' => $customer->id,
                 'user_id' => $aiPaperwork->user_id,
                 'product_id' => $request->product_id,
+                'appointment_id' => (isset($paperworkData['is_from_appointment']) && $paperworkData['is_from_appointment']) 
+                    ? ($paperworkData['appointment_id'] ?? null) 
+                    : null,
                 'account_pod_pdr' => $paperworkData['account_pod_pdr'] ?? null,
                 'annual_consumption' => $paperworkData['annual_consumption'] ?? null,
                 'contract_type' => $paperworkData['contract_type'] ?? null,
