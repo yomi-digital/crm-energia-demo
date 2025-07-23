@@ -12,11 +12,16 @@ definePage({
 
 const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+const isBackoffice = loggedInUser.roles.some(role => role.name === 'backoffice')
 
 let quickLinks = [
-  { name: 'Crea Pratica AI', icon: 'tabler-file-plus', action: () => document.querySelector('#ai-contract-upload-btn').click() },
   { name: 'Clienti', icon: 'tabler-users', to: '/workflow/customers' },
 ]
+
+// Solo se NON è backoffice, aggiungi "Crea Pratica AI"
+if (!isBackoffice) {
+  quickLinks.unshift({ name: 'Crea Pratica AI', icon: 'tabler-file-plus', action: () => document.querySelector('#ai-contract-upload-btn').click() })
+}
 
 if (isAdmin) {
   quickLinks.push({ name: 'Report', icon: 'tabler-report', to: '/reports/admin' })

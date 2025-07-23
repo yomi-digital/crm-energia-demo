@@ -51,6 +51,63 @@ class ProductsController extends Controller
         ]);
     }
 
+    /**
+     * Endpoint personalizzato che filtra automaticamente i prodotti in base ai brand assegnati all'utente corrente
+     */
+    public function personal(Request $request)
+    {
+        $perPage = $request->get('itemsPerPage', 10);
+
+        $products = \App\Models\Product::with(['brand']);
+
+        if ($request->get('q')) {
+            $search = $request->get('q');
+            $products = $products->where('name', 'like', "%{$search}%");
+        }
+
+        if ($request->filled('brand')) {
+            $products->where('brand_id', $request->get('brand'));
+        }
+
+        if ($request->get('enabled')) {
+            $products = $products->where('enabled', $request->get('enabled'));
+        }
+
+        // FILTRO AUTOMATICO: mostra solo i prodotti dei brand assegnati all'utente corrente
+        // ECCEZIONE: gestione e amministrazione vedono tutti i prodotti
+        if ($request->user()->hasRole('gestione') || $request->user()->hasRole('amministrazione')) {
+            // Admin roles: nessun filtro, vedono tutto
+        } else {
+            // Altri ruoli: filtro per brand assegnati
+            $userBrands = $request->user()->brands->pluck('id');
+            if ($userBrands->isNotEmpty()) {
+                $products = $products->whereIn('brand_id', $userBrands);
+            } else {
+                // Se l'utente non ha brand assegnati, non vede nessun prodotto
+                $products = $products->whereRaw('1 = 0');
+            }
+        }
+
+        if ($request->get('sortBy')) {
+            $products = $products->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
+        } else {
+            $products = $products->orderBy('name', 'asc');
+        }
+
+        if ($request->get('select') === '1') {
+            $products = $products->select('id', 'name');
+        }
+
+        $products = $products->paginate($perPage);
+
+        return response()->json([
+            'products' => $products->getCollection(),
+            'totalPages' => $products->lastPage(),
+            'totalProducts' => $products->total(),
+            'page' => $products->currentPage()
+        ]);
+    }
+
     public function show($id)
     {
         $product = \App\Models\Product::with('brand')->whereId($id)->first();

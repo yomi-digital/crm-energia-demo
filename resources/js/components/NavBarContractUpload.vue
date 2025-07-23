@@ -14,11 +14,15 @@ const alert = ref({
   message: ''
 })
 
+// Controlla se l'utente è backoffice
+const loggedInUser = useCookie('userData').value
+const isBackoffice = loggedInUser.roles.some(role => role.name === 'backoffice')
+
 // Fetch brands on component mount
 const fetchBrands = async () => {
   isLoadingBrands.value = true
   try {
-    const response = await $api('/brands?itemsPerPage=999999&enabled=1')
+    const response = await $api('/brands/personal?itemsPerPage=999999&enabled=1')
     brands.value = response.brands || []
   } catch (error) {
     console.error('Failed to load brands:', error)
@@ -96,7 +100,11 @@ const uploadContract = async (files) => {
 
 <template>
   <div>
-    <IconBtn @click="dialog = true" id="ai-contract-upload-btn">
+    <IconBtn 
+      v-if="!isBackoffice"
+      @click="dialog = true" 
+      id="ai-contract-upload-btn"
+    >
       <span class="font-weight-bold">AI</span>
     </IconBtn>
 

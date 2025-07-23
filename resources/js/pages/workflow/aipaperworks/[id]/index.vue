@@ -25,7 +25,7 @@ const isLoadingProducts = ref(false)
 const fetchProducts = async () => {
   isLoadingProducts.value = true
   try {
-    const response = await $api('/products?itemsPerPage=999999&enabled=1')
+    const response = await $api('/products/personal?itemsPerPage=999999&enabled=1')
     products.value = response.products
   } catch (error) {
     console.error('Failed to load products:', error)
@@ -43,7 +43,7 @@ const isLoadingBrands = ref(false)
 const fetchBrands = async () => {
   isLoadingBrands.value = true
   try {
-    const response = await $api('/brands?itemsPerPage=999999&enabled=1')
+    const response = await $api('/brands/personal?itemsPerPage=999999&enabled=1')
     brands.value = response.brands || []
   } catch (error) {
     console.error('Failed to load brands:', error)

@@ -36,6 +36,17 @@ class AIController extends Controller
             $aiPaperworks = $aiPaperworks->where('status', $request->get('status'));
         }
 
+        // Filtro per backoffice: vedere solo AI paperworks con brand_id assegnati
+        if ($request->user()->hasRole('backoffice')) {
+            $userBrands = $request->user()->brands->pluck('id');
+            if ($userBrands->isNotEmpty()) {
+                $aiPaperworks = $aiPaperworks->whereIn('brand_id', $userBrands);
+            } else {
+                // Se il backoffice non ha brand assegnati, non vede nessuna AI paperwork
+                $aiPaperworks = $aiPaperworks->whereRaw('1 = 0');
+            }
+        }
+
         if ($request->get('sortBy')) {
             $aiPaperworks = $aiPaperworks->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
         } else {

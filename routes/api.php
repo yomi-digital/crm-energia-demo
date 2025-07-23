@@ -74,11 +74,13 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::delete('mandates/{id}', [MandatesController::class, 'destroy']);
 
     Route::get('brands', [BrandsController::class, 'index']);
+    Route::get('brands/personal', [BrandsController::class, 'personal']);
     Route::post('brands', [BrandsController::class, 'store']);
     Route::put('brands/{id}', [BrandsController::class, 'update']);
     Route::delete('brands/{id}', [BrandsController::class, 'destroy']);
 
     Route::get('products', [ProductsController::class, 'index']);
+    Route::get('products/personal', [ProductsController::class, 'personal']);
     Route::post('products', [ProductsController::class, 'store']);
     Route::get('products/{id}', [ProductsController::class, 'show']);
     Route::put('products/{id}', [ProductsController::class, 'update']);
