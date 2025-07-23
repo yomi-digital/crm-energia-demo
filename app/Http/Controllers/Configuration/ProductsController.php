@@ -75,7 +75,7 @@ class ProductsController extends Controller
 
         // FILTRO AUTOMATICO: mostra solo i prodotti dei brand assegnati all'utente corrente
         // ECCEZIONE: gestione e amministrazione vedono tutti i prodotti
-        if ($request->user()->hasRole('gestione') || $request->user()->hasRole('amministrazione')) {
+        if ($request->user()->hasRole('gestione')) {
             // Admin roles: nessun filtro, vedono tutto
         } else {
             // Altri ruoli: filtro per brand assegnati

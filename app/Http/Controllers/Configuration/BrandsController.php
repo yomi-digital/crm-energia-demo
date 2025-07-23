@@ -111,7 +111,7 @@ class BrandsController extends Controller
 
         // FILTRO AUTOMATICO: mostra solo i brand assegnati all'utente corrente
         // ECCEZIONE: gestione e amministrazione vedono tutti i brand
-        if ($request->user()->hasRole('gestione') || $request->user()->hasRole('amministrazione')) {
+        if ($request->user()->hasRole('gestione')) {
             // Admin roles: nessun filtro, vedono tutto
         } else {
             // Altri ruoli: filtro per brand assegnati
