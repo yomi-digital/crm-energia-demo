@@ -37,6 +37,24 @@ const fetchProducts = async () => {
 // Fetch products on component mount
 await fetchProducts()
 
+const brands = ref([])
+const isLoadingBrands = ref(false)
+
+const fetchBrands = async () => {
+  isLoadingBrands.value = true
+  try {
+    const response = await $api('/brands?itemsPerPage=999999&enabled=1')
+    brands.value = response.brands || []
+  } catch (error) {
+    console.error('Failed to load brands:', error)
+  } finally {
+    isLoadingBrands.value = false
+  }
+}
+
+// Fetch brands on component mount
+await fetchBrands()
+
 const extractedCustomer = ref({})
 const extractedPaperwork = ref({})
 
@@ -54,10 +72,24 @@ watch(() => aiPaperwork.value?.ai_extracted_customer, (newVal) => {
 watch(() => aiPaperwork.value?.ai_extracted_paperwork, (newVal) => {
   if (newVal) {
     try {
-      extractedPaperwork.value = JSON.parse(newVal)
+      const parsed = JSON.parse(newVal)
+      extractedPaperwork.value = parsed
+      // Imposta il brand_id dall'AI paperwork se esiste
+      if (aiPaperwork.value?.brand_id) {
+        extractedPaperwork.value.brand_id = aiPaperwork.value.brand_id
+        console.log('Set brand_id to:', aiPaperwork.value.brand_id)
+      }
     } catch (e) {
       extractedPaperwork.value = {}
     }
+  }
+}, { immediate: true })
+
+// Watch separato per inizializzare il brand_id dal paperwork
+watch(() => aiPaperwork.value?.brand_id, (brandId) => {
+  if (brandId && extractedPaperwork.value) {
+    extractedPaperwork.value.brand_id = brandId
+    console.log('Watch brand_id updated to:', brandId)
   }
 }, { immediate: true })
 
@@ -156,7 +188,8 @@ const saveModifications = async () => {
       method: 'PUT',
       body: {
         ai_extracted_customer: extractedCustomer.value,
-        ai_extracted_paperwork: extractedPaperwork.value
+        ai_extracted_paperwork: extractedPaperwork.value,
+        brand_id: extractedPaperwork.value.brand_id
       }
     })
     // Simple success message
@@ -181,6 +214,7 @@ const confirmPaperwork = async () => {
       method: 'POST',
       body: {
         product_id: extractedPaperwork.value.product_id,
+        brand_id: extractedPaperwork.value.brand_id,
         status: 5
       }
     })
@@ -490,6 +524,22 @@ const updateEmailAndRefresh = async () => {
                       label="Prodotto"
                       placeholder="Seleziona un Prodotto"
                       :readonly="aiPaperwork?.status === 5"
+                    />
+                  </VCol>
+                </VRow>
+
+                <VRow>
+                  <VCol cols="12">
+                    <AppAutocomplete
+                      v-model="extractedPaperwork.brand_id"
+                      :items="brands"
+                      item-title="name"
+                      item-value="id"
+                      label="Brand"
+                      placeholder="Seleziona un Brand"
+                      :readonly="aiPaperwork?.status === 5 || !!extractedPaperwork.product_id"
+                      :loading="isLoadingBrands"
+                      :class="{ 'opacity-50': aiPaperwork?.status === 5 || !!extractedPaperwork.product_id }"
                     />
                   </VCol>
                 </VRow>

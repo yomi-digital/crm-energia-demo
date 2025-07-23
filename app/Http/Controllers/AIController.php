@@ -85,6 +85,7 @@ class AIController extends Controller
         return response()->json([
             'id' => $aiPaperwork->id,
             'user_id' => $aiPaperwork->user_id,
+            'brand_id' => $aiPaperwork->brand_id,
             'filepath' => $aiPaperwork->filepath,
             'status' => $aiPaperwork->status,
             'extracted_text' => $aiPaperwork->extracted_text,
@@ -199,14 +200,22 @@ class AIController extends Controller
         
         if ($request->has('ai_extracted_paperwork')) {
             $aiPaperwork->ai_extracted_paperwork = json_encode($request->ai_extracted_paperwork);
-            
-            // Se è stato modificato il product_id, facciamo un aggiornamento automatico del brand_id
-            $paperworkData = $request->ai_extracted_paperwork;
-            if (isset($paperworkData['product_id']) && $paperworkData['product_id']) {
-                $product = \App\Models\Product::find($paperworkData['product_id']);
-                if ($product && $product->brand_id) {
-                    $aiPaperwork->brand_id = $product->brand_id;
-                }
+        }
+
+        // Prima gestiamo il brand_id esplicito solo se non c'è un product_id
+        $paperworkData = $request->ai_extracted_paperwork ?? [];
+        $hasProductId = isset($paperworkData['product_id']) && $paperworkData['product_id'];
+        
+        // Se NON c'è product_id e c'è brand_id esplicito, usa quello
+        if (!$hasProductId && $request->has('brand_id') && $request->brand_id) {
+            $aiPaperwork->brand_id = $request->brand_id;
+        }
+        
+        // Il prodotto ha SEMPRE la priorità: se c'è product_id, forza il brand_id
+        if ($hasProductId) {
+            $product = \App\Models\Product::find($paperworkData['product_id']);
+            if ($product && $product->brand_id) {
+                $aiPaperwork->brand_id = $product->brand_id;
             }
         }
 
@@ -284,7 +293,12 @@ class AIController extends Controller
             $doc->url = $aiPaperwork->filepath;
             $doc->save();
 
-            // Get the brand_id from the selected product and update AI paperwork
+            // Prima gestiamo il brand_id esplicito (ma sarà sempre sovrascritto dal prodotto)
+            if ($request->has('brand_id') && $request->brand_id) {
+                $aiPaperwork->brand_id = $request->brand_id;
+            }
+            
+            // Il prodotto ha SEMPRE la priorità: il product_id è obbligatorio in confirm, quindi forza sempre il brand_id
             $product = \App\Models\Product::find($request->product_id);
             if ($product && $product->brand_id) {
                 $aiPaperwork->brand_id = $product->brand_id;
