@@ -210,7 +210,14 @@ class AIController extends Controller
         }
         
         if ($request->has('ai_extracted_paperwork')) {
-            $aiPaperwork->ai_extracted_paperwork = json_encode($request->ai_extracted_paperwork);
+            $paperworkData = $request->ai_extracted_paperwork;
+            
+            // Se non è da appuntamento, forza appointment_id a null
+            if (isset($paperworkData['is_from_appointment']) && !$paperworkData['is_from_appointment']) {
+                $paperworkData['appointment_id'] = null;
+            }
+            
+            $aiPaperwork->ai_extracted_paperwork = json_encode($paperworkData);
         }
 
         // Prima gestiamo il brand_id esplicito solo se non c'è un product_id

@@ -55,8 +55,35 @@ const fetchBrands = async () => {
 // Fetch brands on component mount
 await fetchBrands()
 
+// Gestione appuntamenti (identica a PaperworkCustomer.vue)
+const appointments = ref([])
+const isLoadingAppointments = ref(false)
+
+const fetchAppointments = async (query) => {
+  isLoadingAppointments.value = true
+  try {
+    const response = await $api('/appointments?itemsPerPage=999999&select=1&q=' + query)
+    appointments.value = response.map(appointment => ({
+      title: appointment.start + ' - ' + appointment.title,
+      value: appointment.id,
+    }))
+  } catch (error) {
+    console.error('Failed to load appointments:', error)
+    appointments.value = []
+  } finally {
+    isLoadingAppointments.value = false
+  }
+}
+
 const extractedCustomer = ref({})
 const extractedPaperwork = ref({})
+
+// Watch per caricare appuntamenti quando si attiva il toggle (solo se c'è cliente)
+watch(() => extractedPaperwork.value.is_from_appointment, (isFromAppointment) => {
+  if (isFromAppointment && extractedCustomer.value.id) {
+    fetchAppointments('')
+  }
+})
 
 // Watch for changes in the API response and update the refs
 watch(() => aiPaperwork.value?.ai_extracted_customer, (newVal) => {
@@ -595,6 +622,44 @@ const updateEmailAndRefresh = async () => {
                     />
                   </VCol>
                 </VRow>
+
+                <!-- Sezione Da Appuntamento -->
+                <template v-if="extractedCustomer.id">
+                  <VRow>
+                    <VCol cols="12">
+                      <VDivider class="my-4" />
+                      <VSubheader class="px-0 text-sm font-weight-medium text-high-emphasis">
+                        Informazioni Appuntamento
+                      </VSubheader>
+                    </VCol>
+                  </VRow>
+
+                  <VRow>
+                    <VCol cols="12">
+                      <VSwitch
+                        v-model="extractedPaperwork.is_from_appointment"
+                        label="Da appuntamento?"
+                        :readonly="aiPaperwork?.status === 5"
+                      />
+                    </VCol>
+                  </VRow>
+
+                  <VRow v-show="extractedPaperwork.is_from_appointment">
+                    <VCol cols="12">
+                      <AppAutocomplete
+                        v-model="extractedPaperwork.appointment_id"
+                        :items="appointments"
+                        item-title="title"
+                        item-value="value"
+                        label="Appuntamento"
+                        placeholder="Seleziona un Appuntamento"
+                        :loading="isLoadingAppointments"
+                        :readonly="aiPaperwork?.status === 5"
+                        clearable
+                      />
+                    </VCol>
+                  </VRow>
+                </template>
               </VForm>
             </VCol>
           </VRow>
