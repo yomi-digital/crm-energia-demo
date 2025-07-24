@@ -164,6 +164,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     // Route::put('paperworks/{id}/confirm', [PaperworksController::class, 'confirm']);
     // Route::put('paperworks/{id}/confirm-partner-sent', [PaperworksController::class, 'confirmPartnerSent']);
     Route::post('paperworks', [PaperworksController::class, 'store']);
+    Route::post('paperworks/duplicate', [PaperworksController::class, 'duplicate']);
     Route::post('paperworks/bulk-update-statuses', [PaperworksController::class, 'bulkUpdate']);
     Route::delete('paperworks/{id}', [PaperworksController::class, 'destroy']);
 

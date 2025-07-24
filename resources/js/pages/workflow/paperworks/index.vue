@@ -7,6 +7,7 @@ definePage({
 })
 
 
+
 // 👉 Store
 const searchQuery = ref('')
 
@@ -93,6 +94,11 @@ let headers = [
   {
     title: 'Compenso',
     key: 'pay',
+    sortable: false,
+  },
+  {
+    title: 'Azioni',
+    key: 'actions',
     sortable: false,
   },
 ]
@@ -220,7 +226,68 @@ const openPaperwork = (event, item) => {
     return
   }
   router.push({ name: 'workflow-paperworks-id', params: { id: item.item?.id } })
+}
 
+const isDuplicating = ref({})
+
+// Modal states
+const isConfirmDuplicateDialogVisible = ref(false)
+const isDuplicateSuccessDialogVisible = ref(false)
+const paperworkToDuplicate = ref(null)
+const duplicatedPaperworkId = ref(null)
+
+const showConfirmDuplicate = (paperworkId) => {
+  // Trova la pratica completa dall'array paperworks
+  const paperwork = paperworks.value.find(p => p.id === paperworkId)
+  paperworkToDuplicate.value = paperwork
+  isConfirmDuplicateDialogVisible.value = true
+}
+
+const confirmDuplicate = async () => {
+  const paperworkId = paperworkToDuplicate.value.id
+  isConfirmDuplicateDialogVisible.value = false
+  
+  try {
+    isDuplicating.value[paperworkId] = true
+    
+    const response = await $api('/paperworks/duplicate', {
+      method: 'POST',
+      body: {
+        praticheIds: [paperworkId]
+      }
+    })
+    
+    if (response.result && response.result[0]) {
+      const result = response.result[0]
+      if (result.duplication === 'success') {
+        // Mostra modal di successo
+        duplicatedPaperworkId.value = result.new_id
+        isDuplicateSuccessDialogVisible.value = true
+        // Ricarica la tabella per mostrare la nuova pratica
+        await fetchPaperworks()
+      } else {
+        alert(`Errore nella duplicazione: ${result.message}`)
+      }
+    }
+  } catch (error) {
+    console.error('Errore durante la duplicazione:', error)
+    alert('Errore durante la duplicazione della pratica')
+  } finally {
+    isDuplicating.value[paperworkId] = false
+  }
+}
+
+const onSuccessModalClose = () => {
+  isDuplicateSuccessDialogVisible.value = false
+  duplicatedPaperworkId.value = null
+  paperworkToDuplicate.value = null
+}
+
+const viewDuplicatedPaperwork = () => {
+  isDuplicateSuccessDialogVisible.value = false
+  router.push({ name: 'workflow-paperworks-id', params: { id: duplicatedPaperworkId.value } })
+  duplicatedPaperworkId.value = null
+  paperworkToDuplicate.value = null
 }
 
 </script>
@@ -488,6 +555,22 @@ const openPaperwork = (event, item) => {
           </div>
         </template>
 
+        <!-- 👉 Actions -->
+        <template #item.actions="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <VBtn
+              size="small"
+              color="primary"
+              variant="tonal"
+              :loading="isDuplicating[item.id]"
+              @click.stop="showConfirmDuplicate(item.id)"
+              :title="`Duplica pratica ${item.id}`"
+            >
+              Duplica
+            </VBtn>
+          </div>
+        </template>
+
         <!-- pagination -->
         <template #bottom>
           <TablePagination
@@ -506,6 +589,22 @@ const openPaperwork = (event, item) => {
       v-model:isDialogVisible="isBulkActionDialogOpen"
       :ids="selected"
       @submit="handleBulkAction"
+    />
+
+    <!-- 👉 Confirm Duplicate Dialog -->
+    <ConfirmDuplicateDialog
+      v-if="paperworkToDuplicate"
+      v-model:isDialogVisible="isConfirmDuplicateDialogVisible"
+      :paperworkData="paperworkToDuplicate"
+      @confirm="confirmDuplicate"
+    />
+
+    <!-- 👉 Duplicate Success Dialog -->
+    <DuplicateSuccessDialog
+      v-model:isDialogVisible="isDuplicateSuccessDialogVisible"
+      :duplicatedPaperworkId="duplicatedPaperworkId"
+      @close="onSuccessModalClose"
+      @viewPaperwork="viewDuplicatedPaperwork"
     />
   </section>
 </template>

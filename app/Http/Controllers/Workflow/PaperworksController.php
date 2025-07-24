@@ -174,6 +174,136 @@ class PaperworksController extends Controller
         return response()->json($paperwork, 201);
     }
 
+    public function duplicate(Request $request)
+    {
+        // Valida che praticheIds sia presente e sia un array
+        $request->validate([
+            'praticheIds' => 'required|array|min:1',
+            'praticheIds.*' => 'integer|exists:paperworks,id'
+        ]);
+
+        $results = [];
+        $overrideData = $request->except('praticheIds'); // Dati da applicare a tutte le duplicazioni
+
+        foreach ($request->praticheIds as $id) {
+            try {
+                // Trova la pratica originale
+                $originalPaperwork = \App\Models\Paperwork::find($id);
+                
+                if (!$originalPaperwork) {
+                    $results[] = [
+                        'id' => $id,
+                        'duplication' => 'error',
+                        'message' => 'Pratica non trovata'
+                    ];
+                    continue;
+                }
+
+                // Duplica solo i campi che sono gestiti dal metodo store
+                $allowedFields = [
+                    'user_id',
+                    'customer_id', 
+                    'appointment_id',
+                    'product_id',
+                    'account_pod_pdr',
+                    'annual_consumption',
+                    'contract_type',
+                    'category',
+                    'type',
+                    'energy_type',
+                    'mobile_type',
+                    'coverage',
+                    'previous_provider',
+                    'notes',
+                    'owner_notes'
+                ];
+                
+                $dataToDuplicate = [];
+                foreach ($allowedFields as $field) {
+                    if (isset($originalPaperwork->$field)) {
+                        $dataToDuplicate[$field] = $originalPaperwork->$field;
+                    }
+                }
+
+                // Applica eventuali override globali
+                if (!empty($overrideData)) {
+                    $dataToDuplicate = array_merge($dataToDuplicate, $overrideData);
+                }
+
+                // Crea request compatibile con le validazioni del store in base al ruolo utente
+                if ($request->user()->hasRole('agent')) {
+                    // Per agenti: usa solo i campi che store si aspetta
+                    $storeCompatibleData = [];
+                    $agentFields = [
+                        'customer_id',
+                        'appointment_id',
+                        'product_id',
+                        'account_pod_pdr',
+                        'annual_consumption',
+                        'contract_type',
+                        'category',
+                        'type',
+                        'energy_type',
+                        'mobile_type',
+                        'coverage',
+                        'previous_provider',
+                        'notes',
+                    ];
+                    
+                    foreach ($agentFields as $field) {
+                        if (isset($dataToDuplicate[$field])) {
+                            $storeCompatibleData[$field] = $dataToDuplicate[$field];
+                        }
+                    }
+                } else {
+                    // Per non-agenti: include user_id obbligatorio e tutti i campi
+                    $storeCompatibleData = $dataToDuplicate;
+                    // Se non specificato nell'override, mantieni l'agente originale
+                    if (!isset($storeCompatibleData['user_id'])) {
+                        $storeCompatibleData['user_id'] = $originalPaperwork->user_id;
+                    }
+                }
+
+                // Riutilizza la logica del metodo store
+                $duplicateRequest = new Request($storeCompatibleData);
+                $duplicateRequest->setMethod('POST'); // Ensure it's a POST request
+                $duplicateRequest->headers->set('Content-Type', 'application/json');
+                $duplicateRequest->headers->set('Accept', 'application/json');
+                $duplicateRequest->setUserResolver(function() use ($request) {
+                    return $request->user();
+                });
+
+                $storeResponse = $this->store($duplicateRequest);
+                
+                if ($storeResponse->getStatusCode() === 201) {
+                    $newPaperwork = json_decode($storeResponse->getContent(), true);
+                    $results[] = [
+                        'id' => $id,
+                        'duplication' => 'success',
+                        'message' => 'ok',
+                        'new_id' => $newPaperwork['id']
+                    ];
+                } else {
+                    $errorData = json_decode($storeResponse->getContent(), true);
+                    $results[] = [
+                        'id' => $id,
+                        'duplication' => 'error',
+                        'message' => $errorData['message'] ?? 'Errore durante la duplicazione'
+                    ];
+                }
+
+            } catch (\Exception $e) {
+                $results[] = [
+                    'id' => $id,
+                    'duplication' => 'error',
+                    'message' => $e->getMessage()
+                ];
+            }
+        }
+
+        return response()->json(['result' => $results]);
+    }
+
     public function update(Request $request, $id)
     {
         $paperwork = \App\Models\Paperwork::find($id);
