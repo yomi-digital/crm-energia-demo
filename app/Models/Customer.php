@@ -31,6 +31,10 @@ class Customer extends Model
         'zip',
     ];
 
+    protected $casts = [
+        'privacy' => 'boolean',
+    ];
+
     public function addedByUser()
     {
         return $this->belongsTo(User::class, 'added_by');

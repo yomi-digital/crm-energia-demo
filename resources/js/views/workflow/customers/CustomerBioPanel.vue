@@ -155,6 +155,24 @@ const confirmCustomer = async () => {
               </VListItemTitle>
             </VListItem>
 
+            <!-- Privacy -->
+            <VListItem>
+              <VListItemTitle>
+                <h6 class="text-h6">
+                  Privacy:
+                  <div class="d-inline-block text-body-1">
+                                         <VChip 
+                       :color="props.customerData.privacy ? 'success' : 'warning'"
+                       size="small"
+                       variant="flat"
+                     >
+                      {{ props.customerData.privacy ? 'Accettata' : 'Non accettata' }}
+                    </VChip>
+                  </div>
+                </h6>
+              </VListItemTitle>
+            </VListItem>
+
             <VListItem v-if="props.customerData.address">
               <VListItemTitle>
                 <h6 class="text-h6">

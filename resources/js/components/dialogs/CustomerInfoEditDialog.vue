@@ -13,6 +13,7 @@ const props = defineProps({
       email: '',
       phone: '',
       mobile: '',
+      privacy: false,
       ateco_code: '',
       pec: '',
       unique_code: '',
@@ -445,6 +446,19 @@ const provinces = [
                 v-model="customerData.zip"
                 label="CAP"
                 placeholder="00100"
+              />
+            </VCol>
+
+            <!-- 👉 Privacy -->
+            <VCol
+              cols="12"
+              md="12"
+            >
+              <VCheckbox
+                v-model="customerData.privacy"
+                label="Privacy"
+                color="primary"
+                hide-details
               />
             </VCol>
 
