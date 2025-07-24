@@ -16,6 +16,7 @@ class Customer extends Model
         'email',
         'phone',
         'mobile',
+        'privacy',
         'business_name',
         'tax_id_code',
         'vat_number',

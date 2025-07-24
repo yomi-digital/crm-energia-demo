@@ -9,6 +9,7 @@ const vatNumber = ref('')
 const email = ref('')
 const phone = ref('')
 const mobile = ref('')
+const privacy = ref(false)
 const atecoCode = ref('')
 const pec = ref('')
 const uniqueCode = ref('')
@@ -215,6 +216,7 @@ const createUser = async () => {
     email: email.value,
     phone: phone.value,
     mobile: mobile.value,
+    privacy: privacy.value,
     address: address.value,
     region: typeof region.value === 'object' ? region.value.value : region.value,
     province: typeof province.value === 'object' ? province.value.value : province.value,
@@ -445,7 +447,6 @@ const filteredProvinces = computed(() => {
       </VCol>
 
 
-
       <!-- 👉 PEC -->
       <!-- <VCol
         cols="12"
@@ -539,6 +540,19 @@ const filteredProvinces = computed(() => {
           v-model="zip"
           label="CAP"
           placeholder="00100"
+        />
+      </VCol>
+
+      <!-- 👉 Privacy -->
+      <VCol
+        cols="12"
+        md="12"
+      >
+        <VCheckbox
+          v-model="privacy"
+          label="Privacy"
+          color="primary"
+          hide-details
         />
       </VCol>
 
