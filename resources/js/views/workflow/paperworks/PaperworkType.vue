@@ -11,6 +11,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:formData'])
 
+// Computed per determinare se il campo POD/PDR è obbligatorio
+const isPodRequired = computed(() => {
+  return formData.value.category !== 'ALLACCIO' && formData.value.energy_type !== 'MOBILE'
+})
+
 const paperworkTypes = [
   {
     icon: {
@@ -145,6 +150,32 @@ const contractTypesMobile = ref([
           label="Tipologia Mobile"
           :items="[{ title: 'MNP', value: 'MNP' }, { title: 'NIP', value: 'NIP' }]"
           placeholder="Seleziona un tipo"
+        />
+      </VCol>
+
+      <VCol
+        cols="12"
+        sm="6"
+      >
+        <AppTextField
+          v-model="formData.account_pod_pdr"
+          :label="isPodRequired ? 'Account / POD / PDR *' : 'Account / POD / PDR (opzionale)'"
+          placeholder="09886655"
+          :error="isPodRequired && (!formData.account_pod_pdr || formData.account_pod_pdr.trim() === '')"
+          :error-messages="isPodRequired && (!formData.account_pod_pdr || formData.account_pod_pdr.trim() === '') ? 'Il campo POD/PDR è obbligatorio per questo tipo di pratica' : ''"
+          :rules="isPodRequired ? [v => !!v || 'Il campo POD/PDR è obbligatorio per questo tipo di pratica'] : []"
+        />
+      </VCol>
+
+      <VCol
+        cols="12"
+        sm="6"
+      >
+        <AppTextField
+          v-model="formData.annual_consumption"
+          label="Consumo Annuale (opzionale)"
+          placeholder="0"
+          type="number"
         />
       </VCol>
 

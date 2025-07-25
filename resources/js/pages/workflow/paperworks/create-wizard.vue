@@ -74,13 +74,26 @@ const validateCustomerSelected = () => {
 }
 
 const validatePaperworkType = () => {
-  if (!createPaperworkData.value.paperworkType.category ||
-      !createPaperworkData.value.paperworkType.energy_type ||
-      !createPaperworkData.value.paperworkType.type) {
+  const paperworkType = createPaperworkData.value.paperworkType
+  
+  // Validazione campi base
+  if (!paperworkType.category ||
+      !paperworkType.energy_type ||
+      !paperworkType.type) {
     isCurrentStepValid.value = false
-  } else {
-    isCurrentStepValid.value = true
+    return
   }
+
+  // Validazione dinamica POD/PDR
+  // Campo obbligatorio se category != 'ALLACCIO' e energy_type != 'MOBILE'
+  const isPodRequired = paperworkType.category !== 'ALLACCIO' && paperworkType.energy_type !== 'MOBILE'
+  
+  if (isPodRequired && (!paperworkType.account_pod_pdr || paperworkType.account_pod_pdr.trim() === '')) {
+    isCurrentStepValid.value = false
+    return
+  }
+
+  isCurrentStepValid.value = true
 }
 
 const validateProductSelected = () => {
@@ -103,8 +116,6 @@ const createPaperworkData = ref({
     name: null,
     appointment_id: null,
     appointment_title: null,
-    account_pod_pdr: null,
-    annual_consumption: null,
   },
   paperworkType: {
     category: 'ALLACCIO',
@@ -113,6 +124,8 @@ const createPaperworkData = ref({
     mobile_type: null,
     user_type: null,
     previous_provider: null,
+    account_pod_pdr: null,
+    annual_consumption: null,
   },
   product: {
     brand_id: null,
@@ -184,8 +197,8 @@ const onSubmit = async () => {
       customer_id: createPaperworkData.value.customer.id.value,
       appointment_id: createPaperworkData.value.customer.appointment_id,
       product_id: createPaperworkData.value.product.product_id,
-      account_pod_pdr: createPaperworkData.value.customer.account_pod_pdr,
-      annual_consumption: createPaperworkData.value.customer.annual_consumption,
+      account_pod_pdr: createPaperworkData.value.paperworkType.account_pod_pdr,
+      annual_consumption: createPaperworkData.value.paperworkType.annual_consumption,
       notes: createPaperworkData.value.paperworkReviewComplete.notes,
       contract_type: createPaperworkData.value.paperworkType.user_type,
       category: createPaperworkData.value.paperworkType.category,

@@ -167,27 +167,7 @@ watch(() => formData.value.appointment_id, () => {
         />
       </VCol>
 
-      <VCol
-        cols="12"
-        sm="6"
-      >
-        <AppTextField
-          v-model="formData.account_pod_pdr"
-          label="Account / POD / PDR (opzionale per ALLACCIO)"
-          placeholder="09886655"
-        />
-      </VCol>
 
-      <VCol
-        cols="12"
-        sm="6"
-      >
-        <AppTextField
-          v-model="formData.annual_consumption"
-          label="Consumo Annuale (opzionale)"
-          placeholder="0"
-        />
-      </VCol>
     </VRow>
   </VForm>
 </template>
