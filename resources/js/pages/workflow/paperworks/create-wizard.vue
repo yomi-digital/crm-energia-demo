@@ -186,37 +186,41 @@ const isCreating = ref(false)
 const router = useRouter()
 
 const onSubmit = async () => {
-  if (! createPaperworkData.value.paperworkReviewComplete.isPaperworkDetailsConfirmed) {
-    return false
-  }
-  isCreating.value = true
-  const response = await $api('/paperworks', {
-    method: 'POST',
-    body: {
-      user_id: createPaperworkData.value.agent.id,
-      customer_id: createPaperworkData.value.customer.id.value,
-      appointment_id: createPaperworkData.value.customer.appointment_id,
-      product_id: createPaperworkData.value.product.product_id,
-      account_pod_pdr: createPaperworkData.value.paperworkType.account_pod_pdr,
-      annual_consumption: createPaperworkData.value.paperworkType.annual_consumption,
-      notes: createPaperworkData.value.paperworkReviewComplete.notes,
-      contract_type: createPaperworkData.value.paperworkType.user_type,
-      category: createPaperworkData.value.paperworkType.category,
-      type: createPaperworkData.value.paperworkType.type,
-      energy_type: createPaperworkData.value.paperworkType.energy_type,
-      mobile_type: createPaperworkData.value.paperworkType.mobile_type,
-      previous_provider: createPaperworkData.value.paperworkType.previous_provider,
+  try{
+    if (! createPaperworkData.value.paperworkReviewComplete.isPaperworkDetailsConfirmed) {
+      return false
     }
-  })
-  isCreating.value = false
+    isCreating.value = true
+    const response = await $api('/paperworks', {
+      method: 'POST',
+      body: {
+        user_id: createPaperworkData.value.agent.id,
+        customer_id: createPaperworkData.value.customer.id.value,
+        appointment_id: createPaperworkData.value.customer.appointment_id,
+        product_id: createPaperworkData.value.product.product_id,
+        account_pod_pdr: createPaperworkData.value.paperworkType.account_pod_pdr,
+        annual_consumption: createPaperworkData.value.paperworkType.annual_consumption,
+        notes: createPaperworkData.value.paperworkReviewComplete.notes,
+        contract_type: createPaperworkData.value.paperworkType.user_type,
+        category: createPaperworkData.value.paperworkType.category,
+        type: createPaperworkData.value.paperworkType.type,
+        energy_type: createPaperworkData.value.paperworkType.energy_type,
+        mobile_type: createPaperworkData.value.paperworkType.mobile_type,
+        previous_provider: createPaperworkData.value.paperworkType.previous_provider,
+      }
+    })
+    isCreating.value = false
 
-  isPaperworkCreated.value = true
-  isPaperworkCreatedDialogVisible.value = true
+    isPaperworkCreated.value = true
+    isPaperworkCreatedDialogVisible.value = true
 
-  // Set a 5 seconds delay before redirecting to the paperwork page
-  setTimeout(() => {
-    router.push({ name: 'workflow-paperworks-id', params: { id: response.id } })
-  }, 5000)
+    // Set a 5 seconds delay before redirecting to the paperwork page
+    setTimeout(() => {
+      router.push({ name: 'workflow-paperworks-id', params: { id: response.id } })
+    }, 5000)
+  } catch (error) {
+    alert(error.message || 'Errore durante la creazione della pratica')
+  }
 }
 </script>
 
