@@ -209,6 +209,32 @@ const isSaving = ref(false)
 const isUpdatingEmail = ref(false)
 
 const saveModifications = async () => {
+  // Validazione campi obbligatori prima del salvataggio
+  if (!extractedPaperwork.value.type) {
+    alert('Il campo Tipo Fornitura è obbligatorio')
+    return
+  }
+  
+  if (!extractedPaperwork.value.energy_type) {
+    alert('Il campo Tipo Utenza è obbligatorio')
+    return
+  }
+  
+  if (!extractedPaperwork.value.category) {
+    alert('Il campo Categoria è obbligatorio')
+    return
+  }
+  
+  if (extractedPaperwork.value.energy_type === 'MOBILE' && !extractedPaperwork.value.mobile_type) {
+    alert('Il campo Tipologia Mobile è obbligatorio quando il tipo utenza è Mobile')
+    return
+  }
+  
+  if (isPodRequired.value && (!extractedPaperwork.value.account_pod_pdr || extractedPaperwork.value.account_pod_pdr.trim() === '')) {
+    alert('Il campo POD/PDR è obbligatorio per questo tipo di pratica')
+    return
+  }
+
   isSaving.value = true
   try {
     await $api(`/ai-paperworks/${id}`, {
@@ -233,6 +259,32 @@ const saveModifications = async () => {
 const confirmPaperwork = async () => {
   if (!extractedPaperwork.value.product_id) {
     alert('Seleziona un prodotto prima di confermare')
+    return
+  }
+
+  // Validazione campi obbligatori prima della conferma
+  if (!extractedPaperwork.value.type) {
+    alert('Il campo Tipo Fornitura è obbligatorio')
+    return
+  }
+  
+  if (!extractedPaperwork.value.energy_type) {
+    alert('Il campo Tipo Utenza è obbligatorio')
+    return
+  }
+  
+  if (!extractedPaperwork.value.category) {
+    alert('Il campo Categoria è obbligatorio')
+    return
+  }
+  
+  if (extractedPaperwork.value.energy_type === 'MOBILE' && !extractedPaperwork.value.mobile_type) {
+    alert('Il campo Tipologia Mobile è obbligatorio quando il tipo utenza è Mobile')
+    return
+  }
+  
+  if (isPodRequired.value && (!extractedPaperwork.value.account_pod_pdr || extractedPaperwork.value.account_pod_pdr.trim() === '')) {
+    alert('Il campo POD/PDR è obbligatorio per questo tipo di pratica')
     return
   }
 
@@ -274,6 +326,52 @@ const cancelPaperwork = async () => {
     alert('Errore durante l\'annullamento della pratica')
   }
 }
+
+// Funzione per ottenere le opzioni energy_type basate sul type selezionato
+const getEnergyTypeOptions = () => {
+  if (extractedPaperwork.value.type === 'ENERGIA') {
+    return [
+      { title: 'Luce', value: 'LUCE' },
+      { title: 'Gas', value: 'GAS' },
+    ]
+  } else if (extractedPaperwork.value.type === 'TELEFONIA') {
+    return [
+      { title: 'Fisso', value: 'FISSO' },
+      { title: 'Mobile', value: 'MOBILE' },
+      { title: 'Fisso e Mobile', value: 'FISSO_MOBILE' },
+    ]
+  }
+  return []
+}
+
+// Funzione per ottenere le categorie basate sul type selezionato
+const getCategoryOptions = () => {
+  if (extractedPaperwork.value.type === 'ENERGIA') {
+    return [
+      { title: 'ALLACCIO', value: 'ALLACCIO' },
+      { title: 'OTP', value: 'OTP' },
+      { title: 'SUBENTRO', value: 'SUBENTRO' },
+      { title: 'VOLTURA', value: 'VOLTURA' },
+      { title: 'SWITCH', value: 'SWITCH' },
+    ]
+  } else if (extractedPaperwork.value.type === 'TELEFONIA') {
+    return [
+      { title: 'NUOVA LINEA', value: 'NUOVA LINEA' },
+      { title: 'PORTABILITÀ', value: 'PORTABILITÀ' },
+    ]
+  }
+  return []
+}
+
+// Computed per determinare se il campo POD/PDR è obbligatorio
+const isPodRequired = computed(() => {
+  if (extractedPaperwork.value.category === 'ALLACCIO') {
+    return false // ALLACCIO è sempre opzionale
+  }
+  
+  // Controlla energy_type: opzionale solo per MOBILE
+  return extractedPaperwork.value.energy_type !== 'MOBILE'
+})
 
 const updateEmailAndRefresh = async () => {
   if (!extractedCustomer.value.email || !extractedCustomer.value.email.trim()) {
@@ -539,6 +637,38 @@ const updateEmailAndRefresh = async () => {
                       label="Tipo Fornitura"
                       :readonly="aiPaperwork?.status === 5"
                       :items="['ENERGIA', 'TELEFONIA']"
+                      @update:modelValue="() => { extractedPaperwork.energy_type = null; extractedPaperwork.category = null; extractedPaperwork.previous_provider = null; extractedPaperwork.mobile_type = null; }"
+                    />
+                  </VCol>
+                </VRow>
+
+                <!-- Campo Energy Type unificato -->
+                <VRow>
+                  <VCol cols="12">
+                    <AppAutocomplete
+                      v-model="extractedPaperwork.energy_type"
+                      label="Tipo Utenza *"
+                      :readonly="aiPaperwork?.status === 5"
+                      :items="getEnergyTypeOptions()"
+                      placeholder="Seleziona tipo utenza"
+                      :error="aiPaperwork?.status !== 5 && !extractedPaperwork.energy_type"
+                      :error-messages="aiPaperwork?.status !== 5 && !extractedPaperwork.energy_type ? 'Il campo Tipo Utenza è obbligatorio' : ''"
+                      @update:modelValue="() => { extractedPaperwork.mobile_type = null; }"
+                    />
+                  </VCol>
+                </VRow>
+
+                <!-- Campo Mobile Type per MOBILE -->
+                <VRow v-if="extractedPaperwork.energy_type === 'MOBILE'">
+                  <VCol cols="12">
+                    <AppAutocomplete
+                      v-model="extractedPaperwork.mobile_type"
+                      label="Tipologia Mobile *"
+                      :readonly="aiPaperwork?.status === 5"
+                      :items="[{ title: 'MNP', value: 'MNP' }, { title: 'NIP', value: 'NIP' }]"
+                      placeholder="Seleziona tipologia mobile"
+                      :error="aiPaperwork?.status !== 5 && extractedPaperwork.energy_type === 'MOBILE' && !extractedPaperwork.mobile_type"
+                      :error-messages="aiPaperwork?.status !== 5 && extractedPaperwork.energy_type === 'MOBILE' && !extractedPaperwork.mobile_type ? 'Il campo Tipologia Mobile è obbligatorio' : ''"
                     />
                   </VCol>
                 </VRow>
@@ -577,8 +707,10 @@ const updateEmailAndRefresh = async () => {
                   <VCol cols="12">
                     <AppTextField
                       v-model="extractedPaperwork.account_pod_pdr"
-                      label="POD/PDR"
+                      :label="isPodRequired ? 'POD/PDR *' : 'POD/PDR'"
                       :readonly="aiPaperwork?.status === 5"
+                      :error="aiPaperwork?.status !== 5 && isPodRequired && (!extractedPaperwork.account_pod_pdr || extractedPaperwork.account_pod_pdr.trim() === '')"
+                      :error-messages="aiPaperwork?.status !== 5 && isPodRequired && (!extractedPaperwork.account_pod_pdr || extractedPaperwork.account_pod_pdr.trim() === '') ? 'Il campo POD/PDR è obbligatorio per questo tipo di pratica' : ''"
                     />
                   </VCol>
                 </VRow>
@@ -587,9 +719,24 @@ const updateEmailAndRefresh = async () => {
                   <VCol cols="12">
                     <AppAutocomplete
                       v-model="extractedPaperwork.category"
-                      label="Categoria"
+                      label="Categoria *"
                       :readonly="aiPaperwork?.status === 5"
-                      :items="['ALLACCIO', 'OTP', 'SUBENTRO', 'VOLTURA', 'SWITCH']"
+                      :items="getCategoryOptions()"
+                      placeholder="Seleziona una categoria"
+                      :error="aiPaperwork?.status !== 5 && !extractedPaperwork.category"
+                      :error-messages="aiPaperwork?.status !== 5 && !extractedPaperwork.category ? 'Il campo Categoria è obbligatorio' : ''"
+                    />
+                  </VCol>
+                </VRow>
+
+                <!-- Campo Fornitore Precedente per SWITCH -->
+                <VRow v-if="extractedPaperwork.category === 'SWITCH'">
+                  <VCol cols="12">
+                    <AppTextField
+                      v-model="extractedPaperwork.previous_provider"
+                      label="Fornitore Precedente"
+                      :readonly="aiPaperwork?.status === 5"
+                      placeholder="Es: Enel, Eni, Edison..."
                     />
                   </VCol>
                 </VRow>

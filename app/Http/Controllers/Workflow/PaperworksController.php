@@ -109,7 +109,10 @@ class PaperworksController extends Controller
                     'nullable',
                     function ($attribute, $value, $fail) use ($request) {
                         if ($request->category !== 'ALLACCIO' && $request->energy_type !== 'MOBILE') {
-                            $fail('Account POD/PDR è obbligatorio per i contratti di energia che non siano ALLACCIO.');
+                            // Controlla se il valore è vuoto, null o solo spazi
+                            if (empty($value) || trim($value) === '') {
+                                $fail('Account POD/PDR è obbligatorio per i contratti di energia che non siano ALLACCIO.');
+                            }
                         }
                     },
                 ],
@@ -144,7 +147,17 @@ class PaperworksController extends Controller
                 'customer_id' => 'required|exists:customers,id',
                 'appointment_id' => 'exists:calendar,id|nullable',
                 'product_id' => 'required|exists:products,id',
-                'account_pod_pdr' => 'required_unless:category,ALLACCIO|nullable',
+                'account_pod_pdr' => [
+                    'nullable',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ($request->category !== 'ALLACCIO' && $request->energy_type !== 'MOBILE') {
+                            // Controlla se il valore è vuoto, null o solo spazi
+                            if (empty($value) || trim($value) === '') {
+                                $fail('Account POD/PDR è obbligatorio per i contratti di energia che non siano ALLACCIO.');
+                            }
+                        }
+                    },
+                ],
                 'annual_consumption' => 'nullable',
                 'contract_type' => 'required',
                 'category' => 'required',
@@ -220,9 +233,8 @@ class PaperworksController extends Controller
                 
                 $dataToDuplicate = [];
                 foreach ($allowedFields as $field) {
-                    if (isset($originalPaperwork->$field)) {
-                        $dataToDuplicate[$field] = $originalPaperwork->$field;
-                    }
+                    // Copia sempre il campo, anche se è null
+                    $dataToDuplicate[$field] = $originalPaperwork->$field;
                 }
 
                 // Applica eventuali override globali
@@ -263,6 +275,7 @@ class PaperworksController extends Controller
                         $storeCompatibleData['user_id'] = $originalPaperwork->user_id;
                     }
                 }
+
 
                 // Riutilizza la logica del metodo store
                 $duplicateRequest = new Request($storeCompatibleData);

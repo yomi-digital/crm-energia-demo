@@ -320,6 +320,8 @@ class AIController extends Controller
                 'contract_type' => $paperworkData['contract_type'] ?? null,
                 'category' => $paperworkData['category'] ?? null,
                 'type' => $paperworkData['type'] ?? null,
+                'energy_type' => $paperworkData['energy_type'] ?? null,
+                'mobile_type' => $paperworkData['mobile_type'] ?? null,
                 'previous_provider' => $paperworkData['previous_provider'] ?? null,
             ]);
 
