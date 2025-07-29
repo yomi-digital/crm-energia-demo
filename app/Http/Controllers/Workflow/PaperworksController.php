@@ -494,6 +494,13 @@ class PaperworksController extends Controller
 
     public function destroy(Request $request, $id)
     {
+        // Verifica se l'utente è un agente - gli agenti non possono eliminare pratiche
+        if ($request->user()->hasRole('agente')) {
+            return response()->json([
+                'error' => 'Non hai i permessi per eliminare questa pratica'
+            ], 403);
+        }
+
         $paperwork = \App\Models\Paperwork::find($id);
 
         if (!$paperwork) {

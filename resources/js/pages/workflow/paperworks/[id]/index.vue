@@ -22,6 +22,7 @@ const isDeleting = ref(false)
 
 const isAdmin = useCookie('userData').value.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 const canViewPayout = useCookie('userData').value.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
+const isAgent = useCookie('userData').value.roles.some(role => role.name === 'agente')
 
 const {
   data: paperworkData,
@@ -199,6 +200,7 @@ const downloadDocument = async doc => {
         </VBtn>&nbsp;
 
         <VBtn
+          v-if="!isAgent"
           variant="tonal"
           color="error"
           @click="isConfirmDeleteDialogVisible = !isConfirmDeleteDialogVisible"
