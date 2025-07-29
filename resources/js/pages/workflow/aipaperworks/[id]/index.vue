@@ -196,7 +196,9 @@ const downloadFile = async () => {
     const url = window.URL.createObjectURL(new Blob([response]))
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', `pratica-${id}.pdf`)
+    // Usa il nome originale se disponibile, altrimenti fallback al nome generico
+    const filename = aiPaperwork.value?.original_filename || `pratica-${id}.pdf`
+    link.setAttribute('download', filename)
     document.body.appendChild(link)
     link.click()
     link.remove()

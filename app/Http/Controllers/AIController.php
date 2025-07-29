@@ -98,6 +98,7 @@ class AIController extends Controller
             'user_id' => $aiPaperwork->user_id,
             'brand_id' => $aiPaperwork->brand_id,
             'filepath' => $aiPaperwork->filepath,
+            'original_filename' => $aiPaperwork->original_filename,
             'status' => $aiPaperwork->status,
             'extracted_text' => $aiPaperwork->extracted_text,
             'ai_extracted_customer' => $aiPaperwork->ai_extracted_customer,
