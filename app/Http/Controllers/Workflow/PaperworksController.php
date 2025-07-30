@@ -452,6 +452,7 @@ class PaperworksController extends Controller
             'order_status' => 'nullable|string',
             'order_substatus' => 'nullable|string',
             'partner_outcome' => 'nullable|string',
+            'partner_outcome_at' => 'nullable|string',
         ]);
 
         // Only update fields that are not empty. if the field is --- RIMUOVI ---, set it to null
@@ -463,6 +464,21 @@ class PaperworksController extends Controller
                 continue;
             } else {
                 $fields[$key] = $value;
+            }
+        }
+
+        // Handle partner_outcome_at separately due to date formatting
+        if ($request->has('partner_outcome_at') && $request->get('partner_outcome_at')) {
+            try {
+                $partnerOutcomeAt = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_outcome_at'))->format('Y-m-d');
+                $fields['partner_outcome_at'] = $partnerOutcomeAt;
+            } catch (\Exception $e) {
+                
+                // Return error response - stop the entire bulk update process
+                return response()->json([
+                    'error' => 'Formato data non valido per "Data Esito Partner". Utilizzare il formato DD/MM/YYYY.',
+                    'invalid_date' => $request->get('partner_outcome_at')
+                ], 422);
             }
         }
 
