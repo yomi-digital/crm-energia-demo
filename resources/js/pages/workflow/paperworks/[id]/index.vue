@@ -1,4 +1,6 @@
 <script setup>
+import CustomerInfoCard from '@/components/CustomerInfoCard.vue'
+import CustomerInfoEditDialog from '@/components/dialogs/CustomerInfoEditDialog.vue'
 import { useRoute, useRouter } from 'vue-router'
 
 definePage({
@@ -19,6 +21,7 @@ const isTicketViewDialogVisible = ref(false)
 const isUploadDialogVisible = ref(false)
 const isUpdateStatusesDialogVisible = ref(false)
 const isDeleting = ref(false)
+const isCustomerInfoEditDialogVisible = ref(false)
 
 const isAdmin = useCookie('userData').value.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 const canViewPayout = useCookie('userData').value.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
@@ -56,6 +59,34 @@ const closedTicket = () => {
 
 const attachmentsUpdated = () => {
   fetchPaperwork()
+}
+
+const confirmCustomer = async (customerData) => {
+  try {
+    await $api(`/customers/${customerData.id}/confirm`, {
+      method: 'PUT',
+    })
+    fetchPaperwork()
+  } catch (error) {
+    alert('Error confirming customer')
+  }
+}
+
+const editCustomer = (customerData) => {
+  // Open the edit dialog
+  isCustomerInfoEditDialogVisible.value = true
+}
+
+const updateCustomerInfo = async (data) => {
+  try {
+    const response = await $api(`/customers/${data.id}`, {
+      method: 'PUT',
+      body: data,
+    })
+    fetchPaperwork()
+  } catch (error) {
+    alert('Error updating customer')
+  }
 }
 
 const selectedFiles = async (files) => {
@@ -487,7 +518,9 @@ const downloadDocument = async doc => {
           </VCardText>
         </VCard>
 
-        <!-- 👉 Customer Details  -->
+
+        <!-- 👉 Customer Details (COMMENTATO - Sostituito da CustomerInfoCard) -->
+        <!--
         <VCard class="mb-6">
           <VCardText class="d-flex flex-column gap-y-6">
             <h5 class="text-h5">
@@ -569,6 +602,15 @@ const downloadDocument = async doc => {
             </div>
           </VCardText>
         </VCard>
+        -->
+
+        <!-- 👉 Customer Info Card -->
+        <CustomerInfoCard 
+          :customer-data="paperworkData.customer"
+          class="mb-6"
+          @confirm="confirmCustomer"
+          @edit="editCustomer"
+        />
 
         <!-- Documents -->
         <VCard class="mb-6">
@@ -762,6 +804,14 @@ const downloadDocument = async doc => {
       </VCardActions>
     </VCard>
   </VDialog>
+
+  <!-- 👉 Edit customer info dialog -->
+  <CustomerInfoEditDialog
+    v-if="$can('edit', 'customers')"
+    v-model:isDialogVisible="isCustomerInfoEditDialogVisible"
+    :customer-data="paperworkData.customer"
+    @submit="updateCustomerInfo"
+  />
 </template>
 
 <style scoped>
