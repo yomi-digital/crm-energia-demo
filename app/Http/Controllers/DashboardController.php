@@ -84,9 +84,7 @@ class DashboardController extends Controller
                     'product_id' => $paperwork->product->id,
                     'state' => $paperwork->order_status,
                     'created_at' => $paperwork->created_at->format(config('app.date_format')),
-                    'hasTicket' => $paperwork->tickets->contains(function ($ticket) use ($loggedInUserId) {
-                        return $ticket->comments->where('user_id', '!=', $loggedInUserId)->isNotEmpty();
-                    }),
+                    'hasTicket' => $paperwork->tickets->where('status', '!=', 3)->isNotEmpty(),
                 ];
             }),
         ]);
