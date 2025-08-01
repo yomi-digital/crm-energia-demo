@@ -24,6 +24,8 @@ const dateFrom = ref('')
 const dateTo = ref('')
 const selectedYear = ref('')
 const selectedMonth = ref('')
+const phoneSearch = ref('')
+const taxIdSearch = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -130,6 +132,8 @@ const {
     category: selectedCategory,
     date_from: dateFrom,
     date_to: dateTo,
+    phone: phoneSearch,
+    tax_id: taxIdSearch,
     page,
     sortBy,
     orderBy,
@@ -434,6 +438,24 @@ const updateDateFromYearMonth = () => {
               clearable
               :items="categories"
               placeholder="Seleziona una Categoria"
+            />
+          </VCol>
+
+          <VCol cols="4">
+            <AppTextField
+              v-model="phoneSearch"
+              label="Numero di Telefono"
+              clearable
+              placeholder="Cerca per telefono/cellulare"
+            />
+          </VCol>
+
+          <VCol cols="4">
+            <AppTextField
+              v-model="taxIdSearch"
+              label="Codice Fiscale"
+              clearable
+              placeholder="Cerca per codice fiscale"
             />
           </VCol>
         </VRow>

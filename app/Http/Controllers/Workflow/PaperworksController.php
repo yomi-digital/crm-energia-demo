@@ -36,6 +36,21 @@ class PaperworksController extends Controller
             $paperworks = $paperworks->whereDate('created_at', '<=', $request->get('date_to'));
         }
 
+        if ($request->filled('phone')) {
+            $phone = $request->get('phone');
+            $paperworks = $paperworks->whereHas('customer', function ($query) use ($phone) {
+                $query->where('phone', 'like', "%{$phone}%")
+                    ->orWhere('mobile', 'like', "%{$phone}%");
+            });
+        }
+
+        if ($request->filled('tax_id')) {
+            $taxId = $request->get('tax_id');
+            $paperworks = $paperworks->whereHas('customer', function ($query) use ($taxId) {
+                $query->where('tax_id_code', 'like', "%{$taxId}%");
+            });
+        }
+
         if ($request->get('q')) {
             $search = $request->get('q');
             $paperworks = $paperworks->where(function ($query) use ($search) {
