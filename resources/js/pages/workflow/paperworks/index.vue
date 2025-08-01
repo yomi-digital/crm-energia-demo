@@ -28,6 +28,7 @@ const phoneSearch = ref('')
 const taxIdSearch = ref('')
 const emailSearch = ref('')
 const podPdrSearch = ref('')
+const selectedProduct = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -138,6 +139,7 @@ const {
     tax_id: taxIdSearch,
     email: emailSearch,
     pod_pdr: podPdrSearch,
+    product_id: selectedProduct,
     page,
     sortBy,
     orderBy,
@@ -222,6 +224,20 @@ const fetchCustomers = async () => {
   }
 }
 fetchCustomers()
+
+const products = ref([])
+
+const fetchProducts = async () => {
+  products.value = []
+  const response = await $api('/products/personal?itemsPerPage=99999999&select=1')
+  for (let i = 0; i < response.products.length; i++) {
+    products.value.push({
+      title: response.products[i].name,
+      value: response.products[i].id,
+    })
+  }
+}
+fetchProducts()
 
 const onSelectionChanged = (newSelection) => {
   selected.value = newSelection
@@ -478,6 +494,16 @@ const updateDateFromYearMonth = () => {
               label="POD/PDR"
               clearable
               placeholder="Cerca per POD/PDR"
+            />
+          </VCol>
+
+          <VCol cols="4">
+            <AppAutocomplete
+              v-model="selectedProduct"
+              label="Prodotto"
+              clearable
+              :items="products"
+              placeholder="Seleziona un Prodotto"
             />
           </VCol>
         </VRow>

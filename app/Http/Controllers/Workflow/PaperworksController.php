@@ -63,6 +63,10 @@ class PaperworksController extends Controller
             $paperworks = $paperworks->where('account_pod_pdr', 'like', "%{$podPdr}%");
         }
 
+        if ($request->filled('product_id')) {
+            $paperworks = $paperworks->where('product_id', $request->get('product_id'));
+        }
+
         if ($request->get('q')) {
             $search = $request->get('q');
             $paperworks = $paperworks->where(function ($query) use ($search) {
