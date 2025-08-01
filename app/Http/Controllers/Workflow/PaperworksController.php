@@ -51,6 +51,13 @@ class PaperworksController extends Controller
             });
         }
 
+        if ($request->filled('email')) {
+            $email = $request->get('email');
+            $paperworks = $paperworks->whereHas('customer', function ($query) use ($email) {
+                $query->where('email', 'like', "%{$email}%");
+            });
+        }
+
         if ($request->get('q')) {
             $search = $request->get('q');
             $paperworks = $paperworks->where(function ($query) use ($search) {

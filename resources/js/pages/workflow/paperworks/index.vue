@@ -26,6 +26,7 @@ const selectedYear = ref('')
 const selectedMonth = ref('')
 const phoneSearch = ref('')
 const taxIdSearch = ref('')
+const emailSearch = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -134,6 +135,7 @@ const {
     date_to: dateTo,
     phone: phoneSearch,
     tax_id: taxIdSearch,
+    email: emailSearch,
     page,
     sortBy,
     orderBy,
@@ -456,6 +458,15 @@ const updateDateFromYearMonth = () => {
               label="Codice Fiscale"
               clearable
               placeholder="Cerca per codice fiscale"
+            />
+          </VCol>
+
+          <VCol cols="4">
+            <AppTextField
+              v-model="emailSearch"
+              label="Email"
+              clearable
+              placeholder="Cerca per email"
             />
           </VCol>
         </VRow>
