@@ -457,14 +457,14 @@ const updateEmailAndRefresh = async () => {
             >
               Conferma Pratica
             </VBtn>
-            <VBtn
+            <!-- <VBtn
               v-if="aiPaperwork?.status !== 8 && aiPaperwork?.status !== 5"
               color="error"
               prepend-icon="tabler-x"
               @click="cancelPaperwork"
             >
               Annulla Pratica
-            </VBtn>
+            </VBtn> -->
           </div>
           <div class="d-flex gap-2">
             <VBtn
