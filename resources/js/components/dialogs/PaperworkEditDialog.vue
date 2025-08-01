@@ -248,25 +248,6 @@ watch(() => paperworkDataClone.value.type, () => {
 
             <VDivider class="mt-4" />
 
-            <!-- Notes fields -->
-            <VCol cols="12" sm="6">
-              <AppTextarea
-                v-model="paperworkDataClone.notes"
-                label="Note"
-                placeholder="Inserisci note..."
-                rows="4"
-              />
-            </VCol>
-
-            <VCol cols="12" sm="6">
-              <AppTextarea
-                v-model="paperworkDataClone.owner_notes"
-                label="Note Alfacom"
-                placeholder="Inserisci note Alfacom..."
-                rows="4"
-              />
-            </VCol>
-
             <!-- 👉 Submit and Cancel -->
             <VCol
               cols="12"

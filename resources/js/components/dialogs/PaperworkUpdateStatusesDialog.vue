@@ -47,6 +47,8 @@ const onFormSubmit = async () => {
       partner_outcome_at: partnerOutcomeAt.value,
       partner_sent_at: partnerSentAt.value,
       send_notification: sendNotification.value,
+      notes: notes.value,
+      owner_notes: ownerNotes.value,
     },
   })
   emit('update:isDialogVisible', false)
@@ -76,6 +78,8 @@ const partnerOutcome = ref(props.paperworkData.partner_outcome)
 const partnerOutcomeAt = ref(formatDate(props.paperworkData.partner_outcome_at))
 const partnerSentAt = ref(formatDate(props.paperworkData.partner_sent_at))
 const sendNotification = ref(false)
+const notes = ref(props.paperworkData.notes || '')
+const ownerNotes = ref(props.paperworkData.owner_notes || '')
 
 const startDateTimePickerConfig = computed(() => {
   const config = {
@@ -288,6 +292,27 @@ const onFormReset = () => {
                 v-model="sendNotification"
                 label="Notifica agente cambio sottostato?"
                 color="primary"
+              />
+            </VCol>
+
+            <VDivider class="mt-4" />
+
+            <!-- Notes fields -->
+            <VCol cols="12" sm="6">
+              <AppTextarea
+                v-model="notes"
+                label="Note"
+                placeholder="Inserisci note..."
+                rows="4"
+              />
+            </VCol>
+
+            <VCol cols="12" sm="6">
+              <AppTextarea
+                v-model="ownerNotes"
+                label="Note Alfacom"
+                placeholder="Inserisci note Alfacom..."
+                rows="4"
               />
             </VCol>
 
