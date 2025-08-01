@@ -1,4 +1,5 @@
 <script setup>
+import PaperworkNotesDialog from '@/components/dialogs/PaperworkNotesDialog.vue'
 
 definePage({
   meta: {
@@ -342,6 +343,18 @@ const viewDuplicatedPaperwork = () => {
   duplicatedPaperworkId.value = null
   paperworkToDuplicate.value = null
 }
+
+
+// Modal states per le note
+const isNotesDialogVisible = ref(false)
+const selectedPaperworkForNotes = ref(null)
+
+const showNotesDialog = (paperwork) => {
+  selectedPaperworkForNotes.value = paperwork
+  isNotesDialogVisible.value = true
+}
+
+
 
 const categories = ref([
   { title: 'ALLACCIO', value: 'ALLACCIO' },
@@ -829,6 +842,17 @@ const updateDateFromYearMonth = () => {
             >
               Duplica
             </VBtn>
+            
+            <VBtn
+              v-if="item.notes || item.owner_notes"
+              size="small"
+              color="info"
+              variant="tonal"
+              @click.stop="showNotesDialog(item)"
+              :title="`Visualizza note della pratica ${item.id}`"
+            >
+              Note
+            </VBtn>
           </div>
         </template>
 
@@ -866,6 +890,13 @@ const updateDateFromYearMonth = () => {
       :duplicatedPaperworkId="duplicatedPaperworkId"
       @close="onSuccessModalClose"
       @viewPaperwork="viewDuplicatedPaperwork"
+    />
+
+    <!-- 👉 Notes Dialog -->
+    <PaperworkNotesDialog
+      :isDialogVisible="isNotesDialogVisible"
+      :paperworkData="selectedPaperworkForNotes"
+      @update:isDialogVisible="isNotesDialogVisible = $event"
     />
   </section>
 </template>
