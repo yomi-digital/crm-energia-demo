@@ -123,6 +123,8 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::delete('users/{id}/brands/{brandId}', [UsersController::class, 'destroyBrand']);
     Route::get('users/{id}/appointments', [UsersController::class, 'appointments']);
 
+    Route::get('login-logs', [UsersController::class, 'loginLogs']);
+
     Route::get('agents', [UsersController::class, 'agents']);
     Route::get('structures', [UsersController::class, 'structures']);
 

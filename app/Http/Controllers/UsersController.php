@@ -426,4 +426,41 @@ class UsersController extends Controller
         $user->update(['password' => bcrypt($request->get('new_password'))]);
         return response()->json($user);
     }
+
+    public function loginLogs(Request $request)
+    {
+        // Controllo che l'utente sia admin
+        if (!$request->user()->hasRole(['gestione', 'backoffice', 'amministrazione'])) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $perPage = min($request->get('itemsPerPage', 25), 100); // Limite massimo 100
+        $page = $request->get('page', 1);
+
+        $users = \App\Models\User::select([
+            'id',
+            'name',
+            'last_name',
+            'last_login_at',
+            'last_logout_at',
+            'ip'
+        ])
+        ->with('roles') // Include i ruoli per le icone
+        ->whereNotNull('last_login_at') // Solo utenti che hanno fatto almeno un login
+        ->orderBy('last_login_at', 'desc');
+
+        $users = $users->paginate($perPage, ['*'], 'page', $page);
+
+        $users->getCollection()->transform(function ($user) {
+            $user->username = trim(implode(' ', [$user->name, $user->last_name]));
+            return $user;
+        });
+
+        return response()->json([
+            'users' => $users->getCollection(),
+            'totalPages' => $users->lastPage(),
+            'totalUsers' => $users->total(),
+            'page' => $users->currentPage()
+        ]);
+    }
 }

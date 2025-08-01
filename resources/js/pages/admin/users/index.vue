@@ -141,52 +141,7 @@ const isTeamLeader = [
   },
 ]
 
-const resolveUserRoleVariant = role => {
-  if (! role) {
-    role = { name: 'undefined' }
-  }
-
-  const roleLowerCase = role.name.toLowerCase()
-  if (roleLowerCase === 'struttura')
-    return {
-      color: 'success',
-      icon: 'tabler-building',
-    }
-  if (roleLowerCase === 'telemarketing')
-    return {
-      color: 'info',
-      icon: 'tabler-phone',
-    }
-  if (roleLowerCase === 'agente')
-    return {
-      color: 'success',
-      icon: 'tabler-briefcase',
-    }
-  if (roleLowerCase === 'backoffice')
-    return {
-      color: 'warning',
-      icon: 'tabler-device-desktop',
-    }
-  if (roleLowerCase === 'amministrazione')
-    return {
-      color: 'primary',
-      icon: 'tabler-crown',
-    }
-
-  return {
-    color: 'primary',
-    icon: 'tabler-user',
-  }
-}
-
-const resolveUserStatusVariant = stat => {
-  if (stat !== 1)
-    return 'error'
-  if (stat === 1)
-    return 'success'
-
-  return 'primary'
-}
+import { getAvatar, resolveUserRoleVariant, resolveUserStatusVariant } from '@/utils/userRole';
 
 const isAddNewUserDrawerVisible = ref(false)
 
@@ -210,13 +165,7 @@ const deleteUser = async id => {
   fetchUsers()
 }
 
-const getAvatar = (user) => {
-  if (user.avatar) {
-    return user.avatar
-  }
 
-  return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name + ' ' + user.last_name) + '&background=random&color=fff'
-}
 </script>
 
 <template>

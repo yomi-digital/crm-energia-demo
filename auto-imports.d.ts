@@ -51,6 +51,7 @@ declare global {
   const formatDate: typeof import('./resources/js/@core/utils/formatters.js')['formatDate']
   const formatDateToMonthShort: typeof import('./resources/js/@core/utils/formatters.js')['formatDateToMonthShort']
   const getActivePinia: typeof import('pinia')['getActivePinia']
+  const getAvatar: typeof import('./resources/js/utils/userRole.js')['getAvatar']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
   const h: typeof import('vue')['h']
@@ -126,6 +127,8 @@ declare global {
   const resolveComponent: typeof import('vue')['resolveComponent']
   const resolveRef: typeof import('@vueuse/core')['resolveRef']
   const resolveUnref: typeof import('@vueuse/core')['resolveUnref']
+  const resolveUserRoleVariant: typeof import('./resources/js/utils/userRole.js')['resolveUserRoleVariant']
+  const resolveUserStatusVariant: typeof import('./resources/js/utils/userRole.js')['resolveUserStatusVariant']
   const resolveVuetifyTheme: typeof import('./resources/js/@core/utils/vuetify.js')['resolveVuetifyTheme']
   const setActivePinia: typeof import('pinia')['setActivePinia']
   const setMapStoreSuffix: typeof import('pinia')['setMapStoreSuffix']
@@ -409,6 +412,7 @@ declare module 'vue' {
     readonly formatDate: UnwrapRef<typeof import('./resources/js/@core/utils/formatters.js')['formatDate']>
     readonly formatDateToMonthShort: UnwrapRef<typeof import('./resources/js/@core/utils/formatters.js')['formatDateToMonthShort']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
+    readonly getAvatar: UnwrapRef<typeof import('./resources/js/utils/userRole.js')['getAvatar']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
@@ -484,6 +488,8 @@ declare module 'vue' {
     readonly resolveComponent: UnwrapRef<typeof import('vue')['resolveComponent']>
     readonly resolveRef: UnwrapRef<typeof import('@vueuse/core')['resolveRef']>
     readonly resolveUnref: UnwrapRef<typeof import('@vueuse/core')['resolveUnref']>
+    readonly resolveUserRoleVariant: UnwrapRef<typeof import('./resources/js/utils/userRole.js')['resolveUserRoleVariant']>
+    readonly resolveUserStatusVariant: UnwrapRef<typeof import('./resources/js/utils/userRole.js')['resolveUserStatusVariant']>
     readonly resolveVuetifyTheme: UnwrapRef<typeof import('./resources/js/@core/utils/vuetify.js')['resolveVuetifyTheme']>
     readonly setActivePinia: UnwrapRef<typeof import('pinia')['setActivePinia']>
     readonly setMapStoreSuffix: UnwrapRef<typeof import('pinia')['setMapStoreSuffix']>

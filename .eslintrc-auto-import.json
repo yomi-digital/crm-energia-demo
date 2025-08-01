@@ -359,6 +359,9 @@
     "onWatcherCleanup": true,
     "useId": true,
     "useModel": true,
-    "useTemplateRef": true
+    "useTemplateRef": true,
+    "getAvatar": true,
+    "resolveUserRoleVariant": true,
+    "resolveUserStatusVariant": true
   }
 }
