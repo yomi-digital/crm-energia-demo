@@ -29,6 +29,7 @@ const taxIdSearch = ref('')
 const emailSearch = ref('')
 const podPdrSearch = ref('')
 const selectedProduct = ref('')
+const selectedContractType = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -140,6 +141,7 @@ const {
     email: emailSearch,
     pod_pdr: podPdrSearch,
     product_id: selectedProduct,
+    contract_type: selectedContractType,
     page,
     sortBy,
     orderBy,
@@ -238,6 +240,12 @@ const fetchProducts = async () => {
   }
 }
 fetchProducts()
+
+// Tipi di contratto disponibili
+const contractTypes = ref([
+  { title: 'Residenziale', value: 'RESIDENZIALE' },
+  { title: 'Business', value: 'BUSINESS' },
+])
 
 const onSelectionChanged = (newSelection) => {
   selected.value = newSelection
@@ -504,6 +512,16 @@ const updateDateFromYearMonth = () => {
               clearable
               :items="products"
               placeholder="Seleziona un Prodotto"
+            />
+          </VCol>
+
+          <VCol cols="4">
+            <AppAutocomplete
+              v-model="selectedContractType"
+              label="Tipo Contratto"
+              clearable
+              :items="contractTypes"
+              placeholder="Seleziona tipo contratto"
             />
           </VCol>
         </VRow>
