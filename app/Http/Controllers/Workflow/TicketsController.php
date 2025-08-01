@@ -33,6 +33,9 @@ class TicketsController extends Controller
             $tickets = $tickets->whereIn('status', $statuses);
         }
 
+        // Filtro per escludere i ticket risolti (status = 3)
+        $tickets = $tickets->where('status', '!=', 3);
+
         if ($request->get('sortBy')) {
             $tickets = $tickets->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
         } else {

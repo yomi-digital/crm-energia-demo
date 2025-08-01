@@ -146,7 +146,7 @@ const ticketStatusText = (status) => {
         <template #item.customer="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ item.paperwork.customer.name ? item.paperwork.customer.name : item.paperwork.customer.business_name }}
+              {{ item.paperwork?.customer?.name ? item.paperwork.customer.name : item.paperwork?.customer?.business_name || 'N/A' }}
             </div>
           </div>
         </template>
@@ -182,7 +182,7 @@ const ticketStatusText = (status) => {
         <template #item.created_by="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ [item.created_by.name, item.created_by.last_name].join(' ') }}
+              {{ item.created_by ? [item.created_by.name, item.created_by.last_name].join(' ') : 'N/A' }}
             </div>
           </div>
         </template>

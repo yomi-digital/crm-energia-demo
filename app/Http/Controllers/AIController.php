@@ -36,6 +36,9 @@ class AIController extends Controller
             $aiPaperworks = $aiPaperworks->where('status', $request->get('status'));
         }
 
+        // Filtro per escludere le pratiche confermate (status = 5)
+        $aiPaperworks = $aiPaperworks->where('status', '!=', 5);
+
         // Filtro per backoffice: vedere solo AI paperworks con brand_id assegnati
         if ($request->user()->hasRole('backoffice')) {
             $userBrands = $request->user()->brands->pluck('id');
