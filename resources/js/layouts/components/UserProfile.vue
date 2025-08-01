@@ -1,4 +1,5 @@
 <script setup>
+import { $api } from '@/utils/api';
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 
 const router = useRouter()
@@ -8,6 +9,14 @@ const ability = useAbility()
 const userData = useCookie('userData')
 
 const logout = async () => {
+  try {
+    // Chiama l'API di logout per registrare il timestamp
+    const response = await $api('/auth/logout', {
+      method: 'GET',
+    })
+  } catch (error) {
+    console.error('❌ Errore durante il logout:', error)
+  }
 
   // Remove "accessToken" from cookie
   useCookie('accessToken').value = null
@@ -185,7 +194,7 @@ const userProfileList = [
                 size="small"
                 color="error"
                 append-icon="tabler-logout"
-                @click="logout"
+                @click="() => { logout(); }"
               >
                 Logout
               </VBtn>

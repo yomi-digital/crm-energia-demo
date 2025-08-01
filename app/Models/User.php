@@ -32,6 +32,9 @@ class User extends Authenticatable
         'agency_id',
         'area',
         'agent_code',
+        'ip',
+        'last_login_at',
+        'last_logout_at',
     ];
 
     /**
@@ -55,6 +58,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'last_logout_at' => 'datetime',
             'password' => 'hashed',
         ];
     }

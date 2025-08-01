@@ -69,6 +69,13 @@ class AuthController extends Controller
         }
 
         $user = $request->user();
+        
+        // Aggiorna IP e timestamp di login
+        $user->update([
+            'ip' => $request->ip(),
+            'last_login_at' => now(),
+        ]);
+        
         $tokenResult = $user->createToken('Personal Access Token');
         $token = $tokenResult->plainTextToken;
 
@@ -166,6 +173,11 @@ class AuthController extends Controller
     */
     public function logout(Request $request)
     {
+        // Aggiorna timestamp di logout
+        $request->user()->update([
+            'last_logout_at' => now(),
+        ]);
+        
         $request->user()->tokens()->delete();
 
         return response()->json([
