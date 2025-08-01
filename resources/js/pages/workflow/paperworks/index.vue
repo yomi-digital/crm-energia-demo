@@ -30,6 +30,7 @@ const emailSearch = ref('')
 const podPdrSearch = ref('')
 const selectedProduct = ref('')
 const selectedContractType = ref('')
+const selectedSupplyType = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -142,6 +143,7 @@ const {
     pod_pdr: podPdrSearch,
     product_id: selectedProduct,
     contract_type: selectedContractType,
+    type: selectedSupplyType,
     page,
     sortBy,
     orderBy,
@@ -245,6 +247,12 @@ fetchProducts()
 const contractTypes = ref([
   { title: 'Residenziale', value: 'RESIDENZIALE' },
   { title: 'Business', value: 'BUSINESS' },
+])
+
+// Tipi di fornitura disponibili
+const supplyTypes = ref([
+  { title: 'Energia', value: 'ENERGIA' },
+  { title: 'Telefonia', value: 'TELEFONIA' },
 ])
 
 const onSelectionChanged = (newSelection) => {
@@ -522,6 +530,16 @@ const updateDateFromYearMonth = () => {
               clearable
               :items="contractTypes"
               placeholder="Seleziona tipo contratto"
+            />
+          </VCol>
+
+          <VCol cols="4">
+            <AppAutocomplete
+              v-model="selectedSupplyType"
+              label="Tipo Fornitura"
+              clearable
+              :items="supplyTypes"
+              placeholder="Seleziona tipo fornitura"
             />
           </VCol>
         </VRow>

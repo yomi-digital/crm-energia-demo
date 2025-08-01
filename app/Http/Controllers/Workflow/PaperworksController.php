@@ -71,6 +71,10 @@ class PaperworksController extends Controller
             $paperworks = $paperworks->where('contract_type', $request->get('contract_type'));
         }
 
+        if ($request->filled('type')) {
+            $paperworks = $paperworks->where('type', $request->get('type'));
+        }
+
         if ($request->get('q')) {
             $search = $request->get('q');
             $paperworks = $paperworks->where(function ($query) use ($search) {
