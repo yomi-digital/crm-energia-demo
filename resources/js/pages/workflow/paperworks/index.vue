@@ -18,6 +18,7 @@ const sortBy = ref()
 const orderBy = ref()
 const selectedAgent = ref()
 const selectedCustomer = ref()
+const selectedCategory = ref()
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -70,10 +71,10 @@ let headers = [
     key: 'product_id',
     sortable: false,
   },
-  // {
-  //   title: 'Categoria Brand',
-  //   key: 'brand_category_id',
-  // },
+  {
+    title: 'Categoria',
+    key: 'category',
+  },
   {
     title: 'Mandato',
     key: 'mandate_id',
@@ -117,6 +118,7 @@ const {
     itemsPerPage,
     user_id: selectedAgent,
     customer_id: selectedCustomer,
+    category: selectedCategory,
     page,
     sortBy,
     orderBy,
@@ -290,6 +292,16 @@ const viewDuplicatedPaperwork = () => {
   paperworkToDuplicate.value = null
 }
 
+const categories = ref([
+  { title: 'ALLACCIO', value: 'ALLACCIO' },
+  { title: 'OTP', value: 'OTP' },
+  { title: 'SUBENTRO', value: 'SUBENTRO' },
+  { title: 'VOLTURA', value: 'VOLTURA' },
+  { title: 'SWITCH', value: 'SWITCH' },
+  { title: 'NUOVA LINEA', value: 'NUOVA LINEA' },
+  { title: 'PORTABILITÀ', value: 'PORTABILITÀ' },
+])
+
 </script>
 
 <template>
@@ -319,6 +331,16 @@ const viewDuplicatedPaperwork = () => {
               clearable
               :items="customers"
               placeholder="Seleziona un Cliente"
+            />
+          </VCol>
+
+          <VCol cols="4">
+            <AppAutocomplete
+              v-model="selectedCategory"
+              label="Filtra per Categoria"
+              clearable
+              :items="categories"
+              placeholder="Seleziona una Categoria"
             />
           </VCol>
 
@@ -498,11 +520,11 @@ const viewDuplicatedPaperwork = () => {
           </div>
         </template>
 
-        <!-- 👉 Brand Category -->
-        <template #item.brand_category_id="{ item }">
+        <!-- 👉 Categoria -->
+        <template #item.category="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ item.brand?.typology }}
+              {{ item.category }}
             </div>
           </div>
         </template>

@@ -24,6 +24,10 @@ class PaperworksController extends Controller
             $paperworks = $paperworks->where('user_id', $request->get('user_id'));
         }
 
+        if ($request->filled('category')) {
+            $paperworks = $paperworks->where('category', $request->get('category'));
+        }
+
         if ($request->get('q')) {
             $search = $request->get('q');
             $paperworks = $paperworks->where(function ($query) use ($search) {
