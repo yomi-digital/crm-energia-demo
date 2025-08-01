@@ -78,6 +78,7 @@ declare module 'vue-router/auto/routes' {
     'dashboards-ecommerce': RouteRecordInfo<'dashboards-ecommerce', '/dashboards/ecommerce', Record<never, never>, Record<never, never>>,
     'extensions-swiper': RouteRecordInfo<'extensions-swiper', '/extensions/swiper', Record<never, never>, Record<never, never>>,
     'extensions-tour': RouteRecordInfo<'extensions-tour', '/extensions/tour', Record<never, never>, Record<never, never>>,
+    'extra-login-registry': RouteRecordInfo<'extra-login-registry', '/extra/login-registry', Record<never, never>, Record<never, never>>,
     'forgot-password': RouteRecordInfo<'forgot-password', '/forgot-password', Record<never, never>, Record<never, never>>,
     'forgot-password-v1': RouteRecordInfo<'forgot-password-v1', '/forgot-password-v1', Record<never, never>, Record<never, never>>,
     'general-calendar': RouteRecordInfo<'general-calendar', '/general/calendar', Record<never, never>, Record<never, never>>,
