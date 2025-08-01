@@ -22,6 +22,8 @@ const selectedCustomer = ref()
 const selectedCategory = ref()
 const dateFrom = ref('')
 const dateTo = ref('')
+const selectedYear = ref('')
+const selectedMonth = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -311,6 +313,62 @@ const categories = ref([
   { title: 'PORTABILITÀ', value: 'PORTABILITÀ' },
 ])
 
+// Anni disponibili (dal 2016 all'anno corrente + 1)
+const years = computed(() => {
+  const currentYear = new Date().getFullYear()
+  const yearsArray = []
+  
+  for (let year = 2016; year <= currentYear + 1; year++) {
+    yearsArray.push({
+      title: year.toString(),
+      value: year.toString()
+    })
+  }
+  
+  return yearsArray
+})
+
+// Mesi disponibili
+const months = ref([
+  { title: 'Gennaio', value: '01' },
+  { title: 'Febbraio', value: '02' },
+  { title: 'Marzo', value: '03' },
+  { title: 'Aprile', value: '04' },
+  { title: 'Maggio', value: '05' },
+  { title: 'Giugno', value: '06' },
+  { title: 'Luglio', value: '07' },
+  { title: 'Agosto', value: '08' },
+  { title: 'Settembre', value: '09' },
+  { title: 'Ottobre', value: '10' },
+  { title: 'Novembre', value: '11' },
+  { title: 'Dicembre', value: '12' },
+])
+
+// Funzione per aggiornare le date quando cambiano anno o mese
+const updateDateFromYearMonth = () => {
+  if (selectedYear.value && selectedMonth.value) {
+    // Imposta la data di inizio al primo giorno del mese
+    dateFrom.value = `${selectedYear.value}-${selectedMonth.value}-01`
+    
+    // Imposta la data di fine all'ultimo giorno del mese
+    const lastDay = new Date(selectedYear.value, selectedMonth.value, 0).getDate()
+    dateTo.value = `${selectedYear.value}-${selectedMonth.value}-${lastDay.toString().padStart(2, '0')}`
+  } else if (selectedYear.value && !selectedMonth.value) {
+    // Solo anno selezionato: dal primo gennaio all'ultimo dicembre
+    dateFrom.value = `${selectedYear.value}-01-01`
+    dateTo.value = `${selectedYear.value}-12-31`
+  } else if (!selectedYear.value && selectedMonth.value) {
+    // Solo mese selezionato: dal primo al ultimo giorno del mese corrente
+    const currentYear = new Date().getFullYear()
+    dateFrom.value = `${currentYear}-${selectedMonth.value}-01`
+    const lastDay = new Date(currentYear, selectedMonth.value, 0).getDate()
+    dateTo.value = `${currentYear}-${selectedMonth.value}-${lastDay.toString().padStart(2, '0')}`
+  } else {
+    // Nessuna selezione: resetta le date
+    dateFrom.value = ''
+    dateTo.value = ''
+  }
+}
 
 
 </script>
@@ -376,6 +434,38 @@ const categories = ref([
               clearable
               :items="categories"
               placeholder="Seleziona una Categoria"
+            />
+          </VCol>
+        </VRow>
+      </VCardText>
+
+      <VDivider />
+
+      <VCardText>
+        <div class="d-flex align-center justify-space-between mb-4">
+          <h6 class="text-h6">Ricerca veloce Anno/Mese</h6>
+        </div>
+        
+        <VRow>
+          <VCol cols="6" md="3">
+            <AppSelect
+              v-model="selectedYear"
+              label="Anno"
+              clearable
+              :items="years"
+              placeholder="Seleziona anno"
+              @update:model-value="updateDateFromYearMonth"
+            />
+          </VCol>
+
+          <VCol cols="6" md="3">
+            <AppSelect
+              v-model="selectedMonth"
+              label="Mese"
+              clearable
+              :items="months"
+              placeholder="Seleziona mese"
+              @update:model-value="updateDateFromYearMonth"
             />
           </VCol>
         </VRow>
