@@ -27,6 +27,7 @@ const selectedMonth = ref('')
 const phoneSearch = ref('')
 const taxIdSearch = ref('')
 const emailSearch = ref('')
+const podPdrSearch = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -136,6 +137,7 @@ const {
     phone: phoneSearch,
     tax_id: taxIdSearch,
     email: emailSearch,
+    pod_pdr: podPdrSearch,
     page,
     sortBy,
     orderBy,
@@ -467,6 +469,15 @@ const updateDateFromYearMonth = () => {
               label="Email"
               clearable
               placeholder="Cerca per email"
+            />
+          </VCol>
+
+          <VCol cols="4">
+            <AppTextField
+              v-model="podPdrSearch"
+              label="POD/PDR"
+              clearable
+              placeholder="Cerca per POD/PDR"
             />
           </VCol>
         </VRow>

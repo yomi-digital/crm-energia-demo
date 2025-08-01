@@ -58,6 +58,11 @@ class PaperworksController extends Controller
             });
         }
 
+        if ($request->filled('pod_pdr')) {
+            $podPdr = $request->get('pod_pdr');
+            $paperworks = $paperworks->where('account_pod_pdr', 'like', "%{$podPdr}%");
+        }
+
         if ($request->get('q')) {
             $search = $request->get('q');
             $paperworks = $paperworks->where(function ($query) use ($search) {
