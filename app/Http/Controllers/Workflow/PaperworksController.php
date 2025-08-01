@@ -504,6 +504,7 @@ class PaperworksController extends Controller
             'order_substatus' => 'nullable|string',
             'partner_outcome' => 'nullable|string',
             'partner_outcome_at' => 'nullable|string',
+            'partner_sent_at' => 'nullable|string',
         ]);
 
         // Only update fields that are not empty. if the field is --- RIMUOVI ---, set it to null
@@ -529,6 +530,21 @@ class PaperworksController extends Controller
                 return response()->json([
                     'error' => 'Formato data non valido per "Data Esito Partner". Utilizzare il formato DD/MM/YYYY.',
                     'invalid_date' => $request->get('partner_outcome_at')
+                ], 422);
+            }
+        }
+
+        // Handle partner_sent_at separately due to date formatting
+        if ($request->has('partner_sent_at') && $request->get('partner_sent_at')) {
+            try {
+                $partnerSentAt = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_sent_at'))->format('Y-m-d');
+                $fields['partner_sent_at'] = $partnerSentAt;
+            } catch (\Exception $e) {
+                
+                // Return error response - stop the entire bulk update process
+                return response()->json([
+                    'error' => 'Formato data non valido per "Data invio partner". Utilizzare il formato DD/MM/YYYY.',
+                    'invalid_date' => $request->get('partner_sent_at')
                 ], 422);
             }
         }

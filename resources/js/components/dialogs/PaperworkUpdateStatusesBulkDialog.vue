@@ -25,6 +25,7 @@ const onFormSubmit = async () => {
       order_substatus: orderSubStatus.value,
       partner_outcome: partnerOutcome.value,
       partner_outcome_at: partnerOutcomeAt.value,
+      partner_sent_at: partnerSentAt.value,
     },
   })
   emit('update:isDialogVisible', false)
@@ -39,6 +40,7 @@ const orderStatus = ref('--- MANTIENI ---')
 const orderSubStatus = ref('--- MANTIENI ---')
 const partnerOutcome = ref('--- MANTIENI ---')
 const partnerOutcomeAt = ref(null)
+const partnerSentAt = ref(null)
 const statuses = ref([
 {
     title: '--- MANTIENI ---',
@@ -167,6 +169,7 @@ const partnerOutcomes = ref([
 const startDateTimePickerConfig = computed(() => {
   const config = {
     dateFormat: `d/m/Y`,
+    position: 'auto'
   }
 
   return config
@@ -232,6 +235,20 @@ const onFormReset = () => {
                   :config="startDateTimePickerConfig"
                   v-model="partnerOutcomeAt"
                   label="Data Esito Partner"
+                />
+              </div>
+            </VCol>
+
+            <VCol
+              cols="12"
+              sm="6"
+            >
+              <div @update:model-value.stop>
+                <AppDateTimePicker
+                  :key="JSON.stringify(startDateTimePickerConfig)"
+                  :config="startDateTimePickerConfig"
+                  v-model="partnerSentAt"
+                  label="Data invio partner"
                 />
               </div>
             </VCol>

@@ -72,7 +72,7 @@ let headers = [
     sortable: false,
   },
   {
-    title: 'Data Inserimento',
+    title: 'Data Creazione',
     key: 'created_at',
   },
   {
