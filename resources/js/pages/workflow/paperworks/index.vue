@@ -1,4 +1,5 @@
 <script setup>
+
 definePage({
   meta: {
     action: 'access',
@@ -19,6 +20,8 @@ const orderBy = ref()
 const selectedAgent = ref()
 const selectedCustomer = ref()
 const selectedCategory = ref()
+const dateFrom = ref('')
+const dateTo = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -57,6 +60,10 @@ let headers = [
     title: 'Cliente',
     key: 'customer_id',
     sortable: false,
+  },
+  {
+    title: 'Data Inserimento',
+    key: 'created_at',
   },
   {
     title: 'Data Invio',
@@ -119,6 +126,8 @@ const {
     user_id: selectedAgent,
     customer_id: selectedCustomer,
     category: selectedCategory,
+    date_from: dateFrom,
+    date_to: dateTo,
     page,
     sortBy,
     orderBy,
@@ -302,6 +311,8 @@ const categories = ref([
   { title: 'PORTABILITÀ', value: 'PORTABILITÀ' },
 ])
 
+
+
 </script>
 
 <template>
@@ -313,7 +324,31 @@ const categories = ref([
       </VCardItem>
 
       <VCardText>
+        <!-- Filtri per data -->
         <VRow>
+          <VCol cols="12" md="6">
+            <AppTextField
+              v-model="dateFrom"
+              label="Da"
+              type="date"
+              clearable
+              placeholder="Seleziona data inizio"
+            />
+          </VCol>
+
+          <VCol cols="12" md="6">
+            <AppTextField
+              v-model="dateTo"
+              label="A"
+              type="date"
+              clearable
+              placeholder="Seleziona data fine"
+            />
+          </VCol>
+        </VRow>
+
+        <!-- Altri filtri -->
+        <VRow class="mt-4">
           <VCol cols="4" v-if="$can('view', 'users')">
             <AppAutocomplete
               v-model="selectedAgent"
@@ -343,7 +378,6 @@ const categories = ref([
               placeholder="Seleziona una Categoria"
             />
           </VCol>
-
         </VRow>
       </VCardText>
 
@@ -488,6 +522,15 @@ const categories = ref([
               >
                 {{ getCustomerName(item.customer) }}
               </RouterLink>
+            </div>
+          </div>
+        </template>
+
+        <!-- 👉 Created At -->
+        <template #item.created_at="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(item.created_at)) }}
             </div>
           </div>
         </template>

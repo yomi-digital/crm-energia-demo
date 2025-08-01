@@ -28,6 +28,14 @@ class PaperworksController extends Controller
             $paperworks = $paperworks->where('category', $request->get('category'));
         }
 
+        if ($request->filled('date_from')) {
+            $paperworks = $paperworks->whereDate('created_at', '>=', $request->get('date_from'));
+        }
+
+        if ($request->filled('date_to')) {
+            $paperworks = $paperworks->whereDate('created_at', '<=', $request->get('date_to'));
+        }
+
         if ($request->get('q')) {
             $search = $request->get('q');
             $paperworks = $paperworks->where(function ($query) use ($search) {
