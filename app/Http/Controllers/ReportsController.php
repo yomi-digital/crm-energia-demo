@@ -272,6 +272,25 @@ class ReportsController extends Controller
             $paperworks = $paperworks->where('product_id', $request->get('product_id'));
         }
 
+        if ($request->filled('agent_id')) {
+            $paperworks = $paperworks->where('user_id', $request->get('agent_id'));
+        }
+
+        if ($request->filled('status')) {
+            $status = $request->get('status');
+            $paperworks = $paperworks->where(function ($query) use ($status) {
+                $query->where('partner_outcome', $status)
+                      ->orWhere(function ($q) use ($status) {
+                          $q->whereNull('partner_outcome')
+                            ->where('order_status', $status);
+                      });
+            });
+        }
+
+        if ($request->filled('category')) {
+            $paperworks = $paperworks->where('category', $request->get('category'));
+        }
+
         $paperworks = $paperworks->orderBy('partner_outcome_at', 'desc');
 
         if ($request->has('export')) {
@@ -378,6 +397,7 @@ class ReportsController extends Controller
             'inserted_at' => $paperwork->partner_sent_at ? \Carbon\Carbon::parse($paperwork->partner_sent_at)->format(config('app.date_format')) : null,
             'status' => $paperwork->partner_outcome ?: $paperwork->order_status,
             'order_status' => $paperwork->order_status,
+            'category' => $paperwork->category,
         ];
     }
 

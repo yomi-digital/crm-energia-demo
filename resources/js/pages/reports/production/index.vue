@@ -18,6 +18,9 @@ const orderBy = ref()
 const selectedUser = ref('')
 const selectedBrand = ref('')
 const selectedProduct = ref('')
+const selectedAgent = ref('')
+const selectedStatus = ref('')
+const selectedCategory = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -44,6 +47,11 @@ const headers = [
   {
     title: 'Prodotto',
     key: 'product',
+    sortable: false,
+  },
+  {
+    title: 'Tipologia',
+    key: 'category',
     sortable: false,
   },
   {
@@ -95,6 +103,9 @@ const {
     user_id: selectedUser,
     brand_id: selectedBrand,
     product_id: selectedProduct,
+    agent_id: selectedAgent,
+    status: selectedStatus,
+    category: selectedCategory,
   },
 }))
 
@@ -114,6 +125,9 @@ const exportReport = async () => {
         user_id: selectedUser.value,
         brand_id: selectedBrand.value,
         product_id: selectedProduct.value,
+        agent_id: selectedAgent.value,
+        status: selectedStatus.value,
+        category: selectedCategory.value,
       },
       responseType: 'blob'
     })
@@ -158,6 +172,83 @@ const brands = ref([
     value: '',
   },
 ])
+
+const agents = ref([
+  {
+    title: 'Tutti',
+    value: '',
+  },
+])
+
+const statuses = ref([
+  {
+    title: 'Tutti',
+    value: '',
+  },
+  {
+    title: 'OK PAGABILE',
+    value: 'OK PAGABILE',
+  },
+  {
+    title: 'KO',
+    value: 'KO',
+  },
+  {
+    title: 'STORNO',
+    value: 'STORNO',
+  },
+  {
+    title: 'INSERITO',
+    value: 'INSERITO',
+  },
+  {
+    title: 'DA LAVORARE',
+    value: 'DA LAVORARE',
+  },
+  {
+    title: 'SOSPESO',
+    value: 'SOSPESO',
+  },
+  {
+    title: 'INVIATO OTP',
+    value: 'INVIATO OTP',
+  },
+])
+
+const categories = ref([
+  {
+    title: 'Tutti',
+    value: '',
+  },
+  {
+    title: 'ALLACCIO',
+    value: 'ALLACCIO',
+  },
+  {
+    title: 'OTP',
+    value: 'OTP',
+  },
+  {
+    title: 'SUBENTRO',
+    value: 'SUBENTRO',
+  },
+  {
+    title: 'VOLTURA',
+    value: 'VOLTURA',
+  },
+  {
+    title: 'SWITCH',
+    value: 'SWITCH',
+  },
+  {
+    title: 'NUOVA LINEA',
+    value: 'NUOVA LINEA',
+  },
+  {
+    title: 'PORTABILITÀ',
+    value: 'PORTABILITÀ',
+  },
+])
 const fetchBrands = async (query) => {
   const response = await $api('/brands?itemsPerPage=999999&select=1')
   for (const brand of response.brands) {
@@ -190,6 +281,17 @@ const fetchProducts = async (query) => {
   }
 }
 fetchProducts()
+
+const fetchAgents = async (query) => {
+  const response = await $api('/agents?select=1')
+  for (const agent of response.agents) {
+    agents.value.push({
+      title: `${agent.name} ${agent.last_name}`.trim(),
+      value: agent.id,
+    })
+  }
+}
+fetchAgents()
 
 </script>
 
@@ -238,6 +340,38 @@ fetchProducts()
             />
           </VCol>
 
+        </VRow>
+
+        <VRow>
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedAgent"
+              label="Filtra per Agente"
+              clearable
+              :items="agents"
+              placeholder="Seleziona un Agente"
+            />
+          </VCol>
+
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedStatus"
+              label="Filtra per Stato"
+              clearable
+              :items="statuses"
+              placeholder="Seleziona uno Stato"
+            />
+          </VCol>
+
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedCategory"
+              label="Filtra per Tipologia"
+              clearable
+              :items="categories"
+              placeholder="Seleziona una Tipologia"
+            />
+          </VCol>
         </VRow>
       </VCardText>
 
