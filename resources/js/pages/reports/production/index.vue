@@ -21,6 +21,7 @@ const selectedProduct = ref('')
 const selectedAgent = ref('')
 const selectedStatus = ref('')
 const selectedCategory = ref('')
+const selectedHasAppointment = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -52,6 +53,11 @@ const headers = [
   {
     title: 'Tipologia',
     key: 'category',
+    sortable: false,
+  },
+  {
+    title: 'Appuntamento',
+    key: 'has_appointment',
     sortable: false,
   },
   {
@@ -106,6 +112,7 @@ const {
     agent_id: selectedAgent,
     status: selectedStatus,
     category: selectedCategory,
+    has_appointment: selectedHasAppointment,
   },
 }))
 
@@ -128,6 +135,7 @@ const exportReport = async () => {
         agent_id: selectedAgent.value,
         status: selectedStatus.value,
         category: selectedCategory.value,
+        has_appointment: selectedHasAppointment.value,
       },
       responseType: 'blob'
     })
@@ -247,6 +255,21 @@ const categories = ref([
   {
     title: 'PORTABILITÀ',
     value: 'PORTABILITÀ',
+  },
+])
+
+const hasAppointmentOptions = ref([
+  {
+    title: 'Tutti',
+    value: '',
+  },
+  {
+    title: 'SI',
+    value: 'SI',
+  },
+  {
+    title: 'NO',
+    value: 'NO',
   },
 ])
 const fetchBrands = async (query) => {
@@ -370,6 +393,16 @@ fetchAgents()
               clearable
               :items="categories"
               placeholder="Seleziona una Tipologia"
+            />
+          </VCol>
+
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedHasAppointment"
+              label="Filtra per Appuntamento"
+              clearable
+              :items="hasAppointmentOptions"
+              placeholder="Ha Appuntamento?"
             />
           </VCol>
         </VRow>

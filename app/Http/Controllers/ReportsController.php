@@ -291,6 +291,15 @@ class ReportsController extends Controller
             $paperworks = $paperworks->where('category', $request->get('category'));
         }
 
+        if ($request->filled('has_appointment')) {
+            $hasAppointment = $request->get('has_appointment');
+            if ($hasAppointment === '1' || $hasAppointment === 'SI') {
+                $paperworks = $paperworks->whereNotNull('appointment_id');
+            } elseif ($hasAppointment === '0' || $hasAppointment === 'NO') {
+                $paperworks = $paperworks->whereNull('appointment_id');
+            }
+        }
+
         $paperworks = $paperworks->orderBy('partner_outcome_at', 'desc');
 
         if ($request->has('export')) {
@@ -398,6 +407,7 @@ class ReportsController extends Controller
             'status' => $paperwork->partner_outcome ?: $paperwork->order_status,
             'order_status' => $paperwork->order_status,
             'category' => $paperwork->category,
+            'has_appointment' => $paperwork->appointment_id ? 'SI' : 'NO',
         ];
     }
 
