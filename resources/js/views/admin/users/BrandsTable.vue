@@ -134,7 +134,7 @@ const addBrand = async () => {
 const allBrands = ref([])
 const fetchAllBrands = async () => {
   allBrands.value = []
-  const response = await $api('/brands?itemsPerPage=99999999&select=1')
+  const response = await $api('/brands?itemsPerPage=99999999&select=1&enabled=1')
   for (let i = 0; i < response.brands.length; i++) {
     allBrands.value.push({
       title: [response.brands[i].name, response.brands[i].type || 'N/A', response.brands[i].category || 'N/A'].join(' - '),
