@@ -155,6 +155,25 @@ class ReportsController extends Controller
             $paperworks = $paperworks->where('product_id', $request->get('product_id'));
         }
 
+        if ($request->filled('agent_id')) {
+            $paperworks = $paperworks->where('user_id', $request->get('agent_id'));
+        }
+
+        if ($request->filled('status')) {
+            $status = $request->get('status');
+            $paperworks = $paperworks->where(function ($query) use ($status) {
+                $query->where('partner_outcome', $status)
+                      ->orWhere(function ($q) use ($status) {
+                          $q->whereNull('partner_outcome')
+                            ->where('order_status', $status);
+                      });
+            });
+        }
+
+        if ($request->filled('category')) {
+            $paperworks = $paperworks->where('category', $request->get('category'));
+        }
+
         $paperworks = $paperworks->orderBy('created_at', 'desc');
 
         if ($request->has('save')) {
