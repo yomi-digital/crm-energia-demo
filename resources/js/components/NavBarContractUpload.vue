@@ -1,5 +1,6 @@
 <script setup>
 import DropZoneContracts from '@/components/DropZoneContracts.vue'
+import PopupAICreationWizardNotification from '@/components/dialogs/PopupAICreationWizardNotification.vue'
 import { onMounted, ref } from 'vue'
 
 const dialog = ref(false)
@@ -17,6 +18,12 @@ const alert = ref({
 // Controlla se l'utente è backoffice
 const loggedInUser = useCookie('userData').value
 const isBackoffice = loggedInUser.roles.some(role => role.name === 'backoffice')
+
+// Controlla se l'utente è agente (per mostrare il popup di notifica)
+const isAgente = loggedInUser.roles.some(role => role.name === 'agente')
+
+// Popup di notifica per agenti
+const showNotification = ref(false)
 
 // Fetch brands on component mount
 const fetchBrands = async () => {
@@ -75,6 +82,11 @@ const uploadContract = async (files) => {
       show: true,
       type: 'success',
       message: 'File caricato con successo!'
+    }
+    
+    // Mostra popup di notifica solo agli agenti
+    if (isAgente) {
+      showNotification.value = true
     }
     
     // Clear dropzone and reset form after a short delay
@@ -169,5 +181,10 @@ const uploadContract = async (files) => {
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <!-- Popup di notifica per agenti -->
+    <PopupAICreationWizardNotification
+      v-model="showNotification"
+    />
   </div>
 </template> 
