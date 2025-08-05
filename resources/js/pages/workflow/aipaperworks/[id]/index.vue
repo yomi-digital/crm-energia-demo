@@ -1,4 +1,5 @@
 <script setup>
+import AIPaperworkTransfer from '@/components/AIPaperworkTransfer.vue'
 import { useRoute, useRouter } from 'vue-router'
 
 definePage({
@@ -408,6 +409,20 @@ const updateEmailAndRefresh = async () => {
     isUpdatingEmail.value = false
   }
 }
+
+// Gestione eventi di trasferimento
+const onHandleTrasferConfirmed = (transferData) => {
+  console.log('Transfer confirmed:', transferData)
+}
+
+const onHandleTransferCompleted = async (eventData) => {
+  if (eventData.shouldReload) {
+    // Ricarica i dati della AI paperwork
+    await fetchAIPaperwork()
+    console.log('AI Paperwork data reloaded after transfer')
+  }
+}
+
 </script>
 
 <template>
@@ -438,6 +453,19 @@ const updateEmailAndRefresh = async () => {
           >
             {{ getStatusText(aiPaperwork?.status) }}
           </VChip>
+        </div>
+        
+        <!-- Transfer component per pratiche AI -->
+        <div 
+          v-if="aiPaperwork?.status === 2"
+          style="margin: 20px 0;"
+        >
+          <AIPaperworkTransfer 
+            :ai-paperwork-id="id"
+            :current-brand-id="aiPaperwork?.brand_id"
+            @onTrasferConfirmed="onHandleTrasferConfirmed"
+            @onTransferCompleted="onHandleTransferCompleted"
+          />
         </div>
         
         <div class="d-flex justify-space-between align-center w-100">

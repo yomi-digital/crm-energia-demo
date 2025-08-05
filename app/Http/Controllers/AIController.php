@@ -438,4 +438,27 @@ class AIController extends Controller
             'customer_id' => $existingCustomer ? $existingCustomer->id : null,
         ]);
     }
+
+    public function transfer(Request $request, $id)
+    {
+        $request->validate([
+            'brand_id' => 'required|exists:brands,id',
+        ]);
+
+        $aiPaperwork = AIPaperwork::findOrFail($id);
+        
+        // Salva il brand precedente per il log
+        $previousBrandId = $aiPaperwork->brand_id;
+        
+        // Aggiorna il brand_id (tutti possono trasferire verso qualsiasi brand)
+        $aiPaperwork->brand_id = $request->brand_id;
+        $aiPaperwork->save();
+
+        return response()->json([
+            'message' => 'AI Paperwork trasferita con successo',
+            'previous_brand_id' => $previousBrandId,
+            'new_brand_id' => $request->brand_id,
+            'ai_paperwork' => $aiPaperwork
+        ]);
+    }
 }

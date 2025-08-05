@@ -75,6 +75,8 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
 
     Route::get('brands', [BrandsController::class, 'index']);
     Route::get('brands/personal', [BrandsController::class, 'personal']);
+    Route::get('brands/not-personal', [BrandsController::class, 'notPersonal']);
+    Route::get('brands/{id}', [BrandsController::class, 'show']);
     Route::post('brands', [BrandsController::class, 'store']);
     Route::put('brands/{id}', [BrandsController::class, 'update']);
     Route::delete('brands/{id}', [BrandsController::class, 'destroy']);
@@ -156,6 +158,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::post('ai-paperworks/{id}/update-email', [AIController::class, 'updateEmail']);
     Route::post('ai-paperworks/{id}/confirm', [AIController::class, 'confirm']);
     Route::post('ai-paperworks/{id}/cancel', [AIController::class, 'cancel']);
+    Route::post('ai-paperworks/{id}/transfer', [AIController::class, 'transfer']);
 
     Route::get('paperworks', [PaperworksController::class, 'index']);
     Route::get('paperworks/{id}', [PaperworksController::class, 'show']);

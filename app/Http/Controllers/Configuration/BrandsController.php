@@ -153,6 +153,81 @@ class BrandsController extends Controller
         ]);
     }
 
+    /**
+     * Endpoint che restituisce i brand NON assegnati all'utente corrente (opposto di personal)
+     */
+    public function notPersonal(Request $request)
+    {
+        $perPage = $request->get('itemsPerPage', 10);
+
+        $brands = new \App\Models\Brand;
+
+        if ($request->filled('with') && $request->get('with') == 'products') {
+            if ($request->get('product_details') == '1') {
+                $brands = $brands->with('products');
+            } else {
+                $brands = $brands->withCount('products');
+            }
+        }
+
+        if ($request->filled('enabled')) {
+            $brands = $brands->where('enabled', $request->get('enabled'));
+        }
+
+        if ($request->get('type')) {
+            // Trasforma RESIDENZIALE -> Residenziale, BUSINESS -> Business
+            $formattedType = ucfirst(strtolower($request->get('type')));
+            $brands = $brands->where('type', $formattedType);
+        }
+        
+        if ($request->get('category')) {
+            // Trasforma ENERGIA -> Energia, TELEFONIA -> Telefonia
+            $formattedCategory = ucfirst(strtolower($request->get('category')));
+            $brands = $brands->where('category', $formattedCategory);
+        }
+
+        // FILTRO AUTOMATICO: mostra tutti i brand TRANNE quelli assegnati all'utente corrente
+        // ECCEZIONE: gestione vede sempre tutti i brand (come in personal)
+        if ($request->user()->hasRole('gestione')) {
+            // Admin roles: vedono sempre tutti i brand
+        } else {
+            // Altri ruoli: filtro per brand NON assegnati
+            $userBrands = $request->user()->brands->pluck('id');
+            if ($userBrands->isNotEmpty()) {
+                $brands = $brands->whereNotIn('id', $userBrands);
+            }
+            // Se l'utente non ha brand assegnati, vede tutti i brand (nessun filtro)
+        }
+
+        if ($request->get('q')) {
+            $search = $request->get('q');
+            $brands = $brands->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('type', 'like', "%{$search}%")
+                    ->orWhere('category', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->get('sortBy')) {
+            $brands = $brands->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
+        } else {
+            $brands = $brands->orderBy('name', 'asc');
+        }
+
+        if ($request->get('select') === '1') {
+            $brands = $brands->select('id', 'name', 'type', 'category');
+        }
+
+        $brands = $brands->paginate($perPage);
+
+        return response()->json([
+            'brands' => $brands->getCollection(),
+            'totalPages' => $brands->lastPage(),
+            'totalBrands' => $brands->total(),
+            'page' => $brands->currentPage()
+        ]);
+    }
+
     public function show($id)
     {
         $brand = \App\Models\Brand::find($id);
