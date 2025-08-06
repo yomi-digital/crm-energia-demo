@@ -60,6 +60,28 @@ await fetchBrands()
 const appointments = ref([])
 const isLoadingAppointments = ref(false)
 
+const mandates = ref([])
+const isLoadingMandates = ref(false)
+
+const fetchMandates = async () => {
+  isLoadingMandates.value = true
+  try {
+    const response = await $api('/mandates?itemsPerPage=999999')
+    mandates.value = response.mandates.map(mandate => ({
+      title: mandate.name,
+      value: mandate.id,
+    }))
+  } catch (error) {
+    console.error('Failed to load mandates:', error)
+    mandates.value = []
+  } finally {
+    isLoadingMandates.value = false
+  }
+}
+
+// Fetch mandates on component mount
+await fetchMandates()
+
 const fetchAppointments = async (query) => {
   isLoadingAppointments.value = true
   try {
@@ -107,6 +129,11 @@ watch(() => aiPaperwork.value?.ai_extracted_paperwork, (newVal) => {
         extractedPaperwork.value.brand_id = aiPaperwork.value.brand_id
         console.log('Set brand_id to:', aiPaperwork.value.brand_id)
       }
+      // Imposta il mandate_id dall'AI paperwork se esiste
+      if (aiPaperwork.value?.mandate_id) {
+        extractedPaperwork.value.mandate_id = aiPaperwork.value.mandate_id
+        console.log('Set mandate_id to:', aiPaperwork.value.mandate_id)
+      }
     } catch (e) {
       extractedPaperwork.value = {}
     }
@@ -118,6 +145,14 @@ watch(() => aiPaperwork.value?.brand_id, (brandId) => {
   if (brandId && extractedPaperwork.value) {
     extractedPaperwork.value.brand_id = brandId
     console.log('Watch brand_id updated to:', brandId)
+  }
+}, { immediate: true })
+
+// Watch separato per inizializzare il mandate_id dal paperwork
+watch(() => aiPaperwork.value?.mandate_id, (mandateId) => {
+  if (mandateId && extractedPaperwork.value) {
+    extractedPaperwork.value.mandate_id = mandateId
+    console.log('Watch mandate_id updated to:', mandateId)
   }
 }, { immediate: true })
 
@@ -245,7 +280,8 @@ const saveModifications = async () => {
       body: {
         ai_extracted_customer: extractedCustomer.value,
         ai_extracted_paperwork: extractedPaperwork.value,
-        brand_id: extractedPaperwork.value.brand_id
+        brand_id: extractedPaperwork.value.brand_id,
+        mandate_id: extractedPaperwork.value.mandate_id,
       }
     })
     // Simple success message
@@ -299,7 +335,8 @@ const confirmPaperwork = async () => {
         brand_id: extractedPaperwork.value.brand_id,
         ai_extracted_customer: extractedCustomer.value,
         ai_extracted_paperwork: extractedPaperwork.value,
-        status: 5
+        status: 5,
+        mandate_id: extractedPaperwork.value.mandate_id,
       }
     })
     // Update local status
@@ -729,6 +766,22 @@ const onHandleTransferCompleted = async (eventData) => {
                       :readonly="aiPaperwork?.status === 5 || !!extractedPaperwork.product_id"
                       :loading="isLoadingBrands"
                       :class="{ 'opacity-50': aiPaperwork?.status === 5 || !!extractedPaperwork.product_id }"
+                    />
+                  </VCol>
+                </VRow>
+
+                <!-- Nuovo campo mandate_id -->
+                <VRow v-if="$can('access', 'mandates')">
+                  <VCol cols="12">
+                    <AppAutocomplete
+                      v-model="extractedPaperwork.mandate_id"
+                      label="Mandato"
+                      :items="mandates"
+                      item-title="title"
+                      item-value="value"
+                      placeholder="Seleziona un mandato"
+                      :readonly="aiPaperwork?.status === 5"
+                      :loading="isLoadingMandates"
                     />
                   </VCol>
                 </VRow>

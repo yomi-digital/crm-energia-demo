@@ -327,6 +327,7 @@ class AIController extends Controller
                 'energy_type' => $paperworkData['energy_type'] ?? null,
                 'mobile_type' => $paperworkData['mobile_type'] ?? null,
                 'previous_provider' => $paperworkData['previous_provider'] ?? null,
+                'mandate_id' => $request->mandate_id ?? null,
             ]);
 
             $paperwork->created_by = $request->user()->id;
