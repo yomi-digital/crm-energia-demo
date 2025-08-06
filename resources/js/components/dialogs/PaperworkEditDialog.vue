@@ -1,5 +1,4 @@
 <script setup>
-import { useApi } from '@/composables/useApi';
 import { watch } from 'vue';
 import { VDivider } from 'vuetify/lib/components/index.mjs';
 
@@ -101,6 +100,37 @@ mandates.value = mandatesData.value.mandates.map(mandate => ({
   title: mandate.name,
   value: mandate.id
 }))
+
+// Aggiunta logica per i prodotti filtrati per brand
+const products = ref([])
+const isLoadingProducts = ref(false)
+
+const fetchProducts = async (brandId) => {
+  isLoadingProducts.value = true
+  try {
+    const url = brandId ? `/products?itemsPerPage=999999&brand=${brandId}&enabled=1` : '/products?itemsPerPage=999999&enabled=1';
+    const response = await $api(url);
+    products.value = response.products.map(product => ({
+      title: product.name, // Modifica qui: usa product.name
+      value: product.id,
+    }));
+  } catch (error) {
+    console.error('Failed to load products:', error)
+    products.value = []
+  } finally {
+    isLoadingProducts.value = false
+  }
+}
+
+// Carica i prodotti all'apertura del dialogo, usando il brand del prodotto attuale della paperwork
+watch(() => props.isDialogVisible, (isVisible) => {
+  if (isVisible && props.paperworkData?.product?.brand_id) {
+    fetchProducts(props.paperworkData.product.brand_id)
+  } else if (isVisible) {
+    // Se il brand non è disponibile, carica tutti i prodotti (o gestisci diversamente)
+    fetchProducts()
+  }
+})
 
 watch(() => paperworkDataClone.value.type, () => {
   paperworkDataClone.value.energy_type = ''
@@ -242,6 +272,19 @@ watch(() => paperworkDataClone.value.type, () => {
                   label="Mandato"
                   :items="mandates"
                   placeholder="Seleziona un mandato"
+                />
+              </VCol>
+
+              <!-- Campo per la selezione del Prodotto -->
+              <VCol cols="12" sm="6">
+                <AppAutocomplete
+                  v-model="paperworkDataClone.product_id"
+                  label="Prodotto"
+                  :items="products"
+                  item-title="title"
+                  item-value="value"
+                  placeholder="Seleziona un Prodotto"
+                  :loading="isLoadingProducts"
                 />
               </VCol>
             </template>

@@ -376,32 +376,58 @@ class PaperworksController extends Controller
             return response()->json(['error' => 'Paperwork not found'], 404);
         }
 
-        $paperwork->fill($request->all());
+        // Gestisci i campi data prima di fill per evitare errori di formato
+        $partnerOutcomeAt = null;
+        if ($request->has('partner_outcome_at') && $request->get('partner_outcome_at')) {
+            try {
+                // Tenta di creare da d/m/Y (formato frontend) o usa il valore così com'è
+                $partnerOutcomeAt = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_outcome_at'));
+            } catch (\Exception $e) {
+                // Se fallisce, prova a interpretarlo come data qualsiasi
+                try {
+                    $partnerOutcomeAt = \Carbon\Carbon::parse($request->get('partner_outcome_at'));
+                } catch (\Exception $e) {
+                    // Se anche questo fallisce, ignora l'input per evitare l'errore
+                    $partnerOutcomeAt = null;
+                }
+            }
+        }
+        
+        $partnerSentAt = null;
+        if ($request->has('partner_sent_at') && $request->get('partner_sent_at')) {
+            try {
+                $partnerSentAt = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_sent_at'));
+            } catch (\Exception $e) {
+                try {
+                    $partnerSentAt = \Carbon\Carbon::parse($request->get('partner_sent_at'));
+                } catch (\Exception $e) {
+                    $partnerSentAt = null;
+                }
+            }
+        }
 
+        // Rimuovi i campi data dalla request prima del fill() per evitare problemi
+        $dataToFill = $request->except(['partner_outcome_at', 'partner_sent_at']);
+
+        $paperwork->fill($dataToFill);
+
+        // Assegna le date processate
+        if ($partnerOutcomeAt) {
+            $paperwork->partner_outcome_at = $partnerOutcomeAt->format('Y-m-d H:i:s');
+        }
+        if ($partnerSentAt) {
+            $paperwork->partner_sent_at = $partnerSentAt->format('Y-m-d H:i:s');
+        }
+
+        // Logica esistente per l'aggiornamento di partner_outcome_at e partner_sent_at se non già presenti
         if ($request->get('partner_outcome') && ! $paperwork->partner_outcome) {
             $paperwork->partner_outcome_at = now()->format('Y-m-d H:i:s');
-        }
-        if ($request->get('partner_outcome_at')) {
-            // Check if the format is d/m/Y, then convert it to Y-m-d
-            if (\Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_outcome_at'))->format('Y-m-d') !== $paperwork->partner_outcome_at) {
-                $paperwork->partner_outcome_at = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_outcome_at'))->format('Y-m-d');
-            }
         }
 
         if ($request->get('order_status') && $request->get('order_status') === 'INSERITO' && ! $paperwork->partner_sent_at) {
             $paperwork->confirmed_at = now()->format('Y-m-d H:i:s');
             $paperwork->confirmed_by = $request->user()->id;
             $paperwork->partner_sent_at = now()->format('Y-m-d H:i:s');
-        }
-        if ($request->get('partner_sent_at')) {
-            try {
-                $partnerSentAt = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_sent_at'))->format('Y-m-d');
-            } catch (\Exception $e) {
-                $partnerSentAt = \Carbon\Carbon::parse($request->get('partner_sent_at'))->format('Y-m-d');
-            }
-            if ($partnerSentAt !== $paperwork->partner_sent_at) {
-                $paperwork->partner_sent_at = $partnerSentAt;
-            }
         }
 
         if ($request->get('send_notification')) {
