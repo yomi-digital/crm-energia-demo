@@ -815,12 +815,12 @@ const handleSearch = () => {
       </VCardText>
     </VCard>
 
-    <!-- Pratiche AI Section 
+
     <VRow class="mt-6">
       <VCol cols="12">
         <VCard variant="outlined" class="pa-4">
           <VCardTitle class="text-h5 mb-4">
-            Pratiche AI ahahha
+            Pratiche in entrata
           </VCardTitle>
           <VDataTableServer
             v-model:items-per-page="aiPaperworksItemsPerPage"
@@ -897,7 +897,7 @@ const handleSearch = () => {
           </VDataTableServer>
         </VCard>
       </VCol>
-    </VRow> -->
+    </VRow>
 
     <VRow class="mt-6">
       <VCol cols="12">
