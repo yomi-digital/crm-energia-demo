@@ -1,5 +1,6 @@
 <script setup>
 import PaperworkNotesDialog from '@/components/dialogs/PaperworkNotesDialog.vue'
+import StatusChip from '@/components/StatusChip.vue'
 
 definePage({
   meta: {
@@ -84,6 +85,14 @@ let headers = [
     key: 'order_status',
   },
   {
+    title: 'Esito Partner',
+    key: 'partner_outcome',
+  },
+  {
+    title: 'Data Esito Partner',
+    key: 'partner_outcome_at',
+  },
+  {
     title: 'Prodotto',
     key: 'product_id',
     sortable: false,
@@ -96,14 +105,6 @@ let headers = [
     title: 'Mandato',
     key: 'mandate_id',
     sortable: false,
-  },
-  {
-    title: 'Esito Partner',
-    key: 'partner_outcome',
-  },
-  {
-    title: 'Data Esito Partner',
-    key: 'partner_outcome_at',
   },
   {
     title: 'Pagato',
@@ -756,9 +757,11 @@ const updateDateFromYearMonth = () => {
         <!-- 👉 Order Status -->
         <template #item.order_status="{ item }">
           <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.order_status }}
-            </div>
+            <StatusChip 
+              :status="item.order_status" 
+              size="small"
+              fallback-style="text"
+            />
           </div>
         </template>
 
@@ -793,9 +796,11 @@ const updateDateFromYearMonth = () => {
         <!-- 👉 Partner Outcome -->
         <template #item.partner_outcome="{ item }">
           <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.partner_outcome }}
-            </div>
+            <StatusChip 
+              :status="item.partner_outcome" 
+              size="small"
+              fallback-style="text"
+            />
           </div>
         </template>
 
