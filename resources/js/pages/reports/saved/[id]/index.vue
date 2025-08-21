@@ -538,13 +538,4 @@ const saveAddEntry = async () => {
   </section>
 </template>
 
-<style lang="scss" scoped>
-.v-data-table {
-  :deep(td), :deep(th) {
-    border-left: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
-    &:first-child {
-      border-left: none;
-    }
-  }
-}
-</style>
+<!-- Gli stili per le linee verticali delle tabelle sono ora gestiti globalmente -->

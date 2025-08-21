@@ -17,10 +17,10 @@ const alert = ref({
 
 // Controlla se l'utente è backoffice
 const loggedInUser = useCookie('userData').value
-const isBackoffice = loggedInUser.roles.some(role => role.name === 'backoffice')
+const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
 
 // Controlla se l'utente è agente (per mostrare il popup di notifica)
-const isAgente = loggedInUser.roles.some(role => role.name === 'agente')
+const isAgente = loggedInUser?.roles?.some(role => role.name === 'agente')
 
 // Popup di notifica per agenti
 const showNotification = ref(false)

@@ -11,8 +11,8 @@ definePage({
 })
 
 const loggedInUser = useCookie('userData').value
-const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
-const isBackoffice = loggedInUser.roles.some(role => role.name === 'backoffice')
+const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
 
 let quickLinks = [
   { name: 'Clienti', icon: 'tabler-users', to: '/workflow/customers' },

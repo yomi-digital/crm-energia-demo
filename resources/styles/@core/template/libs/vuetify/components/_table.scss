@@ -33,11 +33,42 @@
           &:last-child {
             padding-inline-end: 24px !important;
           }
+
+          // 👉 Linee verticali per separare le colonne
+          border-inline-end: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)) !important;
+          
+          // Rimuovi la linea verticale dall'ultima colonna
+          &:last-child {
+            border-inline-end: none !important;
+          }
         }
       }
     }
 
     tbody {
+      // 👉 Effetto zebrato - righe pari più scure
+      tr {
+        // Righe dispari (default - più chiare)
+        &:nth-child(odd) {
+          background-color: transparent !important;
+        }
+        
+        // Righe pari (più scure)
+        &:nth-child(even) {
+          background-color: rgba(var(--v-border-color), 0.04) !important;
+        }
+
+        // Hover effect per entrambe le righe
+        &:hover {
+          background-color: rgba(var(--v-border-color), 0.08) !important;
+        }
+
+        // Assicurati che le celle ereditino il background della riga
+        td {
+          background-color: inherit !important;
+        }
+      }
+
       .v-data-table-group-header-row {
         td {
           background-color: rgb(var(--v-theme-surface));
