@@ -27,7 +27,7 @@ class ProductsController extends Controller
             $products = $products->whereIn('brand_id', $agentBrands);
         }
 
-        if ($request->get('enabled')) {
+        if ($request->filled('enabled')) {
             $products = $products->where('enabled', $request->get('enabled'));
         }
 
@@ -69,7 +69,7 @@ class ProductsController extends Controller
             $products->where('brand_id', $request->get('brand'));
         }
 
-        if ($request->get('enabled')) {
+        if ($request->filled('enabled')) {
             $products = $products->where('enabled', $request->get('enabled'));
         }
 

@@ -16,6 +16,7 @@ const sortBy = ref()
 const orderBy = ref()
 const selectedProductRemove = ref()
 const selectedBrand = ref()
+const selectedStatus = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -58,6 +59,7 @@ const {
   query: {
     q: searchQuery,
     brand: selectedBrand,
+    enabled: selectedStatus,
     itemsPerPage,
     page,
     sortBy,
@@ -83,6 +85,12 @@ const brands = [
     title: 'Tutti',
     value: '',
   },
+]
+
+const statuses = [
+  { title: 'Tutti', value: '' },
+  { title: 'Abilitato', value: '1' },
+  { title: 'Disabilitato', value: '0' },
 ]
 const fetchBrands = async (query) => {
   const response = await $api('/brands?itemsPerPage=999999&select=1')
@@ -121,6 +129,20 @@ const selectProductForRemove = product => {
               clearable
               :items="brands"
               placeholder="Seleziona un brand"
+            />
+          </VCol>
+
+          <!-- 👉 Select Status -->
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <AppAutocomplete
+              v-model="selectedStatus"
+              label="Stato"
+              clearable
+              :items="statuses"
+              placeholder="Seleziona stato"
             />
           </VCol>
 
