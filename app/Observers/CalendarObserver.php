@@ -12,16 +12,22 @@ class CalendarObserver
 {
     public function created(Calendar $calendar): void
     {
-        $calendar->agent->notify(new CalendarAppointmentCreated($calendar));
+        if ($calendar->agent) {
+            $calendar->agent->notify(new CalendarAppointmentCreated($calendar));
+        }
     }
 
     public function updated(Calendar $calendar): void
     {
-        $calendar->agent->notify(new CalendarAppointmentUpdated($calendar));
+        if ($calendar->agent) {
+            $calendar->agent->notify(new CalendarAppointmentUpdated($calendar));
+        }
     }
 
     public function deleted(Calendar $calendar): void
     {
-        $calendar->agent->notify(new CalendarAppointmentDeleted($calendar));
+        if ($calendar->agent) {
+            $calendar->agent->notify(new CalendarAppointmentDeleted($calendar));
+        }
     }
 }

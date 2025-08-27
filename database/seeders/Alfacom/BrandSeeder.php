@@ -31,7 +31,7 @@ trait BrandSeeder
                     'type' => $type,
                 ]);
             } catch (\Exception $e) {
-                dump('Cannot create brand ' . $agency['id'] . ' Error: ' . substr($e->getMessage(), 0, 120) . '...');
+                dump('Cannot create brand ' . $entry['id'] . ' Error: ' . substr($e->getMessage(), 0, 120) . '...');
             }
         }
     }
