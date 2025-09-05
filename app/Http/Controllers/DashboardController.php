@@ -63,9 +63,19 @@ class DashboardController extends Controller
             });
         }
 
+        // Filtra pratiche che hanno ticket attivi OR stati specifici
         $query->where(function($q) {
-            $q->whereNull('order_status')
-              ->orWhereIn('order_status', ['', 'DA LAVORARE', 'SOSPESO', 'INSERITO']);
+            $q->whereHas('tickets', function($ticketQuery) {
+                $ticketQuery->where('status', '!=', 3);
+            })
+            ->orWhereIn('order_status', ['DA LAVORARE', 'SOSPESO', 'INVIATO OTP']);
+        });
+
+        // Esclude pratiche con esito partner (NULL, stringa vuota, undefined)
+        $query->where(function($q) {
+            $q->whereNull('partner_outcome')
+              ->orWhere('partner_outcome', '')
+              ->orWhere('partner_outcome', 'undefined');
         });
 
         $loggedInUserId = $request->user()->id;
