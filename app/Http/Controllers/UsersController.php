@@ -339,7 +339,22 @@ class UsersController extends Controller
 
         $perPage = $request->get('itemsPerPage', 30);
 
-        $notifications = $user->notifications()->paginate($perPage);
+        $notifications = $user->notifications();
+
+        // Filtro per tipo di notifica
+        if ($request->filled('notification_type')) {
+            $notificationType = $request->get('notification_type');
+            
+            if ($notificationType === 'Calendar') {
+                $notifications = $notifications->whereIn('type', ['calendar-created', 'calendar-updated', 'calendar-deleted']);
+            } elseif ($notificationType === 'Ticket') {
+                $notifications = $notifications->whereIn('type', ['ticket-created', 'ticket-comment-created']);
+            } elseif ($notificationType === 'Paperwork') {
+                $notifications = $notifications->where('type', 'paperwork-created');
+            }
+        }
+
+        $notifications = $notifications->paginate($perPage);
 
         // Format the notfications
         $notifications->getCollection()->transform(function ($notification) {

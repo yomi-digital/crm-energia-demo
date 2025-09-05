@@ -1,10 +1,21 @@
 <script setup>
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import NotificationFilter from './NotificationFilter.vue'
 
 const props = defineProps({
   notifications: {
     type: Array,
     required: true,
+  },
+  notificationTypes: {
+    type: Array,
+    required: false,
+    default: () => [],
+  },
+  selectedNotificationType: {
+    type: String,
+    required: false,
+    default: '',
   },
   badgeProps: {
     type: Object,
@@ -23,6 +34,7 @@ const emit = defineEmits([
   'unread',
   'remove',
   'click:notification',
+  'update:notification-type',
 ])
 
 const isAllMarkRead = computed(() => props.notifications.some(item => item.isSeen === false))
@@ -108,6 +120,16 @@ const toggleReadUnread = (isSeen, Id) => {
         </VCardItem>
 
         <VDivider />
+
+        <!-- 👉 Filtro tipo notifica -->
+        <VCardItem v-if="props.notificationTypes.length" class="notification-filter-section">
+          <NotificationFilter
+            :selected-notification-type="props.selectedNotificationType"
+            @update:notification-type="emit('update:notification-type', $event)"
+          />
+        </VCardItem>
+
+        <VDivider v-if="props.notificationTypes.length" />
 
         <!-- 👉 Notifications list -->
         <PerfectScrollbar
@@ -212,6 +234,11 @@ const toggleReadUnread = (isSeen, Id) => {
 <style lang="scss">
 .notification-section {
   padding-block: 0.75rem;
+  padding-inline: 1rem;
+}
+
+.notification-filter-section {
+  padding-block: 0.5rem;
   padding-inline: 1rem;
 }
 

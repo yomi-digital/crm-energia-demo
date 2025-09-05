@@ -2,12 +2,32 @@
 
 const router = useRouter()
 const notifications = ref([])
+const selectedNotificationType = ref('')
+
+const notificationTypes = [
+  { title: 'Tutte', value: '' },
+  { title: 'Calendario', value: 'Calendar' },
+  { title: 'Ticket', value: 'Ticket' },
+  { title: 'Pratiche', value: 'Paperwork' },
+]
 
 const fetchNotifications = async () => {
-  const response = await $api('/auth/notifications')
+  const params = {}
+  if (selectedNotificationType.value) {
+    params.notification_type = selectedNotificationType.value
+  }
+  
+  const response = await $api('/auth/notifications', {
+    params
+  })
   notifications.value = response.data
 }
 fetchNotifications();
+
+// Watch per ricaricare le notifiche quando cambia il filtro
+watch(selectedNotificationType, () => {
+  fetchNotifications()
+})
 
 const removeNotification = notificationId => {
   notifications.value.forEach((item, index) => {
@@ -45,9 +65,12 @@ const handleNotificationClick = notification => {
 <template>
   <Notifications
     :notifications="notifications"
+    :notification-types="notificationTypes"
+    :selected-notification-type="selectedNotificationType"
     @remove="removeNotification"
     @read="markRead"
     @unread="markUnRead"
     @click:notification="handleNotificationClick"
+    @update:notification-type="selectedNotificationType = $event"
   />
 </template>

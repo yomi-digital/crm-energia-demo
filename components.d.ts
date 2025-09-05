@@ -388,6 +388,7 @@ declare module 'vue' {
     I18n: typeof import('./resources/js/@core/components/I18n.vue')['default']
     MoreBtn: typeof import('./resources/js/@core/components/MoreBtn.vue')['default']
     NavBarContractUpload: typeof import('./resources/js/components/NavBarContractUpload.vue')['default']
+    NotificationFilter: typeof import('./resources/js/@core/components/NotificationFilter.vue')['default']
     Notifications: typeof import('./resources/js/@core/components/Notifications.vue')['default']
     PaperworkConfirmInsertDialog: typeof import('./resources/js/components/dialogs/PaperworkConfirmInsertDialog.vue')['default']
     PaperworkEditDialog: typeof import('./resources/js/components/dialogs/PaperworkEditDialog.vue')['default']
