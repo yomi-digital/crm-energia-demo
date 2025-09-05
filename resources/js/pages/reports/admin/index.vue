@@ -18,7 +18,6 @@ const orderBy = ref()
 const selectedUser = ref('')
 const selectedBrand = ref('')
 const selectedProduct = ref('')
-const selectedAgent = ref('')
 const selectedStatus = ref('')
 const selectedCategory = ref('')
 // const selectedMandate = ref('')
@@ -131,7 +130,6 @@ const {
     user_id: selectedUser,
     brand_id: selectedBrand,
     product_id: selectedProduct,
-    agent_id: selectedAgent,
     status: selectedStatus,
     category: selectedCategory,
   },
@@ -198,12 +196,6 @@ const brands = ref([
   },
 ])
 
-const agents = ref([
-  {
-    title: 'Tutti',
-    value: '',
-  },
-])
 
 const statuses = ref([
   {
@@ -211,32 +203,16 @@ const statuses = ref([
     value: '',
   },
   {
-    title: 'OK PAGABILE',
-    value: 'OK PAGABILE',
-  },
-  {
     title: 'KO',
     value: 'KO',
   },
   {
+    title: 'OK PAGABILE',
+    value: 'OK PAGABILE',
+  },
+  {
     title: 'STORNO',
     value: 'STORNO',
-  },
-  {
-    title: 'INSERITO',
-    value: 'INSERITO',
-  },
-  {
-    title: 'DA LAVORARE',
-    value: 'DA LAVORARE',
-  },
-  {
-    title: 'SOSPESO',
-    value: 'SOSPESO',
-  },
-  {
-    title: 'INVIATO OTP',
-    value: 'INVIATO OTP',
   },
 ])
 
@@ -308,16 +284,6 @@ const fetchProducts = async (query) => {
 }
 fetchProducts()
 
-const fetchAgents = async (query) => {
-  const response = await $api('/agents?select=1')
-  for (const agent of response.agents) {
-    agents.value.push({
-      title: `${agent.name} ${agent.last_name}`.trim(),
-      value: agent.id,
-    })
-  }
-}
-fetchAgents()
 
 const saveReport = async () => {
   const data = await $api(`/reports/admin`, {
@@ -392,21 +358,11 @@ const saveReport = async () => {
         <VRow>
           <VCol cols="3">
             <AppAutocomplete
-              v-model="selectedAgent"
-              label="Filtra per Agente"
-              clearable
-              :items="agents"
-              placeholder="Seleziona un Agente"
-            />
-          </VCol>
-
-          <VCol cols="3">
-            <AppAutocomplete
               v-model="selectedStatus"
-              label="Filtra per Stato"
+              label="Filtra per Esito Partner"
               clearable
               :items="statuses"
-              placeholder="Seleziona uno Stato"
+              placeholder="Seleziona un Esito Partner"
             />
           </VCol>
 
