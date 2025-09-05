@@ -39,6 +39,11 @@ const createPaperworkSteps = [
     icon: 'tabler-star',
   },
   {
+    title: 'Mandato',
+    subtitle: 'Seleziona un mandato (opzionale)',
+    icon: 'tabler-file-text',
+  },
+  {
     title: 'Crea Pratica',
     subtitle: 'Rivedi i dettagli e completa la pratica',
     icon: 'tabler-checkbox',
@@ -105,6 +110,36 @@ const validateProductSelected = () => {
   }
 }
 
+const validateMandateSelected = () => {
+  // Il mandato è opzionale, quindi lo step è sempre valido
+  isCurrentStepValid.value = true
+}
+
+// Caricamento mandati
+const mandates = ref([])
+const isLoadingMandates = ref(false)
+
+const fetchMandates = async () => {
+  isLoadingMandates.value = true
+  try {
+    const response = await $api('/mandates?itemsPerPage=999999')
+    mandates.value = response.mandates.map(mandate => ({
+      title: mandate.name,
+      value: mandate.id,
+    }))
+  } catch (error) {
+    console.error('Failed to load mandates:', error)
+    mandates.value = []
+  } finally {
+    isLoadingMandates.value = false
+  }
+}
+
+// Carica i mandati all'avvio del componente
+onMounted(() => {
+  fetchMandates()
+})
+
 const createPaperworkData = ref({
   agent: {
     id: isAgent ? loggedInUser.id : null,
@@ -132,6 +167,10 @@ const createPaperworkData = ref({
     brand_name: null,
     product_id: null,
     product_name: null,
+  },
+  mandate: {
+    mandate_id: null,
+    mandate_name: null,
   },
   paperworkReviewComplete: { notes: null, owner_notes: null, isPaperworkDetailsConfirmed: false },
 })
@@ -174,6 +213,8 @@ const goToNextStep = () => {
     validatePaperworkType()
   } else if (currentStep.value === 3) {
     validateProductSelected()
+  } else if (currentStep.value === 4) {
+    validateMandateSelected()
   }
 
   if (isCurrentStepValid.value) {
@@ -198,6 +239,7 @@ const onSubmit = async () => {
         customer_id: createPaperworkData.value.customer.id.value,
         appointment_id: createPaperworkData.value.customer.appointment_id,
         product_id: createPaperworkData.value.product.product_id,
+        mandate_id: createPaperworkData.value.mandate.mandate_id,
         account_pod_pdr: createPaperworkData.value.paperworkType.account_pod_pdr,
         annual_consumption: createPaperworkData.value.paperworkType.annual_consumption,
         notes: createPaperworkData.value.paperworkReviewComplete.notes,
@@ -269,6 +311,37 @@ const onSubmit = async () => {
 
             <VWindowItem>
               <PaperworkProduct v-model:form-data="createPaperworkData.product" :ptype="createPaperworkData.paperworkType" :agent="createPaperworkData.agent.id" />
+            </VWindowItem>
+
+            <VWindowItem>
+              <!-- Step Mandato -->
+              <VRow>
+                <VCol cols="12">
+                  <h6 class="text-h6 mb-4">
+                    Seleziona Mandato (Opzionale)
+                  </h6>
+                  <p class="text-sm text-medium-emphasis mb-6">
+                    Seleziona un mandato da associare alla pratica. Questo campo è opzionale.
+                  </p>
+                </VCol>
+
+                <VCol v-if="$can('access', 'mandates')" cols="12">
+                  <AppAutocomplete
+                    v-model="createPaperworkData.mandate.mandate_id"
+                    label="Mandato"
+                    :items="mandates"
+                    item-title="title"
+                    item-value="value"
+                    placeholder="Seleziona un mandato"
+                    :loading="isLoadingMandates"
+                    clearable
+                    @update:model-value="(value) => {
+                      const selectedMandate = mandates.find(m => m.value === value)
+                      createPaperworkData.mandate.mandate_name = selectedMandate ? selectedMandate.title : null
+                    }"
+                  />
+                </VCol>
+              </VRow>
             </VWindowItem>
 
             <VWindowItem>

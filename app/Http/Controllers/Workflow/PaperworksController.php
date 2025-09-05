@@ -156,6 +156,7 @@ class PaperworksController extends Controller
                 'customer_id' => 'required|exists:customers,id',
                 'appointment_id' => 'exists:calendar,id|nullable',
                 'product_id' => 'required|exists:products,id',
+                'mandate_id' => 'nullable|exists:mandates,id',
                 'account_pod_pdr' => [
                     'nullable',
                     function ($attribute, $value, $fail) use ($request) {
@@ -181,6 +182,7 @@ class PaperworksController extends Controller
                 'customer_id',
                 'appointment_id',
                 'product_id',
+                'mandate_id',
                 'account_pod_pdr',
                 'annual_consumption',
                 'contract_type',
@@ -198,6 +200,7 @@ class PaperworksController extends Controller
                 'customer_id' => 'required|exists:customers,id',
                 'appointment_id' => 'exists:calendar,id|nullable',
                 'product_id' => 'required|exists:products,id',
+                'mandate_id' => 'nullable|exists:mandates,id',
                 'account_pod_pdr' => [
                     'nullable',
                     function ($attribute, $value, $fail) use ($request) {
