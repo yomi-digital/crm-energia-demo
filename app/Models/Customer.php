@@ -35,6 +35,19 @@ class Customer extends Model
         'privacy' => 'boolean',
     ];
 
+    /**
+     * Bootstrap del modello - imposta automaticamente confirmed_at alla creazione
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Quando viene creato un nuovo Customer, impostalo come confermato
+        static::creating(function ($customer) {
+            $customer->confirmed_at = now()->format('Y-m-d');
+        });
+    }
+
     public function addedByUser()
     {
         return $this->belongsTo(User::class, 'added_by');

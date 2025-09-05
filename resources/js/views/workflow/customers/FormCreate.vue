@@ -24,6 +24,7 @@ const zip = ref('')
 
 const refForm = ref()
 const isSaving = ref(false)
+const errorMessage = ref('')
 
 const emit = defineEmits([
   'customerData',
@@ -256,7 +257,7 @@ const createUser = async () => {
     }
   } catch (error) {
     isSaving.value = false
-    alert('Errore durante il salvataggio del cliente. Riprova.')
+    errorMessage.value = error.response?._data?.message || 'Errore durante il salvataggio del cliente. Riprova.'
   }
 }
 
@@ -271,6 +272,14 @@ const filteredProvinces = computed(() => {
 
 <template>
   <VForm ref="refForm" @submit.prevent="createUser">
+    <!-- 👉 Alert per errori -->
+    <VAlert
+      v-if="errorMessage"
+      type="error"
+      :text="errorMessage"
+      class="mb-4"
+    />
+    
     <VRow>
       <!-- 👉 Customer category -->
       <VCol

@@ -118,8 +118,122 @@ class CustomersController extends Controller
 
     public function store(Request $request)
     {
+        // Validazione campi obbligatori
+        // Select category from request
+        $category = $request->category;
+
+        //Se la categoria è null, restituisci errore 422
+
+        //Cliente residenziale
+        if($category === 'Residenziale') {
+            $request->validate([
+                'address' => 'required|string',
+                'category' => 'required|in:Residenziale,Business',
+                'city' => 'required|string',
+                'email' => 'required|email',
+                'last_name' => 'required_if:category,Residenziale|string',
+                'mobile' => 'required|string',
+                'name' => 'required|string',
+                'phone' => 'nullable|string',
+                'privacy' => 'required|boolean',
+                'province' => 'required|string',
+                'region' => 'required|string',
+                'tax_id_code' => 'required_if:category,Residenziale|string',
+                'zip' => 'required|string',
+            ], [
+                'address.required' => 'L\'indirizzo è obbligatorio.',
+                'city.required' => 'La città è obbligatoria.',
+                'email.required' => 'L\'email è obbligatoria.',
+                'email.email' => 'L\'email deve essere valida.',
+                'last_name.required_if' => 'Il cognome è obbligatorio per i clienti residenziali.',
+                'mobile.required' => 'Il cellulare è obbligatorio.',
+                'name.required' => 'Il nome è obbligatorio.',
+                'privacy.required' => 'Il consenso privacy è obbligatorio.',
+                'province.required' => 'La provincia è obbligatoria.',
+                'region.required' => 'La regione è obbligatoria.',
+                'tax_id_code.required_if' => 'Il codice fiscale è obbligatorio per i clienti residenziali.',
+                'zip.required' => 'Il CAP è obbligatorio.',
+            ]);
+        }
+
+        //Cliente business
+        if($category === 'Business') {
+            $request->validate([
+                'address' => 'required|string',
+                'ateco_code' => 'required|string',
+                'business_name' => 'required|string',
+                'category' => 'required|in:Business',
+                'city' => 'required|string',
+                'email' => 'required|email',
+                'mobile' => 'required|string',
+                'pec' => 'nullable|string',
+                'phone' => 'nullable|string',
+                'privacy' => 'required|boolean',
+                'province' => 'required|string',
+                'region' => 'required|string',
+                'unique_code' => 'nullable|string',
+                'vat_number' => 'required|string',
+                'zip' => 'required|string',
+            ], [
+                'address.required' => 'L\'indirizzo è obbligatorio.',
+                'ateco_code.required' => 'Il codice ATECO è obbligatorio.',
+                'business_name.required' => 'La ragione sociale è obbligatoria.',
+                'city.required' => 'La città è obbligatoria.',
+                'email.required' => 'L\'email è obbligatoria.',
+                'email.email' => 'L\'email deve essere valida.',
+                'mobile.required' => 'Il cellulare è obbligatorio.',
+                'privacy.required' => 'Il consenso privacy è obbligatorio.',
+                'province.required' => 'La provincia è obbligatoria.',
+                'region.required' => 'La regione è obbligatoria.',
+                'vat_number.required' => 'La partita IVA è obbligatoria.',
+                'zip.required' => 'Il CAP è obbligatorio.',
+            ]);
+        }
+
+        //Ditta individuale
+        if($category === 'all' || $category === null || $category === '') {
+            $request->validate([
+                'address' => 'required|string',
+                'ateco_code' => 'nullable|string',
+                'business_name' => 'required|string',
+                'category' => 'nullable|string',
+                'city' => 'required|string',
+                'email' => 'required|email',
+                'last_name' => 'required|string',
+                'mobile' => 'required|string',
+                'name' => 'required|string',
+                'pec' => 'nullable|string',
+                'phone' => 'nullable|string',
+                'privacy' => 'required|boolean',
+                'province' => 'required|string',
+                'region' => 'required|string',
+                'tax_id_code' => 'required|string',
+                'unique_code' => 'nullable|string',
+                'vat_number' => 'required|string',
+                'zip' => 'required|string',
+            ], [
+                'address.required' => 'L\'indirizzo è obbligatorio.',
+                'business_name.required' => 'La ragione sociale è obbligatoria.',
+                'city.required' => 'La città è obbligatoria.',
+                'email.required' => 'L\'email è obbligatoria.',
+                'email.email' => 'L\'email deve essere valida.',
+                'last_name.required' => 'Il cognome è obbligatorio.',
+                'mobile.required' => 'Il cellulare è obbligatorio.',
+                'name.required' => 'Il nome è obbligatorio.',
+                'privacy.required' => 'Il consenso privacy è obbligatorio.',
+                'province.required' => 'La provincia è obbligatoria.',
+                'region.required' => 'La regione è obbligatoria.',
+                'tax_id_code.required' => 'Il codice fiscale è obbligatorio.',
+                'vat_number.required' => 'La partita IVA è obbligatoria.',
+                'zip.required' => 'Il CAP è obbligatorio.',
+            ]);
+        }
+
+
         // Validazione incrociata di unicità telefono e cellulare
         $errors = [];
+
+        //Validazione dei dati in ingresso ()
         
         // Controllo telefono fisso
         if ($request->filled('phone')) {
