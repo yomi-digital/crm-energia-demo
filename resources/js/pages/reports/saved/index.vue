@@ -263,7 +263,7 @@ const deleteReport = async id => {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="selectReportForRemove(item)" v-if="$can('delete', 'reports')">
+          <IconBtn @click="selectReportForRemove(item)" v-if="$can('delete', 'reports') && item.status != '3'">
             <VIcon color="error" icon="tabler-trash" />
           </IconBtn>
         </template>

@@ -56,6 +56,20 @@ class ReportsController extends Controller
     public function delete(Request $request, $id)
     {
         $report = \App\Models\Report::find($id);
+        
+        if (!$report) {
+            return response()->json([
+                'error' => 'Report non trovato',
+            ], 404);
+        }
+        
+        // Impedisce l'eliminazione se lo status è 3 (Inviato)
+        if ($report->status == 3) {
+            return response()->json([
+                'error' => 'Non è possibile eliminare un report con stato Inviato',
+            ], 403);
+        }
+        
         $report->delete();
         return response()->json([
             'message' => 'Report eliminato con successo',
