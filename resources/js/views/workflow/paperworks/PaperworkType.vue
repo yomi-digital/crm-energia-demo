@@ -107,7 +107,7 @@ const contractTypesMobile = ref([
       <VCol
         cols="12"
         sm="6"
-        v-if="formData.category === 'SWITCH'"
+        v-if="['SWITCH', 'VOLTURA', 'OTP'].includes(formData.category)"
       >
         <AppTextField
           v-model="formData.previous_provider"

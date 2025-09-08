@@ -812,8 +812,8 @@ const onHandleTransferCompleted = async (eventData) => {
                   </VCol>
                 </VRow>
 
-                <!-- Campo Fornitore Precedente per SWITCH -->
-                <VRow v-if="extractedPaperwork.category === 'SWITCH'">
+                <!-- Campo Fornitore Precedente per SWITCH, VOLTURA, OTP -->
+                <VRow v-if="['SWITCH', 'VOLTURA', 'OTP'].includes(extractedPaperwork.category)">
                   <VCol cols="12">
                     <AppTextField
                       v-model="extractedPaperwork.previous_provider"

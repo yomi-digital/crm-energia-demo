@@ -216,7 +216,7 @@ watch(() => paperworkDataClone.value.type, () => {
             <VCol
               cols="12"
               sm="6"
-              v-if="paperworkDataClone.category === 'SWITCH'"
+              v-if="['SWITCH', 'VOLTURA', 'OTP'].includes(paperworkDataClone.category)"
             >
               <AppTextField
                 v-model="paperworkDataClone.previous_provider"
