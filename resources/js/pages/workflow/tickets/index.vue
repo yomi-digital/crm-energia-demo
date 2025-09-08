@@ -25,7 +25,7 @@ const updateOptions = options => {
 // Headers
 const headers = [
   {
-    title: '#',
+    title: 'ID',
     key: 'id',
   },
   {
@@ -145,9 +145,29 @@ const ticketStatusText = (status) => {
         <!-- 👉 Customer -->
         <template #item.customer="{ item }">
           <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.paperwork?.customer?.name ? item.paperwork.customer.name : item.paperwork?.customer?.business_name || 'N/A' }}
+            <RouterLink
+              v-if="item.paperwork?.customer?.id"
+              :to="{ name: 'workflow-customers-id', params: { id: item.paperwork.customer.id } }"
+              class="font-weight-medium text-link"
+            >
+              {{ item.paperwork.customer.name ? item.paperwork.customer.name : item.paperwork.customer.business_name }}
+            </RouterLink>
+            <div v-else class="text-high-emphasis text-body-1">
+              N/A
             </div>
+          </div>
+        </template>
+
+        <!-- 👉 Title -->
+        <template #item.title="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <RouterLink
+              :to="{ name: 'workflow-tickets-id', params: { id: item.id } }"
+              class="font-weight-medium text-link"
+              :title="item.title"
+            >
+              {{ item.title }}
+            </RouterLink>
           </div>
         </template>
 

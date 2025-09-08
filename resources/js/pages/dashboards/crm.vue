@@ -911,7 +911,7 @@ const handleSearch = () => {
             :items="clientData"
             :items-length="totalItems"
             :headers="[
-              { title: '#', key: 'id', width: '80' },
+              { title: 'ID', key: 'id', width: '80' },
               { title: 'Agente', key: 'agent', sortable: false },
               { title: 'Cliente', key: 'customer', sortable: false },
               { title: 'Prodotto', key: 'product', sortable: false },
@@ -1003,7 +1003,7 @@ const handleSearch = () => {
             :items="ticketsData"
             :items-length="totalTickets"
             :headers="[
-              { title: '#', key: 'id', width: '80' },
+              { title: 'ID', key: 'id', width: '80' },
               { title: 'Pratica', key: 'paperwork_id', sortable: false },
               { title: 'Cliente', key: 'customer', sortable: false },
               { title: 'Titolo', key: 'title', sortable: false },
@@ -1036,9 +1036,12 @@ const handleSearch = () => {
 
             <!-- Customer -->
             <template #item.customer="{ item }">
-              <div class="text-high-emphasis text-body-1">
+              <RouterLink
+                :to="{ name: 'workflow-customers-id', params: { id: item.paperwork.customer.id } }"
+                class="font-weight-medium text-link"
+              >
                 {{ item.paperwork.customer.name ? item.paperwork.customer.name : item.paperwork.customer.business_name }}
-              </div>
+              </RouterLink>
             </template>
 
             <!-- Title -->

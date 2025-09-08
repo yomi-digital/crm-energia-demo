@@ -50,10 +50,10 @@ const canViewPayout = useCookie('userData').value.roles.some(role => role.name =
 
 // Headers
 let headers = [
-  {
-    title: '#',
-    key: 'id',
-  },
+  // {
+  //   title: '#',
+  //   key: 'id',
+  // },
   {
     title: 'ID Pratica',
     key: 'order_code',
