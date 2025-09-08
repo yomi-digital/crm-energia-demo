@@ -227,7 +227,7 @@ const createUser = async () => {
   if (category.value === 'Residenziale' || category.value === 'all') {
     customerData.name = name.value
     customerData.last_name = lastName.value
-    customerData.tax_id_code = taxIdCode.value
+    customerData.tax_id_code = taxIdCode.value.toUpperCase()
   }
   if (category.value === 'Business' || category.value === 'all') {
     customerData.business_name = businessName.value
@@ -357,6 +357,7 @@ const filteredProvinces = computed(() => {
           label="Codice Fiscale"
           placeholder="ABCDEF12G34H567I"
           :rules="[requiredValidator]"
+          @input="taxIdCode = taxIdCode.toUpperCase()"
         />
       </VCol>
 

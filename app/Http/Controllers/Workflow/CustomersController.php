@@ -233,6 +233,19 @@ class CustomersController extends Controller
         // Validazione incrociata di unicità telefono e cellulare
         $errors = [];
 
+        // Controllo duplicati codice fiscale
+        if ($request->filled('tax_id_code')) {
+            $taxIdCode = strtoupper($request->tax_id_code);
+            
+            $existingTaxIdCode = \App\Models\Customer::where('tax_id_code', $taxIdCode)
+                ->whereNull('deleted_at')
+                ->first();
+                
+            if ($existingTaxIdCode) {
+                $errors['tax_id_code'] = 'Questo codice fiscale è già associato a un altro cliente';
+            }
+        }
+
         //Validazione dei dati in ingresso ()
         
         // Controllo telefono fisso
@@ -284,15 +297,30 @@ class CustomersController extends Controller
         
         // Se ci sono errori, restituisci errore 422
         if (!empty($errors)) {
+            // Messaggio più specifico se c'è un errore di codice fiscale duplicato
+            $message = 'I dati forniti non sono validi.';
+            if (isset($errors['tax_id_code'])) {
+                $message = 'Codice fiscale già esistente';
+            } elseif (isset($errors['phone']) || isset($errors['mobile'])) {
+                $message = 'Numero di telefono già esistente';
+            }
+            
             return response()->json([
-                'message' => 'I dati forniti non sono validi.',
+                'message' => $message,
                 'errors' => $errors
             ], 422);
         }
 
         $customer = new \App\Models\Customer;
 
-        $customer->fill($request->all());
+        $customerData = $request->all();
+        
+        // Converti il codice fiscale in maiuscolo se presente
+        if (isset($customerData['tax_id_code'])) {
+            $customerData['tax_id_code'] = strtoupper($customerData['tax_id_code']);
+        }
+
+        $customer->fill($customerData);
         $customer->added_at = now()->format('Y-m-d');
         $customer->added_by = $request->user()->id;
 
@@ -311,6 +339,20 @@ class CustomersController extends Controller
 
         // Validazione avanzata telefono e cellulare con controllo incrociato
         $errors = [];
+        
+        // Controllo duplicati codice fiscale
+        if ($request->filled('tax_id_code')) {
+            $taxIdCode = strtoupper($request->tax_id_code);
+            
+            $existingTaxIdCode = \App\Models\Customer::where('tax_id_code', $taxIdCode)
+                ->where('id', '!=', $id)
+                ->whereNull('deleted_at')
+                ->first();
+                
+            if ($existingTaxIdCode) {
+                $errors['tax_id_code'] = 'Questo codice fiscale è già associato a un altro cliente';
+            }
+        }
         
         // Controllo telefono fisso
         if ($request->filled('phone')) {
@@ -365,13 +407,28 @@ class CustomersController extends Controller
         
         // Se ci sono errori, restituisci errore 422
         if (!empty($errors)) {
+            // Messaggio più specifico se c'è un errore di codice fiscale duplicato
+            $message = 'I dati forniti non sono validi.';
+            if (isset($errors['tax_id_code'])) {
+                $message = 'Impossibile aggiornare il cliente: codice fiscale già esistente.';
+            } elseif (isset($errors['phone']) || isset($errors['mobile'])) {
+                $message = 'Impossibile aggiornare il cliente: numero di telefono già esistente.';
+            }
+            
             return response()->json([
-                'message' => 'I dati forniti non sono validi.',
+                'message' => $message,
                 'errors' => $errors
             ], 422);
         }
 
-        $customer->fill($request->all());
+        $customerData = $request->all();
+        
+        // Converti il codice fiscale in maiuscolo se presente
+        if (isset($customerData['tax_id_code'])) {
+            $customerData['tax_id_code'] = strtoupper($customerData['tax_id_code']);
+        }
+
+        $customer->fill($customerData);
 
         $customer->save();
 
