@@ -141,11 +141,11 @@ const contractTypesMobile = ref([
       </VCol>
 
       <VCol
+        v-if="formData.energy_type === 'MOBILE' || formData.type === 'FISSO_MOBILE'"
         cols="12"
         sm="6"
       >
         <AppSelect
-          v-show="formData.energy_type === 'MOBILE' || formData.type === 'FISSO_MOBILE'"
           v-model="formData.mobile_type"
           label="Tipologia Mobile"
           :items="[{ title: 'MNP', value: 'MNP' }, { title: 'NIP', value: 'NIP' }]"
