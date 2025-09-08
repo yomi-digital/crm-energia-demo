@@ -73,11 +73,11 @@ const headers = [
     title: 'Data Inserimento',
     key: 'added_at',
   },
-  // {
-  //   title: '',
-  //   key: 'actions',
-  //   sortable: false,
-  // },
+  {
+    title: 'Azioni',
+    key: 'actions',
+    sortable: false,
+  },
 ]
 
 const {
@@ -183,6 +183,94 @@ const exportCustomers = async () => {
   }
 }
 
+// Delete functionality
+const isDeleting = ref(false)
+const deleteDialog = ref(false)
+const customerToDelete = ref(null)
+
+// Result dialog for delete operation
+const deleteResultDialog = ref(false)
+const deleteResult = ref({
+  success: false,
+  message: ''
+})
+
+// Alert system for notifications
+const alert = ref({
+  show: false,
+  type: 'success',
+  message: ''
+})
+
+const openDeleteDialog = (customer) => {
+  customerToDelete.value = customer
+  deleteDialog.value = true
+  // Nascondi eventuali alert precedenti
+  alert.value.show = false
+}
+
+const closeDeleteDialog = () => {
+  deleteDialog.value = false
+  customerToDelete.value = null
+  // Nascondi eventuali alert quando si chiude il dialog
+  alert.value.show = false
+}
+
+const closeDeleteResultDialog = () => {
+  deleteResultDialog.value = false
+  deleteResult.value = { success: false, message: '' }
+}
+
+const deleteCustomer = async () => {
+  if (!customerToDelete.value) return
+  
+  isDeleting.value = true
+  try {
+    const response = await $api(`/customers/${customerToDelete.value.id}`, {
+      method: 'DELETE'
+    })
+
+    if (response.success) {
+      // Ricarica la lista dei clienti
+      await fetchCustomers()
+      
+      // Chiudi il dialog di conferma
+      closeDeleteDialog()
+      
+      // Mostra dialog di successo
+      deleteResult.value = {
+        success: true,
+        message: 'Cliente eliminato con successo'
+      }
+      deleteResultDialog.value = true
+    } else {
+      // Chiudi il dialog di conferma
+      closeDeleteDialog()
+      
+      // Mostra dialog di errore
+      deleteResult.value = {
+        success: false,
+        message: response.message || 'Errore durante l\'eliminazione del cliente'
+      }
+      deleteResultDialog.value = true
+    }
+  } catch (error) {
+    console.error('Error deleting customer:', error)
+    
+    // Chiudi il dialog di conferma
+    closeDeleteDialog()
+    
+    // Mostra dialog di errore
+    deleteResult.value = {
+      success: false,
+      message: 'Errore durante l\'eliminazione del cliente'
+    }
+    deleteResultDialog.value = true
+  } finally {
+    isDeleting.value = false
+  }
+}
+
 
 const widgetData = ref([
   {
@@ -222,7 +310,6 @@ const widgetData = ref([
 
 <template>
   <section>
-
     <VCard class="mb-6">
       <VCardItem class="pb-4">
         <VCardTitle>Filtri</VCardTitle>
@@ -457,6 +544,31 @@ const widgetData = ref([
           </div>
         </template>
 
+        <!-- 👉 Actions -->
+        <template #item.actions="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <VBtn
+              v-if="$can('delete', 'customers')"
+              icon
+              size="x-small"
+              color="error"
+              variant="text"
+              @click="openDeleteDialog(item)"
+            >
+              <VIcon
+                size="22"
+                icon="tabler-trash"
+              />
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
+                Elimina Cliente
+              </VTooltip>
+            </VBtn>
+          </div>
+        </template>
+
         <!-- pagination -->
         <template #bottom>
           <TablePagination
@@ -468,6 +580,112 @@ const widgetData = ref([
       </VDataTableServer>
       <!-- SECTION -->
     </VCard>
+
+    <!-- Delete Dialog -->
+    <VDialog
+      v-model="deleteDialog"
+      max-width="500"
+    >
+      <VCard>
+        <VCardTitle class="text-h5">
+          Conferma Eliminazione
+        </VCardTitle>
+        
+        <VCardText>
+          <!-- Alert per messaggi di feedback -->
+          <VAlert
+            v-model="alert.show"
+            :type="alert.type"
+            variant="tonal"
+            closable
+            class="mb-4"
+          >
+            {{ alert.message }}
+          </VAlert>
+
+          <div class="d-flex align-center gap-x-3 mb-3">
+            <VIcon
+              icon="tabler-alert-triangle"
+              size="24"
+              color="warning"
+            />
+            <span class="text-base">
+              Sei sicuro di voler eliminare questo cliente?
+            </span>
+          </div>
+          
+          <div v-if="customerToDelete" class="pa-4 bg-grey-50 rounded">
+            <div class="text-sm text-medium-emphasis mb-1">Cliente da eliminare:</div>
+            <div class="font-weight-medium">
+              {{ customerToDelete.business_name ? customerToDelete.business_name : [customerToDelete.name, customerToDelete.last_name].join(' ') }}
+            </div>
+            <div class="text-sm text-medium-emphasis">{{ customerToDelete.email }}</div>
+          </div>
+          
+          <VAlert
+            type="warning"
+            variant="tonal"
+            class="mt-4"
+          >
+            <div class="text-sm">
+              <strong>Attenzione:</strong> Questa azione eliminerà permanentemente il cliente e tutti i dati ad esso collegati (pratiche, ticket, documenti, ecc.). L'operazione non può essere annullata.
+            </div>
+          </VAlert>
+        </VCardText>
+
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            color="grey"
+            variant="outlined"
+            @click="closeDeleteDialog"
+            :disabled="isDeleting"
+          >
+            Annulla
+          </VBtn>
+          <VBtn
+            color="error"
+            variant="elevated"
+            @click="deleteCustomer"
+            :loading="isDeleting"
+          >
+            Elimina Cliente
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Delete Result Dialog -->
+    <VDialog
+      v-model="deleteResultDialog"
+      max-width="500"
+      persistent
+    >
+      <VCard class="text-center px-10 py-6">
+        <VCardText>
+          <VIcon
+            :icon="deleteResult.success ? 'tabler-check' : 'tabler-x'"
+            :color="deleteResult.success ? 'success' : 'error'"
+            size="60"
+          />
+          <h6 class="text-lg font-weight-medium mt-4">
+            {{ deleteResult.success ? 'Eliminazione completata' : 'Eliminazione fallita' }}
+          </h6>
+          <p class="text-body-2 mt-2">
+            {{ deleteResult.message }}
+          </p>
+        </VCardText>
+
+        <VCardText class="d-flex align-center justify-center">
+          <VBtn
+            :color="deleteResult.success ? 'success' : 'error'"
+            @click="closeDeleteResultDialog"
+          >
+            Ho capito
+          </VBtn>
+        </VCardText>
+      </VCard>
+    </VDialog>
   </section>
 </template>
 

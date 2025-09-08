@@ -673,4 +673,64 @@ class CustomersController extends Controller
     }
 
     // Rimossa la logica di normalizzazione - ora gestita nel Model Customer
+
+    /**
+     * Elimina un customer e tutti i dati ad esso collegati (GDPR Compliant)
+     * Gli Observer gestiranno automaticamente la cancellazione cascata
+     */
+    public function destroy(Request $request, $id)
+    {
+        try {
+            // Cerca il customer
+            $customer = \App\Models\Customer::find($id);
+            
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cliente non trovato',
+                    'error' => "Customer con ID {$id} non esiste"
+                ], 404);
+            }
+            
+            // Log iniziale per audit GDPR
+            \Log::info("GDPR: Richiesta cancellazione customer", [
+                'customer_id' => $customer->id,
+                'customer_name' => $customer->name . ' ' . $customer->last_name,
+                'customer_email' => $customer->email,
+                'requested_by' => $request->user()->id,
+                'requested_by_name' => $request->user()->name,
+                'timestamp' => now()
+            ]);
+
+            // La cancellazione viene gestita automaticamente dagli Observer
+            // CustomerObserver → PaperworkObserver → TicketObserver → etc.
+            $customer->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cliente e tutti i dati collegati eliminati con successo (GDPR Compliant)',
+                'customer_id' => $id
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cliente non trovato',
+                'error' => "Customer con ID {$id} non esiste"
+            ], 404);
+            
+        } catch (\Exception $e) {
+            \Log::error('GDPR: Errore durante la cancellazione del customer', [
+                'customer_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Errore durante la cancellazione del cliente',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

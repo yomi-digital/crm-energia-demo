@@ -63,11 +63,40 @@ class PaperworkObserver
     }
 
     /**
+     * Handle the Paperwork "deleting" event.
+     * GDPR Compliance: Elimina automaticamente tutti i dati collegati al paperwork
+     */
+    public function deleting(Paperwork $paperwork): void
+    {
+        \Log::info("GDPR: Iniziando cancellazione Paperwork ID: {$paperwork->id}", [
+            'customer_id' => $paperwork->customer_id,
+            'tickets_count' => $paperwork->tickets()->count(),
+            'documents_count' => $paperwork->documents()->count()
+        ]);
+
+        // STEP 1: Elimina tutti i tickets collegati
+        // Il TicketObserver gestirà automaticamente attachments e comments
+        foreach ($paperwork->tickets as $ticket) {
+            $ticket->delete();
+        }
+
+        // STEP 2: Elimina tutti i documenti collegati
+        foreach ($paperwork->documents as $document) {
+            $document->delete();
+        }
+
+        \Log::info("GDPR: Paperwork {$paperwork->id} - Cancellazione cascata completata");
+    }
+
+    /**
      * Handle the Paperwork "deleted" event.
      */
     public function deleted(Paperwork $paperwork): void
     {
-        //
+        \Log::info("GDPR: Paperwork {$paperwork->id} eliminato definitivamente", [
+            'customer_id' => $paperwork->customer_id,
+            'order_code' => $paperwork->order_code
+        ]);
     }
 
     /**

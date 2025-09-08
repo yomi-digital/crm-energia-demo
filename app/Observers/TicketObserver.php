@@ -27,4 +27,44 @@ class TicketObserver
             $user->notify(new TicketCreated($ticket));
         }
     }
+
+    /**
+     * Handle the Ticket "deleting" event.
+     * GDPR Compliance: Elimina automaticamente tutti i dati collegati al ticket
+     */
+    public function deleting(Ticket $ticket): void
+    {
+        \Log::info("GDPR: Iniziando cancellazione Ticket ID: {$ticket->id}", [
+            'paperwork_id' => $ticket->paperwork_id,
+            'attachments_count' => $ticket->attachments()->count(),
+            'comments_count' => $ticket->comments()->count()
+        ]);
+
+        // STEP 1: Elimina tutti gli attachments collegati
+        foreach ($ticket->attachments as $attachment) {
+            // Elimina il file fisico se esiste
+            if ($attachment->url && \Storage::exists($attachment->url)) {
+                \Storage::delete($attachment->url);
+            }
+            $attachment->delete();
+        }
+
+        // STEP 2: Elimina tutti i commenti collegati
+        foreach ($ticket->comments as $comment) {
+            $comment->delete();
+        }
+
+        \Log::info("GDPR: Ticket {$ticket->id} - Cancellazione cascata completata");
+    }
+
+    /**
+     * Handle the Ticket "deleted" event.
+     */
+    public function deleted(Ticket $ticket): void
+    {
+        \Log::info("GDPR: Ticket {$ticket->id} eliminato definitivamente", [
+            'paperwork_id' => $ticket->paperwork_id,
+            'title' => $ticket->title
+        ]);
+    }
 }
