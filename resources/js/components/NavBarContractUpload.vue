@@ -1,13 +1,14 @@
 <script setup>
 import DropZoneContracts from '@/components/DropZoneContracts.vue'
 import PopupAICreationWizardNotification from '@/components/dialogs/PopupAICreationWizardNotification.vue'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 
 const dialog = ref(false)
 const isUploading = ref(false)
 const dropZoneRef = ref()
 const brands = ref([])
 const selectedBrand = ref(null)
+const searchBrand = ref()
 const isLoadingBrands = ref(false)
 const alert = ref({
   show: false,
@@ -25,12 +26,16 @@ const isAgente = loggedInUser?.roles?.some(role => role.name === 'agente')
 // Popup di notifica per agenti
 const showNotification = ref(false)
 
-// Fetch brands on component mount
-const fetchBrands = async () => {
+// Fetch brands with search functionality
+const fetchBrands = async (query = '') => {
   isLoadingBrands.value = true
   try {
-    const response = await $api('/brands/personal?itemsPerPage=999999&enabled=1')
-    brands.value = response.brands || []
+    const searchParam = query ? `&q=${encodeURIComponent(query)}` : ''
+    const response = await $api(`/brands/personal?itemsPerPage=999999&enabled=1${searchParam}`)
+    brands.value = (response.brands || []).map(brand => ({
+      title: brand.name,
+      value: brand.id,
+    }))
   } catch (error) {
     console.error('Failed to load brands:', error)
     alert.value = {
@@ -43,9 +48,29 @@ const fetchBrands = async () => {
   }
 }
 
+// Watch for search input changes
+watch(searchBrand, (query) => {
+  if (query && query !== selectedBrand.value) {
+    fetchBrands(query)
+  } else if (!query) {
+    // Se la ricerca è vuota, ricarica tutti i brands
+    fetchBrands()
+  }
+})
+
 onMounted(() => {
   fetchBrands()
 })
+
+// Function to close dialog and reset form
+const closeDialog = () => {
+  dialog.value = false
+  alert.value.show = false
+  selectedBrand.value = null
+  searchBrand.value = ''
+  // Ricarica tutti i brands quando si chiude il dialog
+  fetchBrands()
+}
 
 const uploadContract = async (files) => {
   if (!files.length) return
@@ -92,9 +117,7 @@ const uploadContract = async (files) => {
     // Clear dropzone and reset form after a short delay
     dropZoneRef.value.clearDropzone()
     setTimeout(() => {
-      dialog.value = false
-      alert.value.show = false
-      selectedBrand.value = null // Reset brand selection
+      closeDialog()
     }, 1500)
     
   } catch (error) {
@@ -138,18 +161,17 @@ const uploadContract = async (files) => {
             Carica il contratto completo di documenti di identità e bollette precedenti.<br>L'AI analizzera' il file e caricherà i dati nel sistema.
           </p>
 
-          <VSelect
+          <AppAutocomplete
             v-model="selectedBrand"
+            v-model:search="searchBrand"
             :items="brands"
-            item-title="name"
-            item-value="id"
             label="Seleziona Brand *"
             placeholder="Scegli il brand per questa pratica"
             :loading="isLoadingBrands"
             :disabled="isUploading"
             :error="!selectedBrand && alert.show && alert.type === 'warning'"
             class="mb-4"
-            outlined
+            clearable
             required
           />
 
@@ -174,7 +196,7 @@ const uploadContract = async (files) => {
           <VBtn
             color="primary"
             variant="text"
-            @click="dialog = false"
+            @click="closeDialog"
           >
             Chiudi
           </VBtn>
