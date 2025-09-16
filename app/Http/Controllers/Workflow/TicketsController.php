@@ -11,7 +11,7 @@ class TicketsController extends Controller
     {
         $perPage = $request->get('itemsPerPage', 10);
 
-        $tickets = \App\Models\Ticket::with(['createdBy', 'paperwork', 'paperwork.customer'])->withCount('attachments');
+        $tickets = \App\Models\Ticket::with(['createdBy', 'paperwork', 'paperwork.customer', 'paperwork.user'])->withCount('attachments');
 
         // If the user has role agente, filter only for tickets related to his paperworks.
         if ($request->user()->hasRole('agente') || $request->user()->hasRole('struttura')) {

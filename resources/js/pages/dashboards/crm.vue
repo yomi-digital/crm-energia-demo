@@ -1006,7 +1006,8 @@ const handleSearch = () => {
               { title: 'ID', key: 'id', width: '80' },
               { title: 'Pratica', key: 'paperwork_id', sortable: false },
               { title: 'Cliente', key: 'customer', sortable: false },
-              { title: 'Titolo', key: 'title', sortable: false },
+              { title: 'Oggetto', key: 'title', sortable: false },
+              { title: 'Agente', key: 'agent', sortable: false },
               { title: 'Stato', key: 'status' },
               { title: 'Creato Da', key: 'created_by', sortable: false },
               { title: 'Data Creazione', key: 'created_at', sortable: false },
@@ -1055,6 +1056,13 @@ const handleSearch = () => {
             <template #item.status="{ item }">
               <div class="text-high-emphasis text-body-1">
                 {{ ticketStatusText(item.status) }}
+              </div>
+            </template>
+
+            <!-- Agent -->
+            <template #item.agent="{ item }">
+              <div class="text-high-emphasis text-body-1">
+                {{ item.paperwork.user ? [item.paperwork.user.name, item.paperwork.user.last_name].join(' ') : 'N/A' }}
               </div>
             </template>
 
