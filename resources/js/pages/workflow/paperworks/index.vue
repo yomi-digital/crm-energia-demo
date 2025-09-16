@@ -44,9 +44,9 @@ const isBulkActionDialogOpen = ref(false)
 
 const loggedInUser = useCookie('userData').value
 // Check if in the roles array there is a role with name 'agente'
-const isAgent = loggedInUser.roles.some(role => role.name === 'agente' || role.name === 'struttura')
-const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
-const canViewPayout = useCookie('userData').value.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
+const isAgent = loggedInUser?.roles?.some(role => role.name === 'agente' || role.name === 'struttura')
+const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+const canViewPayout = useCookie('userData').value?.roles?.some(role => role.name === 'gestione' || role.name === 'amministrazione')
 
 // Headers
 let headers = [

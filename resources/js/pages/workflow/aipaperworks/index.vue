@@ -23,7 +23,7 @@ const updateOptions = options => {
 }
 
 const loggedInUser = useCookie('userData').value
-const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 
 // Headers
 const headers = [
