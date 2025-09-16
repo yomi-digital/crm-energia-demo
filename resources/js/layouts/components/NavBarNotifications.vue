@@ -3,6 +3,7 @@
 const router = useRouter()
 const notifications = ref([])
 const selectedNotificationType = ref('')
+let pollingInterval = null
 
 const notificationTypes = [
   { title: 'Tutte', value: '' },
@@ -22,11 +23,25 @@ const fetchNotifications = async () => {
   })
   notifications.value = response.data
 }
+
+// Caricamento iniziale
 fetchNotifications();
+
+// Polling ogni 5 secondi per aggiornare le notifiche
+pollingInterval = setInterval(() => {
+  fetchNotifications()
+}, 5000)
 
 // Watch per ricaricare le notifiche quando cambia il filtro
 watch(selectedNotificationType, () => {
   fetchNotifications()
+})
+
+// Cleanup del timer quando il componente viene smontato
+onUnmounted(() => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
+  }
 })
 
 const removeNotification = notificationId => {
