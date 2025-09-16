@@ -1,4 +1,6 @@
 <script setup>
+import TicketCategoryChip from '@/components/TicketCategoryChip.vue'
+
 definePage({
   meta: {
     action: 'access',
@@ -41,6 +43,10 @@ const headers = [
     key: 'title',
   },
   {
+    title: 'Categoria',
+    key: 'category',
+  },
+  {
     title: 'Stato',
     key: 'status',
   },
@@ -78,6 +84,8 @@ const totalTickets = computed(() => ticketsData.value.totalTickets)
 const ticketStatusText = (status) => {
   return ['Aperto', 'In Lavorazione', 'Risolto'][status - 1]
 }
+
+// Rimossa getCategoryDetails - ora gestita dal componente TicketCategoryChip
 </script>
 
 <template>
@@ -168,6 +176,16 @@ const ticketStatusText = (status) => {
             >
               {{ item.title }}
             </RouterLink>
+          </div>
+        </template>
+
+        <!-- 👉 Category -->
+        <template #item.category="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <TicketCategoryChip 
+              :category="item.category" 
+              size="small" 
+            />
           </div>
         </template>
 

@@ -414,6 +414,7 @@ declare module 'vue' {
     TablePagination: typeof import('./resources/js/@core/components/TablePagination.vue')['default']
     TheCustomizer: typeof import('./resources/js/@core/components/TheCustomizer.vue')['default']
     ThemeSwitcher: typeof import('./resources/js/@core/components/ThemeSwitcher.vue')['default']
+    TicketCategoryChip: typeof import('./resources/js/components/TicketCategoryChip.vue')['default']
     TicketCreateDialog: typeof import('./resources/js/components/dialogs/TicketCreateDialog.vue')['default']
     TicketViewDialog: typeof import('./resources/js/components/dialogs/TicketViewDialog.vue')['default']
     TimelineBasic: typeof import('./resources/js/views/demos/components/timeline/TimelineBasic.vue')['default']

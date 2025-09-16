@@ -1,6 +1,7 @@
 <script setup>
 import CustomerInfoCard from '@/components/CustomerInfoCard.vue'
 import CustomerInfoEditDialog from '@/components/dialogs/CustomerInfoEditDialog.vue'
+import TicketCategoryChip from '@/components/TicketCategoryChip.vue'
 import { useRoute, useRouter } from 'vue-router'
 
 definePage({
@@ -37,6 +38,8 @@ const formatDateTime = (inputDate) => {
   const formatter = new Intl.DateTimeFormat('it-IT', { dateStyle: 'full', timeStyle: 'short'});
   return formatter.format(date);
 }
+
+// Rimossa getCategoryDetails - ora gestita dal componente TicketCategoryChip
 
 const confirmPaperworkUpdateStatuses = async (data) => {
   fetchPaperwork()
@@ -700,6 +703,12 @@ const downloadDocument = async doc => {
                         <VIcon icon="tabler-paperclip" size="small" class="mr-1" />
                         {{ ticket.attachments_count }}
                       </VChip>
+                    </div>
+                    <div class="mb-2">
+                      <TicketCategoryChip 
+                        :category="ticket.category" 
+                        size="small" 
+                      />
                     </div>
                     <div>Creato da <b>{{ [ticket.created_by.name, ticket.created_by.last_name].join(' ') }}</b> il <i>{{ ticket.created_at }}</i></div>
                   </VListItemTitle>

@@ -1,4 +1,6 @@
 <script setup>
+import TicketCategoryChip from '@/components/TicketCategoryChip.vue'
+
 definePage({
   meta: {
     action: 'view',
@@ -54,6 +56,8 @@ const commentTicket = async () => {
 const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 
+// Rimossa getCategoryDetails - ora gestita dal componente TicketCategoryChip
+
 // Rimossa la funzione downloadAttachment duplicata - ora gestita in AppAttachmentsList
 
 // Rimossa la logica di upload duplicata - ora gestita in AppAttachmentZone
@@ -79,7 +83,15 @@ const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role
         <VCard class="ticket-dialog">
           <VCardTitle class="py-4 px-6">
             <div class="d-flex justify-space-between align-center">
-              <h2 class="text-h4 font-weight-bold">{{ ticketData?.title }}</h2>
+              <div>
+                <h2 class="text-h4 font-weight-bold mb-2">{{ ticketData?.title }}</h2>
+                <div class="d-flex align-center gap-2">
+                  <TicketCategoryChip 
+                    :category="ticketData?.category" 
+                    size="small" 
+                  />
+                </div>
+              </div>
               <div>
                 <VChip
                   :color="ticketData?.status === 3 ? 'success' : 'info'"

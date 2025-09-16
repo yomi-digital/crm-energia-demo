@@ -1,4 +1,19 @@
+<script>
+// Definizione delle categorie ticket (esportabile per riutilizzo)
+export const ticketCategories = [
+  { title: 'Segnalazione Guasto', value: 'SEGNALAZIONE_GUASTO', color: '#f44336' },
+  { title: 'Richiesta Informazioni', value: 'RICHIESTA_INFORMAZIONI', color: '#2196f3' },
+  { title: 'Problema Tecnico', value: 'PROBLEMA_TECNICO', color: '#ff9800' },
+  { title: 'Reclamo', value: 'RECLAMO', color: '#e91e63' },
+  { title: 'Richiesta Documentazione', value: 'RICHIESTA_DOCUMENTAZIONE', color: '#9c27b0' },
+  { title: 'Modifica Contratto', value: 'MODIFICA_CONTRATTO', color: '#673ab7' },
+  { title: 'Disdetta', value: 'DISDETTA', color: '#607d8b' },
+  { title: 'Altro', value: 'ALTRO', color: '#795548' },
+]
+</script>
+
 <script setup>
+
 const props = defineProps({
   paperworkId: {
     required: true,
@@ -18,6 +33,7 @@ const ticketData = ref({
   paperwork_id: props.paperworkId,
   title: '',
   description: '',
+  category: 'ALTRO', // Default a ALTRO (categoria più neutra)
   attachments: [],
 })
 
@@ -61,6 +77,7 @@ const onFormSubmit = async () => {
   formData.append('paperwork_id', ticketData.value.paperwork_id)
   formData.append('title', ticketData.value.title)
   formData.append('description', ticketData.value.description)
+  formData.append('category', ticketData.value.category)
   
   // Append each attachment
   ticketData.value.attachments.forEach((file, index) => {
@@ -82,6 +99,7 @@ const onFormReset = () => {
     paperwork_id: props.paperworkId,
     title: '',
     description: '',
+    category: 'ALTRO', // Default a ALTRO (categoria più neutra)
     attachments: [],
   }
   emit('update:isDialogVisible', false)
@@ -125,6 +143,20 @@ const dialogModelValueUpdate = val => {
                 :rules="[requiredValidator]"
                 label="Oggetto"
                 placeholder=""
+              />
+            </VCol>
+
+            <!-- 👉 Category -->
+            <VCol
+              cols="12"
+              md="12"
+            >
+              <AppSelect
+                v-model="ticketData.category"
+                label="Categoria"
+                :items="ticketCategories"
+                item-title="title"
+                item-value="value"
               />
             </VCol>
 

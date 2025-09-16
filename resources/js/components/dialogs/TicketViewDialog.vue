@@ -1,4 +1,6 @@
 <script setup>
+import TicketCategoryChip from '@/components/TicketCategoryChip.vue'
+
 const props = defineProps({
   ticketId: {
     required: true,
@@ -64,6 +66,8 @@ const dialogModelValueUpdate = val => {
 const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 
+// Rimossa getCategoryDetails - ora gestita dal componente TicketCategoryChip
+
 // Rimossa la funzione downloadAttachment duplicata - ora gestita in AppAttachmentsList
 
 // Rimossa la logica di upload duplicata - ora gestita in AppAttachmentZone
@@ -105,6 +109,12 @@ const handleAttachmentsUpdated = async () => {
         <div class="text-subtitle-1 mt-2">
           Creato da {{ [ticketData.created_by.name, ticketData.created_by.last_name].join(' ') }} 
           il {{ ticketData.created_at }}
+        </div>
+        <div class="mt-3">
+          <TicketCategoryChip 
+            :category="ticketData.category" 
+            size="small" 
+          />
         </div>
       </VCardTitle>
 
