@@ -882,7 +882,7 @@ const handleSearch = () => {
             
             <template #item.created_at="{ item }">
               <div class="text-high-emphasis text-body-1">
-                {{ item.created_at }}
+                {{ new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(item.created_at)) }}
               </div>
             </template>
 

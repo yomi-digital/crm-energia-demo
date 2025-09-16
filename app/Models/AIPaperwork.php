@@ -42,8 +42,11 @@ class AIPaperwork extends Model
         return $this->belongsTo(Brand::class);
     }
 
-    public function getCreatedAtAttribute($value)
+    /**
+     * Prepare a date for array / JSON serialization.
+     */
+    protected function serializeDate(\DateTimeInterface $date): string
     {
-        return $value ? date(config('app.datetime_format'), strtotime($value)) : null;
+        return $date->format('c'); // ISO 8601 format with timezone
     }
 } 

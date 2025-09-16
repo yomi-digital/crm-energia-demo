@@ -107,8 +107,8 @@ class AIController extends Controller
             'ai_extracted_customer' => $aiPaperwork->ai_extracted_customer,
             'ai_extracted_paperwork' => $aiPaperwork->ai_extracted_paperwork,
             'prompt_output' => $aiPaperwork->prompt_output,
-            'created_at' => $aiPaperwork->created_at,
-            'updated_at' => $aiPaperwork->updated_at,
+            'created_at' => $aiPaperwork->created_at->toISOString(),
+            'updated_at' => $aiPaperwork->updated_at->toISOString(),
             'user' => $aiPaperwork->user
         ]);
     }
