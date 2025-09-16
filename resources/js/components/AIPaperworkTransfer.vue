@@ -87,7 +87,7 @@ const emit = defineEmits(['onTransferConfirmed', 'onTransferSuccess', 'onTransfe
 
 // Controlla se l'utente è admin
 const loggedInUser = useCookie('userData').value
-const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
+const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || role.name === 'amministrazione')
 
 // Controllo visibilità modals
 const isModalVisible = ref(false)

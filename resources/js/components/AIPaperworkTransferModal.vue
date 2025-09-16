@@ -138,7 +138,7 @@ const emit = defineEmits(['update:isVisible', 'confirm'])
 
 // Controlla se l'utente è admin
 const loggedInUser = useCookie('userData').value
-const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
+const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || role.name === 'amministrazione')
 
 // Gestione brand not-personal
 const selectedBrand = ref('')
