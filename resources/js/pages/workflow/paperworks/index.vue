@@ -838,6 +838,7 @@ const updateDateFromYearMonth = () => {
         <template #item.actions="{ item }">
           <div class="d-flex align-center gap-x-2">
             <VBtn
+              v-if="!isAgent"
               size="small"
               color="primary"
               variant="tonal"
