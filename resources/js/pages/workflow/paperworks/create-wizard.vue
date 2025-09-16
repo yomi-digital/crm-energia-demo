@@ -59,6 +59,20 @@ if (isAgent) {
   createPaperworkSteps.splice(0, 1)
 }
 
+// Check if user can access mandates, if not remove mandate step
+// For now, we'll check if user is agent or struttura (they don't have mandate access)
+const userRoles = loggedInUser.roles.map(role => role.name)
+const hasNoMandateAccess = userRoles.includes('agente') || userRoles.includes('struttura')
+const showMandateStep = ref(!hasNoMandateAccess)
+
+if (hasNoMandateAccess) {
+  // Find and remove the mandate step
+  const mandateStepIndex = createPaperworkSteps.findIndex(step => step.title === 'Mandato')
+  if (mandateStepIndex !== -1) {
+    createPaperworkSteps.splice(mandateStepIndex, 1)
+  }
+}
+
 const currentStep = ref(0)
 const isCurrentStepValid = ref(true)
 
@@ -135,9 +149,11 @@ const fetchMandates = async () => {
   }
 }
 
-// Carica i mandati all'avvio del componente
+// Carica i mandati all'avvio del componente solo se l'utente ha accesso
 onMounted(() => {
-  fetchMandates()
+  if (showMandateStep.value) {
+    fetchMandates()
+  }
 })
 
 const createPaperworkData = ref({
@@ -205,15 +221,17 @@ if (route.query.agent_id) {
 }
 
 const goToNextStep = () => {
-  if (currentStep.value === 0) {
+  const currentStepTitle = createPaperworkSteps[currentStep.value]?.title
+  
+  if (currentStepTitle === 'Agente') {
     validateAgentSelected()
-  } else if (currentStep.value === 1) {
+  } else if (currentStepTitle === 'Cliente') {
     validateCustomerSelected()
-  } else if (currentStep.value === 2) {
+  } else if (currentStepTitle === 'Tipo Pratica') {
     validatePaperworkType()
-  } else if (currentStep.value === 3) {
+  } else if (currentStepTitle === 'Prodotto') {
     validateProductSelected()
-  } else if (currentStep.value === 4) {
+  } else if (currentStepTitle === 'Mandato') {
     validateMandateSelected()
   }
 
@@ -313,7 +331,7 @@ const onSubmit = async () => {
               <PaperworkProduct v-model:form-data="createPaperworkData.product" :ptype="createPaperworkData.paperworkType" :agent="createPaperworkData.agent.id" />
             </VWindowItem>
 
-            <VWindowItem>
+            <VWindowItem v-if="showMandateStep">
               <!-- Step Mandato -->
               <VRow>
                 <VCol cols="12">
@@ -325,7 +343,7 @@ const onSubmit = async () => {
                   </p>
                 </VCol>
 
-                <VCol v-if="$can('access', 'mandates')" cols="12">
+                <VCol cols="12">
                   <AppAutocomplete
                     v-model="createPaperworkData.mandate.mandate_id"
                     label="Mandato"
