@@ -34,7 +34,7 @@ class TicketCreated extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
 
     /**
@@ -43,9 +43,12 @@ class TicketCreated extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
-                    ->line('Thank you for using our application!');
+                    ->subject('Nuovo Ticket Creato: ' . $this->ticket->title)
+                    ->line('È stato creato un nuovo ticket nel sistema.')
+                    ->line('**Titolo:** ' . $this->ticket->title)
+                    ->line('**ID Ticket:** ' . $this->ticket->id)
+                    ->action('Visualizza Ticket', url('/tickets/' . $this->ticket->id))
+                    ->line('Grazie per aver utilizzato EasyWork CRM!');
     }
 
     /**

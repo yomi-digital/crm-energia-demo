@@ -38,11 +38,11 @@ class CommunicationsController extends Controller
         $communication->save();
 
         if ($request->get('send_email')) {
-            // Here it should send an email to every user that has communications enabled.
+            // Send an email to every user that has communications enabled.
             $users = \App\Models\User::where('communications_enabled', 1)->get();
 
             foreach ($users as $user) {
-                // Mail::to($user->email)->send(new CommunicationEmail($communication));
+                \Mail::to($user->email)->send(new \App\Mail\CommunicationEmail($communication));
             }
             $communication->sent_at = now();
             $communication->save();

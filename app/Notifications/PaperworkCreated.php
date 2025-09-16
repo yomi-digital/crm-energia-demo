@@ -33,7 +33,7 @@ class PaperworkCreated extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
 
     /**
@@ -42,9 +42,13 @@ class PaperworkCreated extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
-                    ->line('Thank you for using our application!');
+                    ->subject('Nuovo Paperwork Creato - ' . $this->paperwork->product->name)
+                    ->line('È stato creato un nuovo paperwork nel sistema.')
+                    ->line('**Prodotto:** ' . $this->paperwork->product->name)
+                    ->line('**Brand:** ' . $this->paperwork->product->brand->name)
+                    ->line('**ID Paperwork:** ' . $this->paperwork->id)
+                    ->action('Visualizza Paperwork', url('/paperworks/' . $this->paperwork->id))
+                    ->line('Grazie per aver utilizzato EasyWork CRM!');
     }
 
     /**
