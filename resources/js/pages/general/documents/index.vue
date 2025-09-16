@@ -10,6 +10,9 @@ definePage({
 
 const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+const canCreateBrandFolder = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
+const canDeleteFolders = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
+const canCreateFolders = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
 
 // 👉 Store
 const searchQuery = ref('')
@@ -181,7 +184,7 @@ const navigateBreadcrumbs = item => {
           <template v-if="currentPath === ''">
             <VBtn
               color="primary"
-              v-if="$can('create', 'documents')"
+              v-if="$can('create', 'documents') && canCreateBrandFolder"
               prepend-icon="tabler-plus"
               @click="isCreateBrandFolderDialogVisible = true"
             >
@@ -192,7 +195,7 @@ const navigateBreadcrumbs = item => {
           <template v-if="currentPath !== ''">
             <VBtn
               color="primary"
-              v-if="$can('create', 'documents')"
+              v-if="$can('create', 'documents') && canCreateFolders"
               prepend-icon="tabler-plus"
               @click="isCreateFolderDialogVisible = true"
             >
@@ -261,7 +264,7 @@ const navigateBreadcrumbs = item => {
                     @click.stop="downloadDocument(item)"
                   />
                   <VBtn
-                    v-if="$can('edit', 'documents')"
+                    v-if="$can('edit', 'documents') && (item.type === 'file' || canDeleteFolders)"
                     variant="text"
                     color="error"
                     icon="tabler-trash"
