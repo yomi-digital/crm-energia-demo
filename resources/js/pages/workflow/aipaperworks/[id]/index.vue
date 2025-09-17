@@ -23,10 +23,14 @@ const {
 const products = ref([])
 const isLoadingProducts = ref(false)
 
-const fetchProducts = async () => {
+const fetchProducts = async (brandId = null) => {
   isLoadingProducts.value = true
   try {
-    const response = await $api('/products/personal?itemsPerPage=999999&enabled=1')
+    let url = '/products/personal?itemsPerPage=999999&enabled=1'
+    if (brandId) {
+      url += `&brand=${brandId}`
+    }
+    const response = await $api(url)
     products.value = response.products
   } catch (error) {
     console.error('Failed to load products:', error)
@@ -155,6 +159,18 @@ watch(() => aiPaperwork.value?.mandate_id, (mandateId) => {
     console.log('Watch mandate_id updated to:', mandateId)
   }
 }, { immediate: true })
+
+// Watch per ricaricare i prodotti quando cambia il brand selezionato
+watch(() => extractedPaperwork.value.brand_id, (newBrandId, oldBrandId) => {
+  if (newBrandId !== oldBrandId) {
+    // Reset product_id quando cambia il brand
+    if (extractedPaperwork.value.product_id) {
+      extractedPaperwork.value.product_id = null
+    }
+    // Ricarica i prodotti filtrati per il nuovo brand
+    fetchProducts(newBrandId)
+  }
+})
 
 const extractedText = computed({
   get() {
@@ -763,9 +779,9 @@ const onHandleTransferCompleted = async (eventData) => {
                       item-value="id"
                       label="Brand"
                       placeholder="Seleziona un Brand"
-                      :readonly="aiPaperwork?.status === 5 || !!extractedPaperwork.product_id"
+                      :readonly="aiPaperwork?.status === 5"
                       :loading="isLoadingBrands"
-                      :class="{ 'opacity-50': aiPaperwork?.status === 5 || !!extractedPaperwork.product_id }"
+                      :class="{ 'opacity-50': aiPaperwork?.status === 5 }"
                     />
                   </VCol>
                 </VRow>
