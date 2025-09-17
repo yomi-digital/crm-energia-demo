@@ -91,6 +91,17 @@ const handlePasswordChanged = () => {
   // Password cambiata con successo, reindirizza alla dashboard
   router.replace(route.query.to ? String(route.query.to) : '/')
 }
+
+// Controlla al mount se l'utente è già loggato e deve cambiare password
+onMounted(() => {
+  const userData = useCookie('userData')?.value
+  const accessToken = useCookie('accessToken')?.value
+  
+  // Se l'utente è già autenticato e deve cambiare la password, mostra il modal
+  if (userData && accessToken && userData?.must_change_password) {
+    showForcePasswordDialog.value = true
+  }
+})
 </script>
 
 <template>
