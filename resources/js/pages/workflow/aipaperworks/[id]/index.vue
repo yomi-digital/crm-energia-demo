@@ -39,8 +39,7 @@ const fetchProducts = async (brandId = null) => {
   }
 }
 
-// Fetch products on component mount
-await fetchProducts()
+// Fetch products - sarà chiamato dopo che extractedPaperwork è popolato
 
 const brands = ref([])
 const isLoadingBrands = ref(false)
@@ -138,9 +137,18 @@ watch(() => aiPaperwork.value?.ai_extracted_paperwork, (newVal) => {
         extractedPaperwork.value.mandate_id = aiPaperwork.value.mandate_id
         console.log('Set mandate_id to:', aiPaperwork.value.mandate_id)
       }
+      
+      // Carica i prodotti filtrati per il brand se presente
+      const brandId = extractedPaperwork.value.brand_id || null
+      fetchProducts(brandId)
     } catch (e) {
       extractedPaperwork.value = {}
+      // Carica tutti i prodotti se non ci sono dati estratti
+      fetchProducts()
     }
+  } else {
+    // Carica tutti i prodotti se non ci sono dati
+    fetchProducts()
   }
 }, { immediate: true })
 
