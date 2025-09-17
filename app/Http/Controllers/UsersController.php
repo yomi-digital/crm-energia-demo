@@ -79,6 +79,8 @@ class UsersController extends Controller
 
         if ($request->filled('password')) {
             $user->password = bcrypt($request->get('password'));
+            // Imposta flag per cambio password obbligatorio al primo login
+            $user->must_change_password = true;
         }
 
         $role = $request->get('role');
@@ -427,9 +429,14 @@ class UsersController extends Controller
 
     public function updatePassword(Request $request)
     {
-        // Check if the current password is correct
-        if (!\Hash::check($request->get('current_password'), $request->user()->password)) {
-            return response()->json(['message' => 'La password corrente non è corretta'], 400);
+        $user = $request->user();
+        
+        // Se l'utente deve cambiare la password (primo login), non richiediamo la password corrente
+        if (!$user->must_change_password) {
+            // Check if the current password is correct
+            if (!\Hash::check($request->get('current_password'), $request->user()->password)) {
+                return response()->json(['message' => 'La password corrente non è corretta'], 400);
+            }
         }
 
         // Check if the new password and the confirm password are the same
@@ -437,8 +444,12 @@ class UsersController extends Controller
             return response()->json(['message' => 'La nuova password e la password di conferma non corrispondono'], 400);
         }
 
-        $user = $request->user();
-        $user->update(['password' => bcrypt($request->get('new_password'))]);
+        // Aggiorna password e resetta il flag
+        $user->update([
+            'password' => bcrypt($request->get('new_password')),
+            'must_change_password' => false
+        ]);
+        
         return response()->json($user);
     }
 

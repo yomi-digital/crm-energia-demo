@@ -16,6 +16,8 @@ export const setupGuards = router => {
          * Feel free to update this logic to suit your needs
          */
     const isLoggedIn = !!(useCookie('userData').value && useCookie('accessToken').value)
+    const mustChangePassword = !(useCookie('userData').value?.must_change_password === true)
+    console.log("mustChangePassword", mustChangePassword) 
 
     /*
           If user is logged in and is trying to access login like page, redirect to home
@@ -23,11 +25,13 @@ export const setupGuards = router => {
           (WARN: Don't allow executing further by return statement because next code will check for permissions)
          */
     if (to.meta.unauthenticatedOnly) {
-      if (isLoggedIn)
+      if (isLoggedIn && mustChangePassword)
         return '/'
       else
         return undefined
     }
+
+  
     // Check if route has action/subject defined in meta
     console.log('Navigation check:', {
       route: to,

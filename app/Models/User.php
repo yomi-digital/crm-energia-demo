@@ -23,6 +23,7 @@ class User extends Authenticatable
         'last_name',
         'email',
         'password',
+        'must_change_password',
         'phone',
         'avatar',
         'enabled',
@@ -61,6 +62,7 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'last_logout_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
         ];
     }
 

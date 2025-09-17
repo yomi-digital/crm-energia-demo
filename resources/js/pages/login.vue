@@ -35,6 +35,7 @@ const credentials = ref({
 })
 
 const rememberMe = ref(false)
+const showForcePasswordDialog = ref(false)
 
 const login = async () => {
   errors.value.email = false
@@ -65,7 +66,14 @@ const login = async () => {
     useCookie('accessToken').value = accessToken
 
     await nextTick(() => {
-      router.replace(route.query.to ? String(route.query.to) : '/')
+      // Controlla se l'utente deve cambiare la password
+      if (userData.must_change_password) {
+        // Mostra il dialog di cambio password invece di reindirizzare
+        showForcePasswordDialog.value = true
+      } else {
+        // Login normale, reindirizza alla dashboard
+        router.replace(route.query.to ? String(route.query.to) : '/')
+      }
     })
   } catch (err) {
     console.error(err)
@@ -77,6 +85,11 @@ const onSubmit = () => {
     if (isValid)
       login()
   })
+}
+
+const handlePasswordChanged = () => {
+  // Password cambiata con successo, reindirizza alla dashboard
+  router.replace(route.query.to ? String(route.query.to) : '/')
 }
 </script>
 
@@ -201,6 +214,12 @@ const onSubmit = () => {
       </VCard>
     </div>
   </div>
+
+  <!-- Dialog per cambio password obbligatorio -->
+  <ForcePasswordChangeDialog
+    v-model="showForcePasswordDialog"
+    @password-changed="handlePasswordChanged"
+  />
 </template>
 
 <style lang="scss">
