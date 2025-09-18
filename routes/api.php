@@ -22,6 +22,7 @@ use App\Http\Controllers\StatementsController;
 use App\Http\Controllers\ContractUploadsController;
 use App\Http\Controllers\AIController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\IncentiviController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -197,4 +198,9 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
         Route::get('/agents', [DashboardController::class, 'getAgents']);
         Route::get('/customers', [DashboardController::class, 'getCustomers']);
     });
+});
+
+// Endpoint pubblico per gli incentivi (non protetto da autenticazione)
+Route::prefix('incentivi')->group(function () {
+    Route::post('/create-incentive', [IncentiviController::class, 'createIncentive']);
 });

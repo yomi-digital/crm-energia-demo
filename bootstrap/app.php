@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
+        
+        // Escludere le rotte degli incentivi dalla verifica CSRF
+        $middleware->validateCsrfTokens(except: [
+            'api/incentivi/*'
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
