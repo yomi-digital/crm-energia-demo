@@ -17,6 +17,8 @@ use App\Models\PaperworkDocument;
 use App\Observers\PaperworkDocumentObserver;
 use App\Models\TicketAttachment;
 use App\Observers\TicketAttachmentObserver;
+use App\Models\Incentivo;
+use App\Observers\IncentivoObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -47,5 +49,8 @@ class AppServiceProvider extends ServiceProvider
         Customer::observe(CustomerObserver::class);
         PaperworkDocument::observe(PaperworkDocumentObserver::class);
         TicketAttachment::observe(TicketAttachmentObserver::class);
+        
+        // Observer per invio email incentivi
+        Incentivo::observe(IncentivoObserver::class);
     }
 }
