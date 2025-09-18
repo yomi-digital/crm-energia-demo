@@ -201,6 +201,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
 
     Route::prefix('incentivi')->group(function () {
         Route::get('/get-incentive', [IncentiviController::class, 'getIncentive']);
+        Route::delete('/{id}', [IncentiviController::class, 'deleteIncentive']);
     });
 });
 

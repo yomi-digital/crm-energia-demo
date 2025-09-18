@@ -183,4 +183,38 @@ class IncentiviController extends Controller
             'page' => $incentivi->currentPage()
         ]);
     }
+
+    /**
+     * Elimina un incentivo
+     */
+    public function deleteIncentive(Request $request, $id): JsonResponse
+    {
+        // Controllo che l'utente sia admin
+        if (!$request->user()->hasRole(['gestione', 'amministrazione'])) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $incentivo = Incentivo::findOrFail($id);
+            $incentivo->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Incentivo eliminato con successo'
+            ], 200);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incentivo non trovato'
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Errore durante l\'eliminazione dell\'incentivo',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

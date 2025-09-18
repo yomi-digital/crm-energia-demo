@@ -109,6 +109,13 @@ const headers = [
     key: 'created_at',
     sortable: true,
   },
+  {
+    title: 'Azioni',
+    key: 'actions',
+    sortable: false,
+    align: 'center',
+    width: 100,
+  },
 ]
 
 // Computed per pulire i filtri vuoti - si aggiorna automaticamente
@@ -205,14 +212,70 @@ const formatIncentivo = (incentivo) => {
   if (!incentivo) return '-'
   return `€ ${parseFloat(incentivo).toFixed(2)}`
 }
+
+// Stati per il dialog di conferma
+const deleteDialog = ref(false)
+const itemToDelete = ref(null)
+
+// Funzione per aprire il dialog di conferma eliminazione
+const confirmDelete = (item) => {
+  itemToDelete.value = item
+  deleteDialog.value = true
+}
+
+// Funzione per eliminare l'incentivo
+const deleteIncentivo = async () => {
+  if (!itemToDelete.value) return
+
+  try {
+    // Usa useApi per mantenere coerenza con il resto dell'app
+    const { data: response } = await useApi(`/incentivi/${itemToDelete.value.id}`, {
+      method: 'DELETE'
+    })
+
+    // Ricarica i dati
+    await fetchIncentivi()
+    
+    // Chiudi il dialog
+    deleteDialog.value = false
+    itemToDelete.value = null
+    
+    // Mostra messaggio di successo
+    console.log('Incentivo eliminato con successo')
+    
+  } catch (error) {
+    console.error('Errore durante l\'eliminazione:', error)
+    
+    // Chiudi il dialog anche in caso di errore
+    deleteDialog.value = false
+    itemToDelete.value = null
+  }
+}
+
+// Funzione per annullare l'eliminazione
+const cancelDelete = () => {
+  deleteDialog.value = false
+  itemToDelete.value = null
+}
 </script>
 
 <template>
   <VCard>
     <VCardText>
-      <h1 class="text-h3 mb-4">
-        AlfacomSolarLead
-      </h1>
+      <div class="d-flex align-center justify-space-between mb-4">
+        <h1 class="text-h3">
+          Alfacom Solar Lead
+        </h1>
+        <VBtn
+          color="primary"
+          variant="outlined"
+          prepend-icon="tabler-refresh"
+          @click="fetchIncentivi"
+          :loading="isLoading"
+        >
+          Ricarica
+        </VBtn>
+      </div>
 
       <!-- Filtri -->
       <VRow class="mb-6">
@@ -417,6 +480,25 @@ const formatIncentivo = (incentivo) => {
           <span class="text-sm">{{ formatDate(item.created_at) }}</span>
         </template>
 
+        <!-- Azioni Column -->
+        <template #item.actions="{ item }">
+          <VBtn
+            icon
+            size="small"
+            color="error"
+            variant="text"
+            @click="confirmDelete(item)"
+          >
+            <VIcon icon="tabler-trash" />
+            <VTooltip
+              activator="parent"
+              location="top"
+            >
+              Elimina incentivo
+            </VTooltip>
+          </VBtn>
+        </template>
+
         <!-- Header personalizzato per Data Creazione -->
         <template #header.created_at>
           <div class="d-flex align-center">
@@ -459,4 +541,47 @@ const formatIncentivo = (incentivo) => {
       </VDataTableServer>
     </VCardText>
   </VCard>
+
+  <!-- Dialog di conferma eliminazione -->
+  <VDialog
+    v-model="deleteDialog"
+    max-width="500"
+  >
+    <VCard>
+      <VCardTitle class="d-flex align-center">
+        <VIcon
+          icon="tabler-alert-triangle"
+          color="warning"
+          class="me-2"
+        />
+        Conferma Eliminazione
+      </VCardTitle>
+      
+      <VCardText>
+        <p class="mb-4">
+          Sei sicuro di voler eliminare l'incentivo di <strong>{{ itemToDelete?.nominativo }}</strong>?
+        </p>
+        <p class="text-sm text-medium-emphasis mb-0">
+          Questa azione non può essere annullata.
+        </p>
+      </VCardText>
+      
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="secondary"
+          variant="outlined"
+          @click="cancelDelete"
+        >
+          Annulla
+        </VBtn>
+        <VBtn
+          color="error"
+          @click="deleteIncentivo"
+        >
+          Elimina
+        </VBtn>
+      </VCardActions>
+    </VCard>
+  </VDialog>
 </template>
