@@ -85,4 +85,102 @@ class IncentiviController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Recupera tutti gli incentivi con paginazione e filtri
+     */
+    public function getIncentive(Request $request): JsonResponse
+    {
+        // Controllo che l'utente sia admin
+        if (!$request->user()->hasRole(['gestione', 'backoffice', 'amministrazione'])) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $perPage = $request->get('itemsPerPage', 10);
+        
+        $incentivi = Incentivo::query();
+
+        // Filtro per tipo
+        if ($request->filled('type')) {
+            $type = $request->get('type');
+            
+            switch ($type) {
+                case 'Producer':
+                    $incentivi->where('hasPanels', 'has');
+                    break;
+                case 'Consumer':
+                    $incentivi->where('hasPanels', 'wants');
+                    break;
+                case 'all':
+                default:
+                    // Nessun filtro, mostra tutti
+                    break;
+            }
+        }
+
+        // Filtro per nome
+        if ($request->filled('nome')) {
+            $incentivi->where('nominativo', 'like', '%' . $request->get('nome') . '%');
+        }
+
+        // Filtro per email
+        if ($request->filled('email')) {
+            $incentivi->where('email', 'like', '%' . $request->get('email') . '%');
+        }
+
+        // Filtro per telefono
+        if ($request->filled('telefono')) {
+            $incentivi->where('numeroDiTelefono', 'like', '%' . $request->get('telefono') . '%');
+        }
+
+        // Filtro per città
+        if ($request->filled('citta')) {
+            $incentivi->where('citta', 'like', '%' . $request->get('citta') . '%');
+        }
+
+        // Filtro per provincia
+        if ($request->filled('provincia')) {
+            $incentivi->where('provincia', 'like', '%' . $request->get('provincia') . '%');
+        }
+
+        // Filtro per tipo (mantengo la logica esistente per compatibilità)
+        if ($request->filled('tipo')) {
+            $incentivi->where('hasPanels', $request->get('tipo'));
+        }
+
+        // Filtro per range incentivo
+        if ($request->filled('incentivo_min')) {
+            $incentivi->where('incentivo', '>=', $request->get('incentivo_min'));
+        }
+
+        if ($request->filled('incentivo_max')) {
+            $incentivi->where('incentivo', '<=', $request->get('incentivo_max'));
+        }
+
+        // Ricerca per nominativo, email o città (mantengo per compatibilità)
+        if ($request->filled('q')) {
+            $search = $request->get('q');
+            $incentivi->where(function ($query) use ($search) {
+                $query->where('nominativo', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('citta', 'like', "%{$search}%");
+            });
+        }
+
+        // Ordinamento
+        if ($request->get('sortBy')) {
+            $incentivi->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
+        } else {
+            $incentivi->orderBy('created_at', 'desc');
+        }
+
+        $incentivi = $incentivi->paginate($perPage);
+
+        return response()->json([
+            'incentivi' => $incentivi->getCollection(),
+            'totalPages' => $incentivi->lastPage(),
+            'totalIncentivi' => $incentivi->total(),
+            'page' => $incentivi->currentPage()
+        ]);
+    }
 }

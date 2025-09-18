@@ -198,6 +198,10 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
         Route::get('/agents', [DashboardController::class, 'getAgents']);
         Route::get('/customers', [DashboardController::class, 'getCustomers']);
     });
+
+    Route::prefix('incentivi')->group(function () {
+        Route::get('/get-incentive', [IncentiviController::class, 'getIncentive']);
+    });
 });
 
 // Endpoint pubblico per gli incentivi (non protetto da autenticazione)
