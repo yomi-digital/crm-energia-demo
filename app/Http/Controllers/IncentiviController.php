@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Incentivo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class IncentiviController extends Controller
 {
@@ -89,7 +91,7 @@ class IncentiviController extends Controller
     /**
      * Recupera tutti gli incentivi con paginazione e filtri
      */
-    public function getIncentive(Request $request): JsonResponse
+    public function getIncentive(Request $request)
     {
         // Controllo che l'utente sia admin
         if (!$request->user()->hasRole(['gestione', 'backoffice', 'amministrazione'])) {
@@ -174,6 +176,29 @@ class IncentiviController extends Controller
             $incentivi->orderBy('created_at', 'desc');
         }
 
+        // Export Excel se richiesto
+        if ($request->has('export')) {
+            $allIncentivi = $incentivi->get();
+            $csvPath = $this->transformIncentiviToCSV($allIncentivi);
+
+            // Transform csv to excel
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private $data;
+    
+                public function __construct($data)
+                {
+                    $this->data = $data;
+                }
+    
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, 'alfacom_solar_lead_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
+        }
+
         $incentivi = $incentivi->paginate($perPage);
 
         return response()->json([
@@ -182,6 +207,56 @@ class IncentiviController extends Controller
             'totalIncentivi' => $incentivi->total(),
             'page' => $incentivi->currentPage()
         ]);
+    }
+
+    /**
+     * Trasforma gli incentivi in CSV
+     */
+    private function transformIncentiviToCSV($incentivi)
+    {
+        $headers = [
+            'ID',
+            'Nominativo',
+            'Email',
+            'Telefono',
+            'Città',
+            'Provincia',
+            'Periodo Bolletta',
+            'kWh Spesi',
+            'Spesa Bolletta Mensile',
+            'Ha Pannelli',
+            'Tipo',
+            'Incentivo (€)',
+            'Privacy Accettata',
+            'Data Creazione',
+        ];
+
+        // Save csv to /tmp 
+        $csvPath = tempnam(sys_get_temp_dir(), 'incentivi_csv');
+        $fp = fopen($csvPath, 'w');
+        fputcsv($fp, $headers);
+
+        foreach ($incentivi as $incentivo) {
+            fputcsv($fp, [
+                $incentivo->id,
+                $incentivo->nominativo,
+                $incentivo->email,
+                $incentivo->numeroDiTelefono,
+                $incentivo->citta,
+                $incentivo->provincia,
+                $incentivo->periodoBolletta,
+                $incentivo->kwhSpesi,
+                $incentivo->spesaBollettaMensile,
+                $incentivo->hasPanels === 'has' ? 'Ha Pannelli' : 'Vuole Pannelli',
+                $incentivo->hasPanels === 'has' ? 'Producer' : 'Consumer',
+                number_format($incentivo->incentivo, 2, ',', '.'),
+                $incentivo->privacyAccepted ? 'Sì' : 'No',
+                $incentivo->created_at->format('d/m/Y H:i'),
+            ]);
+        }
+        fclose($fp);
+
+        return $csvPath;
     }
 
     /**

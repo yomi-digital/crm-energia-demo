@@ -213,14 +213,19 @@ const formatIncentivo = (incentivo) => {
   return `€ ${parseFloat(incentivo).toFixed(2)}`
 }
 
-// Stati per il dialog di conferma
+// Stati per i dialog di eliminazione
 const deleteDialog = ref(false)
-const itemToDelete = ref(null)
-
-// Stati per i dialog di notifica
 const showSuccessDialog = ref(false)
 const showErrorDialog = ref(false)
-const notificationMessage = ref('')
+const itemToDelete = ref(null)
+const resultMessage = ref('')
+
+// Stati per errori export Excel
+const showExportErrorDialog = ref(false)
+const exportErrorMessage = ref('')
+
+// Stato loading per export Excel
+const isExporting = ref(false)
 
 // Funzione per aprire il dialog di conferma eliminazione
 const confirmDelete = (item) => {
@@ -240,14 +245,13 @@ const deleteIncentivo = async () => {
       method: 'DELETE'
     })
 
-    // Chiudi il dialog di conferma
-    deleteDialog.value = false
+    // Reset item (il dialog si chiude automaticamente)
     itemToDelete.value = null
 
     // Controlla il status code per determinare successo/errore
     if (response.statusCode.value >= 200 && response.statusCode.value < 300) {
-      // Mostra dialog di successo
-      notificationMessage.value = `L'incentivo di ${nomeIncentivo} è stato eliminato con successo.`
+      // Successo
+      resultMessage.value = `L'incentivo di ${nomeIncentivo} è stato eliminato con successo.`
       showSuccessDialog.value = true
     } else {
       // Errore (4xx, 5xx)
@@ -264,29 +268,78 @@ const deleteIncentivo = async () => {
         errorMessage = 'Non hai i permessi per eliminare questo incentivo'
       }
       
-      // Mostra dialog di errore
-      notificationMessage.value = errorMessage
+      resultMessage.value = errorMessage
       showErrorDialog.value = true
     }
+    
   } catch (error) {
     console.error('Errore nella chiamata API:', error)
-    
-    // Chiudi il dialog di conferma
-    deleteDialog.value = false
-    itemToDelete.value = null
-    
-    // Mostra dialog di errore
-    notificationMessage.value = `Si è verificato un errore durante l'eliminazione dell'incentivo di ${nomeIncentivo}. Riprova più tardi.`
+    resultMessage.value = `Si è verificato un errore durante l'eliminazione dell'incentivo di ${nomeIncentivo}. Riprova più tardi.`
     showErrorDialog.value = true
-  } finally{
+  } finally {
     await fetchIncentivi()
   }
 }
 
 // Funzione per annullare l'eliminazione
 const cancelDelete = () => {
-  deleteDialog.value = false
   itemToDelete.value = null
+}
+
+
+// Funzione per esportare Excel
+const exportExcel = async () => {
+  if (isExporting.value) return // Previene click multipli
+  
+  isExporting.value = true
+  
+  try {
+    const response = await $api('/incentivi/get-incentive', {
+      method: 'GET',
+      query: {
+        ...cleanFilters.value,
+        export: 'csv',
+      },
+      responseType: 'blob'
+    })
+
+    // Nome file con timestamp
+    const fileName = `alfacom_solar_lead_${new Date().toISOString().slice(0, 10)}.xlsx`
+
+    const blob = new Blob([response], { type: response.type })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Errore durante l\'export:', error)
+    
+    // Determina il messaggio di errore appropriato
+    let errorMessage = 'Si è verificato un errore durante l\'esportazione del file Excel.'
+    
+    if (error.response) {
+      // Errore HTTP
+      if (error.response.status === 403) {
+        errorMessage = 'Non hai i permessi per esportare questi dati.'
+      } else if (error.response.status === 500) {
+        errorMessage = 'Errore del server durante l\'esportazione. Riprova più tardi.'
+      } else if (error.response.status === 404) {
+        errorMessage = 'Servizio di esportazione non disponibile.'
+      }
+    } else if (error.code === 'NETWORK_ERROR') {
+      errorMessage = 'Errore di connessione. Verifica la tua connessione internet.'
+    }
+    
+    // Mostra dialog di errore
+    exportErrorMessage.value = errorMessage
+    showExportErrorDialog.value = true
+  } finally {
+    isExporting.value = false
+  }
 }
 </script>
 
@@ -297,15 +350,27 @@ const cancelDelete = () => {
         <h1 class="text-h3">
           Alfacom Solar Lead
         </h1>
-        <VBtn
-          color="primary"
-          variant="outlined"
-          prepend-icon="tabler-refresh"
-          @click="fetchIncentivi"
-          :loading="isLoading"
-        >
-          Ricarica
-        </VBtn>
+        <div class="d-flex gap-2">
+          <VBtn
+            color="success"
+            variant="outlined"
+            prepend-icon="tabler-download"
+            :loading="isExporting"
+            :disabled="isExporting"
+            @click="exportExcel"
+          >
+            {{ isExporting ? 'Esportazione...' : 'Esporta Excel' }}
+          </VBtn>
+          <VBtn
+            color="primary"
+            variant="outlined"
+            prepend-icon="tabler-refresh"
+            @click="fetchIncentivi"
+            :loading="isLoading"
+          >
+            Ricarica
+          </VBtn>
+        </div>
       </div>
 
       <!-- Filtri -->
@@ -574,107 +639,37 @@ const cancelDelete = () => {
   </VCard>
 
   <!-- Dialog di conferma eliminazione -->
-  <VDialog
+  <GeneralAlertDialog
     v-model="deleteDialog"
-    max-width="500"
-  >
-    <VCard>
-      <VCardTitle class="d-flex align-center">
-        <VIcon
-          icon="tabler-alert-triangle"
-          color="warning"
-          class="me-2"
-        />
-        Conferma Eliminazione
-      </VCardTitle>
-      
-      <VCardText>
-        <p class="mb-4">
-          Sei sicuro di voler eliminare l'incentivo di <strong>{{ itemToDelete?.nominativo }}</strong>?
-        </p>
-        <p class="text-sm text-medium-emphasis mb-0">
-          Questa azione non può essere annullata.
-        </p>
-      </VCardText>
-      
-      <VCardActions>
-        <VSpacer />
-        <VBtn
-          color="secondary"
-          variant="outlined"
-          @click="cancelDelete"
-        >
-          Annulla
-        </VBtn>
-        <VBtn
-          color="error"
-          @click="deleteIncentivo"
-        >
-          Elimina
-        </VBtn>
-      </VCardActions>
-    </VCard>
-  </VDialog>
+    title="Conferma Eliminazione"
+    :message="`Sei sicuro di voler eliminare l'incentivo di ${itemToDelete?.nominativo}?`"
+    confirm-text="Elimina"
+    cancel-text="Annulla"
+    @confirm="deleteIncentivo"
+    @cancel="cancelDelete"
+  />
 
-  <!-- Dialog di Successo Eliminazione -->
-  <VDialog
+  <!-- Dialog di Successo -->
+  <GeneralSuccessDialog
     v-model="showSuccessDialog"
-    max-width="500"
-  >
-    <VCard class="text-center px-10 py-6">
-      <VCardText>
-        <VIcon
-          icon="tabler-check"
-          color="success"
-          size="60"
-        />
-        <h6 class="text-lg font-weight-medium mt-4">
-          Incentivo eliminato con successo
-        </h6>
-        <p class="text-body-2 mt-2">
-          {{ notificationMessage }}
-        </p>
-      </VCardText>
-      
-      <VCardText class="d-flex align-center justify-center">
-        <VBtn
-          color="success"
-          @click="showSuccessDialog = false"
-        >
-          Ho capito
-        </VBtn>
-      </VCardText>
-    </VCard>
-  </VDialog>
+    title="Incentivo eliminato con successo"
+    :message="resultMessage"
+    button-text="Ho capito"
+  />
 
-  <!-- Dialog di Errore Eliminazione -->
-  <VDialog
+  <!-- Dialog di Errore -->
+  <GeneralErrorDialog
     v-model="showErrorDialog"
-    max-width="500"
-  >
-    <VCard class="text-center px-10 py-6">
-      <VCardText>
-        <VIcon
-          icon="tabler-alert-triangle"
-          color="error"
-          size="60"
-        />
-        <h6 class="text-lg font-weight-medium mt-4">
-          Errore durante l'eliminazione
-        </h6>
-        <p class="text-body-2 mt-2">
-          {{ notificationMessage }}
-        </p>
-      </VCardText>
-      
-      <VCardText class="d-flex align-center justify-center">
-        <VBtn
-          color="error"
-          @click="showErrorDialog = false"
-        >
-          Ho capito
-        </VBtn>
-      </VCardText>
-    </VCard>
-  </VDialog>
+    title="Errore durante l'eliminazione"
+    :message="resultMessage"
+    button-text="Ho capito"
+  />
+
+  <!-- Dialog di Errore Export Excel -->
+  <GeneralErrorDialog
+    v-model="showExportErrorDialog"
+    title="Errore durante l'esportazione"
+    :message="exportErrorMessage"
+    button-text="Ho capito"
+  />
 </template>
