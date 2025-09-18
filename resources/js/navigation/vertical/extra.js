@@ -13,12 +13,4 @@ export default [
     subject: 'extra-login-registry',
     roles: ['gestione', 'backoffice', 'amministrazione'],
   },
-  {
-    title: 'Incentivi',
-    icon: { icon: 'tabler-gift' },
-    to: 'extra-incentivi-registry',
-    action: 'access',
-    subject: 'extra-incentivi-registry',
-    roles: ['gestione', 'backoffice', 'amministrazione'],
-  },
 ] 

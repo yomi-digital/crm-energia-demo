@@ -5,7 +5,7 @@ definePage({
     layout: 'default',
     requiresAuth: true,
     action: 'access',
-    subject: 'extra-incentivi-registry',
+    subject: 'lead-alfacom-solar-lead',
   },
 })
 
@@ -211,7 +211,7 @@ const formatIncentivo = (incentivo) => {
   <VCard>
     <VCardText>
       <h1 class="text-h3 mb-4">
-        Registro Incentivi
+        AlfacomSolarLead
       </h1>
 
       <!-- Filtri -->
