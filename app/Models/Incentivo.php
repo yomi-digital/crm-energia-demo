@@ -10,7 +10,7 @@ class Incentivo extends Model
 
     protected $fillable = [
         'periodoBolletta',
-        'prezzoMedioKwh',
+        'kwhSpesi',
         'spesaBollettaMensile',
         'hasPanels',
         'citta',
@@ -18,12 +18,14 @@ class Incentivo extends Model
         'nominativo',
         'numeroDiTelefono',
         'privacyAccepted',
-        'provincia'
+        'provincia',
+        'incentivo'
     ];
 
     protected $casts = [
-        'prezzoMedioKwh' => 'float',
+        'kwhSpesi' => 'float',
         'spesaBollettaMensile' => 'float',
-        'privacyAccepted' => 'boolean'
+        'privacyAccepted' => 'boolean',
+        'incentivo' => 'float'
     ];
 }
