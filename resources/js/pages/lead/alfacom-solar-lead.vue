@@ -217,6 +217,11 @@ const formatIncentivo = (incentivo) => {
 const deleteDialog = ref(false)
 const itemToDelete = ref(null)
 
+// Stati per i dialog di notifica
+const showSuccessDialog = ref(false)
+const showErrorDialog = ref(false)
+const notificationMessage = ref('')
+
 // Funzione per aprire il dialog di conferma eliminazione
 const confirmDelete = (item) => {
   itemToDelete.value = item
@@ -227,28 +232,54 @@ const confirmDelete = (item) => {
 const deleteIncentivo = async () => {
   if (!itemToDelete.value) return
 
+  const nomeIncentivo = itemToDelete.value.nominativo
+
   try {
-    // Usa useApi per mantenere coerenza con il resto dell'app
-    const { data: response } = await useApi(`/incentivi/${itemToDelete.value.id}`, {
+    // Usa useApi direttamente - gestisce la response
+    const response = await useApi(`/incentivi/${itemToDelete.value.id}`, {
       method: 'DELETE'
     })
 
-    // Ricarica i dati
-    await fetchIncentivi()
-    
-    // Chiudi il dialog
+    // Chiudi il dialog di conferma
     deleteDialog.value = false
     itemToDelete.value = null
-    
-    // Mostra messaggio di successo
-    console.log('Incentivo eliminato con successo')
-    
+
+    // Controlla il status code per determinare successo/errore
+    if (response.statusCode.value >= 200 && response.statusCode.value < 300) {
+      // Mostra dialog di successo
+      notificationMessage.value = `L'incentivo di ${nomeIncentivo} è stato eliminato con successo.`
+      showSuccessDialog.value = true
+    } else {
+      // Errore (4xx, 5xx)
+      console.error('API returned error status:', response.statusCode.value)
+      
+      let errorMessage = `Si è verificato un errore durante l'eliminazione dell'incentivo di ${nomeIncentivo}.`
+      
+      // Prova a estrarre il messaggio dall'API se disponibile
+      if (response.data.value && response.data.value.message) {
+        errorMessage = response.data.value.message
+      } else if (response.statusCode.value === 404) {
+        errorMessage = 'Incentivo non trovato'
+      } else if (response.statusCode.value === 403) {
+        errorMessage = 'Non hai i permessi per eliminare questo incentivo'
+      }
+      
+      // Mostra dialog di errore
+      notificationMessage.value = errorMessage
+      showErrorDialog.value = true
+    }
   } catch (error) {
-    console.error('Errore durante l\'eliminazione:', error)
+    console.error('Errore nella chiamata API:', error)
     
-    // Chiudi il dialog anche in caso di errore
+    // Chiudi il dialog di conferma
     deleteDialog.value = false
     itemToDelete.value = null
+    
+    // Mostra dialog di errore
+    notificationMessage.value = `Si è verificato un errore durante l'eliminazione dell'incentivo di ${nomeIncentivo}. Riprova più tardi.`
+    showErrorDialog.value = true
+  } finally{
+    await fetchIncentivi()
   }
 }
 
@@ -582,6 +613,68 @@ const cancelDelete = () => {
           Elimina
         </VBtn>
       </VCardActions>
+    </VCard>
+  </VDialog>
+
+  <!-- Dialog di Successo Eliminazione -->
+  <VDialog
+    v-model="showSuccessDialog"
+    max-width="500"
+  >
+    <VCard class="text-center px-10 py-6">
+      <VCardText>
+        <VIcon
+          icon="tabler-check"
+          color="success"
+          size="60"
+        />
+        <h6 class="text-lg font-weight-medium mt-4">
+          Incentivo eliminato con successo
+        </h6>
+        <p class="text-body-2 mt-2">
+          {{ notificationMessage }}
+        </p>
+      </VCardText>
+      
+      <VCardText class="d-flex align-center justify-center">
+        <VBtn
+          color="success"
+          @click="showSuccessDialog = false"
+        >
+          Ho capito
+        </VBtn>
+      </VCardText>
+    </VCard>
+  </VDialog>
+
+  <!-- Dialog di Errore Eliminazione -->
+  <VDialog
+    v-model="showErrorDialog"
+    max-width="500"
+  >
+    <VCard class="text-center px-10 py-6">
+      <VCardText>
+        <VIcon
+          icon="tabler-alert-triangle"
+          color="error"
+          size="60"
+        />
+        <h6 class="text-lg font-weight-medium mt-4">
+          Errore durante l'eliminazione
+        </h6>
+        <p class="text-body-2 mt-2">
+          {{ notificationMessage }}
+        </p>
+      </VCardText>
+      
+      <VCardText class="d-flex align-center justify-center">
+        <VBtn
+          color="error"
+          @click="showErrorDialog = false"
+        >
+          Ho capito
+        </VBtn>
+      </VCardText>
     </VCard>
   </VDialog>
 </template>
