@@ -102,8 +102,18 @@ const headers = [
     sortable: true,
   },
   {
-    title: 'Incentivo',
-    key: 'incentivo',
+    title: 'Incentivo CER',
+    key: 'incentivo_cer',
+    sortable: true,
+  },
+  {
+    title: 'Ritiro dedicato',
+    key: 'incentivo_dedicated',
+    sortable: true,
+  },
+  {
+    title: 'Incentivo POD',
+    key: 'incentivo_pod',
     sortable: true,
   },
   {
@@ -634,15 +644,43 @@ const exportExcel = async () => {
           <span class="text-sm">{{ item.provincia }}</span>
         </template>
 
-        <!-- Incentivo Column -->
-        <template #item.incentivo="{ item }">
+        <!-- Incentivo CER Column -->
+        <template #item.incentivo_cer="{ item }">
           <VChip
-            :color="parseFloat(item.incentivo) > 1000 ? 'success' : 'primary'"
+            v-if="item.incentivo_cer"
+            :color="parseFloat(item.incentivo_cer) > 1000 ? 'success' : 'primary'"
             variant="tonal"
             size="small"
           >
-            {{ formatIncentivo(item.incentivo) }}
+            {{ formatIncentivo(item.incentivo_cer) }}
           </VChip>
+          <span v-else class="text-disabled">N/A</span>
+        </template>
+
+        <!-- Ritiro dedicato Column -->
+        <template #item.incentivo_dedicated="{ item }">
+          <VChip
+            v-if="item.incentivo_dedicated"
+            :color="parseFloat(item.incentivo_dedicated) > 1000 ? 'success' : 'primary'"
+            variant="tonal"
+            size="small"
+          >
+            {{ formatIncentivo(item.incentivo_dedicated) }}
+          </VChip>
+          <span v-else class="text-disabled">N/A</span>
+        </template>
+
+        <!-- Incentivo POD Column -->
+        <template #item.incentivo_pod="{ item }">
+          <VChip
+            v-if="item.incentivo_pod"
+            :color="parseFloat(item.incentivo_pod) > 1000 ? 'success' : 'primary'"
+            variant="tonal"
+            size="small"
+          >
+            {{ formatIncentivo(item.incentivo_pod) }}
+          </VChip>
+          <span v-else class="text-disabled">N/A</span>
         </template>
 
         <!-- Tipo Column -->
@@ -693,12 +731,38 @@ const exportExcel = async () => {
           </div>
         </template>
 
-        <!-- Header personalizzato per Incentivo -->
-        <template #header.incentivo>
+        <!-- Header personalizzato per Incentivo CER -->
+        <template #header.incentivo_cer>
           <div class="d-flex align-center">
-            <span>Incentivo</span>
+            <span>Incentivo CER</span>
             <VIcon
-              v-if="sortBy === 'incentivo'"
+              v-if="sortBy === 'incentivo_cer'"
+              :icon="orderBy === 'asc' ? 'tabler-chevron-up' : 'tabler-chevron-down'"
+              size="16"
+              class="ms-1"
+            />
+          </div>
+        </template>
+
+        <!-- Header personalizzato per Ritiro dedicato -->
+        <template #header.incentivo_dedicated>
+          <div class="d-flex align-center">
+            <span>Ritiro dedicato</span>
+            <VIcon
+              v-if="sortBy === 'incentivo_dedicated'"
+              :icon="orderBy === 'asc' ? 'tabler-chevron-up' : 'tabler-chevron-down'"
+              size="16"
+              class="ms-1"
+            />
+          </div>
+        </template>
+
+        <!-- Header personalizzato per Incentivo POD -->
+        <template #header.incentivo_pod>
+          <div class="d-flex align-center">
+            <span>Incentivo POD</span>
+            <VIcon
+              v-if="sortBy === 'incentivo_pod'"
               :icon="orderBy === 'asc' ? 'tabler-chevron-up' : 'tabler-chevron-down'"
               size="16"
               class="ms-1"

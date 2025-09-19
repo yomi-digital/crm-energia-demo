@@ -19,14 +19,18 @@ class Incentivo extends Model
         'numeroDiTelefono',
         'privacyAccepted',
         'provincia',
-        'incentivo'
+        'incentivo_cer',
+        'incentivo_dedicated',
+        'incentivo_pod'
     ];
 
     protected $casts = [
         'kwhSpesi' => 'float',
         'spesaBollettaMensile' => 'float',
         'privacyAccepted' => 'boolean',
-        'incentivo' => 'float'
+        'incentivo_cer' => 'float',
+        'incentivo_dedicated' => 'float',
+        'incentivo_pod' => 'float'
     ];
 
     /**

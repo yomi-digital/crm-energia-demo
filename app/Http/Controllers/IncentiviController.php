@@ -54,15 +54,29 @@ class IncentiviController extends Controller
             // Calcolo y = x * 20
             $y = $x * 20;
             
-            // Determinare w in base alla presenza di pannelli
-            $w = (strtolower($hasPanels) === 'has') ? 0.10 : 0.1057;
+            // Calcolo degli incentivi in base alla presenza di pannelli
+            if (strtolower($hasPanels) === 'has') {
+                // Se ha pannelli: due incentivi separati
+                $w1 = 0.108; // per incentivo CER
+                $w2 = 0.10;  // per incentivo dedicated
+                
+                $incentivoCer = $y * $w1;
+                $incentivoDedicated = $y * $w2;
+                $incentivoPod = null;
+            } else {
+                // Se non ha pannelli: solo incentivo POD
+                $w1 = 0.10;
+                
+                $incentivoCer = null;
+                $incentivoDedicated = null;
+                $incentivoPod = $y * $w1;
+            }
             
-            // Calcolo finale incentivo = y * w
-            $incentivoCalcolato = $y * $w;
-            
-            // Preparare i dati per il salvataggio includendo l'incentivo calcolato
+            // Preparare i dati per il salvataggio includendo gli incentivi calcolati
             $datiIncentivo = $request->all();
-            $datiIncentivo['incentivo'] = round($incentivoCalcolato, 2); // Arrotondato a 2 decimali
+            $datiIncentivo['incentivo_cer'] = $incentivoCer ? round($incentivoCer, 2) : null;
+            $datiIncentivo['incentivo_dedicated'] = $incentivoDedicated ? round($incentivoDedicated, 2) : null;
+            $datiIncentivo['incentivo_pod'] = $incentivoPod ? round($incentivoPod, 2) : null;
             
             $incentivo = Incentivo::create($datiIncentivo);
 
@@ -75,8 +89,11 @@ class IncentiviController extends Controller
                     'z' => $z,
                     'x' => round($x, 2),
                     'y' => round($y, 2),
-                    'w' => $w,
-                    'incentivo_finale' => round($incentivoCalcolato, 2)
+                    'w1' => $w1,
+                    'w2' => isset($w2) ? $w2 : null,
+                    'incentivo_cer' => $incentivoCer ? round($incentivoCer, 2) : null,
+                    'incentivo_dedicated' => $incentivoDedicated ? round($incentivoDedicated, 2) : null,
+                    'incentivo_pod' => $incentivoPod ? round($incentivoPod, 2) : null
                 ]
             ], 201);
 
@@ -151,13 +168,23 @@ class IncentiviController extends Controller
             $incentivi->where('hasPanels', $request->get('tipo'));
         }
 
-        // Filtro per range incentivo
+        // Filtro per range incentivo (cerca su tutti e 3 i campi incentivo)
         if ($request->filled('incentivo_min')) {
-            $incentivi->where('incentivo', '>=', $request->get('incentivo_min'));
+            $incentivo_min = $request->get('incentivo_min');
+            $incentivi->where(function ($query) use ($incentivo_min) {
+                $query->where('incentivo_cer', '>=', $incentivo_min)
+                    ->orWhere('incentivo_dedicated', '>=', $incentivo_min)
+                    ->orWhere('incentivo_pod', '>=', $incentivo_min);
+            });
         }
 
         if ($request->filled('incentivo_max')) {
-            $incentivi->where('incentivo', '<=', $request->get('incentivo_max'));
+            $incentivo_max = $request->get('incentivo_max');
+            $incentivi->where(function ($query) use ($incentivo_max) {
+                $query->where('incentivo_cer', '<=', $incentivo_max)
+                    ->orWhere('incentivo_dedicated', '<=', $incentivo_max)
+                    ->orWhere('incentivo_pod', '<=', $incentivo_max);
+            });
         }
 
         // Ricerca per nominativo, email o città (mantengo per compatibilità)
@@ -227,7 +254,9 @@ class IncentiviController extends Controller
             'Spesa Bolletta Mensile',
             'Ha Pannelli',
             'Tipo',
-            'Incentivo (€)',
+            'Incentivo CER (€)',
+            'Ritiro dedicato (€)',
+            'Incentivo POD (€)',
             'Cliente Registrato',
             'Privacy Accettata',
             'Data Creazione',
@@ -251,7 +280,9 @@ class IncentiviController extends Controller
                 $incentivo->spesaBollettaMensile,
                 $incentivo->hasPanels === 'has' ? 'Ha Pannelli' : 'Vuole Pannelli',
                 $incentivo->hasPanels === 'has' ? 'Producer' : 'Consumer',
-                number_format($incentivo->incentivo, 2, ',', '.'),
+                $incentivo->incentivo_cer ? number_format($incentivo->incentivo_cer, 2, ',', '.') : 'N/A',
+                $incentivo->incentivo_dedicated ? number_format($incentivo->incentivo_dedicated, 2, ',', '.') : 'N/A',
+                $incentivo->incentivo_pod ? number_format($incentivo->incentivo_pod, 2, ',', '.') : 'N/A',
                 $incentivo->customer ? 'Sì' : 'No',
                 $incentivo->privacyAccepted ? 'Sì' : 'No',
                 $incentivo->created_at->format('d/m/Y H:i'),

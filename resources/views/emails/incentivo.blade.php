@@ -92,9 +92,26 @@
     </div>
 
     <div class="main-content">
-        <div class="incentivo-title">Incentivo calcolato:</div>
-        <div class="incentivo-amount">{{ number_format($incentivo_calcolato, 2, ',', '.') }} €</div>
-        <div class="incentivo-period">in 20 anni</div>
+        @if($hasPanels === 'has')
+            <!-- Se ha pannelli: mostra entrambi gli incentivi -->
+            <div class="incentivo-title">Incentivi calcolati:</div>
+            <div style="margin: 20px 0;">
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size: 16px; color: #2c5aa0; font-weight: bold;">Incentivo CER:</div>
+                    <div class="incentivo-amount">{{ number_format($incentivo_cer, 2, ',', '.') }} €</div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size: 16px; color: #2c5aa0; font-weight: bold;">Ritiro dedicato:</div>
+                    <div class="incentivo-amount">{{ number_format($incentivo_dedicated, 2, ',', '.') }} €</div>
+                </div>
+            </div>
+            <div class="incentivo-period">in 20 anni</div>
+        @else
+            <!-- Se non ha pannelli: mostra solo incentivo POD -->
+            <div class="incentivo-title">Incentivi titolari di un Pod:</div>
+            <div class="incentivo-amount">{{ number_format($incentivo_pod, 2, ',', '.') }} €</div>
+            <div class="incentivo-period">in 20 anni</div>
+        @endif
 
         <div class="divider"></div>
 
