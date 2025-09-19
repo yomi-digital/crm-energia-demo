@@ -28,4 +28,12 @@ class Incentivo extends Model
         'privacyAccepted' => 'boolean',
         'incentivo' => 'float'
     ];
+
+    /**
+     * Relazione con Customer basata su email
+     */
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'email', 'email');
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Incentivo;
+use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
@@ -100,7 +101,7 @@ class IncentiviController extends Controller
 
         $perPage = $request->get('itemsPerPage', 10);
         
-        $incentivi = Incentivo::query();
+        $incentivi = Incentivo::with('customer:id,email,name,last_name,phone,city,province');
 
         // Filtro per tipo
         if ($request->filled('type')) {
@@ -227,6 +228,7 @@ class IncentiviController extends Controller
             'Ha Pannelli',
             'Tipo',
             'Incentivo (€)',
+            'Cliente Registrato',
             'Privacy Accettata',
             'Data Creazione',
         ];
@@ -250,6 +252,7 @@ class IncentiviController extends Controller
                 $incentivo->hasPanels === 'has' ? 'Ha Pannelli' : 'Vuole Pannelli',
                 $incentivo->hasPanels === 'has' ? 'Producer' : 'Consumer',
                 number_format($incentivo->incentivo, 2, ',', '.'),
+                $incentivo->customer ? 'Sì' : 'No',
                 $incentivo->privacyAccepted ? 'Sì' : 'No',
                 $incentivo->created_at->format('d/m/Y H:i'),
             ]);

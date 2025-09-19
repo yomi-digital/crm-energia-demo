@@ -70,6 +70,13 @@ const updateOptions = options => {
 // Headers
 const headers = [
   {
+    title: '',
+    key: 'customer_status',
+    sortable: false,
+    width: 60,
+    align: 'center',
+  },
+  {
     title: 'Nominativo',
     key: 'nominativo',
     sortable: true,
@@ -224,6 +231,10 @@ const resultMessage = ref('')
 const showExportErrorDialog = ref(false)
 const exportErrorMessage = ref('')
 
+// Stati per errori ricaricamento
+const showReloadErrorDialog = ref(false)
+const reloadErrorMessage = ref('')
+
 // Stato loading per export Excel
 const isExporting = ref(false)
 
@@ -284,6 +295,43 @@ const deleteIncentivo = async () => {
 // Funzione per annullare l'eliminazione
 const cancelDelete = () => {
   itemToDelete.value = null
+}
+
+// Funzione per ricaricamento con gestione errori
+const reloadData = async () => {
+  try {
+    await fetchIncentivi()
+  } catch (error) {
+    console.error('Errore durante il ricaricamento:', error)
+    
+    // Determina il messaggio di errore appropriato
+    let errorMessage = 'Si è verificato un errore durante il ricaricamento dei dati.'
+    
+    if (error.response) {
+      // Errore HTTP
+      if (error.response.status === 403) {
+        errorMessage = 'Non hai i permessi per accedere a questi dati.'
+      } else if (error.response.status === 500) {
+        errorMessage = 'Errore del server durante il ricaricamento. Riprova più tardi.'
+      } else if (error.response.status === 404) {
+        errorMessage = 'Servizio non disponibile.'
+      }
+    } else if (error.code === 'NETWORK_ERROR') {
+      errorMessage = 'Errore di connessione. Verifica la tua connessione internet.'
+    }
+    
+    // Mostra dialog di errore
+    reloadErrorMessage.value = errorMessage
+    showReloadErrorDialog.value = true
+  }
+}
+
+// Router per navigazione
+const router = useRouter()
+
+// Funzione per navigare al customer
+const goToCustomer = (customerId) => {
+  router.push({ name: 'workflow-customers-id', params: { id: customerId } })
 }
 
 
@@ -365,7 +413,7 @@ const exportExcel = async () => {
             color="primary"
             variant="outlined"
             prepend-icon="tabler-refresh"
-            @click="fetchIncentivi"
+            @click="reloadData"
             :loading="isLoading"
           >
             Ricarica
@@ -520,10 +568,41 @@ const exportExcel = async () => {
         :items-per-page-options="[10, 25, 50, 100]"
         @update:options="updateOptions"
       >
+        <!-- Customer Status Column -->
+        <template #item.customer_status="{ item }">
+          <VAvatar
+            :color="item.customer ? 'success' : 'warning'"
+            variant="tonal"
+            size="32"
+          >
+            <VIcon
+              :icon="item.customer ? 'tabler-user-check' : 'tabler-user-plus'"
+              size="18"
+            />
+          </VAvatar>
+          <VTooltip
+            activator="parent"
+            location="top"
+          >
+            {{ item.customer ? 'Customer esistente' : 'Customer non trovato' }}
+          </VTooltip>
+        </template>
+
         <!-- Nominativo Column -->
         <template #item.nominativo="{ item }">
           <div class="d-flex flex-column">
-            <span class="font-weight-medium">
+            <span 
+              v-if="!item.customer"
+              class="font-weight-medium"
+            >
+              {{ item.nominativo }}
+            </span>
+            <span 
+              v-else
+              class="font-weight-medium text-decoration-underline text-primary"
+              style="cursor: pointer;"
+              @click="goToCustomer(item.customer.id)"
+            >
               {{ item.nominativo }}
             </span>
           </div>
@@ -531,7 +610,13 @@ const exportExcel = async () => {
 
         <!-- Email Column -->
         <template #item.email="{ item }">
-          <span class="text-sm">{{ item.email }}</span>
+          <a 
+            :href="`mailto:${item.email}`"
+            class="text-sm text-primary text-decoration-underline"
+            style="cursor: pointer;"
+          >
+            {{ item.email }}
+          </a>
         </template>
 
         <!-- Telefono Column -->
@@ -670,6 +755,14 @@ const exportExcel = async () => {
     v-model="showExportErrorDialog"
     title="Errore durante l'esportazione"
     :message="exportErrorMessage"
+    button-text="Ho capito"
+  />
+
+  <!-- Dialog di Errore Ricaricamento -->
+  <GeneralErrorDialog
+    v-model="showReloadErrorDialog"
+    title="Errore durante il ricaricamento"
+    :message="reloadErrorMessage"
     button-text="Ho capito"
   />
 </template>
