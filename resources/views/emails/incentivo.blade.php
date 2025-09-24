@@ -32,7 +32,7 @@
             margin-bottom: 10px;
         }
         .incentivo-amount {
-            font-size: 32px;
+            font-size: 40px;
             font-weight: bold;
             color: #2c5aa0;
             margin: 10px 0;
@@ -97,11 +97,11 @@
             <div class="incentivo-title">Incentivi calcolati:</div>
             <div style="margin: 20px 0;">
                 <div style="margin-bottom: 15px;">
-                    <div style="font-size: 16px; color: #2c5aa0; font-weight: bold;">Incentivo CER:</div>
+                    <div style="font-size: 20px; color: #2c5aa0; font-weight: bold;">Incentivo CER:</div>
                     <div class="incentivo-amount">{{ number_format($incentivo_cer, 2, ',', '.') }} €</div>
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <div style="font-size: 16px; color: #2c5aa0; font-weight: bold;">Ritiro dedicato:</div>
+                    <div style="font-size: 20px; color: #2c5aa0; font-weight: bold;">Ritiro dedicato:</div>
                     <div class="incentivo-amount">{{ number_format($incentivo_dedicated, 2, ',', '.') }} €</div>
                 </div>
             </div>
@@ -116,14 +116,17 @@
         <div class="divider"></div>
 
         <div class="dati-tecnici">
-            <div class="dati-title">Dati tecnici indicati:</div>
-            <div class="dati-item">Spesa bolletta {{ $periodoBolletta }}: {{ number_format($spesaBollettaMensile, 1, ',', '.') }} €</div>
+            <div class="dati-title">Dati tecnici utilizzati:</div>
+            <div class="dati-item">Spesa bolletta mensile: {{ number_format($spesaBollettaMensile, 2, ',', '.') }} €</div>
             <div class="dati-item">Consumo energetico: {{ $kwhSpesi }} kWh</div>
-            <div class="dati-item">Pannelli esistenti: {{ $hasPanels === 'has' ? 'Sì' : 'No' }}</div>
+            <div class="dati-item">Valore incentivo CER x 20 anni sul kWh venduto: 0,108 €/kWh</div>
+            <div class="dati-item">Valore incentivo RID sul kWh venduto: 0,10 €/kWh</div>
+            <div class="dati-item">Valore kWh: {{ $kwhSpesi ? number_format($spesaBollettaMensile / $kwhSpesi, 2, ',', '.') : 'N/A' }} €/kWh</div>
+            <div class="dati-item">hp 50% autoconsumo — 50% sovrapproduzione</div>
         </div>
 
         <div class="disclaimer">
-            Il calcolo mostrato è una stima indicativa basata sui dati inseriti e su ipotesi medie di funzionamento di una Comunità Energetica Rinnovabile in equilibrio tra produzione e consumo. Gli incentivi possono variare nel tempo in base alle tariffe stabilite da GSE e ARERA, alla zona geografica e all'effettivo funzionamento della CER. Il risultato ha scopo puramente informativo.
+            Il calcolo mostrato è una stima indicativa basata sui dati inseriti e su ipotesi medie di produzione/consumo. Il risultato ha scopo puramente informativo.
         </div>
 
     </div>
