@@ -117,6 +117,11 @@ const headers = [
     sortable: true,
   },
   {
+    title: 'Risparmio autoconsumo',
+    key: 'autoconsume_savings',
+    sortable: true,
+  },
+  {
     title: 'Tipo',
     key: 'hasPanels',
     sortable: true,
@@ -683,6 +688,19 @@ const exportExcel = async () => {
           <span v-else class="text-disabled">N/A</span>
         </template>
 
+        <!-- Autoconsumo Column -->
+        <template #item.autoconsume_savings="{ item }">
+          <VChip
+            v-if="item.autoconsume_savings"
+            :color="parseFloat(item.autoconsume_savings) > 1000 ? 'success' : 'primary'"
+            variant="tonal"
+            size="small"
+          >
+            {{ formatIncentivo(item.autoconsume_savings) }}
+          </VChip>
+          <span v-else class="text-disabled">N/A</span>
+        </template>
+
         <!-- Tipo Column -->
         <template #item.hasPanels="{ item }">
           <VChip
@@ -763,6 +781,19 @@ const exportExcel = async () => {
             <span>Incentivo POD</span>
             <VIcon
               v-if="sortBy === 'incentivo_pod'"
+              :icon="orderBy === 'asc' ? 'tabler-chevron-up' : 'tabler-chevron-down'"
+              size="16"
+              class="ms-1"
+            />
+          </div>
+        </template>
+
+        <!-- Header personalizzato per Autoconsumo -->
+        <template #header.autoconsume_savings>
+          <div class="d-flex align-center">
+            <span>Risparmio autoconsumo</span>
+            <VIcon
+              v-if="sortBy === 'autoconsume_savings'"
               :icon="orderBy === 'asc' ? 'tabler-chevron-up' : 'tabler-chevron-down'"
               size="16"
               class="ms-1"

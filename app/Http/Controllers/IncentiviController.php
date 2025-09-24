@@ -44,6 +44,9 @@ class IncentiviController extends Controller
             $kwhSpesi = $request->input('kwhSpesi');
             $spesaBollettaMensile = $request->input('spesaBollettaMensile');
             $hasPanels = $request->input('hasPanels');
+
+            //Calcolo del kwh di autoconsumo
+            $kwhAutoconsumo = $kwhSpesi > 0 ? ($spesaBollettaMensile / $kwhSpesi) : 0;
             
             // Determinare z in base al periodo bolletta
             $z = (strtolower($periodoBolletta) === 'mensile') ? 12 : 6;
@@ -63,6 +66,7 @@ class IncentiviController extends Controller
                 $incentivoCer = $y * $w1;
                 $incentivoDedicated = $y * $w2;
                 $incentivoPod = null;
+                $autoconsumeSavings = ($kwhSpesi * $z) * $kwhAutoconsumo;
             } else {
                 // Se non ha pannelli: solo incentivo POD
                 $w1 = 0.10;
@@ -70,6 +74,7 @@ class IncentiviController extends Controller
                 $incentivoCer = null;
                 $incentivoDedicated = null;
                 $incentivoPod = $y * $w1;
+                $autoconsumeSavings = null;
             }
             
             // Preparare i dati per il salvataggio includendo gli incentivi calcolati
@@ -77,6 +82,7 @@ class IncentiviController extends Controller
             $datiIncentivo['incentivo_cer'] = $incentivoCer ? round($incentivoCer, 2) : null;
             $datiIncentivo['incentivo_dedicated'] = $incentivoDedicated ? round($incentivoDedicated, 2) : null;
             $datiIncentivo['incentivo_pod'] = $incentivoPod ? round($incentivoPod, 2) : null;
+            $datiIncentivo['autoconsume_savings'] = round($autoconsumeSavings, 2);
             
             $incentivo = Incentivo::create($datiIncentivo);
 
@@ -91,9 +97,11 @@ class IncentiviController extends Controller
                     'y' => round($y, 2),
                     'w1' => $w1,
                     'w2' => isset($w2) ? $w2 : null,
+                    'valore_kwh' => $kwhAutoconsumo,
                     'incentivo_cer' => $incentivoCer ? round($incentivoCer, 2) : null,
                     'incentivo_dedicated' => $incentivoDedicated ? round($incentivoDedicated, 2) : null,
-                    'incentivo_pod' => $incentivoPod ? round($incentivoPod, 2) : null
+                    'incentivo_pod' => $incentivoPod ? round($incentivoPod, 2) : null,
+                    'autoconsume_savings' => round($autoconsumeSavings, 2)
                 ]
             ], 201);
 
@@ -168,13 +176,14 @@ class IncentiviController extends Controller
             $incentivi->where('hasPanels', $request->get('tipo'));
         }
 
-        // Filtro per range incentivo (cerca su tutti e 3 i campi incentivo)
+        // Filtro per range incentivo (cerca su tutti i campi incentivo)
         if ($request->filled('incentivo_min')) {
             $incentivo_min = $request->get('incentivo_min');
             $incentivi->where(function ($query) use ($incentivo_min) {
                 $query->where('incentivo_cer', '>=', $incentivo_min)
                     ->orWhere('incentivo_dedicated', '>=', $incentivo_min)
-                    ->orWhere('incentivo_pod', '>=', $incentivo_min);
+                    ->orWhere('incentivo_pod', '>=', $incentivo_min)
+                    ->orWhere('autoconsume_savings', '>=', $incentivo_min);
             });
         }
 
@@ -183,7 +192,8 @@ class IncentiviController extends Controller
             $incentivi->where(function ($query) use ($incentivo_max) {
                 $query->where('incentivo_cer', '<=', $incentivo_max)
                     ->orWhere('incentivo_dedicated', '<=', $incentivo_max)
-                    ->orWhere('incentivo_pod', '<=', $incentivo_max);
+                    ->orWhere('incentivo_pod', '<=', $incentivo_max)
+                    ->orWhere('autoconsume_savings', '<=', $incentivo_max);
             });
         }
 
@@ -257,6 +267,7 @@ class IncentiviController extends Controller
             'Incentivo CER (€)',
             'Ritiro dedicato (€)',
             'Incentivo POD (€)',
+            'Risparmio Autoconsumo (€)',
             'Cliente Registrato',
             'Privacy Accettata',
             'Data Creazione',
@@ -283,6 +294,7 @@ class IncentiviController extends Controller
                 $incentivo->incentivo_cer ? number_format($incentivo->incentivo_cer, 2, ',', '.') : 'N/A',
                 $incentivo->incentivo_dedicated ? number_format($incentivo->incentivo_dedicated, 2, ',', '.') : 'N/A',
                 $incentivo->incentivo_pod ? number_format($incentivo->incentivo_pod, 2, ',', '.') : 'N/A',
+                $incentivo->autoconsume_savings ? number_format($incentivo->autoconsume_savings, 2, ',', '.') : 'N/A',
                 $incentivo->customer ? 'Sì' : 'No',
                 $incentivo->privacyAccepted ? 'Sì' : 'No',
                 $incentivo->created_at->format('d/m/Y H:i'),

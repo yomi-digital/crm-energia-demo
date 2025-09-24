@@ -50,6 +50,7 @@ class IncentivoEmail extends Mailable
                 'incentivo_cer' => $this->incentivo->incentivo_cer,
                 'incentivo_dedicated' => $this->incentivo->incentivo_dedicated,
                 'incentivo_pod' => $this->incentivo->incentivo_pod,
+                'autoconsume_savings' => $this->incentivo->autoconsume_savings,
                 'hasPanels' => $this->incentivo->hasPanels,
                 'periodoBolletta' => $this->incentivo->periodoBolletta,
                 'kwhSpesi' => $this->incentivo->kwhSpesi,

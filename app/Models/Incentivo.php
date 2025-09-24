@@ -21,7 +21,8 @@ class Incentivo extends Model
         'provincia',
         'incentivo_cer',
         'incentivo_dedicated',
-        'incentivo_pod'
+        'incentivo_pod',
+        'autoconsume_savings'
     ];
 
     protected $casts = [
@@ -30,7 +31,8 @@ class Incentivo extends Model
         'privacyAccepted' => 'boolean',
         'incentivo_cer' => 'float',
         'incentivo_dedicated' => 'float',
-        'incentivo_pod' => 'float'
+        'incentivo_pod' => 'float',
+        'autoconsume_savings' => 'float'
     ];
 
     /**

@@ -93,24 +93,38 @@
 
     <div class="main-content">
         @if($hasPanels === 'has')
-            <!-- Se ha pannelli: mostra entrambi gli incentivi -->
+            <!-- Se ha pannelli: mostra gli incentivi disponibili -->
             <div class="incentivo-title">Incentivi calcolati:</div>
             <div style="margin: 20px 0;">
+                @if(!is_null($incentivo_cer) && $incentivo_cer > 0)
                 <div style="margin-bottom: 15px;">
                     <div style="font-size: 20px; color: #2c5aa0; font-weight: bold;">Incentivo CER:</div>
                     <div class="incentivo-amount">{{ number_format($incentivo_cer, 2, ',', '.') }} €</div>
                 </div>
+                @endif
+
+                @if(!is_null($incentivo_dedicated) && $incentivo_dedicated > 0)
                 <div style="margin-bottom: 15px;">
                     <div style="font-size: 20px; color: #2c5aa0; font-weight: bold;">Ritiro dedicato:</div>
                     <div class="incentivo-amount">{{ number_format($incentivo_dedicated, 2, ',', '.') }} €</div>
                 </div>
+                @endif
+
+                @if(!is_null($autoconsume_savings) && $autoconsume_savings > 0)
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size: 20px; color: #2c5aa0; font-weight: bold;">Risparmio da autoconsumo:</div>
+                    <div class="incentivo-amount">{{ number_format($autoconsume_savings, 2, ',', '.') }} €</div>
+                </div>
+                @endif
             </div>
             <div class="incentivo-period">in 20 anni</div>
         @else
-            <!-- Se non ha pannelli: mostra solo incentivo POD -->
+            <!-- Se non ha pannelli: mostra solo incentivo POD (se valorizzato) -->
+            @if(!is_null($incentivo_pod) && $incentivo_pod > 0)
             <div class="incentivo-title">Incentivi titolari di un Pod:</div>
             <div class="incentivo-amount">{{ number_format($incentivo_pod, 2, ',', '.') }} €</div>
             <div class="incentivo-period">in 20 anni</div>
+            @endif
         @endif
 
         <div class="divider"></div>
