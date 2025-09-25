@@ -69,7 +69,7 @@ class IncentiviController extends Controller
                 $autoconsumeSavings = ($kwhSpesi * $z) * $kwhAutoconsumo;
             } else {
                 // Se non ha pannelli: solo incentivo POD
-                $w1 = 0.10;
+                $w1 = 0.01057;
                 
                 $incentivoCer = null;
                 $incentivoDedicated = null;
