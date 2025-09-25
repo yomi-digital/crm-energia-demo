@@ -133,10 +133,10 @@
             <div class="dati-title">Dati tecnici utilizzati:</div>
             <div class="dati-item">Spesa bolletta mensile: {{ number_format($spesaBollettaMensile, 2, ',', '.') }} €</div>
             <div class="dati-item">Consumo energetico: {{ $kwhSpesi }} kWh</div>
-            <div class="dati-item">Valore incentivo CER x 20 anni sul kWh venduto: 0,108 €/kWh</div>
+            <div class="dati-item">Valore incentivo CER x 20 anni sul kWh venduto: {{ $hasPanels === 'has' ? '0,108' : '0,01057' }} €/kWh</div>
             <div class="dati-item">Valore incentivo RID sul kWh venduto: 0,10 €/kWh</div>
             <div class="dati-item">Valore kWh: {{ $kwhSpesi ? number_format($spesaBollettaMensile / $kwhSpesi, 2, ',', '.') : 'N/A' }} €/kWh</div>
-            <div class="dati-item">hp 50% autoconsumo — 50% sovrapproduzione</div>
+            <div class="dati-item">Ipotesi: 50% autoconsumo — 50% sovrapproduzione</div>
         </div>
 
         <div class="disclaimer">
