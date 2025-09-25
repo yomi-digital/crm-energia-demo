@@ -146,7 +146,7 @@
     </div>
 
     <div class="footer">
-        <p>Il team di Alfacom</p>
+        <p>Il team di Alfacom Solar</p>
         <p style="font-size: 12px; margin-top: 10px;">
             Questa email è stata inviata a {{ $email }} in seguito al calcolo dell'incentivo fotovoltaico.<br>
             © {{ date('Y') }} - Tutti i diritti riservati
