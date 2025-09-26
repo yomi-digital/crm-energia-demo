@@ -116,8 +116,16 @@
                     <div class="incentivo-amount">{{ number_format($autoconsume_savings, 2, ',', '.') }} €</div>
                 </div>
                 @endif
+                <div class="incentivo-period">in 20 anni</div>
             </div>
-            <div class="incentivo-period">in 20 anni</div>
+            @php
+                $totalIncentivi = floatval($incentivo_cer ?? 0) + floatval($incentivo_dedicated ?? 0) + floatval($autoconsume_savings ?? 0);
+            @endphp
+            <div class="divider"></div>
+            <div style="margin-bottom: 15px;">
+                <div style="font-size: 22px; color: #2c5aa0; font-weight: bold;">TOTALE:</div>
+                <div class="incentivo-amount">{{ number_format($totalIncentivi, 2, ',', '.') }} €</div>
+            </div>
         @else
             <!-- Se non ha pannelli: mostra solo incentivo POD (se valorizzato) -->
             @if(!is_null($incentivo_pod) && $incentivo_pod > 0)
