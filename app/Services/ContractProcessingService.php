@@ -44,7 +44,7 @@ class ContractProcessingService
             
             // Get AI response
             $client = new Client(config('services.gemini.api_key'));
-            $response = $client->generativeModel(ModelName::GEMINI_1_5_FLASH)->generateContent(
+            $response = $client->generativeModel('gemini-2.0-flash')->generateContent(
                 new TextPart($prompt),
             );
             
@@ -193,10 +193,14 @@ class ContractProcessingService
         EOF;
     }
 
+    // Retrocompatibile con gemini 1.5
+    // Compatibile con gemini 2.0
     public function extractAIData($text)
     {
         $customer = [];
         $contract = [];
+        
+        // Prova prima con i tag XML (formato vecchio)
         preg_match('/<cliente>(.*?)<\/cliente>/s', $text, $customerMatches);
         preg_match('/<contratto>(.*?)<\/contratto>/s', $text, $contractMatches);
 
@@ -206,6 +210,21 @@ class ContractProcessingService
 
         if (isset($contractMatches[1])) {
             $contract = json_decode($contractMatches[1], true);
+        }
+
+        // Se non ha trovato nulla con i tag XML, prova con JSON diretto (Gemini 2.0)
+        if (empty($customer) && empty($contract)) {
+            // Rimuovi eventuali code blocks markdown (```json ... ```)
+            $cleanText = preg_replace('/```(?:json)?\s*(.*?)\s*```/s', '$1', $text);
+            $cleanText = trim($cleanText);
+            
+            // Prova a decodificare come JSON
+            $data = json_decode($cleanText, true);
+            
+            if ($data && is_array($data)) {
+                $customer = $data['cliente'] ?? [];
+                $contract = $data['contratto'] ?? [];
+            }
         }
 
         return [$customer, $contract];
