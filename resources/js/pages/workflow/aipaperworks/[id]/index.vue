@@ -1,6 +1,8 @@
 <script setup>
 import AIPaperworkTransfer from '@/components/AIPaperworkTransfer.vue'
 import BrandOverrideAlert from '@/components/BrandOverrideAlert.vue'
+import ProcessingAIStutteringBanner from '@/components/ProcessingAIStutteringBanner.vue'
+import { onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 definePage({
@@ -15,6 +17,7 @@ const router = useRouter()
 const id = route.params.id
 
 const isProcessing = ref(false)
+let pollingInterval = null
 
 const {
   data: aiPaperwork,
@@ -192,18 +195,72 @@ const extractedText = computed({
   }
 })
 
+const startPolling = () => {
+  // Previeni polling multipli
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
+  }
+  
+  pollingInterval = setInterval(async () => {
+    await fetchAIPaperwork()
+    
+    // Ferma il polling quando l'elaborazione è completa
+    if (aiPaperwork.value.status !== 1) {
+      stopPolling()
+      
+      // Se l'elaborazione è completata con successo, ricarica la pagina
+      // per aggiornare prodotti filtrati e altri dati dipendenti
+      if (aiPaperwork.value.status === 2) {
+        window.location.reload()
+      }
+    }
+  }, 10000) // Polling ogni 10 secondi
+}
+
+const stopPolling = () => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
+    pollingInterval = null
+  }
+}
+
 const processDocument = async () => {
   isProcessing.value = true
   try {
+    // Avvia elaborazione (ritorna immediatamente con status=1)
     await $api(`/ai-paperworks/${id}/process`, {
       method: 'POST',
     })
-    // Refresh forzato per evitare problemi di timing con brand_override e prodotti
-    window.location.reload()
+    
+    // Ricarica i dati per vedere status=1 e mostrare il banner
+    await fetchAIPaperwork()
+    
+    // Avvia polling centralizzato
+    startPolling()
+    
   } catch (error) {
     console.error('Error processing document:', error)
+    alert('Errore durante l\'avvio dell\'elaborazione')
   } finally {
     isProcessing.value = false
+  }
+}
+
+const resetDocument = async () => {
+  try {
+    // Aspetta la risposta del backend (arriva veloce ~200ms)
+    await $api(`/ai-paperworks/${id}/process`, {
+      method: 'POST',
+      body: {
+        force: true
+      }
+    })
+    
+    // Solo dopo la conferma, fa il reload
+    window.location.reload()
+  } catch (error) {
+    console.error('Error resetting document:', error)
+    alert('Errore durante il reset. Riprova.')
   }
 }
 
@@ -486,6 +543,20 @@ const onHandleTransferCompleted = async (eventData) => {
   }
 }
 
+// Watch per avviare automaticamente il polling se la pagina si carica con status=1
+watch(() => aiPaperwork.value?.status, (newStatus) => {
+  if (newStatus === 1 && !pollingInterval) {
+    // Elaborazione in corso, avvia polling automaticamente
+    console.log('Rilevata elaborazione in corso, avvio polling automatico')
+    startPolling()
+  }
+}, { immediate: true })
+
+// Cleanup: ferma il polling quando l'utente esce dalla pagina
+onUnmounted(() => {
+  stopPolling()
+})
+
 </script>
 
 <template>
@@ -530,6 +601,13 @@ const onHandleTransferCompleted = async (eventData) => {
             @onTransferCompleted="onHandleTransferCompleted"
           />
         </div>
+
+        <!-- Banner per elaborazione bloccata -->
+        <ProcessingAIStutteringBanner
+          v-if="aiPaperwork?.status === 1"
+          :ai-paperwork="aiPaperwork"
+          @on-reset="resetDocument"
+        />
 
         <!-- Componente professionale per brand sovrascritto -->
         <BrandOverrideAlert

@@ -405,6 +405,7 @@ declare module 'vue' {
     PaymentProvidersDialog: typeof import('./resources/js/components/dialogs/PaymentProvidersDialog.vue')['default']
     PopupAICreationWizardNotification: typeof import('./resources/js/components/dialogs/PopupAICreationWizardNotification.vue')['default']
     PricingPlanDialog: typeof import('./resources/js/components/dialogs/PricingPlanDialog.vue')['default']
+    ProcessingAIStutteringBanner: typeof import('./resources/js/components/ProcessingAIStutteringBanner.vue')['default']
     ProductDescriptionEditor: typeof import('./resources/js/@core/components/ProductDescriptionEditor.vue')['default']
     ProductFeeBandDialog: typeof import('./resources/js/components/dialogs/ProductFeeBandDialog.vue')['default']
     ProductInfoEditDialog: typeof import('./resources/js/components/dialogs/ProductInfoEditDialog.vue')['default']

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\AIPaperwork;
 use App\Services\ContractProcessingService;
+use App\Jobs\ProcessAIPaperworkJob;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
@@ -71,18 +72,38 @@ class AIController extends Controller
         try {
             $aiPaperwork = AIPaperwork::findOrFail($id);
             
-            if ($aiPaperwork->status === 1) {
+            // Permetti di saltare il controllo con force=true
+            $force = $request->input('force', false);
+            
+            if ($aiPaperwork->status === 1 && !$force) {
                 return response()->json([
-                    'message' => 'This document has already been processed',
+                    'message' => 'Document is currently being processed. Use force=true to reprocess.',
                     'ai_paperwork' => $aiPaperwork
                 ], 400);
             }
 
-            $processedAiPaperwork = $this->contractProcessingService->processContract($aiPaperwork);
+            // Se force=true, resetta lo status a 0 (In Attesa)
+            if ($force) {
+                $aiPaperwork->status = 0;
+                $aiPaperwork->save();
+
+                return response()->json([
+                    'message' => 'Document reset to pending status.',
+                    'ai_paperwork' => $aiPaperwork
+                ]);
+            }
+
+            // Se force=false, comportamento asincrono con queue
+            // Imposta status a 1 (In Elaborazione) immediatamente
+            $aiPaperwork->status = 1;
+            $aiPaperwork->save();
+
+            // Dispatcha il job per elaborazione in background
+            ProcessAIPaperworkJob::dispatch($aiPaperwork->id);
 
             return response()->json([
-                'message' => 'Document processed successfully',
-                'ai_paperwork' => $processedAiPaperwork
+                'message' => 'Document processing started',
+                'ai_paperwork' => $aiPaperwork
             ]);
 
         } catch (\Exception $e) {
