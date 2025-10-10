@@ -29,9 +29,15 @@ const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || ro
 const headers = [
   {
     title: '',
-    key: 'id',
+    key: 'actions',
     sortable: false,
     width: '100px',
+  },
+  {
+    title: '#',
+    key: 'id',
+    sortable: false,
+    width: '80',
   },
   {
     title: 'Agente',
@@ -192,6 +198,13 @@ const processDocument = async (item) => {
       >
         <!-- ID -->
         <template #item.id="{ item }">
+          <div class="text-high-emphasis text-body-1">
+            {{ item?.id }}
+          </div>
+        </template>
+
+        <!-- Actions -->
+        <template #item.actions="{ item }">
           <div class="d-flex align-center">
             <VBtn
               :to="{ name: 'workflow-aipaperworks-id', params: { id: item.id } }"

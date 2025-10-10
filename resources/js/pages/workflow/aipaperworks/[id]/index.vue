@@ -495,7 +495,7 @@ const onHandleTransferCompleted = async (eventData) => {
         <div class="d-flex justify-space-between align-center w-100 mb-4">
           <div>
             <h2 class="text-h5 font-weight-medium">
-              Dettaglio Pratica AI
+              Dettaglio Pratica AI #{{ aiPaperwork?.id }}
               <template v-if="aiPaperwork?.user">
                 <span class="text-medium-emphasis">- Caricato da 
                   <RouterLink 
