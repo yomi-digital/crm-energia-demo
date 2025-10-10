@@ -221,6 +221,13 @@ class AIController extends Controller
                 $paperworkData['appointment_id'] = null;
             }
             
+            // Rimuovi i campi del match AI quando l'utente salva le modifiche
+            // L'utente ha verificato i dati, quindi non servono più
+            unset($paperworkData['brand_override']);
+            unset($paperworkData['matched_product']);
+            unset($paperworkData['matched_brand']);
+            unset($paperworkData['original_brand_id']);
+            
             $aiPaperwork->ai_extracted_paperwork = json_encode($paperworkData);
         }
 
@@ -453,6 +460,28 @@ class AIController extends Controller
         
         // Aggiorna il brand_id (tutti possono trasferire verso qualsiasi brand)
         $aiPaperwork->brand_id = $request->brand_id;
+        
+        // Pulisci i campi del match AI perché non sono più validi con il nuovo brand
+        if ($aiPaperwork->ai_extracted_paperwork) {
+            // Decodifica il JSON in array
+            $extractedPaperwork = json_decode($aiPaperwork->ai_extracted_paperwork, true);
+            
+            if ($extractedPaperwork && is_array($extractedPaperwork)) {
+                // Rimuovi i campi del match AI
+                unset($extractedPaperwork['brand_override']);
+                unset($extractedPaperwork['matched_product']);
+                unset($extractedPaperwork['matched_brand']);
+                unset($extractedPaperwork['original_brand_id']);
+                unset($extractedPaperwork['product_id']);
+                
+                // Aggiorna il brand_id nell'ai_extracted_paperwork con il nuovo brand
+                $extractedPaperwork['brand_id'] = $request->brand_id;
+                
+                // Ricodifica in JSON
+                $aiPaperwork->ai_extracted_paperwork = json_encode($extractedPaperwork);
+            }
+        }
+        
         $aiPaperwork->save();
 
         return response()->json([

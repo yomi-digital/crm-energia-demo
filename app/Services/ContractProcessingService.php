@@ -60,13 +60,22 @@ class ContractProcessingService
             }
 
             if ($contract) {
-                $paperwork = $this->makePaperworkFromAIData($customerDb, $contract);
+                $paperwork = $this->makePaperworkFromAIData($customerDb, $contract, $aiPaperwork->brand_id);
             }
 
             if (isset($customerDb)) {
                 $aiPaperwork->ai_extracted_customer = json_encode($customerDb);
             }
             if (isset($paperwork)) {
+                // Se il brand è stato sovrascritto dal matching del prodotto, aggiorna il brand_id PRIMA di salvare
+                if ((isset($paperwork['brand_override']) && $paperwork['brand_override']) || (isset($paperwork->brand_override) && $paperwork->brand_override)) {
+                    // Supporta sia array che oggetto
+                    $brandIdToPersist = is_array($paperwork) ? ($paperwork['brand_id'] ?? null) : ($paperwork->brand_id ?? null);
+                    if ($brandIdToPersist) {
+                        $aiPaperwork->brand_id = $brandIdToPersist;
+                    }
+                }
+
                 $aiPaperwork->ai_extracted_paperwork = json_encode($paperwork);
             }
             $aiPaperwork->status = 2; // Processed
@@ -146,7 +155,7 @@ class ContractProcessingService
         - Prodotto offerta specificato nel contratto (ad esempio DYNAMIC LUCE)
         - POD o PDR menzionato nel documento
         - Tipo di contratto stipulato o proposto (ad esempio Allaccio/Switch)
-        - Consumo annuo previsto o attuale in kWh - potrebbe essere allegata una bolletta precedente, estrai il consumo
+        - Consumo annuo previsto o attuale in kWh - potrebbe essere allegata una bolletta precedente, estrai il consumo (estrai il valore numerico, con "." anziché "," e non introdurre mai nessun tipo di carattere testuale come "kWh", "kW", "MWh", "MW", "Wh", "W"). Se non è presente, impostare null.
         - Fornitore precedente del servizio - potrebbe essere allegata una bolletta del fornitore precedente, estrai il nome delfornitore
 
         Formato dei Dati Estratti in JSON:
@@ -188,6 +197,8 @@ class ContractProcessingService
         IMPORTANTE: I numeri di telefono e mobile DEVONO sempre essere restituiti in formato internazionale completo (esempio: "+393342114696", "+390871234567"). 
         Se il numero non ha il prefisso internazionale, aggiungi "+39" per i numeri italiani.
         Non lasciare mai numeri senza prefisso internazionale, se il prefisso non è presente o non sai determinarlo, aggiungi "+39" come prefisso di fallback
+
+        CONSAPEVOLEZZA CRITICA: Il campo "consumo_annuo" DEVE SEMPRE essere un numero, quindi estrai il consumo (estrai il valore numerico, con "." anziché "," e non introdurre mai nessun tipo di carattere testuale come "kWh", "kW", "MWh", "MW", "Wh", "W"). Se non è presente, impostare null.
         
         Si prega di fornire i dati completi ed eventualmente annotare se alcune informazioni non sono presenti nel testo.
         EOF;
@@ -257,7 +268,7 @@ class ContractProcessingService
         return $customerDb;
     }
 
-    public function makePaperworkFromAIData($customerDb, $contract)
+    public function makePaperworkFromAIData($customerDb, $contract, $originalBrandId = null)
     {
         $paperwork = new Paperwork();
         if (isset($customerDb)) {
@@ -281,6 +292,18 @@ class ContractProcessingService
                 $product = $matchingProducts->first();
             }
             $paperwork->product_id = $product->id;
+
+            // Override brand_id con quello del prodotto trovato
+            $paperwork->brand_id = $product->brand_id;
+            
+            // Flag e info per il frontend: salviamo sui campi del paperwork (che sarà serializzato in JSON)
+            // Mostra l'alert solo se il brand è effettivamente cambiato
+            if ($originalBrandId && $originalBrandId != $product->brand_id) {
+                $paperwork->brand_override = true;
+                $paperwork->matched_product = $product->name;
+                $paperwork->matched_brand = $product->brand->name ?? 'N/A';
+                $paperwork->original_brand_id = $originalBrandId;
+            }
 
             $contract['product'] = $product;
         }

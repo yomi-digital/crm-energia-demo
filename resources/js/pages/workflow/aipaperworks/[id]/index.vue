@@ -1,5 +1,6 @@
 <script setup>
 import AIPaperworkTransfer from '@/components/AIPaperworkTransfer.vue'
+import BrandOverrideAlert from '@/components/BrandOverrideAlert.vue'
 import { useRoute, useRouter } from 'vue-router'
 
 definePage({
@@ -197,7 +198,8 @@ const processDocument = async () => {
     await $api(`/ai-paperworks/${id}/process`, {
       method: 'POST',
     })
-    fetchAIPaperwork()
+    // Refresh forzato per evitare problemi di timing con brand_override e prodotti
+    window.location.reload()
   } catch (error) {
     console.error('Error processing document:', error)
   } finally {
@@ -528,6 +530,14 @@ const onHandleTransferCompleted = async (eventData) => {
             @onTransferCompleted="onHandleTransferCompleted"
           />
         </div>
+
+        <!-- Componente professionale per brand sovrascritto -->
+        <BrandOverrideAlert
+          v-if="extractedPaperwork?.brand_override && extractedPaperwork?.matched_product"
+          :matched-product="extractedPaperwork.matched_product"
+          :matched-brand="extractedPaperwork.matched_brand"
+          :original-brand-id="extractedPaperwork.original_brand_id"
+        />
         
         <div class="d-flex justify-space-between align-center w-100">
           <div class="d-flex gap-2">
