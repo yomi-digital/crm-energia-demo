@@ -66,8 +66,8 @@ const handleReset = () => {
     variant="tonal"
     class="mb-4"
   >
-    <div class="d-flex align-center justify-space-between">
-      <div class="d-flex align-center gap-3">
+    <div class="d-flex flex-column flex-md-row align-start align-md-center justify-space-between">
+      <div class="d-flex align-center gap-3 mb-3 mb-md-0">
         <VProgressCircular
           indeterminate
           :color="alertColor"
@@ -87,6 +87,7 @@ const handleReset = () => {
         color="warning"
         variant="elevated"
         prepend-icon="tabler-refresh"
+        class="align-self-start align-self-md-auto"
         @click="handleReset"
       >
         Resetta Elaborazione

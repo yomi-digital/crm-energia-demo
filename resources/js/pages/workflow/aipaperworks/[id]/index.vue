@@ -1,4 +1,5 @@
 <script setup>
+import AIErrorBanner from '@/components/AIErrorBanner.vue'
 import AIPaperworkTransfer from '@/components/AIPaperworkTransfer.vue'
 import BrandOverrideAlert from '@/components/BrandOverrideAlert.vue'
 import ProcessingAIStutteringBanner from '@/components/ProcessingAIStutteringBanner.vue'
@@ -607,6 +608,13 @@ onUnmounted(() => {
           v-if="aiPaperwork?.status === 1"
           :ai-paperwork="aiPaperwork"
           @on-reset="resetDocument"
+        />
+
+        <!-- Banner per errori (status 8 o 9) -->
+        <AIErrorBanner
+          v-if="aiPaperwork?.status === 8 || aiPaperwork?.status === 9"
+          :ai-paperwork="aiPaperwork"
+          @on-retry="processDocument"
         />
 
         <!-- Componente professionale per brand sovrascritto -->

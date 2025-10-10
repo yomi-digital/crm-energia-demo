@@ -14,6 +14,7 @@ declare module 'vue' {
     AddEditPermissionDialog: typeof import('./resources/js/components/dialogs/AddEditPermissionDialog.vue')['default']
     AddEditRoleDialog: typeof import('./resources/js/components/dialogs/AddEditRoleDialog.vue')['default']
     AddPaymentMethodDialog: typeof import('./resources/js/components/dialogs/AddPaymentMethodDialog.vue')['default']
+    AIErrorBanner: typeof import('./resources/js/components/AIErrorBanner.vue')['default']
     AIPaperworkTransfer: typeof import('./resources/js/components/AIPaperworkTransfer.vue')['default']
     AIPaperworkTransferModal: typeof import('./resources/js/components/AIPaperworkTransferModal.vue')['default']
     AIPaperworkTransferModalResult: typeof import('./resources/js/components/AIPaperworkTransferModalResult.vue')['default']
