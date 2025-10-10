@@ -205,17 +205,11 @@ const startPolling = () => {
   pollingInterval = setInterval(async () => {
     await fetchAIPaperwork()
     
-    // Ferma il polling quando l'elaborazione è completa
-    if (aiPaperwork.value.status !== 1) {
+    // Ferma il polling solo per status finali (2, 8, 9)
+    if (aiPaperwork.value.status === 2 || aiPaperwork.value.status === 8 || aiPaperwork.value.status === 9) {
       stopPolling()
-      
-      // Se l'elaborazione è completata con successo, ricarica la pagina
-      // per aggiornare prodotti filtrati e altri dati dipendenti
-      if (aiPaperwork.value.status === 2) {
-        window.location.reload()
-      }
     }
-  }, 10000) // Polling ogni 10 secondi
+  }, 5000) // Polling ogni 5 secondi
 }
 
 const stopPolling = () => {
@@ -228,42 +222,23 @@ const stopPolling = () => {
 const processDocument = async () => {
   isProcessing.value = true
   try {
-    // Avvia elaborazione (ritorna immediatamente con status=1)
     await $api(`/ai-paperworks/${id}/process`, {
-      method: 'POST',
+      method: 'POST'
     })
     
-    // Ricarica i dati per vedere status=1 e mostrare il banner
+    // Refresh per vedere nuovo status
     await fetchAIPaperwork()
     
-    // Avvia polling centralizzato
-    startPolling()
-    
+    // Messaggio di conferma
+    console.log('Documento reimpostato, lo scheduler lo processerà entro 1 minuto')
   } catch (error) {
-    console.error('Error processing document:', error)
-    alert('Errore durante l\'avvio dell\'elaborazione')
+    console.error('Errore nel reset del documento:', error)
   } finally {
     isProcessing.value = false
   }
 }
 
-const resetDocument = async () => {
-  try {
-    // Aspetta la risposta del backend (arriva veloce ~200ms)
-    await $api(`/ai-paperworks/${id}/process`, {
-      method: 'POST',
-      body: {
-        force: true
-      }
-    })
-    
-    // Solo dopo la conferma, fa il reload
-    window.location.reload()
-  } catch (error) {
-    console.error('Error resetting document:', error)
-    alert('Errore durante il reset. Riprova.')
-  }
-}
+
 
 const getStatusChipColor = (status) => {
   switch (status) {
@@ -546,10 +521,15 @@ const onHandleTransferCompleted = async (eventData) => {
 
 // Watch per avviare automaticamente il polling se la pagina si carica con status=1
 watch(() => aiPaperwork.value?.status, (newStatus) => {
-  if (newStatus === 1 && !pollingInterval) {
-    // Elaborazione in corso, avvia polling automaticamente
-    console.log('Rilevata elaborazione in corso, avvio polling automatico')
+  // Avvia polling per status 0 (In attesa) e 1 (In elaborazione)
+  if ((newStatus === 0 || newStatus === 1) && !pollingInterval) {
+    console.log('Avvio polling automatico per status:', newStatus)
     startPolling()
+  }
+  // Ferma polling per status finali (2, 8, 9)
+  else if (newStatus === 2 || newStatus === 8 || newStatus === 9) {
+    console.log('Status finale raggiunto, fermo polling')
+    stopPolling()
   }
 }, { immediate: true })
 
@@ -607,7 +587,7 @@ onUnmounted(() => {
         <ProcessingAIStutteringBanner
           v-if="aiPaperwork?.status === 1"
           :ai-paperwork="aiPaperwork"
-          @on-reset="resetDocument"
+          @on-reset="processDocument"
         />
 
         <!-- Banner per errori (status 8 o 9) -->
@@ -661,15 +641,6 @@ onUnmounted(() => {
               @click="saveModifications"
             >
               {{ isSaving ? 'Salvataggio...' : 'Salva Modifiche' }}
-            </VBtn>
-            <VBtn
-              v-if="aiPaperwork?.status === 0"
-              color="primary"
-              @click="processDocument"
-              :loading="isProcessing"
-              :disabled="isProcessing"
-            >
-              {{ isProcessing ? 'Elaborazione in corso...' : 'Processa Documento' }}
             </VBtn>
           </div>
         </div>

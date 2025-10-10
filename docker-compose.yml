@@ -28,26 +28,6 @@ services:
             - redis
             - selenium
             - mailpit
-    queue-worker:
-        build:
-            context: ./vendor/laravel/sail/runtimes/8.3
-            dockerfile: Dockerfile
-            args:
-                WWWGROUP: "${WWWGROUP}"
-        image: sail-8.3/app
-        command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
-        environment:
-            WWWUSER: "${WWWUSER}"
-            LARAVEL_SAIL: 1
-        volumes:
-            - ".:/var/www/html"
-        networks:
-            - sail
-        depends_on:
-            - laravel.test
-            - redis
     # mysql:
     #     image: 'mysql/mysql-server:8.0'
     #     ports:

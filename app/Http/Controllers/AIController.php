@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\AIPaperwork;
 use App\Services\ContractProcessingService;
-use App\Jobs\ProcessAIPaperworkJob;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
@@ -72,43 +71,18 @@ class AIController extends Controller
         try {
             $aiPaperwork = AIPaperwork::findOrFail($id);
             
-            // Permetti di saltare il controllo con force=true
-            $force = $request->input('force', false);
-            
-            if ($aiPaperwork->status === 1 && !$force) {
-                return response()->json([
-                    'message' => 'Document is currently being processed. Use force=true to reprocess.',
-                    'ai_paperwork' => $aiPaperwork
-                ], 400);
-            }
-
-            // Se force=true, resetta lo status a 0 (In Attesa)
-            if ($force) {
-                $aiPaperwork->status = 0;
-                $aiPaperwork->save();
-
-                return response()->json([
-                    'message' => 'Document reset to pending status.',
-                    'ai_paperwork' => $aiPaperwork
-                ]);
-            }
-
-            // Se force=false, comportamento asincrono con queue
-            // Imposta status a 1 (In Elaborazione) immediatamente
-            $aiPaperwork->status = 1;
+            // Reset status a 0 per permettere allo scheduler di processarlo
+            $aiPaperwork->status = 0;
             $aiPaperwork->save();
 
-            // Dispatcha il job per elaborazione in background
-            ProcessAIPaperworkJob::dispatch($aiPaperwork->id);
-
             return response()->json([
-                'message' => 'Document processing started',
+                'message' => 'Document reset to pending status. The scheduler will process it within 1 minute.',
                 'ai_paperwork' => $aiPaperwork
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to process document: ' . $e->getMessage()
+                'error' => 'Failed to reset document: ' . $e->getMessage()
             ], 500);
         }
     }

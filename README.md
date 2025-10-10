@@ -13,6 +13,22 @@ open in browser at
 http://0.0.0.0
 ```
 
+## AI Paperworks Processing
+
+In local development, to simulate the AI scheduler that processes documents automatically in production:
+
+```bash
+# Process pending AI paperworks manually (simulates production scheduler)
+docker-compose exec laravel.test php artisan aipaperworks:process
+```
+
+This command:
+- Processes documents with status 0 (pending)
+- Sets documents to status 9 (error) if processing fails
+- Stuck documents (status 1) can be reset manually via the frontend banners
+
+In production, this runs automatically every minute via the cron scheduler.
+
 
 
 # vue
