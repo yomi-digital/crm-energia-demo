@@ -519,8 +519,11 @@ const onHandleTransferCompleted = async (eventData) => {
   }
 }
 
+// Traccia lo status precedente per rilevare il cambio di stato
+let previousStatus = ref(aiPaperwork.value?.status)
+
 // Watch per avviare automaticamente il polling se la pagina si carica con status=1
-watch(() => aiPaperwork.value?.status, (newStatus) => {
+watch(() => aiPaperwork.value?.status, (newStatus, oldStatus) => {
   // Avvia polling per status 0 (In attesa) e 1 (In elaborazione)
   if ((newStatus === 0 || newStatus === 1) && !pollingInterval) {
     console.log('Avvio polling automatico per status:', newStatus)
@@ -530,7 +533,16 @@ watch(() => aiPaperwork.value?.status, (newStatus) => {
   else if (newStatus === 2 || newStatus === 8 || newStatus === 9) {
     console.log('Status finale raggiunto, fermo polling')
     stopPolling()
+    
+    // Auto-refresh quando la pratica viene completata (passa a status 2 da 0 o 1)
+    if (newStatus === 2 && (previousStatus.value === 0 || previousStatus.value === 1)) {
+      console.log('Pratica completata, refresh automatico della pagina...')
+      window.location.reload()
+    }
   }
+  
+  // Aggiorna lo status precedente
+  previousStatus.value = newStatus
 }, { immediate: true })
 
 // Cleanup: ferma il polling quando l'utente esce dalla pagina
