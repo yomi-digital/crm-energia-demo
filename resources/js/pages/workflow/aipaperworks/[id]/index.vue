@@ -3,6 +3,7 @@ import AIErrorBanner from '@/components/AIErrorBanner.vue'
 import AIPaperworkTransfer from '@/components/AIPaperworkTransfer.vue'
 import BrandOverrideAlert from '@/components/BrandOverrideAlert.vue'
 import ProcessingAIStutteringBanner from '@/components/ProcessingAIStutteringBanner.vue'
+import GeneralErrorDialog from '@/components/dialogs/GeneralErrorDialog.vue'
 import { onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -305,30 +306,89 @@ const downloadFile = async () => {
 const isSaving = ref(false)
 const isUpdatingEmail = ref(false)
 
+// Error dialog state
+const isErrorDialogVisible = ref(false)
+const errorTitle = ref('')
+const errorMessage = ref('')
+
+// Success dialog state
+const isSuccessDialogVisible = ref(false)
+const successTitle = ref('')
+const successMessage = ref('')
+const shouldReloadOnSuccessClose = ref(false)
+
+// Helper function to show error dialog
+const showErrorDialog = (title, error) => {
+  errorTitle.value = title
+  
+  // Extract message from API error response
+  let message = ''
+  
+  if (error?.data) {
+    // Check for validation errors (422)
+    if (error.data.errors && typeof error.data.errors === 'object') {
+      const errorMessages = Object.values(error.data.errors).flat()
+      message = errorMessages.join('\n')
+    } 
+    // Check for error message
+    else if (error.data.message) {
+      message = error.data.message
+    }
+    // Check for error field
+    else if (error.data.error) {
+      message = error.data.error
+    }
+  }
+  
+  // Fallback to generic message
+  if (!message) {
+    message = 'Si è verificato un errore imprevisto. Riprova più tardi.'
+  }
+  
+  errorMessage.value = message
+  isErrorDialogVisible.value = true
+}
+
+// Helper function to show success dialog
+const showSuccessDialog = (title, message, reloadOnClose = false) => {
+  successTitle.value = title
+  successMessage.value = message
+  shouldReloadOnSuccessClose.value = reloadOnClose
+  isSuccessDialogVisible.value = true
+}
+
+// Handle success dialog close
+const handleSuccessDialogClose = () => {
+  isSuccessDialogVisible.value = false
+  if (shouldReloadOnSuccessClose.value) {
+    window.location.reload()
+  }
+}
+
 const saveModifications = async () => {
   // Validazione campi obbligatori prima del salvataggio
   if (!extractedPaperwork.value.type) {
-    alert('Il campo Tipo Fornitura è obbligatorio')
+    showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo Tipo Fornitura è obbligatorio' } })
     return
   }
   
   if (!extractedPaperwork.value.energy_type) {
-    alert('Il campo Tipo Utenza è obbligatorio')
+    showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo Tipo Utenza è obbligatorio' } })
     return
   }
   
   if (!extractedPaperwork.value.category) {
-    alert('Il campo Categoria è obbligatorio')
+    showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo Categoria è obbligatorio' } })
     return
   }
   
   if (extractedPaperwork.value.energy_type === 'MOBILE' && !extractedPaperwork.value.mobile_type) {
-    alert('Il campo Tipologia Mobile è obbligatorio quando il tipo utenza è Mobile')
+    showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo Tipologia Mobile è obbligatorio quando il tipo utenza è Mobile' } })
     return
   }
   
   if (isPodRequired.value && (!extractedPaperwork.value.account_pod_pdr || extractedPaperwork.value.account_pod_pdr.trim() === '')) {
-    alert('Il campo POD/PDR è obbligatorio per questo tipo di pratica')
+    showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo POD/PDR è obbligatorio per questo tipo di pratica' } })
     return
   }
 
@@ -343,12 +403,11 @@ const saveModifications = async () => {
         mandate_id: extractedPaperwork.value.mandate_id,
       }
     })
-    // Simple success message
-    alert('Modifiche salvate')
-    window.location.reload()
+    // Show success message with reload on close
+    showSuccessDialog('Modifiche salvate', 'Le modifiche sono state salvate con successo. La pagina verrà ricaricata.', true)
   } catch (error) {
     console.error('Error saving modifications:', error)
-    alert('Errore durante il salvataggio delle modifiche')
+    showErrorDialog('Errore durante il salvataggio', error)
   } finally {
     isSaving.value = false
   }
@@ -356,33 +415,33 @@ const saveModifications = async () => {
 
 const confirmPaperwork = async () => {
   if (!extractedPaperwork.value.product_id) {
-    alert('Seleziona un prodotto prima di confermare')
+    showErrorDialog('Prodotto richiesto', { data: { message: 'Seleziona un prodotto prima di confermare' } })
     return
   }
 
   // Validazione campi obbligatori prima della conferma
   if (!extractedPaperwork.value.type) {
-    alert('Il campo Tipo Fornitura è obbligatorio')
+    showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo Tipo Fornitura è obbligatorio' } })
     return
   }
   
   if (!extractedPaperwork.value.energy_type) {
-    alert('Il campo Tipo Utenza è obbligatorio')
+    showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo Tipo Utenza è obbligatorio' } })
     return
   }
   
   if (!extractedPaperwork.value.category) {
-    alert('Il campo Categoria è obbligatorio')
+    showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo Categoria è obbligatorio' } })
     return
   }
   
   if (extractedPaperwork.value.energy_type === 'MOBILE' && !extractedPaperwork.value.mobile_type) {
-    alert('Il campo Tipologia Mobile è obbligatorio quando il tipo utenza è Mobile')
+    showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo Tipologia Mobile è obbligatorio quando il tipo utenza è Mobile' } })
     return
   }
   
   if (isPodRequired.value && (!extractedPaperwork.value.account_pod_pdr || extractedPaperwork.value.account_pod_pdr.trim() === '')) {
-    alert('Il campo POD/PDR è obbligatorio per questo tipo di pratica')
+    showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo POD/PDR è obbligatorio per questo tipo di pratica' } })
     return
   }
 
@@ -406,7 +465,7 @@ const confirmPaperwork = async () => {
     router.push(`/workflow/paperworks/${response.paperwork.id}`)
   } catch (error) {
     console.error('Error confirming paperwork:', error)
-    alert('Errore durante la conferma della pratica')
+    showErrorDialog('Errore durante la conferma', error)
   }
 }
 
@@ -422,7 +481,7 @@ const cancelPaperwork = async () => {
     await fetchAIPaperwork()
   } catch (error) {
     console.error('Error canceling paperwork:', error)
-    alert('Errore durante l\'annullamento della pratica')
+    showErrorDialog('Errore durante l\'annullamento', error)
   }
 }
 
@@ -474,7 +533,7 @@ const isPodRequired = computed(() => {
 
 const updateEmailAndRefresh = async () => {
   if (!extractedCustomer.value.email || !extractedCustomer.value.email.trim()) {
-    alert('Inserisci un\'email valida')
+    showErrorDialog('Email richiesta', { data: { message: 'Inserisci un\'email valida' } })
     return
   }
   
@@ -493,14 +552,12 @@ const updateEmailAndRefresh = async () => {
       ? `Email aggiornata! Cliente esistente trovato (ID: ${response.customer_id})`
       : 'Email aggiornata! Nessun cliente esistente trovato con questa email'
     
-    alert(message)
-    
-    // Refresh della pagina per ricaricare tutti i dati
-    window.location.reload()
+    // Show success message with reload on close
+    showSuccessDialog('Email aggiornata', message, true)
     
   } catch (error) {
     console.error('Error updating email:', error)
-    alert('Errore durante l\'aggiornamento dell\'email')
+    showErrorDialog('Errore durante l\'aggiornamento', error)
   } finally {
     isUpdatingEmail.value = false
   }
@@ -1032,5 +1089,20 @@ onUnmounted(() => {
         </VRow>
       </VCardText>
     </VCard>
+
+    <!-- Error Dialog -->
+    <GeneralErrorDialog
+      v-model="isErrorDialogVisible"
+      :title="errorTitle"
+      :message="errorMessage"
+    />
+
+    <!-- Success Dialog -->
+    <GeneralSuccessDialog
+      v-model="isSuccessDialogVisible"
+      :title="successTitle"
+      :message="successMessage"
+      @close="handleSuccessDialogClose"
+    />
   </section>
 </template> 
