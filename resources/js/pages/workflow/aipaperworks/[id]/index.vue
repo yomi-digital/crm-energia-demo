@@ -1001,8 +1001,17 @@ onUnmounted(() => {
         </template>
         <VRow v-else class="justify-center align-center py-8">
           <VCol cols="12" class="text-center">
+            <VProgressCircular
+              v-if="aiPaperwork?.status === 1"
+              indeterminate
+              :color="getStatusChipColor(aiPaperwork?.status)"
+              size="48"
+              width="4"
+              class="mb-4"
+            />
             <VIcon
-              :icon="aiPaperwork?.status === 0 ? 'tabler-clock' : aiPaperwork?.status === 1 ? 'tabler-loader-2' : 'tabler-x'"
+              v-else
+              :icon="aiPaperwork?.status === 0 ? 'tabler-clock' : 'tabler-x'"
               size="48"
               :color="getStatusChipColor(aiPaperwork?.status)"
               class="mb-4"
@@ -1014,7 +1023,7 @@ onUnmounted(() => {
                  'Si è verificato un errore durante l\'elaborazione' }}
             </h3>
             <p class="text-medium-emphasis">
-              {{ aiPaperwork?.status === 0 ? 'Clicca su "Processa Documento" per avviare l\'elaborazione' :
+              {{
                  aiPaperwork?.status === 1 ? 'Attendi il completamento dell\'elaborazione' :
                  aiPaperwork?.status === 8 ? 'Questo documento è stato annullato e non può essere modificato' :
                  'Non è possibile visualizzare o modificare i dati estratti' }}
