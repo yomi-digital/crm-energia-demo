@@ -41,7 +41,7 @@ const tabs = [
   // },
 ]
 
-definePage({ meta: { navActiveLink: 'account-settings-tab' } })
+definePage({ meta: { navActiveLink: 'account-settings-tab', action: 'access', subject: 'dashboard' } })
 </script>
 
 <template>
