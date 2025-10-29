@@ -14,15 +14,11 @@ class TipologiaTetto extends Model
     protected $primaryKey = 'id_voce';
 
     protected $fillable = [
-        'nome_voce',
-        'tipo_voce',
-        'tipo_valore',
-        'valore_default',
-        'anni_durata_default',
+        'nome_tipologia',
+        'note',
     ];
 
     protected $casts = [
-        'valore_default' => 'float',
-        'anni_durata_default' => 'integer',
+        // Rimuovi i cast per i campi eliminati, se presenti
     ];
 }
