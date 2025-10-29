@@ -27,7 +27,8 @@ class IncentiviController extends Controller
             'nominativo' => 'required|string|max:255',
             'numeroDiTelefono' => 'required|string|max:255',
             'privacyAccepted' => 'required|boolean',
-            'provincia' => 'required|string|max:255'
+            'provincia' => 'required|string|max:255',
+            'where_meet_us' => 'nullable|string|max:255'
         ]);
 
         if ($validator->fails()) {

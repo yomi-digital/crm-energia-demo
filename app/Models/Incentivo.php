@@ -22,7 +22,8 @@ class Incentivo extends Model
         'incentivo_cer',
         'incentivo_dedicated',
         'incentivo_pod',
-        'autoconsume_savings'
+        'autoconsume_savings',
+        'where_meet_us'
     ];
 
     protected $casts = [
