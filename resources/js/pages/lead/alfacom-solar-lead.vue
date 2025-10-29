@@ -127,6 +127,11 @@ const headers = [
     sortable: true,
   },
   {
+    title: 'Dove ci ha conosciuti?',
+    key: 'where_meet_us',
+    sortable: true,
+  },
+  {
     title: 'Data Creazione',
     key: 'created_at',
     sortable: true,
@@ -710,6 +715,11 @@ const exportExcel = async () => {
           >
             {{ formatType(item.hasPanels) }}
           </VChip>
+        </template>
+
+        <!-- Come ci hai trovato? Column -->
+        <template #item.where_meet_us="{ item }">
+          <span class="text-sm">{{ item.where_meet_us || '-' }}</span>
         </template>
 
         <!-- Data Creazione Column -->
