@@ -23,6 +23,12 @@ use App\Http\Controllers\ContractUploadsController;
 use App\Http\Controllers\AIController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\IncentiviController;
+use App\Http\Controllers\Workflow\ProductCategoriesController;
+use App\Http\Controllers\Workflow\CoefficientiProduzioneController;
+use App\Http\Controllers\Workflow\ProdottoFotovoltaicoController;
+use App\Http\Controllers\Workflow\TipologiaTettoController;
+use App\Http\Controllers\Workflow\VoceEconomicaController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -203,6 +209,13 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
         Route::get('/get-incentive', [IncentiviController::class, 'getIncentive']);
         Route::delete('/{id}', [IncentiviController::class, 'deleteIncentive']);
     });
+
+    Route::get('product-categories', [ProductCategoriesController::class, 'index']);
+    Route::get('coefficienti-produzione', [CoefficientiProduzioneController::class, 'index']);
+    Route::get('prodotti-fotovoltaico', [ProdottoFotovoltaicoController::class, 'index']);
+    Route::get('tipologie-tetto', [TipologiaTettoController::class, 'index']);
+    Route::get('voci-economiche', [VoceEconomicaController::class, 'index']);
+
 });
 
 // Endpoint pubblico per gli incentivi (non protetto da autenticazione)
