@@ -29,6 +29,7 @@ use App\Http\Controllers\Workflow\ProdottoFotovoltaicoController;
 use App\Http\Controllers\Workflow\TipologiaTettoController;
 use App\Http\Controllers\Workflow\VoceEconomicaController;
 use App\Http\Controllers\ModalitaPagamentoController;
+use App\Http\Controllers\PreventivoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -217,6 +218,8 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('tipologie-tetto', [TipologiaTettoController::class, 'index']);
     Route::get('voci-economiche', [VoceEconomicaController::class, 'index']);
     Route::get('modalita-pagamento', [ModalitaPagamentoController::class, 'index']);
+
+    Route::post('preventivi-add', [PreventivoController::class, 'store']);
 
 });
 
