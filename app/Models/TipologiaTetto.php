@@ -16,9 +16,10 @@ class TipologiaTetto extends Model
     protected $fillable = [
         'nome_tipologia',
         'note',
+        'costo_extra_kwp',
     ];
 
     protected $casts = [
-        // Rimuovi i cast per i campi eliminati, se presenti
+        'costo_extra_kwp' => 'float',
     ];
 }
