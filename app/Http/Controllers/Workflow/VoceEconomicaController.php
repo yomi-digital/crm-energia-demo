@@ -13,7 +13,8 @@ class VoceEconomicaController extends Controller
     {
         $perPage = $request->get('itemsPerPage', 10);
 
-        $vociEconomiche = VoceEconomica::query();
+        $vociEconomiche = VoceEconomica::query()
+            ->where('is_active', true);
 
         if ($request->filled('customer_type')) {
             $customerType = strtolower($request->get('customer_type'));

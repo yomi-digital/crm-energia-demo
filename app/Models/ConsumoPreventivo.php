@@ -26,6 +26,7 @@ class ConsumoPreventivo extends Model
         'consumo_diurno_annuo',
         'consumo_notturno_annuo',
         'capacita_batteria_consigliata',
+        'potenza_impianto_consigliata',
     ];
 
     protected $casts = [
@@ -36,6 +37,7 @@ class ConsumoPreventivo extends Model
         'consumo_diurno_annuo' => 'float',
         'consumo_notturno_annuo' => 'float',
         'capacita_batteria_consigliata' => 'float',
+        'potenza_impianto_consigliata' => 'float',
     ];
 
     public function preventivo()
