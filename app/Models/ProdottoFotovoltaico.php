@@ -21,6 +21,7 @@ class ProdottoFotovoltaico extends Model
         'capacita_kwh',
         'prezzo_base',
         'finanziamento_rate_standard',
+        'link_scheda_prodotto_tecnica',
     ];
 
     protected $casts = [
