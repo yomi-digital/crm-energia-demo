@@ -19,11 +19,13 @@ class VoceEconomica extends Model
         'tipo_valore',
         'valore_default',
         'anni_durata_default',
+        'is_active',
     ];
 
     protected $casts = [
         'valore_default' => 'float',
         'anni_durata_default' => 'integer',
+        'is_active' => 'boolean',
     ];
 
     public function applicabilita()

@@ -22,6 +22,7 @@ use App\Models\ConsumoPreventivo;
 use App\Models\DettaglioProdottoPreventivo;
 use App\Models\PreventivoVoceEconomica;
 use App\Models\DettaglioBusinessPlan;
+use App\Services\PreventivoPdfService;
 
 class PreventivoController extends Controller
 {
@@ -60,13 +61,13 @@ class PreventivoController extends Controller
             'PREVENTIVI.fk_agente' => ['required', new StrictPositiveNumberRule('PREVENTIVI.fk_agente', true, 1, true)],
             'PREVENTIVI.stato' => 'required|string|in:protocollato',
             'PREVENTIVI.tetto_salvato' => 'required|string|max:255',
-            'PREVENTIVI.area_geografica_salvata' => 'required|string|in:sud,nord,est,ovest,isole',
+            'PREVENTIVI.area_geografica_salvata' => 'required|string|in:sud,nord,centro,isole',
             'PREVENTIVI.esposizione_salvata' => 'required|string|in:nord,nord est,nord ovest,sud,sud est,sud ovest,est,ovest',
             'PREVENTIVI.produzione_annua_stimata' => ['required', new StrictPositiveNumberRule('PREVENTIVI.produzione_annua_stimata', false, 0, true)],
             'PREVENTIVI.risparmio_autoconsumo_annuo' => ['required', new StrictPositiveNumberRule('PREVENTIVI.risparmio_autoconsumo_annuo', false, 0, true)],
             'PREVENTIVI.vendita_eccedenze_rid_annua' => ['required', new StrictPositiveNumberRule('PREVENTIVI.vendita_eccedenze_rid_annua', false, 0, true)],
             'PREVENTIVI.incentivo_cer_annuo' => ['required', new StrictPositiveNumberRule('PREVENTIVI.incentivo_cer_annuo', false, 0, true)],
-            'PREVENTIVI.detrazione_fiscale_annua' => ['required', new StrictPositiveNumberRule('PREVENTIVI.detrazione_fiscale_annua', false, 0, true)],
+            'PREVENTIVI.detrazione_fiscale_annua' => ['nullable', new StrictPositiveNumberRule('PREVENTIVI.detrazione_fiscale_annua', false, 0, true)],
             'PREVENTIVI.modalita_pagamento_salvata' => 'required|string|in:bonifico,finanziamento',
             'PREVENTIVI.bonifico_data_json' => [
                 'nullable',
@@ -131,7 +132,7 @@ class PreventivoController extends Controller
             'DETTAGLI_PRODOTTO_PREVENTIVO.*.prezzo_unitario_salvato' => ['required', new StrictPositiveNumberRule('DETTAGLI_PRODOTTO_PREVENTIVO.*.prezzo_unitario_salvato', false, 0, true)],
             'DETTAGLI_PRODOTTO_PREVENTIVO.*.capacita_batteria_salvata' => 'nullable|numeric|min:0',
 
-            'PREVENTIVI_VOCE_ECONOMICHE' => 'required|array',
+            'PREVENTIVI_VOCE_ECONOMICHE' => 'nullable|array',
             'PREVENTIVI_VOCE_ECONOMICHE.*.nome_voce_salvato' => 'required|string|max:255',
             'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata' => ['required', 'string', Rule::in(['incentivo', 'sconto', 'costo'])],
             'PREVENTIVI_VOCE_ECONOMICHE.*.valore_applicato' => ['required', new StrictPositiveNumberRule('PREVENTIVI_VOCE_ECONOMICHE.*.valore_applicato', false, 0, true)],
@@ -158,7 +159,7 @@ class PreventivoController extends Controller
             'DETTAGLIO_BUSINESS_PLAN.*.flusso_cassa_cumulato' => ['required', new StrictNumberRule('DETTAGLIO_BUSINESS_PLAN.*.flusso_cassa_cumulato')],
         ], [
             'PREVENTIVI.esposizione_salvata.in' => "Il campo PREVENTIVI.esposizione_salvata deve essere uno tra: nord, nord est, nord ovest, sud, sud est, sud ovest, est, ovest.",
-            'PREVENTIVI.area_geografica_salvata.in' => "Il campo PREVENTIVI.area_geografica_salvata deve essere uno tra: sud, nord, est, ovest, isole.",
+            'PREVENTIVI.area_geografica_salvata.in' => "Il campo PREVENTIVI.area_geografica_salvata deve essere uno tra: sud, nord, centro, isole.",
             'CONSUMI_PREVENTIVO.tipologia_bolletta' => "Il campo CONSUMI_PREVENTIVO.tipologia_bolletta deve essere uno tra: mensile, bimestrale.",
             'PREVENTIVI.modalita_pagamento_salvata.in' => "Il campo PREVENTIVI.modalita_pagamento_salvata deve essere uno tra: bonifico, finanziamento. (lowercase)",
             'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata.in' => "Il campo PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata deve essere uno tra: incentivo, sconto, costo.",
@@ -199,10 +200,12 @@ class PreventivoController extends Controller
                     DettaglioProdottoPreventivo::create($prodottoData);
                 }
 
-                // 5. Crea le preventivo_voci_economiche (array) con fk_preventivo
-                foreach ($validatedData['PREVENTIVI_VOCE_ECONOMICHE'] as $voceData) {
-                    $voceData['fk_preventivo'] = $preventivoId;
-                    PreventivoVoceEconomica::create($voceData);
+                // 5. Crea le preventivo_voci_economiche (array opzionale) con fk_preventivo
+                if (!empty($validatedData['PREVENTIVI_VOCE_ECONOMICHE'])) {
+                    foreach ($validatedData['PREVENTIVI_VOCE_ECONOMICHE'] as $voceData) {
+                        $voceData['fk_preventivo'] = $preventivoId;
+                        PreventivoVoceEconomica::create($voceData);
+                    }
                 }
 
                 // 6. Crea i dettaglio_business_plan (array opzionale) con fk_preventivo
@@ -212,6 +215,21 @@ class PreventivoController extends Controller
                         DettaglioBusinessPlan::create($businessPlanData);
                     }
                 }
+
+                // 7. Genera il PDF e salvalo su DigitalOcean Spaces
+                $preventivoWithRelations = Preventivo::with([
+                    'dettagliProdotti',
+                    'vociEconomiche',
+                    'dettagliBusinessPlan',
+                    'consumi'
+                ])->find($preventivoId);
+
+                $pdfService = new PreventivoPdfService();
+                $pdfPath = $pdfService->generateAndSavePdf($preventivoWithRelations);
+
+                // 8. Aggiorna il preventivo con il percorso del PDF (file privato)
+                // Per ottenere un URL temporaneo, usare: $pdfService->getTemporaryUrl($preventivo)
+                $preventivoWithRelations->update(['pdf_url' => $pdfPath]);
 
                 return $preventivoId;
             });
