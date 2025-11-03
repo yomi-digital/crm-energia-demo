@@ -159,6 +159,7 @@ class PreventivoController extends Controller
             'CONSUMI_PREVENTIVO.consumo_diurno_annuo' => ['required', new StrictPositiveNumberRule('CONSUMI_PREVENTIVO.consumo_diurno_annuo')],
             'CONSUMI_PREVENTIVO.consumo_notturno_annuo' => ['required', new StrictPositiveNumberRule('CONSUMI_PREVENTIVO.consumo_notturno_annuo')],
             'CONSUMI_PREVENTIVO.capacita_batteria_consigliata' => ['required', new StrictPositiveNumberRule('CONSUMI_PREVENTIVO.capacita_batteria_consigliata')],
+            'CONSUMI_PREVENTIVO.potenza_impianto_consigliata' => ['required', new StrictPositiveNumberRule('CONSUMI_PREVENTIVO.potenza_impianto_consigliata')],
 
             'DETTAGLI_PRODOTTO_PREVENTIVO' => 'required|array',
             'DETTAGLI_PRODOTTO_PREVENTIVO.*.nome_prodotto_salvato' => 'required|string|max:255',
