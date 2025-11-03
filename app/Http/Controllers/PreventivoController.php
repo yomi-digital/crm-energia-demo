@@ -68,16 +68,38 @@ class PreventivoController extends Controller
             'PREVENTIVI.vendita_eccedenze_rid_annua' => ['required', new StrictPositiveNumberRule('PREVENTIVI.vendita_eccedenze_rid_annua', false, 0, true)],
             'PREVENTIVI.incentivo_cer_annuo' => ['required', new StrictPositiveNumberRule('PREVENTIVI.incentivo_cer_annuo', false, 0, true)],
             'PREVENTIVI.detrazione_fiscale_annua' => ['nullable', new StrictPositiveNumberRule('PREVENTIVI.detrazione_fiscale_annua', false, 0, true)],
-            'PREVENTIVI.modalita_pagamento_salvata' => 'required|string|in:bonifico,finanziamento',
+            'PREVENTIVI.modalita_pagamento_salvata' => [
+                'required',
+                'string',
+                function (string $attribute, mixed $value, Closure $fail) {
+                    $allowedValues = ['bonifico', 'finanziamento', 'bonifico,finanziamento'];
+                    if (!in_array(strtolower($value), $allowedValues)) {
+                        $fail('Il campo PREVENTIVI.modalita_pagamento_salvata deve essere uno tra: bonifico, finanziamento, bonifico,finanziamento.');
+                    }
+                },
+            ],
             'PREVENTIVI.bonifico_data_json' => [
                 'nullable',
                 'array',
                 new BonificoDataRule(),
-                'required_without:PREVENTIVI.finanziamento_data_json',
-                'required_if:PREVENTIVI.modalita_pagamento_salvata,bonifico',
                 function (string $attribute, mixed $value, Closure $fail) use ($request) {
-                    if (!empty($value) && !empty($request->input('PREVENTIVI.finanziamento_data_json'))) {
-                        $fail('Non è possibile fornire sia i dati del bonifico che quelli del finanziamento.');
+                    $modalitaPagamento = strtolower($request->input('PREVENTIVI.modalita_pagamento_salvata', ''));
+                    $preventiviData = $request->input('PREVENTIVI', []);
+                    $hasBonificoData = isset($preventiviData['bonifico_data_json']) && !empty($preventiviData['bonifico_data_json']);
+                    
+                    // Se la modalità è solo "finanziamento", non deve essere presente bonifico_data_json
+                    if ($modalitaPagamento === 'finanziamento' && $hasBonificoData) {
+                        $fail('Il campo PREVENTIVI.bonifico_data_json non può essere presente quando la modalità di pagamento è solo finanziamento.');
+                    }
+                    
+                    // Se la modalità è solo "bonifico", bonifico_data_json è obbligatorio
+                    if ($modalitaPagamento === 'bonifico' && !$hasBonificoData) {
+                        $fail('Il campo PREVENTIVI.bonifico_data_json è obbligatorio quando la modalità di pagamento è bonifico.');
+                    }
+                    
+                    // Se la modalità è "bonifico,finanziamento", bonifico_data_json è obbligatorio
+                    if ($modalitaPagamento === 'bonifico,finanziamento' && !$hasBonificoData) {
+                        $fail('Il campo PREVENTIVI.bonifico_data_json è obbligatorio quando la modalità di pagamento è bonifico,finanziamento. Entrambi i dati JSON sono richiesti.');
                     }
                 },
             ],
@@ -85,11 +107,24 @@ class PreventivoController extends Controller
                 'nullable',
                 'array',
                 new FinanziamentoDataRule(),
-                'required_without:PREVENTIVI.bonifico_data_json',
-                'required_if:PREVENTIVI.modalita_pagamento_salvata,finanziamento',
                 function (string $attribute, mixed $value, Closure $fail) use ($request) {
-                    if (!empty($value) && !empty($request->input('PREVENTIVI.bonifico_data_json'))) {
-                        $fail('Non è possibile fornire sia i dati del bonifico che quelli del finanziamento.');
+                    $modalitaPagamento = strtolower($request->input('PREVENTIVI.modalita_pagamento_salvata', ''));
+                    $preventiviData = $request->input('PREVENTIVI', []);
+                    $hasFinanziamentoData = isset($preventiviData['finanziamento_data_json']) && !empty($preventiviData['finanziamento_data_json']);
+                    
+                    // Se la modalità è solo "bonifico", non deve essere presente finanziamento_data_json
+                    if ($modalitaPagamento === 'bonifico' && $hasFinanziamentoData) {
+                        $fail('Il campo PREVENTIVI.finanziamento_data_json non può essere presente quando la modalità di pagamento è solo bonifico.');
+                    }
+                    
+                    // Se la modalità è solo "finanziamento", finanziamento_data_json è obbligatorio
+                    if ($modalitaPagamento === 'finanziamento' && !$hasFinanziamentoData) {
+                        $fail('Il campo PREVENTIVI.finanziamento_data_json è obbligatorio quando la modalità di pagamento è finanziamento.');
+                    }
+                    
+                    // Se la modalità è "bonifico,finanziamento", finanziamento_data_json è obbligatorio
+                    if ($modalitaPagamento === 'bonifico,finanziamento' && !$hasFinanziamentoData) {
+                        $fail('Il campo PREVENTIVI.finanziamento_data_json è obbligatorio quando la modalità di pagamento è bonifico,finanziamento. Entrambi i dati JSON sono richiesti.');
                     }
                 },
             ],
@@ -161,10 +196,34 @@ class PreventivoController extends Controller
             'PREVENTIVI.esposizione_salvata.in' => "Il campo PREVENTIVI.esposizione_salvata deve essere uno tra: nord, nord est, nord ovest, sud, sud est, sud ovest, est, ovest.",
             'PREVENTIVI.area_geografica_salvata.in' => "Il campo PREVENTIVI.area_geografica_salvata deve essere uno tra: sud, nord, centro, isole.",
             'CONSUMI_PREVENTIVO.tipologia_bolletta' => "Il campo CONSUMI_PREVENTIVO.tipologia_bolletta deve essere uno tra: mensile, bimestrale.",
-            'PREVENTIVI.modalita_pagamento_salvata.in' => "Il campo PREVENTIVI.modalita_pagamento_salvata deve essere uno tra: bonifico, finanziamento. (lowercase)",
+            'PREVENTIVI.modalita_pagamento_salvata' => "Il campo PREVENTIVI.modalita_pagamento_salvata deve essere uno tra: bonifico, finanziamento, bonifico,finanziamento.",
             'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata.in' => "Il campo PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata deve essere uno tra: incentivo, sconto, costo.",
             'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_valore_salvato.in' => "Il campo PREVENTIVI_VOCE_ECONOMICHE.*.tipo_valore_salvato deve essere uno tra: %, €. % per gli incentivi e € per le altre tipologie di voce.",
         ]);
+
+        // Validazione aggiuntiva per garantire che quando modalita_pagamento_salvata è "bonifico,finanziamento", entrambi i dati JSON siano presenti
+        $modalitaPagamento = strtolower($request->input('PREVENTIVI.modalita_pagamento_salvata', ''));
+        $preventiviData = $request->input('PREVENTIVI', []);
+        
+        if ($modalitaPagamento === 'bonifico,finanziamento') {
+            $hasBonificoData = isset($preventiviData['bonifico_data_json']) && !empty($preventiviData['bonifico_data_json']);
+            $hasFinanziamentoData = isset($preventiviData['finanziamento_data_json']) && !empty($preventiviData['finanziamento_data_json']);
+            
+            if (!$hasBonificoData || !$hasFinanziamentoData) {
+                $errors = [];
+                if (!$hasBonificoData) {
+                    $errors['PREVENTIVI.bonifico_data_json'] = ['Il campo PREVENTIVI.bonifico_data_json è obbligatorio quando la modalità di pagamento è bonifico,finanziamento. Entrambi i dati JSON sono richiesti.'];
+                }
+                if (!$hasFinanziamentoData) {
+                    $errors['PREVENTIVI.finanziamento_data_json'] = ['Il campo PREVENTIVI.finanziamento_data_json è obbligatorio quando la modalità di pagamento è bonifico,finanziamento. Entrambi i dati JSON sono richiesti.'];
+                }
+                
+                return response()->json([
+                    'message' => 'Errore di validazione.',
+                    'errors' => $errors,
+                ], 422);
+            }
+        }
 
 
         //Transaction per aggiungere il preventivo a database
