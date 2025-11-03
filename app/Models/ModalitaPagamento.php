@@ -17,4 +17,9 @@ class ModalitaPagamento extends Model
         'nome_modalita',
         'descrizione',
     ];
+
+    public function applicabilita()
+    {
+        return $this->hasMany(ApplicabilitaModalitaPagamento::class, 'fk_modalita', 'id_modalita');
+    }
 }
