@@ -26,5 +26,6 @@ export default [
     to: 'general-documents',
     action: 'access',
     subject: 'documents',
-  },
+  }
+ 
 ]

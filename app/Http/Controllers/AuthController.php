@@ -91,6 +91,7 @@ class AuthController extends Controller
             'workflow' => [
                 'access customers',
                 'access paperworks',
+                'access preventivi',
             ],
             'configuration' => [
                 'access mandates',
