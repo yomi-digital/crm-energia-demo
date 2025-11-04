@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="js">
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { STEPS } from '../../../components/preventivi/constants';
 import Stepper from '../../../components/preventivi/Stepper.vue';
 import Step1ClientSelection from '../../../components/preventivi/steps/Step1ClientSelection.vue';
@@ -44,11 +44,20 @@ const formData = ref({
     geographicArea: 'CENTRO',
     roofExposure: 'SUD',
     roofType: 'A falda',
+    roofTypePrice: 0,
     selectedProduct: '',
     selectedBatteryCapacity: 0,
     selectedPowerKw: 0,
     paymentMethod: 'Bonifico',
     paymentBonifico: { primaRata: 30, secondaRata: 50 },
+    paymentMisto: {
+        bonificoAmount: 0,
+        finanziamentoAmount: 0,
+        primaRata: 30,
+        secondaRata: 50,
+        installmentAmount: 0,
+        installments: 120,
+    },
     installmentAmount: 0,
     installments: 120,
     maintenance: { enabled: false, cost: 0 },
@@ -75,18 +84,8 @@ const handleStepClick = (index) => {
 };
 
 const updateFormData = (newData) => {
-    console.log('updateFormData ricevuto nel parent:', newData);
-    console.log('selectedProduct nel newData:', newData.selectedProduct);
-    console.log('selectedProduct nel formData corrente:', formData.value.selectedProduct);
     formData.value = { ...formData.value, ...newData };
-    console.log('formData.value dopo update:', formData.value);
-    console.log('selectedProduct dopo update:', formData.value.selectedProduct);
 };
-
-// Watch per debuggare quando cambia selectedProduct
-watch(() => formData.value.selectedProduct, (newVal, oldVal) => {
-    console.log('selectedProduct cambiato nel parent:', { newVal, oldVal, type: typeof newVal });
-}, { immediate: true });
 
 const updateBillEntryMode = (newMode) => {
     billEntryMode.value = newMode;
@@ -109,35 +108,46 @@ const isNextDisabled = computed(() => {
     case 3:
        // Se non c'è un prodotto selezionato, è sicuramente invalido
        const selectedProduct = formData.value.selectedProduct;
-       console.log('Validazione - selectedProduct:', selectedProduct, 'tipo:', typeof selectedProduct);
-       console.log('Validazione - formData completo:', JSON.stringify(formData.value));
        
        if (!selectedProduct || selectedProduct === '' || selectedProduct === 0) {
-         console.log('selectedProduct non è valido');
          return true;
        }
        
-       console.log('selectedProduct è valido:', selectedProduct);
-       
        // Controlla se il metodo di pagamento è Bonifico (case-insensitive)
        const paymentMethod = formData.value.paymentMethod || '';
-       const isBonifico = paymentMethod.toLowerCase().includes('bonifico');
+       const isBonifico = paymentMethod.toLowerCase().includes('bonifico') && paymentMethod !== 'Misto';
+       const isMisto = paymentMethod === 'Misto';
        
        if (isBonifico) {
           // Assicurati che paymentBonifico esista
           if (!formData.value.paymentBonifico) {
-            console.log('paymentBonifico non esiste');
             return true; // Se non esiste paymentBonifico, è invalido
           }
           const { primaRata = 0, secondaRata = 0 } = formData.value.paymentBonifico;
           const sommaRate = primaRata + secondaRata;
           if (sommaRate !== 80) {
-            console.log('sommaRate non è 80:', sommaRate);
             return true; // La somma deve essere esattamente 80
           }
        }
        
-       console.log('Validazione passata - tutto ok');
+       if (isMisto) {
+          // Valida pagamento misto
+          if (!formData.value.paymentMisto) {
+            return true;
+          }
+          const { primaRata = 0, secondaRata = 0, bonificoAmount = 0, finanziamentoAmount = 0, installmentAmount = 0, installments = 0 } = formData.value.paymentMisto;
+          const sommaRate = primaRata + secondaRata;
+          if (sommaRate !== 80) {
+            return true;
+          }
+          if (bonificoAmount <= 0 || finanziamentoAmount <= 0) {
+            return true;
+          }
+          if (installmentAmount <= 0 || installments <= 0) {
+            return true;
+          }
+       }
+       
        return false; // Tutto ok
     default:
       return false;

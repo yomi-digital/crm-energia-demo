@@ -27,12 +27,26 @@
              </div>
              <div>
                 <label for="roof-type" class="field-label">Tipologia tetto</label>
-                <select id="roof-type" :value="formData.roofType" @change="updateFormData('roofType', $event.target.value)" class="field-select">
+                <select id="roof-type" :value="formData.roofType" @change="handleRoofTypeChange($event.target.value)" class="field-select">
                     <option value="">Seleziona tipologia</option>
                     <option v-for="tipo in tipologieTetto" :key="tipo.id_voce" :value="tipo.nome_tipologia">
                         {{ tipo.nome_tipologia }}
                     </option>
                 </select>
+                <div v-if="formData.roofType" style="margin-top:8px;">
+                    <label class="field-label" for="roof-type-price" style="font-size:12px;color:#6b7280;">Prezzo aggiuntivo tetto (opzionale, €)</label>
+                    <input 
+                        type="number" 
+                        id="roof-type-price" 
+                        :value="formData.roofTypePrice || ''" 
+                        @input="updateFormData('roofTypePrice', Number($event.target.value) || 0)" 
+                        placeholder="0"
+                        class="field-input" 
+                        style="max-width:200px;"
+                        min="0"
+                        step="0.01"
+                    />
+                </div>
              </div>
         </div>
 
@@ -47,7 +61,7 @@
                 <select
                     id="power"
                     :value="formData.selectedPowerKw"
-                    @change="updateFormData('selectedPowerKw', Number($event.target.value))"
+                    @change="handlePowerChange(Number($event.target.value))"
                     class="field-select"
                 >
                     <option value="0">Seleziona potenza</option>
@@ -124,7 +138,48 @@
                             <input type="radio" name="payment" :value="modalita.nome_modalita" :checked="formData.paymentMethod === modalita.nome_modalita" @change="updateFormData('paymentMethod', modalita.nome_modalita)" style="margin-right:8px;"/>
                             {{ modalita.nome_modalita }}
                         </label>
+                        <label style="display:flex;align-items:center;color:#374151;">
+                            <input type="radio" name="payment" value="Misto" :checked="formData.paymentMethod === 'Misto'" @change="updateFormData('paymentMethod', 'Misto')" style="margin-right:8px;"/>
+                            Misto (Bonifico + Finanziamento)
+                        </label>
                     </div>
+                    
+                    <!-- Pagamento Misto -->
+                    <div v-if="formData.paymentMethod === 'Misto'" style="margin-top:12px;padding-top:12px;border-top:1px solid #e5e7eb;">
+                        <div class="grid-responsive-2" style="margin-bottom:12px;">
+                            <div>
+                                <label class="field-label" for="bonificoAmount">Importo Bonifico (€)</label>
+                                <input type="number" id="bonificoAmount" :value="formData.paymentMisto?.bonificoAmount || 0" @input="handlePagamentoMistoChange('bonificoAmount', $event.target.value)" class="field-input" min="0" step="0.01"/>
+                            </div>
+                            <div>
+                                <label class="field-label" for="finanziamentoAmount">Importo Finanziamento (€)</label>
+                                <input type="number" id="finanziamentoAmount" :value="formData.paymentMisto?.finanziamentoAmount || 0" @input="handlePagamentoMistoChange('finanziamentoAmount', $event.target.value)" class="field-input" min="0" step="0.01" readonly style="background-color:#f3f4f6;"/>
+                                <p class="help-text" style="margin-top:4px;font-size:11px;">Calcolato automaticamente</p>
+                            </div>
+                        </div>
+                        <div class="grid-responsive-2">
+                            <div>
+                                <label class="field-label" for="primaRataMisto">Prima rata bonifico (%)</label>
+                                <input type="number" id="primaRataMisto" :value="formData.paymentMisto?.primaRata || 30" @input="handlePagamentoMistoChange('primaRata', $event.target.value)" class="field-input"/>
+                            </div>
+                            <div>
+                                <label class="field-label" for="secondaRataMisto">Seconda rata bonifico (%)</label>
+                                <input type="number" id="secondaRataMisto" :value="formData.paymentMisto?.secondaRata || 50" @input="handlePagamentoMistoChange('secondaRata', $event.target.value)" class="field-input"/>
+                            </div>
+                        </div>
+                        <div class="grid-responsive-2" style="margin-top:12px;">
+                            <div>
+                                <label class="field-label" for="installmentAmountMisto">Importo rata finanziamento (€)</label>
+                                <input type="number" id="installmentAmountMisto" :value="formData.paymentMisto?.installmentAmount || 0" @input="handlePagamentoMistoChange('installmentAmount', $event.target.value)" class="field-input" min="0" step="0.01"/>
+                            </div>
+                            <div>
+                                <label class="field-label" for="installmentsMisto">Numero di rate finanziamento</label>
+                                <input type="number" id="installmentsMisto" :value="formData.paymentMisto?.installments || 120" @input="handlePagamentoMistoChange('installments', $event.target.value)" class="field-input" min="1"/>
+                            </div>
+                        </div>
+                        <p v-if="formData.paymentMisto?.primaRata + formData.paymentMisto?.secondaRata !== 80" class="error-text" style="margin-top:8px;">La somma delle prime due rate bonifico deve essere uguale a 80%.</p>
+                    </div>
+                    
                      <div v-if="formData.paymentMethod && (formData.paymentMethod.toLowerCase().includes('finanziamento') || formData.paymentMethod === 'Finanziamento')" class="grid-responsive-2" style="margin-top:12px;padding-top:12px;border-top:1px solid #e5e7eb;">
                         <div>
                             <label class="field-label" for="installmentAmount">Importo rata (€)</label>
@@ -236,7 +291,8 @@ onMounted(async () => {
   try {
     // Carica tipologie tetto
     const tipologie = await loadTipologieTetto();
-    tipologieTetto.value = tipologie;
+    // Gestisci la risposta paginata o diretta
+    tipologieTetto.value = Array.isArray(tipologie) ? tipologie : (tipologie?.data || []);
     
     // Carica prodotti fotovoltaico
     const prodotti = await loadProdottiFotovoltaico();
@@ -247,14 +303,16 @@ onMounted(async () => {
     coefficientiProduzione.value = coefficienti;
     
     // Converti i coefficienti in un formato utilizzabile
+    // Usa il campo coefficiente_kwh_kwp dall'API
     if (coefficienti && coefficienti.length > 0) {
       const map = {};
       coefficienti.forEach(coeff => {
         const esposizione = coeff.esposizione;
         const area = coeff.area_geografica;
+        // Usa il campo coefficiente_kwh_kwp dall'API
         const valore = coeff.coefficiente_kwh_kwp;
         
-        if (esposizione && area && valore) {
+        if (esposizione && area && valore !== undefined && valore !== null) {
           if (!map[esposizione]) {
             map[esposizione] = {};
           }
@@ -293,12 +351,93 @@ onMounted(async () => {
 const updateFormData = (field, value) => {
   // Passa solo il campo aggiornato invece dell'intero oggetto
   // per evitare di sovrascrivere altri campi con valori obsoleti
-  console.log('updateFormData chiamato:', { field, value });
   emit('update:formData', { [field]: value });
 };
 
+// Computed per calcolare il costo totale del sistema
+const totalSystemCostComputed = computed(() => {
+    let productPrice = 0;
+    if (props.formData.selectedProduct) {
+      const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
+      if (selectedProduct && selectedProduct.prezzo_base) {
+        productPrice = selectedProduct.prezzo_base / 100;
+      }
+    }
+    const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity);
+    const roofTypePrice = props.formData.roofTypePrice || 0;
+    const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => {
+        if (!item) return sum;
+        if (item.tipo_valore === '%') {
+            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            return sum + (baseAmount * item.valore_default) / 100;
+        }
+        return sum + (item.amount || item.valore_default || 0);
+    }, 0);
+    const discountsTotal = props.formData.discounts.reduce((sum, item) => {
+        if (!item) return sum;
+        if (item.tipo_valore === '%') {
+            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            return sum + (baseAmount * item.valore_default) / 100;
+        }
+        return sum + (item.amount || item.valore_default || 0);
+    }, 0);
+    return productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+});
+
+// Watch per aggiornare l'importo finanziamento quando cambia il totale del sistema
+watch(totalSystemCostComputed, (newTotal) => {
+    if (props.formData.paymentMethod === 'Misto' && props.formData.paymentMisto) {
+        const bonificoAmount = props.formData.paymentMisto.bonificoAmount || 0;
+        const finanziamentoAmount = Math.max(0, newTotal - bonificoAmount);
+        if (finanziamentoAmount !== (props.formData.paymentMisto.finanziamentoAmount || 0)) {
+            updateFormData('paymentMisto', {
+                ...props.formData.paymentMisto,
+                finanziamentoAmount: finanziamentoAmount,
+            });
+        }
+    }
+});
+
+const handlePowerChange = (value) => {
+  updateFormData('selectedPowerKw', value);
+  // Ricalcola il prezzo tetto se c'è un costo_extra_kwp
+  if (value > 0 && props.formData.roofType && tipologieTetto.value.length > 0) {
+    const selectedTipo = tipologieTetto.value.find(t => t.nome_tipologia === props.formData.roofType);
+    if (selectedTipo && selectedTipo.costo_extra_kwp !== undefined && selectedTipo.costo_extra_kwp !== null) {
+      const costoExtra = selectedTipo.costo_extra_kwp * value;
+      updateFormData('roofTypePrice', costoExtra);
+    }
+  }
+};
+
+const handleRoofTypeChange = (value) => {
+  updateFormData('roofType', value);
+  // Se la tipologia tetto ha un costo_extra_kwp, lo usiamo per precompilare il prezzo
+  if (value) {
+    const selectedTipo = tipologieTetto.value.find(t => t.nome_tipologia === value);
+    if (selectedTipo) {
+      // Se c'è un costo_extra_kwp, calcoliamo il costo totale in base alla potenza selezionata
+      // costo_extra_kwp è in euro per kWp
+      if (selectedTipo.costo_extra_kwp !== undefined && selectedTipo.costo_extra_kwp !== null) {
+        const potenzaKwp = props.formData.selectedPowerKw || 0;
+        if (potenzaKwp > 0) {
+          const costoExtra = selectedTipo.costo_extra_kwp * potenzaKwp;
+          updateFormData('roofTypePrice', costoExtra);
+        } else {
+          // Se non c'è ancora una potenza selezionata, imposta a 0
+          updateFormData('roofTypePrice', 0);
+        }
+      } else {
+        // Se non c'è un costo predefinito, mantieni il valore corrente o imposta a 0
+        updateFormData('roofTypePrice', props.formData.roofTypePrice || 0);
+      }
+    }
+  } else {
+    updateFormData('roofTypePrice', 0);
+  }
+};
+
 const handleProductChange = (value) => {
-  console.log('handleProductChange chiamato con valore:', value, typeof value);
   // Aggiorna il valore locale immediatamente per feedback visivo
   localSelectedProduct.value = value;
   
@@ -309,7 +448,6 @@ const handleProductChange = (value) => {
   } else {
     productId = Number(value);
   }
-  console.log('ProductId convertito:', productId, typeof productId);
   updateFormData('selectedProduct', productId);
   
   // Se il prodotto ha un prezzo, possiamo salvarlo anche nel formData
@@ -319,6 +457,7 @@ const handleProductChange = (value) => {
       // Il prezzo_base è in centesimi, lo convertiamo in euro
       updateFormData('selectedProductPrice', selectedProduct.prezzo_base / 100);
       updateFormData('selectedProductPowerKwp', selectedProduct.potenza_kwp / 1000); // Converti da W a kW
+      // Nota: il prezzo tetto viene ricalcolato quando cambia la potenza selezionata (handlePowerChange)
     }
   }
 };
@@ -349,19 +488,9 @@ const simulationResults = computed(() => {
         detrazioneFiscale: 0,
     };
 
-    // Cerca il prodotto selezionato per ottenere la potenza
-    let systemSizeKwp = 0;
-    if (props.formData.selectedProduct) {
-      const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
-      if (selectedProduct && selectedProduct.potenza_kwp) {
-        // La potenza è in watt, convertiamo in kWp (dividi per 1000)
-        systemSizeKwp = selectedProduct.potenza_kwp / 1000;
-      } else {
-        // Fallback: prova a estrarre dal nome del prodotto (per compatibilità con prodotti hardcoded)
-        const kwpMatch = props.formData.selectedProduct.match(/(\d+(\.\d+)?)kWp/);
-        systemSizeKwp = kwpMatch ? parseFloat(kwpMatch[1]) : 0;
-      }
-    }
+    // Usa la potenza selezionata dal campo "Potenza kWh" (selectedPowerKw)
+    // selectedPowerKw è già in kW
+    const systemSizeKwp = props.formData.selectedPowerKw || 0;
     
     if (systemSizeKwp === 0 || !props.formData.billData.length || props.formData.costPerKwh <= 0) {
         return fallbackResult;
@@ -369,28 +498,36 @@ const simulationResults = computed(() => {
 
     const coefficient = coefficientsMap.value[props.formData.roofExposure]?.[props.formData.geographicArea] || 1350;
     const annualProductionKwh = systemSizeKwp * coefficient;
-
     const totals = props.formData.billData.reduce((acc, month) => {
         acc.f1 += month.f1;
         acc.f2 += month.f2;
         acc.f3 += month.f3;
         return acc;
     }, { f1: 0, f2: 0, f3: 0 });
-
     const daytimeConsumptionKwh = totals.f1 * 0.83 + totals.f2 * 0.26 + totals.f3 * 0.17;
     const nighttimeConsumptionKwh = totals.f1 * 0.17 + totals.f2 * 0.74 + totals.f3 * 0.83;
     const totalAnnualConsumptionKwh = daytimeConsumptionKwh + nighttimeConsumptionKwh;
-
     const batteryCapacityKwh = props.formData.selectedBatteryCapacity;
-    const totalAutoconsumoKwh = daytimeConsumptionKwh + (batteryCapacityKwh * 365);
+    // Calcolo autoconsumo totale
+    // Autoconsumo diretto durante il giorno + energia dalla batteria di notte
+    // La batteria può fornire energia solo fino alla sua capacità giornaliera × 365 giorni
+    const batteryEnergyPerYear = batteryCapacityKwh * 365; // kWh disponibili dalla batteria all'anno
+    // L'autoconsumo è: consumo diurno (coperto dalla produzione diretta) + min(energia batteria annua, consumo notturno)
+    const totalAutoconsumoKwh = daytimeConsumptionKwh + Math.min(batteryEnergyPerYear, nighttimeConsumptionKwh);
     const risparmioAutoconsumo = totalAutoconsumoKwh * props.formData.costPerKwh;
 
-    const dato1Kwh = Math.max(0, annualProductionKwh - totalAnnualConsumptionKwh);
-    const dato2Kwh = Math.max(0, nighttimeConsumptionKwh - (batteryCapacityKwh * 365));
-    const venditaEccedenza = (dato1Kwh + dato2Kwh) * PRICE_RITIRO_DEDICATO;
+    // CALCOLO VENDITA ECCEDENZA (RID)
+    // Formula: energia prodotta - energia autoconsumata = energia immessa in rete
+    // L'energia immessa in rete può essere venduta al prezzo di ritiro dedicato
+    const energiaImmessaInRete = Math.max(0, annualProductionKwh - totalAutoconsumoKwh);
+    const venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO;
 
-    const incentiveRatio = PRICE_RITIRO_DEDICATO > 0 ? 0.108 / PRICE_RITIRO_DEDICATO : 0;
-    const incentivoCer = venditaEccedenza * incentiveRatio;
+    // CALCOLO INCENTIVO CER
+    // L'incentivo CER è pari al 80% dell'incentivo per l'energia condivisa nella Comunità Energetica
+    // L'incentivo base è di 0.108 €/kWh per l'energia condivisa
+    // Quindi l'incentivo CER = energiaImmessaInRete * 0.108 * 0.80 = energiaImmessaInRete * 0.0864
+    const incentivoCerBase = energiaImmessaInRete * 0.108; // Incentivo base per energia condivisa
+    const incentivoCer = incentivoCerBase * 0.80; // 80% dell'incentivo base
 
     // Cerca il prezzo del prodotto selezionato
     let productPrice = 0;
@@ -405,13 +542,14 @@ const simulationResults = computed(() => {
       }
     }
     const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity);
+    const roofTypePrice = props.formData.roofTypePrice || 0;
     
     // Calcola i costi aggiuntivi e sconti gestendo valori percentuali
     const calculateAdjustmentAmount = (item) => {
         if (!item) return 0;
         // Se è una voce percentuale, calcola l'importo come percentuale del costo base
         if (item.tipo_valore === '%') {
-            const baseAmount = productPrice + batteryPrice;
+            const baseAmount = productPrice + batteryPrice + roofTypePrice;
             return (baseAmount * item.valore_default) / 100;
         }
         // Altrimenti usa l'importo diretto
@@ -421,7 +559,7 @@ const simulationResults = computed(() => {
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = props.formData.discounts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     
-    const totalSystemCost = productPrice + batteryPrice + additionalCostsTotal - discountsTotal;
+    const totalSystemCost = productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
 
     let deductionPercentage = 0;
     if (props.formData.fiscalDeductionType === 'prima_casa') {
@@ -449,5 +587,58 @@ const handleBonificoChange = (field, value) => {
         [field]: numValue < 0 ? 0 : numValue,
     };
     updateFormData('paymentBonifico', updatedBonifico);
+};
+
+const handlePagamentoMistoChange = (field, value) => {
+    const numValue = Number(value) || 0;
+    const currentMisto = props.formData.paymentMisto || {
+        bonificoAmount: 0,
+        finanziamentoAmount: 0,
+        primaRata: 30,
+        secondaRata: 50,
+        installmentAmount: 0,
+        installments: 120,
+    };
+    
+    const updatedMisto = {
+        ...currentMisto,
+        [field]: numValue < 0 ? 0 : numValue,
+    };
+    
+    // Calcola l'importo finanziamento automaticamente se viene modificato l'importo bonifico
+    if (field === 'bonificoAmount') {
+        // Calcola il costo totale del sistema
+        let productPrice = 0;
+        if (props.formData.selectedProduct) {
+          const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
+          if (selectedProduct && selectedProduct.prezzo_base) {
+            productPrice = selectedProduct.prezzo_base / 100;
+          }
+        }
+        const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity);
+        const roofTypePrice = props.formData.roofTypePrice || 0;
+        const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => {
+            if (!item) return sum;
+            if (item.tipo_valore === '%') {
+                const baseAmount = productPrice + batteryPrice + roofTypePrice;
+                return sum + (baseAmount * item.valore_default) / 100;
+            }
+            return sum + (item.amount || item.valore_default || 0);
+        }, 0);
+        const discountsTotal = props.formData.discounts.reduce((sum, item) => {
+            if (!item) return sum;
+            if (item.tipo_valore === '%') {
+                const baseAmount = productPrice + batteryPrice + roofTypePrice;
+                return sum + (baseAmount * item.valore_default) / 100;
+            }
+            return sum + (item.amount || item.valore_default || 0);
+        }, 0);
+        const totalSystemCost = productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+        
+        // L'importo finanziamento è il totale meno l'importo bonifico
+        updatedMisto.finanziamentoAmount = Math.max(0, totalSystemCost - numValue);
+    }
+    
+    updateFormData('paymentMisto', updatedMisto);
 };
 </script>

@@ -166,7 +166,7 @@ export function usePreventiviApi() {
     try {
       const response = await fetchApi('/api/prodotti-fotovoltaico', {
         q: query,
-        itemsPerPage: itemsPerPage.toString(),
+        itemsPerPage: 200||itemsPerPage.toString(),
       });
       const data = extractDataFromResponse(response);
       if (!query) {
