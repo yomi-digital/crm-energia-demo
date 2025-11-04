@@ -30,6 +30,23 @@
         {{ errorMessage }}
       </div>
       
+      <div v-if="successMessage" class="success-message" style="margin-top:16px;padding:12px;background:#d1fae5;border:1px solid #86efac;border-radius:8px;color:#065f46;">
+        {{ successMessage }}
+      </div>
+      
+      <div v-if="pdfUrl" style="margin-top:16px;padding:12px;background:#dbeafe;border:1px solid #93c5fd;border-radius:8px;text-align:center;">
+        <p style="margin-bottom:8px;color:#1e40af;font-weight:600;">Il PDF non si è aperto automaticamente?</p>
+        <a 
+          :href="pdfUrl" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="btn btn-primary"
+          style="display:inline-block;text-decoration:none;color:white;padding:8px 16px;border-radius:6px;font-weight:600;"
+        >
+          Apri PDF Preventivo
+        </a>
+      </div>
+      
       <div style="margin-top:24px;display:flex;justify-content:center;">
         <button 
           @click="handleGenerateQuote" 
@@ -49,11 +66,11 @@
 </template>
 
 <script setup lang="js">
-import { computed, defineProps, onMounted, ref } from 'vue';
-import { PRODUCTS, calculateBatteryPrice, PRICE_RITIRO_DEDICATO } from '../constants';
-import SummaryItem from '../SummaryItem.vue';
-import AdjustmentListSummary from '../AdjustmentListSummary.vue';
 import { usePreventiviApi } from '@/composables/usePreventiviApi';
+import { computed, defineProps, onMounted, ref } from 'vue';
+import AdjustmentListSummary from '../AdjustmentListSummary.vue';
+import { calculateBatteryPrice, PRICE_RITIRO_DEDICATO, PRODUCTS } from '../constants';
+import SummaryItem from '../SummaryItem.vue';
 
 const props = defineProps({
   formData: Object,
@@ -64,6 +81,12 @@ const prodottiFotovoltaico = ref([]);
 const coefficientsMap = ref({});
 const isGenerating = ref(false);
 const errorMessage = ref('');
+const successMessage = ref(''); // Messaggio di successo verde
+const pdfUrl = ref(''); // URL del PDF da mostrare se non si apre automaticamente
+
+// Recupera l'ID dell'agente/utente loggato dalla sessione
+const loggedInUser = useCookie('userData')?.value;
+const agentId = loggedInUser?.id || null;
 
 onMounted(async () => {
   try {
@@ -98,7 +121,7 @@ const selectedProductData = computed(() => {
     if (prodotto) {
       return {
         name: prodotto.codice_prodotto,
-        price: prodotto.prezzo_base ? prodotto.prezzo_base / 100 : 0,
+        price: prodotto.prezzo_base ? prodotto.prezzo_base : 0,
         potenzaKwp: prodotto.potenza_kwp ? prodotto.potenza_kwp / 1000 : 0,
         categoria: prodotto.categoria?.nome_categoria || 'Fotovoltaico',
       };
@@ -165,7 +188,7 @@ const simulationData = computed(() => {
     if (props.formData.selectedProduct && prodottiFotovoltaico.value.length > 0) {
         const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
         if (selectedProduct && selectedProduct.prezzo_base) {
-            productPrice = selectedProduct.prezzo_base / 100;
+            productPrice = selectedProduct.prezzo_base;
         }
     }
     const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity || 0);
@@ -335,7 +358,7 @@ const preparePayload = () => {
                 nome_prodotto_salvato: prodotto.codice_prodotto,
                 categoria_prodotto_salvata: prodotto.categoria?.nome_categoria || 'Fotovoltaico',
                 quantita: 1,
-                prezzo_unitario_salvato: prodotto.prezzo_base ? prodotto.prezzo_base / 100 : 0,
+                prezzo_unitario_salvato: prodotto.prezzo_base ? prodotto.prezzo_base : 0,
                 capacita_batteria_salvata: null,
                 potenza_impianto_consigliata: prodotto.potenza_kwp ? prodotto.potenza_kwp / 1000 : 0,
             });
@@ -410,7 +433,7 @@ const preparePayload = () => {
         if (props.formData.selectedProduct && prodottiFotovoltaico.value.length > 0) {
             const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
             if (selectedProduct && selectedProduct.prezzo_base) {
-                productPrice = selectedProduct.prezzo_base / 100;
+                productPrice = selectedProduct.prezzo_base;
             }
         }
         const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity || 0);
@@ -489,7 +512,7 @@ const preparePayload = () => {
     const payload = {
         PREVENTIVI: {
             fk_cliente: props.formData.client || null,
-            fk_agente: null, // Sarà gestito dal backend
+            fk_agente: agentId,
             stato: 'protocollato',
             tetto_salvato: props.formData.roofType || '',
             area_geografica_salvata: (props.formData.geographicArea || '').toLowerCase(),
@@ -549,6 +572,8 @@ const handleGenerateQuote = async () => {
 
     isGenerating.value = true;
     errorMessage.value = '';
+    successMessage.value = ''; // Reset messaggio di successo
+    pdfUrl.value = ''; // Reset URL all'inizio
 
     try {
         const payload = preparePayload();
@@ -559,8 +584,9 @@ const handleGenerateQuote = async () => {
             body: payload,
         });
 
-        // Se la risposta contiene un PDF (blob)
+        // Gestione risposta: blob o URL
         if (response instanceof Blob) {
+            // Se la risposta è un blob PDF, scaricalo
             const url = window.URL.createObjectURL(response);
             const link = document.createElement('a');
             link.href = url;
@@ -569,17 +595,48 @@ const handleGenerateQuote = async () => {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-        } else if (response?.pdf_url || response?.url) {
-            // Se la risposta contiene un URL del PDF
-            window.open(response.pdf_url || response.url, '_blank');
+            successMessage.value = 'Preventivo creato con successo! Il PDF è stato scaricato.';
+            pdfUrl.value = ''; // Non serve URL per blob
+        } else if (response?.data?.pdf_temporary_url) {
+            // Se la risposta contiene un URL temporaneo del PDF dentro data
+            // Usa un link temporaneo che funziona meglio su Safari
+            const url = response.data.pdf_temporary_url;
+            pdfUrl.value = url; // Imposta sempre l'URL per il pulsante di fallback
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            successMessage.value = response?.message || 'Preventivo creato con successo! Il PDF è stato aperto in una nuova scheda.';
+        } else if (response?.pdf_temporary_url || response?.pdf_url || response?.url) {
+            // Fallback per altri formati di risposta
+            const url = response.pdf_temporary_url || response.pdf_url || response.url;
+            pdfUrl.value = url; // Imposta sempre l'URL per il pulsante di fallback
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            successMessage.value = 'Preventivo creato con successo! Il PDF è stato aperto in una nuova scheda.';
         } else {
             // Se la risposta contiene i dati del preventivo creato
             console.log('Preventivo creato:', response);
-            errorMessage.value = 'Preventivo creato con successo!';
+            successMessage.value = response?.message || 'Preventivo creato con successo!';
+            pdfUrl.value = ''; // Nessun URL disponibile
         }
     } catch (error) {
         console.error('Errore nella generazione del preventivo:', error);
         errorMessage.value = error.response?.data?.message || error.message || 'Errore durante la generazione del preventivo. Riprova più tardi.';
+        successMessage.value = ''; // Reset messaggio di successo in caso di errore
+        pdfUrl.value = ''; // Reset URL in caso di errore
     } finally {
         isGenerating.value = false;
     }

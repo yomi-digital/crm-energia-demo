@@ -32,6 +32,7 @@
             Indietro
           </button>
           <button
+            v-if="currentStep < steps.length - 1"
             @click="onNext"
             :disabled="isNextDisabled"
             class="btn btn-primary"
@@ -46,7 +47,8 @@
 </template>
 
 <script setup lang="js">
-import { defineProps, defineEmits } from 'vue';
+import { defineEmits, defineProps } from 'vue';
+import Icon from './Icon.vue';
 
 const props = defineProps({
   steps: Array,
@@ -69,7 +71,6 @@ const onNext = () => {
 const onBack = () => {
   emit('back');
 };
-import Icon from './Icon.vue';
 
 const stepIcons = ['user','calculator','sun','clipboard','calendar','document'];
 </script>

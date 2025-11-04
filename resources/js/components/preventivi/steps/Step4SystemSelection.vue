@@ -37,6 +37,7 @@
                     <label class="field-label" for="roof-type-price" style="font-size:12px;color:#6b7280;">Prezzo aggiuntivo tetto (opzionale, €)</label>
                     <input 
                         type="number" 
+                        :style="{visibility:'hidden', position:'absolute',pointerEvents:'none'}"
                         id="roof-type-price" 
                         :value="formData.roofTypePrice || ''" 
                         @input="updateFormData('roofTypePrice', Number($event.target.value) || 0)" 
@@ -45,6 +46,15 @@
                         style="max-width:200px;"
                         min="0"
                         step="0.01"
+                    />
+                    <input 
+                        type="number" 
+                        disabled
+                        :value="formData.roofTypePrice || ''" 
+                        @input="updateFormData('roofTypePrice', Number($event.target.value) || 0)" 
+                        placeholder="0"
+                        class="field-input" 
+                        style="max-width:200px;"
                     />
                 </div>
              </div>
@@ -135,11 +145,11 @@
                     <span class="section-subtitle" style="display:block;margin-bottom:8px;">Metodo di Pagamento</span>
                     <div class="inline-fields">
                         <label v-for="modalita in modalitaPagamento" :key="modalita.id_modalita" style="display:flex;align-items:center;color:#374151;">
-                            <input type="radio" name="payment" :value="modalita.nome_modalita" :checked="formData.paymentMethod === modalita.nome_modalita" @change="updateFormData('paymentMethod', modalita.nome_modalita)" style="margin-right:8px;"/>
+                            <input type="radio" name="payment" :value="modalita.nome_modalita" :checked="formData.paymentMethod === modalita.nome_modalita" @change="handlePaymentMethodChange(modalita.nome_modalita)" style="margin-right:8px;"/>
                             {{ modalita.nome_modalita }}
                         </label>
                         <label style="display:flex;align-items:center;color:#374151;">
-                            <input type="radio" name="payment" value="Misto" :checked="formData.paymentMethod === 'Misto'" @change="updateFormData('paymentMethod', 'Misto')" style="margin-right:8px;"/>
+                            <input type="radio" name="payment" value="Misto" :checked="formData.paymentMethod === 'Misto'" @change="handlePaymentMethodChange('Misto')" style="margin-right:8px;"/>
                             Misto (Bonifico + Finanziamento)
                         </label>
                     </div>
@@ -170,7 +180,8 @@
                         <div class="grid-responsive-2" style="margin-top:12px;">
                             <div>
                                 <label class="field-label" for="installmentAmountMisto">Importo rata finanziamento (€)</label>
-                                <input type="number" id="installmentAmountMisto" :value="formData.paymentMisto?.installmentAmount || 0" @input="handlePagamentoMistoChange('installmentAmount', $event.target.value)" class="field-input" min="0" step="0.01"/>
+                                <input type="number" id="installmentAmountMisto" :value="formData.paymentMisto?.installmentAmount || 0" @input="handlePagamentoMistoChange('installmentAmount', $event.target.value)" class="field-input" min="0" step="0.01" readonly style="background-color:#f3f4f6;"/>
+                                <p class="help-text" style="font-size:12px;margin-top:4px;">Calcolata automaticamente (TAEG 11.89%, spese 1.50€/mese)</p>
                             </div>
                             <div>
                                 <label class="field-label" for="installmentsMisto">Numero di rate finanziamento</label>
@@ -183,11 +194,12 @@
                      <div v-if="formData.paymentMethod && (formData.paymentMethod.toLowerCase().includes('finanziamento') || formData.paymentMethod === 'Finanziamento')" class="grid-responsive-2" style="margin-top:12px;padding-top:12px;border-top:1px solid #e5e7eb;">
                         <div>
                             <label class="field-label" for="installmentAmount">Importo rata (€)</label>
-                            <input type="number" id="installmentAmount" :value="formData.installmentAmount" @input="updateFormData('installmentAmount', Number($event.target.value))" class="field-input"/>
+                            <input type="number" id="installmentAmount" :value="formData.installmentAmount" @input="handleFinanziamentoChange('installmentAmount', $event.target.value)" class="field-input" readonly style="background-color:#f3f4f6;"/>
+                            <p class="help-text" style="font-size:12px;margin-top:4px;">Calcolata automaticamente (TAEG 11.89%, spese 1.50€/mese)</p>
                         </div>
                         <div>
                             <label class="field-label" for="installments">Numero di rate</label>
-                            <input type="number" id="installments" :value="formData.installments" @input="updateFormData('installments', Number($event.target.value))" class="field-input"/>
+                            <input type="number" id="installments" :value="formData.installments" @input="handleFinanziamentoChange('installments', $event.target.value)" class="field-input" min="1"/>
                         </div>
                     </div>
                      <div v-if="formData.paymentMethod && (formData.paymentMethod.toLowerCase().includes('bonifico') || formData.paymentMethod === 'Bonifico')" style="margin-top:12px;padding-top:12px;border-top:1px solid #e5e7eb;">
@@ -332,7 +344,11 @@ onMounted(async () => {
     // imposta il primo disponibile
     if (modalita.length > 0) {
       const currentMethod = props.formData.paymentMethod;
-      const methodExists = modalita.some(m => m.nome_modalita === currentMethod);
+      // Confronta anche con case-insensitive e controlla se è "Misto"
+      const methodExists = currentMethod && (
+        modalita.some(m => m.nome_modalita === currentMethod || m.nome_modalita?.toLowerCase() === currentMethod?.toLowerCase()) ||
+        currentMethod === 'Misto'
+      );
       if (!methodExists || !currentMethod) {
         updateFormData('paymentMethod', modalita[0].nome_modalita);
       }
@@ -360,7 +376,7 @@ const totalSystemCostComputed = computed(() => {
     if (props.formData.selectedProduct) {
       const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
       if (selectedProduct && selectedProduct.prezzo_base) {
-        productPrice = selectedProduct.prezzo_base / 100;
+        productPrice = selectedProduct.prezzo_base ;
       }
     }
     const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity);
@@ -384,16 +400,31 @@ const totalSystemCostComputed = computed(() => {
     return productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
 });
 
-// Watch per aggiornare l'importo finanziamento quando cambia il totale del sistema
+// Watch per aggiornare l'importo finanziamento e la rata quando cambia il totale del sistema
 watch(totalSystemCostComputed, (newTotal) => {
+    // Aggiorna finanziamento misto
     if (props.formData.paymentMethod === 'Misto' && props.formData.paymentMisto) {
         const bonificoAmount = props.formData.paymentMisto.bonificoAmount || 0;
         const finanziamentoAmount = Math.max(0, newTotal - bonificoAmount);
-        if (finanziamentoAmount !== (props.formData.paymentMisto.finanziamentoAmount || 0)) {
+        const installments = props.formData.paymentMisto.installments || 120;
+        const installmentAmount = calculateInstallmentAmount(finanziamentoAmount, installments);
+        
+        if (finanziamentoAmount !== (props.formData.paymentMisto.finanziamentoAmount || 0) ||
+            installmentAmount !== (props.formData.paymentMisto.installmentAmount || 0)) {
             updateFormData('paymentMisto', {
                 ...props.formData.paymentMisto,
                 finanziamentoAmount: finanziamentoAmount,
+                installmentAmount: installmentAmount,
             });
+        }
+    }
+    
+    // Aggiorna finanziamento puro
+    if (props.formData.paymentMethod && (props.formData.paymentMethod.toLowerCase().includes('finanziamento') || props.formData.paymentMethod === 'Finanziamento')) {
+        const installments = props.formData.installments || 120;
+        const installmentAmount = calculateInstallmentAmount(newTotal, installments);
+        if (installmentAmount !== (props.formData.installmentAmount || 0)) {
+            updateFormData('installmentAmount', installmentAmount);
         }
     }
 });
@@ -455,7 +486,7 @@ const handleProductChange = (value) => {
     const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === productId);
     if (selectedProduct && selectedProduct.prezzo_base) {
       // Il prezzo_base è in centesimi, lo convertiamo in euro
-      updateFormData('selectedProductPrice', selectedProduct.prezzo_base / 100);
+      updateFormData('selectedProductPrice', selectedProduct.prezzo_base );
       updateFormData('selectedProductPowerKwp', selectedProduct.potenza_kwp / 1000); // Converti da W a kW
       // Nota: il prezzo tetto viene ricalcolato quando cambia la potenza selezionata (handlePowerChange)
     }
@@ -535,7 +566,7 @@ const simulationResults = computed(() => {
       const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
       if (selectedProduct && selectedProduct.prezzo_base) {
         // Il prezzo_base è in centesimi, lo convertiamo in euro
-        productPrice = selectedProduct.prezzo_base / 100;
+        productPrice = selectedProduct.prezzo_base;
       } else {
         // Fallback ai prodotti hardcoded
         productPrice = PRODUCTS.find(p => p.name === props.formData.selectedProduct)?.price || 0;
@@ -578,6 +609,66 @@ const isResidential = computed(() => {
   return category.toLowerCase() === 'residenziale';
 });
 
+// Costanti per il calcolo finanziamento
+const TAN_ANNUAL = 0.079; // 7.90%
+const TAEG_ANNUAL = 0.1189; // 11.89%
+const MONTHLY_FEE = 1.50; // Spese mensili di incasso (€)
+
+// Calcolo rata con TAN (nominale annuo)
+function monthlyPaymentWithTAN(principal, months, tanAnnual, monthlyFee = 0) {
+    const r = tanAnnual / 12;
+    const pmtCI = principal * r / (1 - Math.pow(1 + r, -months));
+    const pmtTot = pmtCI + monthlyFee;
+    // Arrotonda ai centesimi come fa la banca
+    return Math.round(pmtTot * 100) / 100;
+}
+
+// Calcolo rata "coerente con TAEG"
+function monthlyPaymentWithTAEG(principal, months, taegAnnual, monthlyFee = 0) {
+    const rEffMonthly = Math.pow(1 + taegAnnual, 1/12) - 1;
+    // Qui il fee entra nella rata totale: PMT_tot = PMT_CI + fee
+    const pmtTot = principal * rEffMonthly / (1 - Math.pow(1 + rEffMonthly, -months));
+    const pmtCI = pmtTot - monthlyFee;
+    const result = pmtCI + monthlyFee;
+    return Math.round(result * 100) / 100;
+}
+
+// Funzione helper per calcolare il totale del sistema
+const calculateTotalSystemCost = () => {
+    let productPrice = 0;
+    if (props.formData.selectedProduct) {
+        const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
+        if (selectedProduct && selectedProduct.prezzo_base) {
+            productPrice = selectedProduct.prezzo_base;
+        }
+    }
+    const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity);
+    const roofTypePrice = props.formData.roofTypePrice || 0;
+    
+    const calculateAdjustmentAmount = (item) => {
+        if (!item) return 0;
+        if (item.tipo_valore === '%') {
+            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            return (baseAmount * item.valore_default) / 100;
+        }
+        return item.amount || item.valore_default || 0;
+    };
+    
+    const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
+    const discountsTotal = props.formData.discounts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
+    
+    return productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+};
+
+// Calcola automaticamente la rata del finanziamento
+const calculateInstallmentAmount = (principal, installments) => {
+    if (!principal || principal <= 0 || !installments || installments <= 0) {
+        return 0;
+    }
+    // Usa TAEG per calcolo più preciso
+    return monthlyPaymentWithTAEG(principal, installments, TAEG_ANNUAL, MONTHLY_FEE);
+};
+
 const handleBonificoChange = (field, value) => {
     const numValue = Number(value) || 0;
     const updatedBonifico = {
@@ -607,38 +698,75 @@ const handlePagamentoMistoChange = (field, value) => {
     
     // Calcola l'importo finanziamento automaticamente se viene modificato l'importo bonifico
     if (field === 'bonificoAmount') {
-        // Calcola il costo totale del sistema
-        let productPrice = 0;
-        if (props.formData.selectedProduct) {
-          const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
-          if (selectedProduct && selectedProduct.prezzo_base) {
-            productPrice = selectedProduct.prezzo_base / 100;
-          }
-        }
-        const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity);
-        const roofTypePrice = props.formData.roofTypePrice || 0;
-        const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => {
-            if (!item) return sum;
-            if (item.tipo_valore === '%') {
-                const baseAmount = productPrice + batteryPrice + roofTypePrice;
-                return sum + (baseAmount * item.valore_default) / 100;
-            }
-            return sum + (item.amount || item.valore_default || 0);
-        }, 0);
-        const discountsTotal = props.formData.discounts.reduce((sum, item) => {
-            if (!item) return sum;
-            if (item.tipo_valore === '%') {
-                const baseAmount = productPrice + batteryPrice + roofTypePrice;
-                return sum + (baseAmount * item.valore_default) / 100;
-            }
-            return sum + (item.amount || item.valore_default || 0);
-        }, 0);
-        const totalSystemCost = productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
-        
+        const totalSystemCost = calculateTotalSystemCost();
         // L'importo finanziamento è il totale meno l'importo bonifico
         updatedMisto.finanziamentoAmount = Math.max(0, totalSystemCost - numValue);
+        // Ricalcola anche la rata quando cambia l'importo finanziamento
+        const installments = updatedMisto.installments || 120;
+        updatedMisto.installmentAmount = calculateInstallmentAmount(updatedMisto.finanziamentoAmount, installments);
+    }
+    
+    // Calcola automaticamente la rata quando cambia finanziamentoAmount o installments
+    if (field === 'finanziamentoAmount' || field === 'installments') {
+        const finanziamentoAmount = updatedMisto.finanziamentoAmount || 0;
+        const installments = updatedMisto.installments || 120;
+        updatedMisto.installmentAmount = calculateInstallmentAmount(finanziamentoAmount, installments);
     }
     
     updateFormData('paymentMisto', updatedMisto);
+};
+
+// Gestisce il cambio del metodo di pagamento e calcola automaticamente le rate
+const handlePaymentMethodChange = (method) => {
+    updateFormData('paymentMethod', method);
+    
+    // Se viene selezionato Finanziamento, calcola automaticamente la rata
+    if (method && (method.toLowerCase().includes('finanziamento') || method === 'Finanziamento')) {
+        const totalSystemCost = calculateTotalSystemCost();
+        const installments = props.formData.installments || 120;
+        const installmentAmount = calculateInstallmentAmount(totalSystemCost, installments);
+        if (installmentAmount > 0) {
+            updateFormData('installmentAmount', installmentAmount);
+        }
+    }
+    
+    // Se viene selezionato Misto, calcola anche lì la rata
+    if (method === 'Misto') {
+        const totalSystemCost = calculateTotalSystemCost();
+        const currentMisto = props.formData.paymentMisto || {
+            bonificoAmount: 0,
+            finanziamentoAmount: totalSystemCost,
+            primaRata: 30,
+            secondaRata: 50,
+            installmentAmount: 0,
+            installments: 120,
+        };
+        
+        const finanziamentoAmount = Math.max(0, totalSystemCost - (currentMisto.bonificoAmount || 0));
+        const installments = currentMisto.installments || 120;
+        const installmentAmount = calculateInstallmentAmount(finanziamentoAmount, installments);
+        
+        updateFormData('paymentMisto', {
+            ...currentMisto,
+            finanziamentoAmount: finanziamentoAmount,
+            installmentAmount: installmentAmount,
+        });
+    }
+};
+
+// Gestisce il cambio del metodo di pagamento per finanziamento puro
+const handleFinanziamentoChange = (field, value) => {
+    const numValue = Number(value) || 0;
+    
+    if (field === 'installments') {
+        updateFormData('installments', numValue);
+        // Calcola automaticamente la rata
+        const totalSystemCost = calculateTotalSystemCost();
+        const installmentAmount = calculateInstallmentAmount(totalSystemCost, numValue);
+        updateFormData('installmentAmount', installmentAmount);
+    } else if (field === 'installmentAmount') {
+        // Se l'utente modifica manualmente la rata, non sovrascriviamo
+        updateFormData('installmentAmount', numValue);
+    }
 };
 </script>

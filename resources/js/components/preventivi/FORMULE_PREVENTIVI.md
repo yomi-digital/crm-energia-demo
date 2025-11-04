@@ -280,7 +280,7 @@ L'incentivo CER effettivo è pari all'80% dell'incentivo base per l'energia cond
 
 **Formula:**
 ```
-Prezzo_Prodotto_€ = prezzo_base / 100
+Prezzo_Prodotto_€ = prezzo_base 
 ```
 
 **Dove:**

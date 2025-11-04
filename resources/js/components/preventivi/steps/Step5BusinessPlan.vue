@@ -127,7 +127,7 @@ const totalSystemCost = computed(() => {
     if (props.formData.selectedProduct && prodottiFotovoltaico.value.length > 0) {
         const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
         if (selectedProduct && selectedProduct.prezzo_base) {
-            productPrice = selectedProduct.prezzo_base / 100;
+            productPrice = selectedProduct.prezzo_base;
         }
     }
     const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity || 0);
