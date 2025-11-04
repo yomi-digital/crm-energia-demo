@@ -288,16 +288,22 @@ class PreventivoController extends Controller
                 $pdfPath = $pdfService->generateAndSavePdf($preventivoWithRelations);
 
                 // 8. Aggiorna il preventivo con il percorso del PDF (file privato)
-                // Per ottenere un URL temporaneo, usare: $pdfService->getTemporaryUrl($preventivo)
                 $preventivoWithRelations->update(['pdf_url' => $pdfPath]);
 
-                return $preventivoId;
+                // 9. Genera URL temporaneo firmato per il PDF (valido per 60 minuti)
+                $pdfTemporaryUrl = $pdfService->getTemporaryUrl($preventivoWithRelations, 60);
+
+                return [
+                    'preventivo_id' => $preventivoId,
+                    'pdf_temporary_url' => $pdfTemporaryUrl,
+                ];
             });
 
             return response()->json([
                 'message' => 'Preventivo creato con successo!',
                 'data' => [
-                    'id_preventivo' => $preventivoId,
+                    'id_preventivo' => $preventivoId['preventivo_id'],
+                    'pdf_temporary_url' => $preventivoId['pdf_temporary_url'],
                     'validated_data' => $validatedData,
                 ],
             ], 201);
