@@ -38,5 +38,12 @@ export default [
     to: 'workflow-communications',
     action: 'access',
     subject: 'communications',
+  }, 
+  {
+    title: 'Preventivi',
+    icon: { icon: 'tabler-currency-euro' },
+    to: 'workflow-preventivi',
+    action: 'access',
+    subject: 'preventivi',
   },
 ]

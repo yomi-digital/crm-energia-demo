@@ -362,6 +362,7 @@
     "useTemplateRef": true,
     "getAvatar": true,
     "resolveUserRoleVariant": true,
-    "resolveUserStatusVariant": true
+    "resolveUserStatusVariant": true,
+    "usePreventiviApi": true
   }
 }

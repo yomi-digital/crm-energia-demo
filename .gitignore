@@ -63,3 +63,5 @@ public/mockServiceWorker.js
 .env*
 !.env.example
 *.sql
+
+composer-setup.php
