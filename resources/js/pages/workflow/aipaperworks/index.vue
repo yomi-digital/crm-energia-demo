@@ -1,4 +1,5 @@
 <script setup>
+import { onMounted, onUnmounted } from 'vue'
 definePage({
   meta: {
     action: 'access',
@@ -74,6 +75,37 @@ const {
 
 const paperworks = computed(() => aiPaperworksData.value?.entries || [])
 const totalPaperworks = computed(() => aiPaperworksData.value?.totalEntries || 0)
+
+// Polling automatico ogni 10 secondi per aggiornare le pratiche AI
+let pollingInterval = null
+
+const startPolling = () => {
+  // Previeni polling multipli
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
+  }
+  
+  pollingInterval = setInterval(async () => {
+    await fetchAIPaperworks()
+  }, 10000) // 10 secondi
+}
+
+const stopPolling = () => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
+    pollingInterval = null
+  }
+}
+
+// Avvia il polling quando il componente viene montato
+onMounted(() => {
+  startPolling()
+})
+
+// Ferma il polling quando l'utente esce dalla pagina
+onUnmounted(() => {
+  stopPolling()
+})
 
 const agents = ref([])
 const fetchAgents = async () => {

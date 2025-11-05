@@ -1,6 +1,7 @@
 <script setup>
 import PaperworkNotesDialog from '@/components/dialogs/PaperworkNotesDialog.vue'
 import StatusChip from '@/components/StatusChip.vue'
+import { onMounted, onUnmounted } from 'vue'
 
 definePage({
   meta: {
@@ -154,6 +155,37 @@ const {
 
 const paperworks = computed(() => paperworksData.value.paperworks)
 const totalPaperworks = computed(() => paperworksData.value.totalPaperworks)
+
+// Polling automatico ogni 10 secondi per aggiornare le pratiche
+let pollingInterval = null
+
+const startPolling = () => {
+  // Previeni polling multipli
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
+  }
+  
+  pollingInterval = setInterval(async () => {
+    await fetchPaperworks()
+  }, 10000) // 10 secondi
+}
+
+const stopPolling = () => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
+    pollingInterval = null
+  }
+}
+
+// Avvia il polling quando il componente viene montato
+onMounted(() => {
+  startPolling()
+})
+
+// Ferma il polling quando l'utente esce dalla pagina
+onUnmounted(() => {
+  stopPolling()
+})
 
 const getCustomerName = (customer) => {
   if (! customer) {
