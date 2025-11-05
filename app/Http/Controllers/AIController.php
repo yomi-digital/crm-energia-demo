@@ -231,6 +231,9 @@ class AIController extends Controller
         $paperworkData = $request->ai_extracted_paperwork ?? [];
         $hasProductId = isset($paperworkData['product_id']) && $paperworkData['product_id'];
         
+        // Salva il brand_id corrente prima delle modifiche
+        $previousBrandId = $aiPaperwork->brand_id;
+        
         // Se NON c'è product_id e c'è brand_id esplicito, usa quello
         if (!$hasProductId && $request->has('brand_id') && $request->brand_id) {
             $aiPaperwork->brand_id = $request->brand_id;
@@ -242,6 +245,20 @@ class AIController extends Controller
             if ($product && $product->brand_id) {
                 $aiPaperwork->brand_id = $product->brand_id;
             }
+        }
+        
+        // Se il brand è cambiato, aggiungi alla cronologia dei trasferimenti
+        if ($previousBrandId !== null && $aiPaperwork->brand_id !== null && $previousBrandId != $aiPaperwork->brand_id) {
+            $transfersHistory = $aiPaperwork->transfers_history ?? [];
+            
+            $transfersHistory[] = [
+                'from_brand_id' => $previousBrandId,
+                'to_brand_id' => $aiPaperwork->brand_id,
+                'transferred_at' => now()->toDateTimeString(),
+                'transferred_by' => $request->user()->id ?? null,
+            ];
+            
+            $aiPaperwork->transfers_history = $transfersHistory;
         }
 
         $aiPaperwork->save();
@@ -435,6 +452,9 @@ class AIController extends Controller
             $doc->url = $aiPaperwork->filepath;
             $doc->save();
 
+            // Salva il brand_id corrente prima delle modifiche
+            $previousBrandId = $aiPaperwork->brand_id;
+            
             // Prima gestiamo il brand_id esplicito (ma sarà sempre sovrascritto dal prodotto)
             if ($request->has('brand_id') && $request->brand_id) {
                 $aiPaperwork->brand_id = $request->brand_id;
@@ -444,6 +464,24 @@ class AIController extends Controller
             $product = \App\Models\Product::find($request->product_id);
             if ($product && $product->brand_id) {
                 $aiPaperwork->brand_id = $product->brand_id;
+            }
+            
+            // Se il brand è cambiato durante la conferma, aggiungi alla cronologia dei trasferimenti
+            if ($previousBrandId !== null && $aiPaperwork->brand_id !== null && $previousBrandId != $aiPaperwork->brand_id) {
+                $transfersHistory = $aiPaperwork->transfers_history ?? [];
+                
+                $transfersHistory[] = [
+                    'from_brand_id' => $previousBrandId,
+                    'to_brand_id' => $aiPaperwork->brand_id,
+                    'transferred_at' => now()->toDateTimeString(),
+                    'transferred_by' => $request->user()->id ?? null,
+                ];
+                
+                $aiPaperwork->transfers_history = $transfersHistory;
+                
+                // Aggiorna anche la pratica normale con la cronologia aggiornata
+                $paperwork->transfers_history = $transfersHistory;
+                $paperwork->save();
             }
             
             // Update AI paperwork status to 5 (Confirmed)

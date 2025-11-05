@@ -8,7 +8,7 @@ use App\Notifications\PaperworkCreated;
 class PaperworkObserver
 {
     // Fields to exclude from change tracking
-    protected $excludedFields = ['updated_at'];
+    protected $excludedFields = ['updated_at', 'transfers_history'];
 
     /**
      * Handle the Paperwork "created" event.
