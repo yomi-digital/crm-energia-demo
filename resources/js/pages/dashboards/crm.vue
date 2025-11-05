@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import VueApexCharts from 'vue3-apexcharts'
 
@@ -333,6 +333,27 @@ const updateAiPaperworksOptions = async ({ page: newPage, itemsPerPage: newItems
   await fetchAiPaperworks()
 }
 
+// Polling automatico ogni 10 secondi per "Pratiche in entrata"
+let aiPaperworksPollingInterval = null
+
+const startAiPaperworksPolling = () => {
+  // Previeni polling multipli
+  if (aiPaperworksPollingInterval) {
+    clearInterval(aiPaperworksPollingInterval)
+  }
+  
+  aiPaperworksPollingInterval = setInterval(async () => {
+    await fetchAiPaperworks()
+  }, 10000) // 10 secondi
+}
+
+const stopAiPaperworksPolling = () => {
+  if (aiPaperworksPollingInterval) {
+    clearInterval(aiPaperworksPollingInterval)
+    aiPaperworksPollingInterval = null
+  }
+}
+
 // Helper function for AI paperwork status
 const getStatusChipColor = (status) => {
   switch (status) {
@@ -399,6 +420,27 @@ const updateTicketsOptions = async ({ page: newPage, itemsPerPage: newItemsPerPa
   ticketsPage.value = newPage
   ticketsItemsPerPage.value = newItemsPerPage
   await fetchTickets()
+}
+
+// Polling automatico ogni 10 secondi per "Tickets"
+let ticketsPollingInterval = null
+
+const startTicketsPolling = () => {
+  // Previeni polling multipli
+  if (ticketsPollingInterval) {
+    clearInterval(ticketsPollingInterval)
+  }
+  
+  ticketsPollingInterval = setInterval(async () => {
+    await fetchTickets()
+  }, 10000) // 10 secondi
+}
+
+const stopTicketsPolling = () => {
+  if (ticketsPollingInterval) {
+    clearInterval(ticketsPollingInterval)
+    ticketsPollingInterval = null
+  }
 }
 
 const fetchStats = async () => {
@@ -692,6 +734,16 @@ onMounted(async () => {
   await loadProducts()
   await loadAgents()
   await loadCustomers()
+  
+  // Avvia il polling per "Pratiche in entrata" e "Tickets"
+  startAiPaperworksPolling()
+  startTicketsPolling()
+})
+
+// Ferma il polling quando l'utente esce dalla pagina
+onUnmounted(() => {
+  stopAiPaperworksPolling()
+  stopTicketsPolling()
 })
 
 const handleSearch = () => {
