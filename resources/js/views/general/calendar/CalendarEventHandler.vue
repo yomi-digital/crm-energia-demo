@@ -1,4 +1,5 @@
 <script setup>
+import { getAllComuni } from '@/utils/comuni';
 import { useCalendarStore } from '@/views/general/calendar/useCalendarStore';
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 import { VForm } from 'vuetify/components/VForm';
@@ -90,6 +91,9 @@ const fetchAgents = async () => {
   }
 }
 await fetchAgents()
+
+const comuni = ref([])
+comuni.value = getAllComuni()
 
 
 // 👉 Form
@@ -312,12 +316,12 @@ const onStartDateChange = value => {
 
               <!-- 👉 City -->
               <VCol cols="12">
-                <AppTextField
+                <AppAutocomplete
                   v-model="event.extendedProps.user_city"
                   label="Città"
-                  placeholder="Catania"
+                  placeholder="Seleziona un comune"
+                  :items="comuni"
                   :rules="[requiredValidator]"
-                  type="url"
                 />
               </VCol>
 

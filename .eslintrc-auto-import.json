@@ -363,6 +363,7 @@
     "getAvatar": true,
     "resolveUserRoleVariant": true,
     "resolveUserStatusVariant": true,
-    "usePreventiviApi": true
+    "usePreventiviApi": true,
+    "getAllComuni": true
   }
 }
