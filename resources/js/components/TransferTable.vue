@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 const props = defineProps({
   transfersHistory: {
@@ -32,12 +32,14 @@ const fetchUsers = async (userIds) => {
   
   isLoadingUsers.value = true
   try {
-    const uniqueUserIds = [...new Set(userIds.filter(id => id !== null))]
+    // Normalizza gli ID a Number per il confronto
+    const uniqueUserIds = [...new Set(userIds.filter(id => id !== null).map(id => Number(id)))]
     if (uniqueUserIds.length === 0) return
     
     const response = await $api(`/users?itemsPerPage=999999`)
     const allUsers = response.users || []
-    users.value = allUsers.filter(user => uniqueUserIds.includes(user.id))
+    // Normalizza anche gli ID degli utenti per il confronto
+    users.value = allUsers.filter(user => uniqueUserIds.includes(Number(user.id)))
   } catch (error) {
     console.error('Failed to load users:', error)
   } finally {
@@ -55,8 +57,14 @@ const getBrandName = (brandId) => {
 // Ottieni il nome dell'utente dall'ID
 const getUserName = (userId) => {
   if (!userId) return 'N/A'
-  const user = users.value.find(u => u.id === userId)
-  return user ? `${user.name} ${user.last_name}` : `Utente #${userId}`
+  // Normalizza gli ID per il confronto (gestisce sia string che number)
+  const user = users.value.find(u => Number(u.id) === Number(userId))
+  if (user) {
+    const name = user.name || ''
+    const lastName = user.last_name || ''
+    return `${name} ${lastName}`.trim() || 'Nome non disponibile'
+  }
+  return `Utente #${userId}`
 }
 
 // Formatta la data
@@ -97,6 +105,13 @@ onMounted(async () => {
   await fetchBrands()
   await fetchUsers(userIds.value)
 })
+
+// Watch per ricaricare gli utenti quando transfersHistory cambia
+watch(() => props.transfersHistory, async (newHistory) => {
+  if (newHistory && newHistory.length > 0) {
+    await fetchUsers(userIds.value)
+  }
+}, { deep: true })
 </script>
 
 <template>

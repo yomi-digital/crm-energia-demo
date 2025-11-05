@@ -99,7 +99,7 @@ const dialogModelValueUpdate = val => {
           <VListItem style="padding-bottom: 5px !important">
             <VListItemTitle>
               <h6 class="text-h6 mt-2">
-                Operatore
+                Inserito da
                 <div class="text-body-1">
                   <RouterLink
                     v-if="$can('view', 'users') && eventData.extendedProps.operator"
