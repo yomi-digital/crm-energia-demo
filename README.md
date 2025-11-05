@@ -66,3 +66,8 @@ npm run dev
 ```sh
 npm run build
 ```
+
+### For run aipaperwork locally, use this command
+```sh
+./vendor/bin/sail artisan aipaperworks:process
+```
