@@ -77,16 +77,19 @@ const typeOptions = [
   },
 ]
 
-const agents = []
+const agents = ref([])
 
-await $api('/agents').then(response => {
+const fetchAgents = async () => {
+  agents.value = []
+  const response = await $api('/agents?itemsPerPage=99999999&select=1')
   for (let i = 0; i < response.agents.length; i++) {
-    agents.push({
+    agents.value.push({
       title: [response.agents[i].name, response.agents[i].last_name].join(' '),
       value: response.agents[i].id,
     })
   }
-})
+}
+await fetchAgents()
 
 
 // 👉 Form
@@ -347,7 +350,7 @@ const onStartDateChange = value => {
               </VCol>
 
               <VCol cols="12">
-                <AppSelect
+                <AppAutocomplete
                   v-model="event.extendedProps.agent_id"
                   label="Agente"
                   placeholder="Seleziona un Agente"
