@@ -102,6 +102,7 @@ class AIController extends Controller
             'ai_extracted_customer' => $aiPaperwork->ai_extracted_customer,
             'ai_extracted_paperwork' => $aiPaperwork->ai_extracted_paperwork,
             'prompt_output' => $aiPaperwork->prompt_output,
+            'transfers_history' => $aiPaperwork->transfers_history,
             'created_at' => $aiPaperwork->created_at->toISOString(),
             'updated_at' => $aiPaperwork->updated_at->toISOString(),
             'user' => $aiPaperwork->user
@@ -421,6 +422,7 @@ class AIController extends Controller
                 'mobile_type' => $paperworkData['mobile_type'] ?? null,
                 'previous_provider' => $paperworkData['previous_provider'] ?? null,
                 'mandate_id' => $request->mandate_id ?? null,
+                'transfers_history' => $aiPaperwork->transfers_history ?? null,
             ]);
 
             $paperwork->created_by = $request->user()->id;
@@ -567,6 +569,19 @@ class AIController extends Controller
                 $aiPaperwork->ai_extracted_paperwork = json_encode($extractedPaperwork);
             }
         }
+        
+        // Aggiorna la cronologia dei trasferimenti
+        $transfersHistory = $aiPaperwork->transfers_history ?? [];
+        
+        // Aggiungi il nuovo trasferimento alla cronologia
+        $transfersHistory[] = [
+            'from_brand_id' => $previousBrandId,
+            'to_brand_id' => $request->brand_id,
+            'transferred_at' => now()->toDateTimeString(),
+            'transferred_by' => $request->user()->id ?? null,
+        ];
+        
+        $aiPaperwork->transfers_history = $transfersHistory;
         
         $aiPaperwork->save();
 

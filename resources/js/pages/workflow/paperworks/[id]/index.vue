@@ -2,6 +2,7 @@
 import CustomerInfoCard from '@/components/CustomerInfoCard.vue'
 import CustomerInfoEditDialog from '@/components/dialogs/CustomerInfoEditDialog.vue'
 import TicketCategoryChip from '@/components/TicketCategoryChip.vue'
+import TransferTable from '@/components/TransferTable.vue'
 import { useRoute, useRouter } from 'vue-router'
 
 definePage({
@@ -422,6 +423,11 @@ const downloadDocument = async doc => {
             </VTimeline>
           </VCardText>
         </VCard>
+
+        <!-- Transfer History Table -->
+        <TransferTable
+          :transfers-history="paperworkData?.transfers_history || []"
+        />
       </VCol>
 
       <VCol

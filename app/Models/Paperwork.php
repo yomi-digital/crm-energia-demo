@@ -27,6 +27,7 @@ class Paperwork extends Model
         'previous_provider',
         'notes',
         'owner_notes',
+        'transfers_history',
         'order_code',
         'order_status',
         'order_substatus',
@@ -41,9 +42,10 @@ class Paperwork extends Model
         'created_by',
     ];
 
-    protected $dates = [
-        'partner_sent_at',
-        'partner_outcome_at',
+    protected $casts = [
+        'transfers_history' => 'array',
+        'partner_sent_at' => 'date',
+        'partner_outcome_at' => 'date',
     ];
 
     public function user()

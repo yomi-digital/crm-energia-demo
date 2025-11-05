@@ -3,6 +3,7 @@ import AIErrorBanner from '@/components/AIErrorBanner.vue'
 import AIPaperworkTransfer from '@/components/AIPaperworkTransfer.vue'
 import BrandOverrideAlert from '@/components/BrandOverrideAlert.vue'
 import ProcessingAIStutteringBanner from '@/components/ProcessingAIStutteringBanner.vue'
+import TransferTable from '@/components/TransferTable.vue'
 import GeneralErrorDialog from '@/components/dialogs/GeneralErrorDialog.vue'
 import { onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -1103,6 +1104,11 @@ onUnmounted(() => {
       :title="successTitle"
       :message="successMessage"
       @close="handleSuccessDialogClose"
+    />
+
+    <!-- Transfer History Table -->
+    <TransferTable
+      :transfers-history="aiPaperwork?.transfers_history || []"
     />
   </section>
 </template> 

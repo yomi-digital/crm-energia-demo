@@ -441,6 +441,7 @@ declare module 'vue' {
     TimelineOutlined: typeof import('./resources/js/views/demos/components/timeline/TimelineOutlined.vue')['default']
     TimelineWithIcons: typeof import('./resources/js/views/demos/components/timeline/TimelineWithIcons.vue')['default']
     TiptapEditor: typeof import('./resources/js/@core/components/TiptapEditor.vue')['default']
+    TransferTable: typeof import('./resources/js/components/TransferTable.vue')['default']
     TwoFactorAuthDialog: typeof import('./resources/js/components/dialogs/TwoFactorAuthDialog.vue')['default']
     UserInfoEditDialog: typeof import('./resources/js/components/dialogs/UserInfoEditDialog.vue')['default']
     'UserInfoEditDialog copy': typeof import('./resources/js/components/dialogs/UserInfoEditDialog copy.vue')['default']

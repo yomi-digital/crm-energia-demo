@@ -16,12 +16,14 @@ class AIPaperwork extends Model
         'prompt_output',
         'ai_extracted_customer',
         'ai_extracted_paperwork',
+        'transfers_history',
         'status'
     ];
 
     protected $casts = [
         'ai_extracted_customer' => 'array',
         'ai_extracted_paperwork' => 'array',
+        'transfers_history' => 'array',
         'status' => 'integer',
     ];
 
