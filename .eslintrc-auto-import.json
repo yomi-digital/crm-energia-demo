@@ -364,6 +364,7 @@
     "resolveUserRoleVariant": true,
     "resolveUserStatusVariant": true,
     "usePreventiviApi": true,
-    "getAllComuni": true
+    "getAllComuni": true,
+    "AREAS": true
   }
 }

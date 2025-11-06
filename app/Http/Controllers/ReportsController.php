@@ -266,13 +266,12 @@ class ReportsController extends Controller
                 $request->get('to') . ' 23:59:59'
             ]);
 
-        $userId = $request->get('user_id', null);
-        $user = null;
-        if ($userId) {
-            $user = \App\Models\User::find($userId);
-            $relationships = \App\Models\UserRelationship::where('user_id', $userId)->with('user')->get();
-            $ids = $relationships->pluck('related_id')->merge([$userId]);
-            $paperworks = $paperworks->whereIn('user_id', $ids);
+        // Filtro per area
+        $area = $request->get('area', null);
+        if ($area) {
+            // Trova tutti gli utenti con quella area
+            $usersInArea = \App\Models\User::where('area', $area)->pluck('id');
+            $paperworks = $paperworks->whereIn('user_id', $usersInArea);
         } else {
             // Check if role agent, then should only take paperworks for the logged in user
             if ($request->user()->hasRole('agente')) {
@@ -283,6 +282,8 @@ class ReportsController extends Controller
                 $paperworks = $paperworks->whereIn('user_id', $ids);
             }
         }
+
+        $user = null;
 
         if ($request->filled('brand_id')) {
             $paperworks = $paperworks->whereHas('product', function ($query) use ($request) {

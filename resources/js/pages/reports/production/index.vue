@@ -1,4 +1,6 @@
 <script setup>
+import { AREAS } from '@/utils/constants'
+
 definePage({
   meta: {
     action: 'access',
@@ -15,7 +17,7 @@ const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
 
-const selectedUser = ref('')
+const selectedArea = ref('')
 const selectedBrand = ref('')
 const selectedProduct = ref('')
 const selectedAgent = ref('')
@@ -106,7 +108,7 @@ const {
     orderBy,
     from: fromDate,
     to: toDate,
-    user_id: selectedUser,
+    area: selectedArea,
     brand_id: selectedBrand,
     product_id: selectedProduct,
     agent_id: selectedAgent,
@@ -129,7 +131,7 @@ const exportReport = async () => {
         from: fromDate.value,
         to: toDate.value,
         export: 'csv',
-        user_id: selectedUser.value,
+        area: selectedArea.value,
         brand_id: selectedBrand.value,
         product_id: selectedProduct.value,
         agent_id: selectedAgent.value,
@@ -161,12 +163,8 @@ const exportReport = async () => {
 const entries = computed(() => reportData.value.entries)
 const totalEntries = computed(() => reportData.value.totalEntries)
 
-const users = ref([
-  {
-    title: 'Tutti',
-    value: '',
-  },
-])
+const areas = AREAS
+
 const products = ref([
   {
     title: 'Tutti',
@@ -283,17 +281,6 @@ const fetchBrands = async (query) => {
 }
 fetchBrands()
 
-const fetchUsers = async (query) => {
-  const response = await $api('/users?itemsPerPage=999999&enabled=1')
-  for (const user of response.users) {
-    users.value.push({
-      title: `${user.name} ${user.last_name}`,
-      value: user.id,
-    })
-  }
-}
-fetchUsers()
-
 const fetchProducts = async (query) => {
   const response = await $api('/products?itemsPerPage=999999&enabled=1')
   for (const product of response.products) {
@@ -335,11 +322,11 @@ fetchAgents()
 
           <VCol cols="3">
             <AppAutocomplete
-              v-model="selectedUser"
-              label="Filtra per Account"
+              v-model="selectedArea"
+              label="Filtra per Area"
               clearable
-              :items="users"
-              placeholder="Seleziona un Account"
+              :items="areas"
+              placeholder="Seleziona un'Area"
             />
           </VCol>
 
