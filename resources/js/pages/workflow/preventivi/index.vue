@@ -45,6 +45,7 @@ const formData = ref({
     roofExposure: 'SUD',
     roofType: 'A falda',
     roofTypePrice: 0,
+    roofTypePricePerKw: 0,
     selectedProduct: '',
     selectedBatteryCapacity: 0,
     selectedPowerKw: 0,

@@ -33,28 +33,18 @@
                         {{ tipo.nome_tipologia }}
                     </option>
                 </select>
-                <div v-if="formData.roofType" style="margin-top:8px;">
-                    <label class="field-label" for="roof-type-price" style="font-size:12px;color:#6b7280;">Prezzo aggiuntivo tetto (opzionale, €)</label>
+                <div v-if="formData.roofType && selectedRoofTypeCostPerKw !== null" style="margin-top:8px;">
+                    <label class="field-label" for="roof-type-price" style="font-size:12px;color:#6b7280;">Prezzo aggiuntivo tetto (€/kW)</label>
                     <input 
                         type="number" 
-                        :style="{visibility:'hidden', position:'absolute',pointerEvents:'none'}"
                         id="roof-type-price" 
-                        :value="formData.roofTypePrice || ''" 
-                        @input="updateFormData('roofTypePrice', Number($event.target.value) || 0)" 
+                        :value="roofTypePricePerKw" 
+                        @input="handleRoofTypePricePerKwChange(Number($event.target.value) || 0)" 
                         placeholder="0"
                         class="field-input" 
                         style="max-width:200px;"
                         min="0"
                         step="0.01"
-                    />
-                    <input 
-                        type="number" 
-                        disabled
-                        :value="formData.roofTypePrice || ''" 
-                        @input="updateFormData('roofTypePrice', Number($event.target.value) || 0)" 
-                        placeholder="0"
-                        class="field-input" 
-                        style="max-width:200px;"
                     />
                 </div>
              </div>
@@ -79,6 +69,9 @@
                         {{ kw }} kW
                     </option>
                 </select>
+                <p v-if="formData.selectedPowerKw > 0 && formData.roofTypePrice > 0" style="margin-top:8px;font-size:12px;color:#6b7280;">
+                    Costo aggiuntivo tetto: <strong>{{ formData.roofTypePrice.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }) }}</strong>
+                </p>
             </div>
 
             <div>
@@ -106,7 +99,7 @@
                 >
                     <option value="">Scegli un prodotto</option>
                     <option v-for="product in prodottiFotovoltaico" :key="product.id_prodotto" :value="String(product.id_prodotto)">
-                      {{ product.codice_prodotto }}
+                      {{ product.codice_prodotto }} ({{ product.prezzo_base }} €)
                     </option>
                 </select>
             </div>
@@ -429,41 +422,84 @@ watch(totalSystemCostComputed, (newTotal) => {
     }
 });
 
+// Computed per ottenere il costo per kW della tipologia tetto selezionata
+const selectedRoofTypeCostPerKw = computed(() => {
+  if (!props.formData.roofType || tipologieTetto.value.length === 0) {
+    return null;
+  }
+  const selectedTipo = tipologieTetto.value.find(t => t.nome_tipologia === props.formData.roofType);
+  if (selectedTipo && selectedTipo.costo_extra_kwp !== undefined && selectedTipo.costo_extra_kwp !== null && selectedTipo.costo_extra_kwp > 0) {
+    return selectedTipo.costo_extra_kwp;
+  }
+  return null;
+});
+
+// Computed per ottenere il prezzo per kW (dal formData o dal DB)
+const roofTypePricePerKw = computed(() => {
+  // Se c'è un valore salvato nel formData (anche se è 0), usalo
+  if (props.formData.roofTypePricePerKw !== undefined && props.formData.roofTypePricePerKw !== null) {
+    return props.formData.roofTypePricePerKw;
+  }
+  // Altrimenti usa il valore dal DB se disponibile
+  return selectedRoofTypeCostPerKw.value || 0;
+});
+
+// Funzione per gestire il cambio del prezzo per kW
+const handleRoofTypePricePerKwChange = (pricePerKw) => {
+  // Salva il prezzo per kW
+  updateFormData('roofTypePricePerKw', pricePerKw);
+  // Ricalcola il totale se c'è una potenza selezionata
+  if (props.formData.selectedPowerKw && props.formData.selectedPowerKw > 0) {
+    const totalPrice = pricePerKw * props.formData.selectedPowerKw;
+    updateFormData('roofTypePrice', totalPrice);
+  } else {
+    updateFormData('roofTypePrice', 0);
+  }
+};
+
 const handlePowerChange = (value) => {
   updateFormData('selectedPowerKw', value);
-  // Ricalcola il prezzo tetto se c'è un costo_extra_kwp
-  if (value > 0 && props.formData.roofType && tipologieTetto.value.length > 0) {
-    const selectedTipo = tipologieTetto.value.find(t => t.nome_tipologia === props.formData.roofType);
-    if (selectedTipo && selectedTipo.costo_extra_kwp !== undefined && selectedTipo.costo_extra_kwp !== null) {
-      const costoExtra = selectedTipo.costo_extra_kwp * value;
+  // Ricalcola il prezzo tetto totale usando il prezzo per kW salvato
+  if (value > 0) {
+    const pricePerKw = roofTypePricePerKw.value || 0;
+    if (pricePerKw > 0) {
+      const costoExtra = pricePerKw * value;
       updateFormData('roofTypePrice', costoExtra);
+    } else {
+      updateFormData('roofTypePrice', 0);
     }
+  } else {
+    updateFormData('roofTypePrice', 0);
   }
 };
 
 const handleRoofTypeChange = (value) => {
   updateFormData('roofType', value);
-  // Se la tipologia tetto ha un costo_extra_kwp, lo usiamo per precompilare il prezzo
+  // Se la tipologia tetto ha un costo_extra_kwp, lo usiamo per precompilare il prezzo per kW
   if (value) {
     const selectedTipo = tipologieTetto.value.find(t => t.nome_tipologia === value);
     if (selectedTipo) {
-      // Se c'è un costo_extra_kwp, calcoliamo il costo totale in base alla potenza selezionata
-      // costo_extra_kwp è in euro per kWp
-      if (selectedTipo.costo_extra_kwp !== undefined && selectedTipo.costo_extra_kwp !== null) {
+      // Se c'è un costo_extra_kwp, salviamo il prezzo per kW
+      if (selectedTipo.costo_extra_kwp !== undefined && selectedTipo.costo_extra_kwp !== null && selectedTipo.costo_extra_kwp > 0) {
+        // Salva il prezzo per kW dal DB
+        updateFormData('roofTypePricePerKw', selectedTipo.costo_extra_kwp);
+        // Calcola il costo totale se c'è una potenza selezionata
         const potenzaKwp = props.formData.selectedPowerKw || 0;
         if (potenzaKwp > 0) {
           const costoExtra = selectedTipo.costo_extra_kwp * potenzaKwp;
           updateFormData('roofTypePrice', costoExtra);
         } else {
-          // Se non c'è ancora una potenza selezionata, imposta a 0
+          // Se non c'è ancora una potenza selezionata, imposta il totale a 0
           updateFormData('roofTypePrice', 0);
         }
       } else {
-        // Se non c'è un costo predefinito, mantieni il valore corrente o imposta a 0
-        updateFormData('roofTypePrice', props.formData.roofTypePrice || 0);
+        // Se non c'è un costo predefinito, azzera sia il prezzo per kW che il totale
+        updateFormData('roofTypePricePerKw', 0);
+        updateFormData('roofTypePrice', 0);
       }
     }
   } else {
+    updateFormData('roofTypePricePerKw', 0);
     updateFormData('roofTypePrice', 0);
   }
 };
@@ -528,7 +564,10 @@ const simulationResults = computed(() => {
     }
 
     const coefficient = coefficientsMap.value[props.formData.roofExposure]?.[props.formData.geographicArea] || 1350;
+    console.log("-----------------------------------------------")
+    console.log({coefficient,systemSizeKwp});
     const annualProductionKwh = systemSizeKwp * coefficient;
+    console.log("annualProductionKwh = systemSizeKwp * coefficient",{annualProductionKwh});
     const totals = props.formData.billData.reduce((acc, month) => {
         acc.f1 += month.f1;
         acc.f2 += month.f2;
@@ -537,6 +576,8 @@ const simulationResults = computed(() => {
     }, { f1: 0, f2: 0, f3: 0 });
     const daytimeConsumptionKwh = totals.f1 * 0.83 + totals.f2 * 0.26 + totals.f3 * 0.17;
     const nighttimeConsumptionKwh = totals.f1 * 0.17 + totals.f2 * 0.74 + totals.f3 * 0.83;
+    console.log("daytimeConsumptionKwh = totals.f1 * 0.83 + totals.f2 * 0.26 + totals.f3 * 0.17",{daytimeConsumptionKwh});
+    console.log("nighttimeConsumptionKwh = totals.f1 * 0.17 + totals.f2 * 0.74 + totals.f3 * 0.83",{nighttimeConsumptionKwh});
     const totalAnnualConsumptionKwh = daytimeConsumptionKwh + nighttimeConsumptionKwh;
     const batteryCapacityKwh = props.formData.selectedBatteryCapacity;
     // Calcolo autoconsumo totale
@@ -544,21 +585,26 @@ const simulationResults = computed(() => {
     // La batteria può fornire energia solo fino alla sua capacità giornaliera × 365 giorni
     const batteryEnergyPerYear = batteryCapacityKwh * 365; // kWh disponibili dalla batteria all'anno
     // L'autoconsumo è: consumo diurno (coperto dalla produzione diretta) + min(energia batteria annua, consumo notturno)
-    const totalAutoconsumoKwh = daytimeConsumptionKwh + Math.min(batteryEnergyPerYear, nighttimeConsumptionKwh);
+    const totalAutoconsumoKwh = daytimeConsumptionKwh + Math.min(nighttimeConsumptionKwh, nighttimeConsumptionKwh);
+    console.log("totalAutoconsumoKwh = daytimeConsumptionKwh + nighttimeConsumptionKwh",{totalAutoconsumoKwh});
     const risparmioAutoconsumo = totalAutoconsumoKwh * props.formData.costPerKwh;
+    console.log("risparmioAutoconsumo = totalAutoconsumoKwh * props.formData.costPerKwh",{risparmioAutoconsumo,totalAutoconsumoKwh,cost: props.formData.costPerKwh});
 
     // CALCOLO VENDITA ECCEDENZA (RID)
     // Formula: energia prodotta - energia autoconsumata = energia immessa in rete
     // L'energia immessa in rete può essere venduta al prezzo di ritiro dedicato
     const energiaImmessaInRete = Math.max(0, annualProductionKwh - totalAutoconsumoKwh);
+    console.log("energiaImmessaInRete = annualProductionKwh - totalAutoconsumoKwh",{energiaImmessaInRete});
     const venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO;
-
-    // CALCOLO INCENTIVO CER
+    console.log("venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO",{venditaEccedenza,energiaImmessaInRete,PRICE_RITIRO_DEDICATO});
+    // CALCOLO INCENTIVO CER questo fara parte delle voci economiche tra gli sconti al primo anno
     // L'incentivo CER è pari al 80% dell'incentivo per l'energia condivisa nella Comunità Energetica
     // L'incentivo base è di 0.108 €/kWh per l'energia condivisa
-    // Quindi l'incentivo CER = energiaImmessaInRete * 0.108 * 0.80 = energiaImmessaInRete * 0.0864
+    // Quindi l'incentivo CER = energiaImmessaInRete * 0.108 * 0.80 = energiaImmessaInRete * 0.0864 andra a far parte delle voci economince
     const incentivoCerBase = energiaImmessaInRete * 0.108; // Incentivo base per energia condivisa
     const incentivoCer = incentivoCerBase * 0.80; // 80% dell'incentivo base
+    console.log("incentivoCerBase = energiaImmessaInRete * 0.108",{incentivoCerBase,energiaImmessaInRete});
+    console.log("incentivoCer = incentivoCerBase * 0.80",{incentivoCer,incentivoCerBase});
 
     // Cerca il prezzo del prodotto selezionato
     let productPrice = 0;
@@ -770,3 +816,5 @@ const handleFinanziamentoChange = (field, value) => {
     }
 };
 </script>
+
+
