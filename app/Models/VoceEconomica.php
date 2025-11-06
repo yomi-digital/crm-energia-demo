@@ -18,13 +18,15 @@ class VoceEconomica extends Model
         'tipo_voce',
         'tipo_valore',
         'valore_default',
-        'anni_durata_default',
+        'anno_inizio',
+        'anno_fine',
         'is_active',
     ];
 
     protected $casts = [
         'valore_default' => 'float',
-        'anni_durata_default' => 'integer',
+        'anno_inizio' => 'integer',
+        'anno_fine' => 'integer',
         'is_active' => 'boolean',
     ];
 
