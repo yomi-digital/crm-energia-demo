@@ -19,12 +19,14 @@ class PreventivoVoceEconomica extends Model
         'tipo_voce_salvata',
         'valore_applicato',
         'tipo_valore_salvato',
-        'anni_durata_agevolazione_salvata',
+        'anno_inizio_salvato',
+        'anno_fine_salvato',
     ];
 
     protected $casts = [
         'valore_applicato' => 'float',
-        'anni_durata_agevolazione_salvata' => 'float',
+        'anno_inizio_salvato' => 'float',
+        'anno_fine_salvato' => 'float',
     ];
 
     public function preventivo()

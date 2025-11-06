@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Rules\DettagliConsumoJsonRule;
-use App\Rules\AnniDurataAgevolazioneRule;
 use App\Rules\BusinessPlanAnnoSimulazioneRule;
 use App\Rules\BonificoDataRule;
 use App\Rules\FinanziamentoDataRule;
 use App\Rules\MaintenanceCostRule;
 use App\Rules\AssicurazioneCostRule;
 use App\Rules\StrictPositiveNumberRule;
+use App\Rules\StrictNonNegativeRule;
 use Illuminate\Validation\Rule;
 use Closure;
 use App\Rules\StrictNumberRule;
@@ -173,10 +173,8 @@ class PreventivoController extends Controller
             'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata' => ['required', 'string', Rule::in(['incentivo', 'sconto', 'costo'])],
             'PREVENTIVI_VOCE_ECONOMICHE.*.valore_applicato' => ['required', new StrictPositiveNumberRule('PREVENTIVI_VOCE_ECONOMICHE.*.valore_applicato', false, 0, true)],
             'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_valore_salvato' => 'required|string|in:%,€',
-            'PREVENTIVI_VOCE_ECONOMICHE.*.anni_durata_agevolazione_salvata' => [
-                'nullable',
-                new AnniDurataAgevolazioneRule(),
-            ],
+            'PREVENTIVI_VOCE_ECONOMICHE.*.anno_inizio_salvato' => ['required', new StrictNonNegativeRule('PREVENTIVI_VOCE_ECONOMICHE.*.anno_inizio_salvato')],
+            'PREVENTIVI_VOCE_ECONOMICHE.*.anno_fine_salvato' => ['required', new StrictNonNegativeRule('PREVENTIVI_VOCE_ECONOMICHE.*.anno_fine_salvato')],
 
             'DETTAGLIO_BUSINESS_PLAN' => [
                 'nullable',
