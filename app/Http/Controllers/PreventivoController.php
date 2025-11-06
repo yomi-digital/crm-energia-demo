@@ -189,6 +189,9 @@ class PreventivoController extends Controller
             'DETTAGLIO_BUSINESS_PLAN.*.ricavo_vendita_eccedenze' => ['required', new StrictPositiveNumberRule('DETTAGLIO_BUSINESS_PLAN.*.ricavo_vendita_eccedenze', false, 0, true)],
             'DETTAGLIO_BUSINESS_PLAN.*.ricavo_incentivo_cer' => ['required', new StrictPositiveNumberRule('DETTAGLIO_BUSINESS_PLAN.*.ricavo_incentivo_cer', false, 0, true)],
             'DETTAGLIO_BUSINESS_PLAN.*.ricavo_fondo_perduto' => ['required', new StrictPositiveNumberRule('DETTAGLIO_BUSINESS_PLAN.*.ricavo_fondo_perduto', false, 0, true)],
+            'DETTAGLIO_BUSINESS_PLAN.*.incentivo_pnnr' => ['required', new StrictPositiveNumberRule('DETTAGLIO_BUSINESS_PLAN.*.incentivo_pnnr', false, 0, true)],
+            'DETTAGLIO_BUSINESS_PLAN.*.detrazione_fiscale' => ['required', new StrictPositiveNumberRule('DETTAGLIO_BUSINESS_PLAN.*.detrazione_fiscale', false, 0, true)],
+            'DETTAGLIO_BUSINESS_PLAN.*.sconto' => ['required', new StrictPositiveNumberRule('DETTAGLIO_BUSINESS_PLAN.*.sconto', false, 0, true)],
             'DETTAGLIO_BUSINESS_PLAN.*.flusso_cassa_annuo' => ['required', new StrictNumberRule('DETTAGLIO_BUSINESS_PLAN.*.flusso_cassa_annuo')],
             'DETTAGLIO_BUSINESS_PLAN.*.flusso_cassa_cumulato' => ['required', new StrictNumberRule('DETTAGLIO_BUSINESS_PLAN.*.flusso_cassa_cumulato')],
         ], [

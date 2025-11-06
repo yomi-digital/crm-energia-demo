@@ -23,6 +23,9 @@ class DettaglioBusinessPlan extends Model
         'ricavo_vendita_eccedenze',
         'ricavo_incentivo_cer',
         'ricavo_fondo_perduto',
+        'incentivo_pnnr',
+        'detrazione_fiscale',
+        'sconto',
         'flusso_cassa_annuo',
         'flusso_cassa_cumulato',
     ];
@@ -36,6 +39,9 @@ class DettaglioBusinessPlan extends Model
         'ricavo_vendita_eccedenze' => 'float',
         'ricavo_incentivo_cer' => 'float',
         'ricavo_fondo_perduto' => 'float',
+        'incentivo_pnnr' => 'float',
+        'detrazione_fiscale' => 'float',
+        'sconto' => 'float',
         'flusso_cassa_annuo' => 'float',
         'flusso_cassa_cumulato' => 'float',
     ];
