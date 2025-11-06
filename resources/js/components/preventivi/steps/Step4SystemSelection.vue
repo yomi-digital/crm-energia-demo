@@ -105,32 +105,6 @@
             </div>
         </div>
 
-        <div v-if="formData.selectedProduct" style="display:flex;flex-direction:column;gap:16px;">
-            <h3 class="section-subtitle">Simulazione Guadagni Annuali Stimati</h3>
-            <div class="grid-responsive-2">
-                <EarningsInfoCard 
-                    title="RISPARMIO DA AUTOCONSUMO" 
-                    :value="simulationResults.risparmioAutoconsumo.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
-                    description="Risparmio annuale generato dall'energia prodotta e consumata."
-                />
-                <EarningsInfoCard 
-                    title="VENDITA ECCEDENZA (RID)" 
-                    :value="simulationResults.venditaEccedenza.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
-                    description="Guadagno annuale dalla vendita dell'energia non consumata."
-                />
-                <EarningsInfoCard 
-                    title="INCENTIVO CER" 
-                    :value="simulationResults.incentivoCer.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
-                    description="Incentivo annuale per l'energia condivisa nella Comunità Energetica."
-                />
-                <EarningsInfoCard 
-                    title="DETRAZIONE FISCALE" 
-                    :value="simulationResults.detrazioneFiscale.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
-                    description="Importo annuale della detrazione fiscale per 10 anni."
-                />
-            </div>
-        </div>
-
         <div>
             <h3 class="section-subtitle" style="margin-bottom:8px;">Pagamento e Opzioni</h3>
              <div style="display:flex;flex-direction:column;gap:12px;">
@@ -257,6 +231,32 @@
                 <AdjustmentList title="Costi Aggiuntivi" listName="additionalCosts" :items="formData.additionalCosts" @update:items="updateFormData('additionalCosts', $event)" />
              </div>
         </div>
+
+        <div v-if="formData.selectedProduct" style="display:flex;flex-direction:column;gap:16px;">
+            <h3 class="section-subtitle">Simulazione Guadagni Annuali Stimati</h3>
+            <div class="grid-responsive-2">
+                <EarningsInfoCard 
+                    title="RISPARMIO DA AUTOCONSUMO" 
+                    :value="simulationResults.risparmioAutoconsumo.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
+                    description="Risparmio annuale generato dall'energia prodotta e consumata."
+                />
+                <EarningsInfoCard 
+                    title="VENDITA ECCEDENZA (RID)" 
+                    :value="simulationResults.venditaEccedenza.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
+                    description="Guadagno annuale dalla vendita dell'energia non consumata."
+                />
+                <EarningsInfoCard 
+                    title="INCENTIVO CER (PNRR)" 
+                    :value="simulationResults.incentivoCer.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
+                    description="Incentivo annuale PNRR per l'energia condivisa nella Comunità Energetica."
+                />
+                <EarningsInfoCard 
+                    title="DETRAZIONE FISCALE" 
+                    :value="simulationResults.detrazioneFiscale.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
+                    description="Importo annuale della detrazione fiscale per 10 anni."
+                />
+            </div>
+        </div>
     </div>
 </template>
 
@@ -264,7 +264,7 @@
 import { usePreventiviApi } from '@/composables/usePreventiviApi';
 import { computed, defineEmits, defineProps, onMounted, ref, watch } from 'vue';
 import AdjustmentList from '../AdjustmentList.vue';
-import { BATTERY_OPTIONS_KWH, calculateBatteryPrice, COEFFICIENTS, POWER_OPTIONS_KW, PRICE_RITIRO_DEDICATO, PRODUCTS } from '../constants';
+import { BATTERY_OPTIONS_KWH, COEFFICIENTS, POWER_OPTIONS_KW, PRICE_RITIRO_DEDICATO, PRODUCTS } from '../constants';
 import EarningsInfoCard from '../EarningsInfoCard.vue';
 
 const props = defineProps({
@@ -372,12 +372,12 @@ const totalSystemCostComputed = computed(() => {
         productPrice = selectedProduct.prezzo_base ;
       }
     }
-    const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity);
+    // Il prezzo batteria è già incluso nel prezzo prodotto
     const roofTypePrice = props.formData.roofTypePrice || 0;
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => {
         if (!item) return sum;
         if (item.tipo_valore === '%') {
-            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            const baseAmount = productPrice + roofTypePrice;
             return sum + (baseAmount * item.valore_default) / 100;
         }
         return sum + (item.amount || item.valore_default || 0);
@@ -385,12 +385,12 @@ const totalSystemCostComputed = computed(() => {
     const discountsTotal = props.formData.discounts.reduce((sum, item) => {
         if (!item) return sum;
         if (item.tipo_valore === '%') {
-            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            const baseAmount = productPrice + roofTypePrice;
             return sum + (baseAmount * item.valore_default) / 100;
         }
         return sum + (item.amount || item.valore_default || 0);
     }, 0);
-    return productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+    return productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
 });
 
 // Watch per aggiornare l'importo finanziamento e la rata quando cambia il totale del sistema
@@ -564,10 +564,7 @@ const simulationResults = computed(() => {
     }
 
     const coefficient = coefficientsMap.value[props.formData.roofExposure]?.[props.formData.geographicArea] || 1350;
-    console.log("-----------------------------------------------")
-    console.log({coefficient,systemSizeKwp});
     const annualProductionKwh = systemSizeKwp * coefficient;
-    console.log("annualProductionKwh = systemSizeKwp * coefficient",{annualProductionKwh});
     const totals = props.formData.billData.reduce((acc, month) => {
         acc.f1 += month.f1;
         acc.f2 += month.f2;
@@ -576,9 +573,6 @@ const simulationResults = computed(() => {
     }, { f1: 0, f2: 0, f3: 0 });
     const daytimeConsumptionKwh = totals.f1 * 0.83 + totals.f2 * 0.26 + totals.f3 * 0.17;
     const nighttimeConsumptionKwh = totals.f1 * 0.17 + totals.f2 * 0.74 + totals.f3 * 0.83;
-    console.log("daytimeConsumptionKwh = totals.f1 * 0.83 + totals.f2 * 0.26 + totals.f3 * 0.17",{daytimeConsumptionKwh});
-    console.log("nighttimeConsumptionKwh = totals.f1 * 0.17 + totals.f2 * 0.74 + totals.f3 * 0.83",{nighttimeConsumptionKwh});
-    const totalAnnualConsumptionKwh = daytimeConsumptionKwh + nighttimeConsumptionKwh;
     const batteryCapacityKwh = props.formData.selectedBatteryCapacity;
     // Calcolo autoconsumo totale
     // Autoconsumo diretto durante il giorno + energia dalla batteria di notte
@@ -586,39 +580,26 @@ const simulationResults = computed(() => {
     const batteryEnergyPerYear = batteryCapacityKwh * 365; // kWh disponibili dalla batteria all'anno
     // L'autoconsumo è: consumo diurno (coperto dalla produzione diretta) + min(energia batteria annua, consumo notturno)
     const totalAutoconsumoKwh = daytimeConsumptionKwh + Math.min(nighttimeConsumptionKwh, nighttimeConsumptionKwh);
-    console.log("totalAutoconsumoKwh = daytimeConsumptionKwh + nighttimeConsumptionKwh",{totalAutoconsumoKwh});
     const risparmioAutoconsumo = totalAutoconsumoKwh * props.formData.costPerKwh;
-    console.log("risparmioAutoconsumo = totalAutoconsumoKwh * props.formData.costPerKwh",{risparmioAutoconsumo,totalAutoconsumoKwh,cost: props.formData.costPerKwh});
 
     // CALCOLO VENDITA ECCEDENZA (RID)
     // Formula: energia prodotta - energia autoconsumata = energia immessa in rete
     // L'energia immessa in rete può essere venduta al prezzo di ritiro dedicato
     const energiaImmessaInRete = Math.max(0, annualProductionKwh - totalAutoconsumoKwh);
-    console.log("energiaImmessaInRete = annualProductionKwh - totalAutoconsumoKwh",{energiaImmessaInRete});
     const venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO;
-    console.log("venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO",{venditaEccedenza,energiaImmessaInRete,PRICE_RITIRO_DEDICATO});
-    // CALCOLO INCENTIVO CER questo fara parte delle voci economiche tra gli sconti al primo anno
-    // L'incentivo CER è pari al 80% dell'incentivo per l'energia condivisa nella Comunità Energetica
-    // L'incentivo base è di 0.108 €/kWh per l'energia condivisa
-    // Quindi l'incentivo CER = energiaImmessaInRete * 0.108 * 0.80 = energiaImmessaInRete * 0.0864 andra a far parte delle voci economince
-    const incentivoCerBase = energiaImmessaInRete * 0.108; // Incentivo base per energia condivisa
-    const incentivoCer = incentivoCerBase * 0.80; // 80% dell'incentivo base
-    console.log("incentivoCerBase = energiaImmessaInRete * 0.108",{incentivoCerBase,energiaImmessaInRete});
-    console.log("incentivoCer = incentivoCerBase * 0.80",{incentivoCer,incentivoCerBase});
 
     // Cerca il prezzo del prodotto selezionato
     let productPrice = 0;
     if (props.formData.selectedProduct) {
       const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
       if (selectedProduct && selectedProduct.prezzo_base) {
-        // Il prezzo_base è in centesimi, lo convertiamo in euro
         productPrice = selectedProduct.prezzo_base;
       } else {
         // Fallback ai prodotti hardcoded
         productPrice = PRODUCTS.find(p => p.name === props.formData.selectedProduct)?.price || 0;
       }
     }
-    const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity);
+    // Il prezzo batteria è già incluso nel prezzo prodotto
     const roofTypePrice = props.formData.roofTypePrice || 0;
     
     // Calcola i costi aggiuntivi e sconti gestendo valori percentuali
@@ -626,17 +607,28 @@ const simulationResults = computed(() => {
         if (!item) return 0;
         // Se è una voce percentuale, calcola l'importo come percentuale del costo base
         if (item.tipo_valore === '%') {
-            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            const baseAmount = productPrice + roofTypePrice;
             return (baseAmount * item.valore_default) / 100;
         }
         // Altrimenti usa l'importo diretto
         return item.amount || item.valore_default || 0;
     };
     
+    // Calcola incentivo CER (PNRR) - somma degli incentivi attivi nel primo anno
+    let incentivoCer = 0;
+    (props.formData.incentives || []).forEach(inc => {
+        const annoInizio = inc.anno_inizio || 1;
+        const annoFine = inc.anno_fine || 1;
+        // Se l'incentivo è attivo nel primo anno (anno 1)
+        if (annoInizio <= 1 && annoFine >= 1) {
+            incentivoCer += calculateAdjustmentAmount(inc);
+        }
+    });
+    
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = props.formData.discounts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     
-    const totalSystemCost = productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+    const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
 
     let deductionPercentage = 0;
     if (props.formData.fiscalDeductionType === 'prima_casa') {
@@ -688,13 +680,13 @@ const calculateTotalSystemCost = () => {
             productPrice = selectedProduct.prezzo_base;
         }
     }
-    const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity);
+    // Il prezzo batteria è già incluso nel prezzo prodotto
     const roofTypePrice = props.formData.roofTypePrice || 0;
     
     const calculateAdjustmentAmount = (item) => {
         if (!item) return 0;
         if (item.tipo_valore === '%') {
-            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            const baseAmount = productPrice + roofTypePrice;
             return (baseAmount * item.valore_default) / 100;
         }
         return item.amount || item.valore_default || 0;
@@ -703,7 +695,7 @@ const calculateTotalSystemCost = () => {
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = props.formData.discounts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     
-    return productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+    return productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
 };
 
 // Calcola automaticamente la rata del finanziamento
