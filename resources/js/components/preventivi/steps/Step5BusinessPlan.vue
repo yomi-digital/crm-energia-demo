@@ -43,7 +43,7 @@
                         <th v-if="hasEnergySale" class="text-right">Vendita energia</th>
                         <th v-if="hasCer" class="text-right">Incentivo CER</th>
                         <th v-if="hasFiscalDeduction" class="text-right">Detrazione fiscale</th>
-                        <th v-if="hasIncentives" class="text-right">Incentivi</th>
+                        <th v-if="hasIncentives" class="text-right">PNRR</th>
                         <th v-if="hasDiscounts" class="text-right">Sconti</th>
                         <th class="text-right">Flussi di cassa</th>
                         <th class="text-right">Flussi cumulati</th>

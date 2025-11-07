@@ -19,19 +19,19 @@
                     :placeholder="item.tipo_valore === '%' ? 'Importo (%)' : 'Importo (€)'"
                     :value="item.amount" 
                     readonly
-                    class="field-input" style="width:130px;"
+                    class="field-input" style="width:90px;"
                 />
                 <button @click="handleRemoveItem(index)" class="btn-icon danger" aria-label="Rimuovi">&times;</button>
             </div>
         </div>
-        <button @click="handleAddItem" class="btn btn-small btn-secondary" style="margin-top:8px;">+ Aggiungi {{ title.slice(0, -1) }}</button>
+        <button @click="handleAddItem" class="btn btn-small btn-secondary" style="margin-top:8px;">+ Aggiungi {{ title }}</button>
     </div>
 </template>
 
 <script setup lang="js">
-import { defineProps, defineEmits, computed, onMounted, ref, watch } from 'vue';
-import { SAMPLE_INCENTIVES, SAMPLE_DISCOUNTS, SAMPLE_ADDITIONAL_COSTS } from './constants';
 import { usePreventiviApi } from '@/composables/usePreventiviApi';
+import { computed, defineEmits, defineProps, onMounted, ref } from 'vue';
+import { SAMPLE_ADDITIONAL_COSTS, SAMPLE_DISCOUNTS, SAMPLE_INCENTIVES } from './constants';
 
 const props = defineProps({
     title: String,
