@@ -21,7 +21,7 @@
         <SummaryItem label="Manutenzione" :value="formData.maintenance.enabled ? `Sì (${formData.maintenance.cost.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })})` : 'No'" />
         <SummaryItem label="Assicurazione" :value="formData.insurance.enabled ? `Sì (${formData.insurance.cost.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })})` : 'No'" />
         <SummaryItem label="Business Plan" :value="formData.generateBusinessPlan ? 'Incluso' : 'Non incluso'" />
-        <AdjustmentListSummary title="Incentivi" :items="formData.incentives" />
+        <AdjustmentListSummary title="PNRR" :items="formData.incentives" />
         <AdjustmentListSummary title="Sconti" :items="formData.discounts" />
         <AdjustmentListSummary title="Costi Aggiuntivi" :items="formData.additionalCosts" />
       </div>
@@ -181,7 +181,9 @@ const simulationData = computed(() => {
 
     const energiaImmessaInRete = Math.max(0, annualProductionKwh - totalAutoconsumoKwh);
     const venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO;
-    const incentivoCer = energiaImmessaInRete * 0.108 * 0.80;
+
+    // CALCOLO INCENTIVO CER - eccedenza × 0.108 €/kWh (solo se abilitato)
+    const incentivoCer = props.formData.enableCer ? energiaImmessaInRete * 0.108 : 0;
 
     // Calcola costo totale sistema per detrazione fiscale
     let productPrice = 0;
@@ -191,13 +193,13 @@ const simulationData = computed(() => {
             productPrice = selectedProduct.prezzo_base;
         }
     }
-    const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity || 0);
+    // Il prezzo batteria è già incluso nel prezzo prodotto
     const roofTypePrice = props.formData.roofTypePrice || 0;
     
     const calculateAdjustmentAmount = (item) => {
         if (!item) return 0;
         if (item.tipo_valore === '%') {
-            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            const baseAmount = productPrice + roofTypePrice;
             return (baseAmount * item.valore_default) / 100;
         }
         return item.amount || item.valore_default || 0;
@@ -205,7 +207,7 @@ const simulationData = computed(() => {
     
     const additionalCostsTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = (props.formData.discounts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
-    const totalSystemCost = productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+    const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
 
     let deductionPercentage = 0;
     if (props.formData.fiscalDeductionType === 'prima_casa') {
@@ -238,22 +240,35 @@ const formatBillData = () => {
         'Maggio': 'maggio', 'Giugno': 'giugno', 'Luglio': 'luglio', 'Agosto': 'agosto',
         'Settembre': 'settembre', 'Ottobre': 'ottobre', 'Novembre': 'novembre', 'Dicembre': 'dicembre'
     };
+
+    const toCapitalizedMonth = (name) => {
+        if (!name) return '';
+        const trimmed = name.trim();
+        const normalizedLower = monthNamesMap[trimmed]
+            || monthNamesMap[`${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()}`]
+            || trimmed.toLowerCase();
+        return `${normalizedLower.charAt(0).toUpperCase()}${normalizedLower.slice(1)}`;
+    };
     
     return props.formData.billData.map((bill) => {
         // Estrai il nome del mese dal campo month (può essere "Gennaio" o "Gennaio-Febbraio" per bimestri)
         let monthName = bill.month;
+        let periodo;
+        
         if (monthName && monthName.includes('-')) {
-            // Se è un bimestre, prendi il primo mese
-            monthName = monthName.split('-')[0].trim();
+            // Se è un bimestre, capitalizza entrambi i mesi e uniscili con spazio
+            const months = monthName.split('-').map(m => toCapitalizedMonth(m));
+            const year = bill.year || new Date().getFullYear();
+            periodo = `${months.join(' ')} ${year}`;
+        } else {
+            // Se è un mese singolo, capitalizza il nome
+            monthName = toCapitalizedMonth(monthName);
+            const year = bill.year || new Date().getFullYear();
+            periodo = `${monthName} ${year}`;
         }
         
-        // Converti in minuscolo se necessario
-        monthName = monthNamesMap[monthName] || monthName.toLowerCase();
-        
-        const year = bill.year || new Date().getFullYear();
-        
         return {
-            periodo: `${monthName}_${year}`,
+            periodo: periodo,
             f1_kwh: bill.f1 || 0,
             f2_kwh: bill.f2 || 0,
             f3_kwh: bill.f3 || 0,
@@ -279,10 +294,7 @@ const preparePayload = () => {
     let tipologiaBolletta = 'mensile';
     if (props.formData.billEntryMode === 'bimonthly') {
         tipologiaBolletta = 'bimestrale';
-    } else if (props.formData.billEntryMode === 'annual') {
-        tipologiaBolletta = 'annuale';
     }
-
     // Trova anno e mese di partenza
     const firstBill = props.formData.billData[0];
     const startYear = firstBill?.year || new Date().getFullYear();
@@ -300,6 +312,7 @@ const preparePayload = () => {
             : firstBill.month;
         startMonth = monthNamesToNumber[monthName] || 1;
     }
+    
 
     // Formatta modalità pagamento
     const paymentMethod = props.formData.paymentMethod || '';
@@ -392,6 +405,8 @@ const preparePayload = () => {
             valore_applicato: valoreApplicato,
             tipo_valore_salvato: inc.tipo_valore === '%' ? '%' : '€',
             anni_durata_agevolazione_salvata: inc.anni_durata_default || 0,
+            anno_inizio_salvato: inc.anno_inizio || 1,
+            anno_fine_salvato: inc.anno_fine || 1,
         });
     });
 
@@ -407,6 +422,8 @@ const preparePayload = () => {
             valore_applicato: valoreApplicato,
             tipo_valore_salvato: sconto.tipo_valore === '%' ? '%' : '€',
             anni_durata_agevolazione_salvata: sconto.anni_durata_default || 0,
+            anno_inizio_salvato: sconto.anno_inizio || 1,
+            anno_fine_salvato: sconto.anno_fine || 1,
         });
     });
 
@@ -422,6 +439,8 @@ const preparePayload = () => {
             valore_applicato: valoreApplicato,
             tipo_valore_salvato: costo.tipo_valore === '%' ? '%' : '€',
             anni_durata_agevolazione_salvata: costo.anni_durata_default || 0,
+            anno_inizio_salvato: costo.anno_inizio || 1,
+            anno_fine_salvato: costo.anno_fine || 1,
         });
     });
 
@@ -436,13 +455,13 @@ const preparePayload = () => {
                 productPrice = selectedProduct.prezzo_base;
             }
         }
-        const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity || 0);
+        // Il prezzo batteria è già incluso nel prezzo prodotto
         const roofTypePrice = props.formData.roofTypePrice || 0;
         
         const calculateAdjustmentAmount = (item) => {
             if (!item) return 0;
             if (item.tipo_valore === '%') {
-                const baseAmount = productPrice + batteryPrice + roofTypePrice;
+                const baseAmount = productPrice + roofTypePrice;
                 return (baseAmount * item.valore_default) / 100;
             }
             return item.amount || item.valore_default || 0;
@@ -450,7 +469,7 @@ const preparePayload = () => {
         
         const additionalCostsTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
         const discountsTotal = (props.formData.discounts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
-        const totalSystemCost = productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+        const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
         
         const initialInvestment = -totalSystemCost;
         let cumulativeCashFlow = 0; // Inizializza a 0, sarà calcolato nell'anno 1
@@ -464,11 +483,12 @@ const preparePayload = () => {
             ? Math.ceil((props.formData.paymentMisto.installments || 0) / 12)
             : (props.formData.paymentMethod?.toLowerCase().includes('finanziamento') ? Math.ceil((props.formData.installments || 0) / 12) : 0);
 
-        // Verifica se c'è un incentivo PNRR
-        const hasFpPnrr = (props.formData.incentives || []).some(inc => 
-            inc.nome_voce?.toLowerCase().includes('pnrr') || 
-            inc.description?.toLowerCase().includes('pnrr')
-        );
+        // Calcola detrazione fiscale annua (spalmata per 10 anni)
+        let fiscalDeductionAnnual = 0;
+        if (props.formData.fiscalDeductionType === 'prima_casa' || props.formData.fiscalDeductionType === 'seconda_casa') {
+            const deductionPercentage = props.formData.fiscalDeductionType === 'prima_casa' ? 0.50 : 0.36;
+            fiscalDeductionAnnual = (totalSystemCost * deductionPercentage) / 10;
+        }
 
         for (let year = 1; year <= 20; year++) {
             const loanPayment = year <= loanYears ? annualLoanPayment : 0;
@@ -477,18 +497,42 @@ const preparePayload = () => {
             
             const risparmioAnnuale = simulationData.value.risparmioAutoconsumo * Math.pow(1.02, year - 1);
             const venditaEnergia = simulationData.value.venditaEccedenza * Math.pow(1.02, year - 1);
-            const cer80 = simulationData.value.incentivoCer * Math.pow(1.02, year - 1);
-            const fpPnrr = year === 1 && hasFpPnrr ? 1000 : 0; // Placeholder
+            
+            // Incentivo CER - sempre lo stesso valore per 20 anni se abilitato (eccedenza × 0.108)
+            const ricavoIncentivoCer = props.formData.enableCer ? simulationData.value.incentivoCer : 0;
+            
+            // Detrazione fiscale solo per i primi 10 anni
+            const fiscalDeduction = year <= 10 ? fiscalDeductionAnnual : 0;
+            
+            // Incentivi PNRR (diversi dal CER) - per altri incentivi PNRR specifici
+            let incentivoPnrr = 0;
+            (props.formData.incentives || []).forEach(inc => {
+                const annoInizio = inc.anno_inizio || 1;
+                const annoFine = inc.anno_fine || 1;
+                if (year >= annoInizio && year <= annoFine) {
+                    incentivoPnrr += calculateAdjustmentAmount(inc);
+                }
+            });
+            
+            // Sconti: calcola solo se l'anno è compreso tra anno_inizio e anno_fine
+            let sconto = 0;
+            (props.formData.discounts || []).forEach(scontoItem => {
+                const annoInizio = scontoItem.anno_inizio || 1;
+                const annoFine = scontoItem.anno_fine || 1;
+                if (year >= annoInizio && year <= annoFine) {
+                    sconto += calculateAdjustmentAmount(scontoItem);
+                }
+            });
 
             let cashFlow = 0;
             if (year === 1) {
                 // L'anno 1 include l'investimento iniziale negativo
-                const cashIn = risparmioAnnuale + venditaEnergia + cer80 + fpPnrr;
-                const cashOut = totalSystemCost + loanPayment + insuranceCost + maintenanceCost;
+                const cashIn = risparmioAnnuale + venditaEnergia + ricavoIncentivoCer + fiscalDeduction + incentivoPnrr;
+                const cashOut = totalSystemCost + loanPayment + insuranceCost + maintenanceCost + sconto;
                 cashFlow = cashIn - cashOut;
             } else {
-                const cashIn = risparmioAnnuale + venditaEnergia + cer80 + fpPnrr;
-                const cashOut = loanPayment + insuranceCost + maintenanceCost;
+                const cashIn = risparmioAnnuale + venditaEnergia + ricavoIncentivoCer + fiscalDeduction + incentivoPnrr;
+                const cashOut = loanPayment + insuranceCost + maintenanceCost + sconto;
                 cashFlow = cashIn - cashOut;
             }
 
@@ -501,10 +545,13 @@ const preparePayload = () => {
                 costo_annuo_manutenzione: maintenanceCost,
                 ricavo_risparmio_bolletta: Math.round(risparmioAnnuale),
                 ricavo_vendita_eccedenze: Math.round(venditaEnergia),
-                ricavo_incentivo_cer: Math.round(cer80),
-                ricavo_fondo_perduto: fpPnrr,
+                ricavo_incentivo_cer: Math.round(ricavoIncentivoCer),
+                ricavo_fondo_perduto: 0, // Placeholder per eventuali fondi perduti
                 flusso_cassa_annuo: Math.round(cashFlow),
                 flusso_cassa_cumulato: Math.round(cumulativeCashFlow),
+                incentivo_pnnr: Math.round(incentivoPnrr),
+                detrazione_fiscale: Math.round(fiscalDeduction),
+                sconto: Math.round(sconto),
             });
         }
     }
@@ -525,10 +572,10 @@ const preparePayload = () => {
             modalita_pagamento_salvata: modalitaPagamentoSalvata,
             bonifico_data_json: bonificoData,
             finanziamento_data_json: finanziamentoData,
-            opzione_manutenzione_salvata: props.formData.maintenance?.enabled ? 'si' : 'no',
-            costo_annuo_manutenzione_salvato: props.formData.maintenance?.enabled ? (props.formData.maintenance.cost || 0) : 0,
-            opzione_assicurazione_salvata: props.formData.insurance?.enabled ? 'si' : 'no',
-            costo_annuo_assicurazione_salvato: props.formData.insurance?.enabled ? (props.formData.insurance.cost || 0) : 0,
+            opzione_manutenzione_salvata: (props.formData.maintenance?.enabled && props.formData.maintenance.cost > 0) ? 'si' : 'no',
+            costo_annuo_manutenzione_salvato: (props.formData.maintenance?.enabled && props.formData.maintenance.cost > 0) ? (props.formData.maintenance.cost || 0) : 0,
+            opzione_assicurazione_salvata: (props.formData.insurance?.enabled && props.formData.insurance.cost > 0) ? 'si' : 'no',
+            costo_annuo_assicurazione_salvato: (props.formData.insurance?.enabled && props.formData.insurance.cost > 0) ? (props.formData.insurance.cost || 0) : 0,
         },
         CONSUMI_PREVENTIVO: {
             anno_partenza: startYear,

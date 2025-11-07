@@ -33,28 +33,18 @@
                         {{ tipo.nome_tipologia }}
                     </option>
                 </select>
-                <div v-if="formData.roofType" style="margin-top:8px;">
-                    <label class="field-label" for="roof-type-price" style="font-size:12px;color:#6b7280;">Prezzo aggiuntivo tetto (opzionale, €)</label>
+                <div v-if="formData.roofType && selectedRoofTypeCostPerKw !== null" style="margin-top:8px;">
+                    <label class="field-label" for="roof-type-price" style="font-size:12px;color:#6b7280;">Prezzo aggiuntivo tetto (€/kW)</label>
                     <input 
                         type="number" 
-                        :style="{visibility:'hidden', position:'absolute',pointerEvents:'none'}"
                         id="roof-type-price" 
-                        :value="formData.roofTypePrice || ''" 
-                        @input="updateFormData('roofTypePrice', Number($event.target.value) || 0)" 
+                        :value="roofTypePricePerKw" 
+                        @input="handleRoofTypePricePerKwChange(Number($event.target.value) || 0)" 
                         placeholder="0"
                         class="field-input" 
                         style="max-width:200px;"
                         min="0"
                         step="0.01"
-                    />
-                    <input 
-                        type="number" 
-                        disabled
-                        :value="formData.roofTypePrice || ''" 
-                        @input="updateFormData('roofTypePrice', Number($event.target.value) || 0)" 
-                        placeholder="0"
-                        class="field-input" 
-                        style="max-width:200px;"
                     />
                 </div>
              </div>
@@ -79,6 +69,9 @@
                         {{ kw }} kW
                     </option>
                 </select>
+                <p v-if="formData.selectedPowerKw > 0 && formData.roofTypePrice > 0" style="margin-top:8px;font-size:12px;color:#6b7280;">
+                    Costo aggiuntivo tetto: <strong>{{ formData.roofTypePrice.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }) }}</strong>
+                </p>
             </div>
 
             <div>
@@ -106,35 +99,9 @@
                 >
                     <option value="">Scegli un prodotto</option>
                     <option v-for="product in prodottiFotovoltaico" :key="product.id_prodotto" :value="String(product.id_prodotto)">
-                      {{ product.codice_prodotto }}
+                      {{ product.codice_prodotto }} ({{ product.prezzo_base }} €)
                     </option>
                 </select>
-            </div>
-        </div>
-
-        <div v-if="formData.selectedProduct" style="display:flex;flex-direction:column;gap:16px;">
-            <h3 class="section-subtitle">Simulazione Guadagni Annuali Stimati</h3>
-            <div class="grid-responsive-2">
-                <EarningsInfoCard 
-                    title="RISPARMIO DA AUTOCONSUMO" 
-                    :value="simulationResults.risparmioAutoconsumo.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
-                    description="Risparmio annuale generato dall'energia prodotta e consumata."
-                />
-                <EarningsInfoCard 
-                    title="VENDITA ECCEDENZA (RID)" 
-                    :value="simulationResults.venditaEccedenza.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
-                    description="Guadagno annuale dalla vendita dell'energia non consumata."
-                />
-                <EarningsInfoCard 
-                    title="INCENTIVO CER" 
-                    :value="simulationResults.incentivoCer.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
-                    description="Incentivo annuale per l'energia condivisa nella Comunità Energetica."
-                />
-                <EarningsInfoCard 
-                    title="DETRAZIONE FISCALE" 
-                    :value="simulationResults.detrazioneFiscale.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
-                    description="Importo annuale della detrazione fiscale per 10 anni."
-                />
             </div>
         </div>
 
@@ -223,16 +190,16 @@
                 <div class="pill" style="display:flex;align-items:center;justify-content:space-between;">
                     <label for="maintenance-check" style="font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;">
                      <input type="checkbox" id="maintenance-check" :checked="formData.maintenance.enabled" @change="updateFormData('maintenance', {...formData.maintenance, enabled: $event.target.checked})" style="margin-right:8px;"/>
-                        Manutenzione
+                        Manutenzione (costo annuale)
                     </label>
-                    <input v-if="formData.maintenance.enabled" type="number" placeholder="Importo" :value="formData.maintenance.cost" @input="updateFormData('maintenance', {...formData.maintenance, cost: Number($event.target.value)})" class="field-input" style="width:130px;"/>
+                    <input v-if="formData.maintenance.enabled" type="number" placeholder="Importo" :value="formData.maintenance.cost" @input="updateFormData('maintenance', {...formData.maintenance, cost: Number($event.target.value)})" class="field-input" style="width:90px;"/>
                 </div>
                  <div class="pill" style="display:flex;align-items:center;justify-content:space-between;">
                     <label for="insurance-check" style="font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;">
                      <input type="checkbox" id="insurance-check" :checked="formData.insurance.enabled" @change="updateFormData('insurance', {...formData.insurance, enabled: $event.target.checked})" style="margin-right:8px;"/>
-                        Assicurazione
+                        Assicurazione (costo annuale)
                     </label>
-                    <input v-if="formData.insurance.enabled" type="number" placeholder="Importo" :value="formData.insurance.cost" @input="updateFormData('insurance', {...formData.insurance, cost: Number($event.target.value)})" class="field-input" style="width:130px;"/>
+                    <input v-if="formData.insurance.enabled" type="number" placeholder="Importo" :value="formData.insurance.cost" @input="updateFormData('insurance', {...formData.insurance, cost: Number($event.target.value)})" class="field-input" style="width:90px;"/>
                 </div>
             </div>
         </div>
@@ -258,12 +225,47 @@
                         >Nessuna</button>
                     </div>
                 </div>
+                <div v-if="formData.selectedProduct" style="display:flex;flex-direction:column;gap:16px;">
+            <h3 class="section-subtitle">Simulazione Guadagni Annuali Stimati</h3>
+      
+        </div>
                 <!-- <AdjustmentList components will be added here -->
+                <div class="pill" style="display:flex;align-items:center;justify-content:space-between;">
+                    <label for="enable-cer-check" style="font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;">
+                        <input type="checkbox" id="enable-cer-check" :checked="formData.enableCer" @change="updateFormData('enableCer', $event.target.checked)" style="margin-right:8px;"/>
+                        Abilita Incentivo CER
+                    </label>
+                    <span class="help-text" style="font-size:12px;color:#6b7280;">Calcolo: eccedenza (kWh) × 0.108 €/kWh</span>
+                </div>
                 <AdjustmentList title="Incentivi" listName="incentives" :items="formData.incentives" @update:items="updateFormData('incentives', $event)" />
+                <div class="grid-responsive-2">
+                <EarningsInfoCard 
+                    title="RISPARMIO DA AUTOCONSUMO" 
+                    :value="simulationResults.risparmioAutoconsumo.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 1 })"
+                    description="Risparmio annuale generato dall'energia prodotta e consumata."
+                />
+                <EarningsInfoCard 
+                    title="VENDITA ECCEDENZA (RID)" 
+                    :value="simulationResults.venditaEccedenza.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 1 })"
+                    description="Guadagno annuale dalla vendita dell'energia non consumata."
+                />
+                <EarningsInfoCard 
+                    title="INCENTIVO CER" 
+                    :value="simulationResults.incentivoCer.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 1 })"
+                    description="Incentivo annuale CER per l'energia condivisa nella Comunità Energetica (eccedenza × 0.108 €/kWh)."
+                />
+                <EarningsInfoCard 
+                    title="DETRAZIONE FISCALE" 
+                    :value="simulationResults.detrazioneFiscale.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 1 })"
+                    description="Importo annuale della detrazione fiscale per 10 anni."
+                />
+            </div>
                 <AdjustmentList title="Sconti" listName="discounts" :items="formData.discounts" @update:items="updateFormData('discounts', $event)" />
                 <AdjustmentList title="Costi Aggiuntivi" listName="additionalCosts" :items="formData.additionalCosts" @update:items="updateFormData('additionalCosts', $event)" />
              </div>
         </div>
+
+        
     </div>
 </template>
 
@@ -271,7 +273,7 @@
 import { usePreventiviApi } from '@/composables/usePreventiviApi';
 import { computed, defineEmits, defineProps, onMounted, ref, watch } from 'vue';
 import AdjustmentList from '../AdjustmentList.vue';
-import { BATTERY_OPTIONS_KWH, calculateBatteryPrice, COEFFICIENTS, POWER_OPTIONS_KW, PRICE_RITIRO_DEDICATO, PRODUCTS } from '../constants';
+import { BATTERY_OPTIONS_KWH, COEFFICIENTS, POWER_OPTIONS_KW, PRICE_RITIRO_DEDICATO, PRODUCTS } from '../constants';
 import EarningsInfoCard from '../EarningsInfoCard.vue';
 
 const props = defineProps({
@@ -303,6 +305,7 @@ onMounted(async () => {
   try {
     // Carica tipologie tetto
     const tipologie = await loadTipologieTetto();
+    console.log(tipologie);
     // Gestisci la risposta paginata o diretta
     tipologieTetto.value = Array.isArray(tipologie) ? tipologie : (tipologie?.data || []);
     
@@ -379,12 +382,12 @@ const totalSystemCostComputed = computed(() => {
         productPrice = selectedProduct.prezzo_base ;
       }
     }
-    const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity);
+    // Il prezzo batteria è già incluso nel prezzo prodotto
     const roofTypePrice = props.formData.roofTypePrice || 0;
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => {
         if (!item) return sum;
         if (item.tipo_valore === '%') {
-            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            const baseAmount = productPrice + roofTypePrice;
             return sum + (baseAmount * item.valore_default) / 100;
         }
         return sum + (item.amount || item.valore_default || 0);
@@ -392,12 +395,12 @@ const totalSystemCostComputed = computed(() => {
     const discountsTotal = props.formData.discounts.reduce((sum, item) => {
         if (!item) return sum;
         if (item.tipo_valore === '%') {
-            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            const baseAmount = productPrice + roofTypePrice;
             return sum + (baseAmount * item.valore_default) / 100;
         }
         return sum + (item.amount || item.valore_default || 0);
     }, 0);
-    return productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+    return productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
 });
 
 // Watch per aggiornare l'importo finanziamento e la rata quando cambia il totale del sistema
@@ -429,41 +432,84 @@ watch(totalSystemCostComputed, (newTotal) => {
     }
 });
 
+// Computed per ottenere il costo per kW della tipologia tetto selezionata
+const selectedRoofTypeCostPerKw = computed(() => {
+  if (!props.formData.roofType || tipologieTetto.value.length === 0) {
+    return null;
+  }
+  const selectedTipo = tipologieTetto.value.find(t => t.nome_tipologia === props.formData.roofType);
+  if (selectedTipo && selectedTipo.costo_extra_kwp !== undefined && selectedTipo.costo_extra_kwp !== null && selectedTipo.costo_extra_kwp > 0) {
+    return selectedTipo.costo_extra_kwp;
+  }
+  return null;
+});
+
+// Computed per ottenere il prezzo per kW (dal formData o dal DB)
+const roofTypePricePerKw = computed(() => {
+  // Se c'è un valore salvato nel formData (anche se è 0), usalo
+  if (props.formData.roofTypePricePerKw !== undefined && props.formData.roofTypePricePerKw !== null) {
+    return props.formData.roofTypePricePerKw;
+  }
+  // Altrimenti usa il valore dal DB se disponibile
+  return selectedRoofTypeCostPerKw.value || 0;
+});
+
+// Funzione per gestire il cambio del prezzo per kW
+const handleRoofTypePricePerKwChange = (pricePerKw) => {
+  // Salva il prezzo per kW
+  updateFormData('roofTypePricePerKw', pricePerKw);
+  // Ricalcola il totale se c'è una potenza selezionata
+  if (props.formData.selectedPowerKw && props.formData.selectedPowerKw > 0) {
+    const totalPrice = pricePerKw * props.formData.selectedPowerKw;
+    updateFormData('roofTypePrice', totalPrice);
+  } else {
+    updateFormData('roofTypePrice', 0);
+  }
+};
+
 const handlePowerChange = (value) => {
   updateFormData('selectedPowerKw', value);
-  // Ricalcola il prezzo tetto se c'è un costo_extra_kwp
-  if (value > 0 && props.formData.roofType && tipologieTetto.value.length > 0) {
-    const selectedTipo = tipologieTetto.value.find(t => t.nome_tipologia === props.formData.roofType);
-    if (selectedTipo && selectedTipo.costo_extra_kwp !== undefined && selectedTipo.costo_extra_kwp !== null) {
-      const costoExtra = selectedTipo.costo_extra_kwp * value;
+  // Ricalcola il prezzo tetto totale usando il prezzo per kW salvato
+  if (value > 0) {
+    const pricePerKw = roofTypePricePerKw.value || 0;
+    if (pricePerKw > 0) {
+      const costoExtra = pricePerKw * value;
       updateFormData('roofTypePrice', costoExtra);
+    } else {
+      updateFormData('roofTypePrice', 0);
     }
+  } else {
+    updateFormData('roofTypePrice', 0);
   }
 };
 
 const handleRoofTypeChange = (value) => {
   updateFormData('roofType', value);
-  // Se la tipologia tetto ha un costo_extra_kwp, lo usiamo per precompilare il prezzo
+  // Se la tipologia tetto ha un costo_extra_kwp, lo usiamo per precompilare il prezzo per kW
   if (value) {
     const selectedTipo = tipologieTetto.value.find(t => t.nome_tipologia === value);
     if (selectedTipo) {
-      // Se c'è un costo_extra_kwp, calcoliamo il costo totale in base alla potenza selezionata
-      // costo_extra_kwp è in euro per kWp
-      if (selectedTipo.costo_extra_kwp !== undefined && selectedTipo.costo_extra_kwp !== null) {
+      // Se c'è un costo_extra_kwp, salviamo il prezzo per kW
+      if (selectedTipo.costo_extra_kwp !== undefined && selectedTipo.costo_extra_kwp !== null && selectedTipo.costo_extra_kwp > 0) {
+        // Salva il prezzo per kW dal DB
+        updateFormData('roofTypePricePerKw', selectedTipo.costo_extra_kwp);
+        // Calcola il costo totale se c'è una potenza selezionata
         const potenzaKwp = props.formData.selectedPowerKw || 0;
         if (potenzaKwp > 0) {
           const costoExtra = selectedTipo.costo_extra_kwp * potenzaKwp;
           updateFormData('roofTypePrice', costoExtra);
         } else {
-          // Se non c'è ancora una potenza selezionata, imposta a 0
+          // Se non c'è ancora una potenza selezionata, imposta il totale a 0
           updateFormData('roofTypePrice', 0);
         }
       } else {
-        // Se non c'è un costo predefinito, mantieni il valore corrente o imposta a 0
-        updateFormData('roofTypePrice', props.formData.roofTypePrice || 0);
+        // Se non c'è un costo predefinito, azzera sia il prezzo per kW che il totale
+        updateFormData('roofTypePricePerKw', 0);
+        updateFormData('roofTypePrice', 0);
       }
     }
   } else {
+    updateFormData('roofTypePricePerKw', 0);
     updateFormData('roofTypePrice', 0);
   }
 };
@@ -537,7 +583,6 @@ const simulationResults = computed(() => {
     }, { f1: 0, f2: 0, f3: 0 });
     const daytimeConsumptionKwh = totals.f1 * 0.83 + totals.f2 * 0.26 + totals.f3 * 0.17;
     const nighttimeConsumptionKwh = totals.f1 * 0.17 + totals.f2 * 0.74 + totals.f3 * 0.83;
-    const totalAnnualConsumptionKwh = daytimeConsumptionKwh + nighttimeConsumptionKwh;
     const batteryCapacityKwh = props.formData.selectedBatteryCapacity;
     // Calcolo autoconsumo totale
     // Autoconsumo diretto durante il giorno + energia dalla batteria di notte
@@ -553,26 +598,21 @@ const simulationResults = computed(() => {
     const energiaImmessaInRete = Math.max(0, annualProductionKwh - totalAutoconsumoKwh);
     const venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO;
 
-    // CALCOLO INCENTIVO CER
-    // L'incentivo CER è pari al 80% dell'incentivo per l'energia condivisa nella Comunità Energetica
-    // L'incentivo base è di 0.108 €/kWh per l'energia condivisa
-    // Quindi l'incentivo CER = energiaImmessaInRete * 0.108 * 0.80 = energiaImmessaInRete * 0.0864
-    const incentivoCerBase = energiaImmessaInRete * 0.108; // Incentivo base per energia condivisa
-    const incentivoCer = incentivoCerBase * 0.80; // 80% dell'incentivo base
+    // CALCOLO INCENTIVO CER - eccedenza × 0.108 €/kWh (solo se abilitato)
+    const incentivoCer = props.formData.enableCer ? energiaImmessaInRete * 0.108 : 0;
 
     // Cerca il prezzo del prodotto selezionato
     let productPrice = 0;
     if (props.formData.selectedProduct) {
       const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
       if (selectedProduct && selectedProduct.prezzo_base) {
-        // Il prezzo_base è in centesimi, lo convertiamo in euro
         productPrice = selectedProduct.prezzo_base;
       } else {
         // Fallback ai prodotti hardcoded
         productPrice = PRODUCTS.find(p => p.name === props.formData.selectedProduct)?.price || 0;
       }
     }
-    const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity);
+    // Il prezzo batteria è già incluso nel prezzo prodotto
     const roofTypePrice = props.formData.roofTypePrice || 0;
     
     // Calcola i costi aggiuntivi e sconti gestendo valori percentuali
@@ -580,7 +620,7 @@ const simulationResults = computed(() => {
         if (!item) return 0;
         // Se è una voce percentuale, calcola l'importo come percentuale del costo base
         if (item.tipo_valore === '%') {
-            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            const baseAmount = productPrice + roofTypePrice;
             return (baseAmount * item.valore_default) / 100;
         }
         // Altrimenti usa l'importo diretto
@@ -590,7 +630,7 @@ const simulationResults = computed(() => {
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = props.formData.discounts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     
-    const totalSystemCost = productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+    const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
 
     let deductionPercentage = 0;
     if (props.formData.fiscalDeductionType === 'prima_casa') {
@@ -642,13 +682,13 @@ const calculateTotalSystemCost = () => {
             productPrice = selectedProduct.prezzo_base;
         }
     }
-    const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity);
+    // Il prezzo batteria è già incluso nel prezzo prodotto
     const roofTypePrice = props.formData.roofTypePrice || 0;
     
     const calculateAdjustmentAmount = (item) => {
         if (!item) return 0;
         if (item.tipo_valore === '%') {
-            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            const baseAmount = productPrice + roofTypePrice;
             return (baseAmount * item.valore_default) / 100;
         }
         return item.amount || item.valore_default || 0;
@@ -657,7 +697,7 @@ const calculateTotalSystemCost = () => {
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = props.formData.discounts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     
-    return productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+    return productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
 };
 
 // Calcola automaticamente la rata del finanziamento
@@ -770,3 +810,5 @@ const handleFinanziamentoChange = (field, value) => {
     }
 };
 </script>
+
+

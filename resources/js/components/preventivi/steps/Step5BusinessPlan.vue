@@ -41,8 +41,10 @@
                         <th v-if="hasMaintenance" class="text-right">Costo manutenzione</th>
                         <th v-if="hasAnnualSavings" class="text-right">Risparmio bolletta</th>
                         <th v-if="hasEnergySale" class="text-right">Vendita energia</th>
-                        <th v-if="hasCer80" class="text-right">CER 80%</th>
-                        <th v-if="hasFpPnrr" class="text-right">F.P. PNRR</th>
+                        <th v-if="hasCer" class="text-right">Incentivo CER</th>
+                        <th v-if="hasFiscalDeduction" class="text-right">Detrazione fiscale</th>
+                        <th v-if="hasIncentives" class="text-right">PNRR</th>
+                        <th v-if="hasDiscounts" class="text-right">Sconti</th>
                         <th class="text-right">Flussi di cassa</th>
                         <th class="text-right">Flussi cumulati</th>
                     </tr>
@@ -55,8 +57,10 @@
                         <td v-if="hasMaintenance" class="text-right">{{ formatCurrency(row.maintenanceCost) }}</td>
                         <td v-if="hasAnnualSavings" class="text-right" style="color:#059669;">{{ formatCurrency(row.annualSavings) }}</td>
                         <td v-if="hasEnergySale" class="text-right" style="color:#059669;">{{ formatCurrency(row.energySale) }}</td>
-                        <td v-if="hasCer80" class="text-right" style="color:#059669;">{{ formatCurrency(row.cer80) }}</td>
-                        <td v-if="hasFpPnrr" class="text-right" style="color:#059669;">{{ formatCurrency(row.fpPnrr) }}</td>
+                        <td v-if="hasCer" class="text-right" style="color:#059669;">{{ formatCurrency(row.cer) }}</td>
+                        <td v-if="hasFiscalDeduction" class="text-right" style="color:#059669;">{{ formatCurrency(row.fiscalDeduction) }}</td>
+                        <td v-if="hasIncentives" class="text-right" style="color:#059669;">{{ formatCurrency(row.incentives) }}</td>
+                        <td v-if="hasDiscounts" class="text-right" style="color:#059669;">{{ formatCurrency(row.discounts) }}</td>
                         <td class="text-right" :style="{fontWeight:'700', color: row.cashFlow >= 0 ? '#047857' : '#dc2626'}">{{ formatCurrency(row.cashFlow) }}</td>
                         <td class="text-right" :style="{fontWeight:'700', color: row.cumulativeCashFlow >= 0 ? '#1f2937' : '#b91c1c'}">{{ formatCurrency(row.cumulativeCashFlow) }}</td>
                     </tr>
@@ -70,7 +74,7 @@
 <script setup lang="js">
 import { usePreventiviApi } from '@/composables/usePreventiviApi';
 import { computed, defineEmits, defineProps, onMounted, ref } from 'vue';
-import { calculateBatteryPrice, PRICE_RITIRO_DEDICATO } from '../constants';
+import { PRICE_RITIRO_DEDICATO } from '../constants';
 
 const props = defineProps({
   formData: Object,
@@ -112,7 +116,9 @@ const simulationData = computed(() => {
 
     const energiaImmessaInRete = Math.max(0, annualProductionKwh - totalAutoconsumoKwh);
     const venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO;
-    const incentivoCer = energiaImmessaInRete * 0.108 * 0.80;
+    
+    // Calcola incentivo CER - eccedenza × 0.108 €/kWh (solo se abilitato)
+    const incentivoCer = props.formData.enableCer ? energiaImmessaInRete * 0.108 : 0;
 
     return {
         risparmioAutoconsumo,
@@ -121,7 +127,7 @@ const simulationData = computed(() => {
     };
 });
 
-// Calcola il costo totale del sistema
+// Calcola il costo totale del sistema (senza costi aggiuntivi che vanno già nel totale)
 const totalSystemCost = computed(() => {
     let productPrice = 0;
     if (props.formData.selectedProduct && prodottiFotovoltaico.value.length > 0) {
@@ -130,22 +136,24 @@ const totalSystemCost = computed(() => {
             productPrice = selectedProduct.prezzo_base;
         }
     }
-    const batteryPrice = calculateBatteryPrice(props.formData.selectedBatteryCapacity || 0);
+    // Il prezzo batteria è già incluso nel prezzo prodotto
     const roofTypePrice = props.formData.roofTypePrice || 0;
     
     const calculateAdjustmentAmount = (item) => {
         if (!item) return 0;
         if (item.tipo_valore === '%') {
-            const baseAmount = productPrice + batteryPrice + roofTypePrice;
+            const baseAmount = productPrice + roofTypePrice;
             return (baseAmount * item.valore_default) / 100;
         }
         return item.amount || item.valore_default || 0;
     };
     
+    // I costi aggiuntivi vanno sommati subito sul totale
     const additionalCostsTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
+    // Gli sconti vengono sottratti dal totale
     const discountsTotal = (props.formData.discounts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     
-    return productPrice + batteryPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+    return productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
 });
 
 // Calcola il pagamento finanziamento annuo
@@ -183,20 +191,48 @@ const hasInsurance = computed(() => props.formData.insurance?.enabled && props.f
 const hasMaintenance = computed(() => props.formData.maintenance?.enabled && props.formData.maintenance?.cost > 0);
 const hasAnnualSavings = computed(() => simulationData.value.risparmioAutoconsumo > 0);
 const hasEnergySale = computed(() => simulationData.value.venditaEccedenza > 0);
-const hasCer80 = computed(() => simulationData.value.incentivoCer > 0);
-const hasFpPnrr = computed(() => {
-    // F.P. PNRR è presente solo se c'è un incentivo nelle voci economiche
-    const hasIncentive = (props.formData.incentives || []).some(inc => 
-        inc.nome_voce?.toLowerCase().includes('pnrr') || 
-        inc.description?.toLowerCase().includes('pnrr')
-    );
-    return hasIncentive;
+const hasCer = computed(() => props.formData.enableCer && simulationData.value.venditaEccedenza > 0);
+const hasFiscalDeduction = computed(() => {
+    return props.formData.fiscalDeductionType === 'prima_casa' || props.formData.fiscalDeductionType === 'seconda_casa';
+});
+const hasIncentives = computed(() => {
+    return (props.formData.incentives || []).length > 0;
+});
+const hasDiscounts = computed(() => {
+    return (props.formData.discounts || []).length > 0;
 });
 
 const businessPlanData = computed(() => {
     const data = [];
     let cumulativeCashFlow = 0;
     const initialInvestment = -totalSystemCost.value;
+
+    // Calcola detrazione fiscale annua (spalmata per 10 anni)
+    let fiscalDeductionAnnual = 0;
+    if (props.formData.fiscalDeductionType === 'prima_casa' || props.formData.fiscalDeductionType === 'seconda_casa') {
+        const deductionPercentage = props.formData.fiscalDeductionType === 'prima_casa' ? 0.50 : 0.36;
+        fiscalDeductionAnnual = (totalSystemCost.value * deductionPercentage) / 10;
+    }
+
+    // Calcola importi incentivi e sconti per anno
+    const calculateAdjustmentAmount = (item) => {
+        if (!item) return 0;
+        let productPrice = 0;
+        if (props.formData.selectedProduct && prodottiFotovoltaico.value.length > 0) {
+            const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
+            if (selectedProduct && selectedProduct.prezzo_base) {
+                productPrice = selectedProduct.prezzo_base;
+            }
+        }
+        // Il prezzo batteria è già incluso nel prezzo prodotto
+        const roofTypePrice = props.formData.roofTypePrice || 0;
+        const baseAmount = productPrice + roofTypePrice;
+        
+        if (item.tipo_valore === '%') {
+            return (baseAmount * item.valore_default) / 100;
+        }
+        return item.amount || item.valore_default || 0;
+    };
 
     for (let year = 0; year <= 20; year++) {
         const loanPayment = year > 0 && year <= loanYears.value ? annualLoanPayment.value : 0;
@@ -206,17 +242,39 @@ const businessPlanData = computed(() => {
         // Applica inflazione del 2% annuo ai risparmi
         const risparmioAnnuale = year > 0 ? simulationData.value.risparmioAutoconsumo * Math.pow(1.02, year - 1) : 0;
         const venditaEnergia = year > 0 ? simulationData.value.venditaEccedenza * Math.pow(1.02, year - 1) : 0;
-        const cer80 = year > 0 ? simulationData.value.incentivoCer * Math.pow(1.02, year - 1) : 0;
         
-        // F.P. PNRR solo nel primo anno se presente
-        const fpPnrr = year === 1 && hasFpPnrr.value ? 1000 : 0; // Placeholder, dovrebbe essere calcolato dalle voci economiche
+        // Incentivo CER - sempre lo stesso valore per 20 anni se abilitato (eccedenza × 0.108)
+        const cer = year > 0 && props.formData.enableCer ? simulationData.value.incentivoCer : 0;
+        
+        // Detrazione fiscale solo per i primi 10 anni
+        const fiscalDeduction = year > 0 && year <= 10 ? fiscalDeductionAnnual : 0;
+        
+        // Incentivi: calcola solo se l'anno è compreso tra anno_inizio e anno_fine
+        let incentivesTotal = 0;
+        (props.formData.incentives || []).forEach(inc => {
+            const annoInizio = inc.anno_inizio || 1;
+            const annoFine = inc.anno_fine || 1;
+            if (year >= annoInizio && year <= annoFine) {
+                incentivesTotal += calculateAdjustmentAmount(inc);
+            }
+        });
+        
+        // Sconti: calcola solo se l'anno è compreso tra anno_inizio e anno_fine
+        let discountsTotal = 0;
+        (props.formData.discounts || []).forEach(sconto => {
+            const annoInizio = sconto.anno_inizio || 1;
+            const annoFine = sconto.anno_fine || 1;
+            if (year >= annoInizio && year <= annoFine) {
+                discountsTotal += calculateAdjustmentAmount(sconto);
+            }
+        });
 
         let cashFlow = 0;
         if (year === 0) {
             cashFlow = initialInvestment;
         } else {
-            const cashIn = risparmioAnnuale + venditaEnergia + cer80 + fpPnrr;
-            const cashOut = loanPayment + insuranceCost + maintenanceCost;
+            const cashIn = risparmioAnnuale + venditaEnergia + cer + fiscalDeduction + incentivesTotal;
+            const cashOut = loanPayment + insuranceCost + maintenanceCost + discountsTotal;
             cashFlow = cashIn - cashOut;
         }
 
@@ -229,8 +287,10 @@ const businessPlanData = computed(() => {
             maintenanceCost,
             annualSavings: risparmioAnnuale,
             energySale: venditaEnergia,
-            cer80,
-            fpPnrr,
+            cer,
+            fiscalDeduction,
+            incentives: incentivesTotal,
+            discounts: discountsTotal,
             cashFlow,
             cumulativeCashFlow,
         });

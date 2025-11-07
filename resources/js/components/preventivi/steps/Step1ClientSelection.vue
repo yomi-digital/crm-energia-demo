@@ -39,7 +39,6 @@
     <VDialog
       v-model="isModalOpen"
       max-width="900px"
-      persistent
     >
       <VCard>
         <VCardTitle class="d-flex justify-space-between align-center">
@@ -47,9 +46,10 @@
           <VBtn
             icon
             variant="text"
+            color="primary"
             @click="closeModal"
           >
-            <VIcon>mdi-close</VIcon>
+            <VIcon color="#000000" icon="tabler-x" />
           </VBtn>
         </VCardTitle>
 
@@ -75,6 +75,11 @@ const customers = ref([]);
 const search = ref('');
 const loading = ref(false);
 const selectedCustomer = ref(null);
+
+const preventDefaultStopPropagation = (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+};
 
 // Funzione per formattare il nome del cliente come in PaperworkCustomer
 const getCustomerName = (customer) => {

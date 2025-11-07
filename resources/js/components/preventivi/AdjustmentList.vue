@@ -19,19 +19,19 @@
                     :placeholder="item.tipo_valore === '%' ? 'Importo (%)' : 'Importo (€)'"
                     :value="item.amount" 
                     readonly
-                    class="field-input" style="width:130px;"
+                    class="field-input" style="width:90px;"
                 />
                 <button @click="handleRemoveItem(index)" class="btn-icon danger" aria-label="Rimuovi">&times;</button>
             </div>
         </div>
-        <button @click="handleAddItem" class="btn btn-small btn-secondary" style="margin-top:8px;">+ Aggiungi {{ title.slice(0, -1) }}</button>
+        <button @click="handleAddItem" class="btn btn-small btn-secondary" style="margin-top:8px;">+ Aggiungi {{ title }}</button>
     </div>
 </template>
 
 <script setup lang="js">
-import { defineProps, defineEmits, computed, onMounted, ref, watch } from 'vue';
-import { SAMPLE_INCENTIVES, SAMPLE_DISCOUNTS, SAMPLE_ADDITIONAL_COSTS } from './constants';
 import { usePreventiviApi } from '@/composables/usePreventiviApi';
+import { computed, defineEmits, defineProps, onMounted, ref } from 'vue';
+import { SAMPLE_ADDITIONAL_COSTS, SAMPLE_DISCOUNTS, SAMPLE_INCENTIVES } from './constants';
 
 const props = defineProps({
     title: String,
@@ -69,6 +69,8 @@ const loadVociFromApi = async () => {
             tipo_valore: voce.tipo_valore,
             valore_default: voce.valore_default,
             anni_durata_default: voce.anni_durata_default,
+            anno_inizio: voce.anno_inizio,
+            anno_fine: voce.anno_fine,
             // Manteniamo anche description e amount per compatibilità con il formato esistente
             description: voce.nome_voce,
             amount: voce.valore_default, // Importo di default, sarà calcolato se percentuale
@@ -116,6 +118,8 @@ const handleDescriptionChange = (index, newIdVoce) => {
                 tipo_valore: selectedOption.tipo_valore,
                 valore_default: selectedOption.valore_default,
                 anni_durata_default: selectedOption.anni_durata_default,
+                anno_inizio: selectedOption.anno_inizio,
+                anno_fine: selectedOption.anno_fine,
                 // Mantieni anche description e amount per compatibilità
                 description: selectedOption.nome_voce,
                 amount: selectedOption.valore_default, // Sarà calcolato se percentuale
@@ -142,6 +146,8 @@ const handleAddItem = () => {
                 tipo_valore: firstOption.tipo_valore,
                 valore_default: firstOption.valore_default,
                 anni_durata_default: firstOption.anni_durata_default,
+                anno_inizio: firstOption.anno_inizio,
+                anno_fine: firstOption.anno_fine,
                 description: firstOption.nome_voce,
                 amount: firstOption.valore_default,
             }]);
