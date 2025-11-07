@@ -51,6 +51,6 @@ export const calculateBatteryPrice = (capacity) => {
   return 12000;
 };
 
-export const PRICE_RITIRO_DEDICATO = 0.08;
+export const PRICE_RITIRO_DEDICATO = 0.11;
 
 
