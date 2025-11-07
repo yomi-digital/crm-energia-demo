@@ -108,7 +108,7 @@ const getCustomerName = (customer) => {
 const fetchCustomers = async (query, id = null) => {
   try {
     loading.value = true;
-    const response = await $api('/customers?itemsPerPage=10&select=1&q=' + query + (id ? '&id=' + id : ''));
+    const response = await $api('/customers?skipControl=true&itemsPerPage=50&select=1&q=' + query + (id ? '&id=' + id : ''));
     
     if (!response || !response.customers || !Array.isArray(response.customers)) {
       console.error('Risposta API non valida:', response);
