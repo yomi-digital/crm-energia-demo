@@ -164,6 +164,8 @@ const updateFormData = (field, value) => {
 
 watch(localBillEntryMode, (newMode) => {
     emit('update:billEntryMode', newMode);
+    // Salva anche nel formData
+    updateFormData('billEntryMode', newMode);
 });
 
 const handleModeSelect = (mode) => {

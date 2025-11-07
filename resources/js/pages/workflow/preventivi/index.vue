@@ -41,6 +41,7 @@ const formData = ref({
     costPerKwh: 0,
     totalBillCost: 0,
     billData: [],
+    billEntryMode: null,
     geographicArea: 'CENTRO',
     roofExposure: 'SUD',
     roofType: 'A falda',
@@ -68,6 +69,7 @@ const formData = ref({
     additionalCosts: [],
     generateBusinessPlan: false,
     fiscalDeductionType: 'nessuna',
+    enableCer: false,
 });
 
 const handleNext = () => {
@@ -90,6 +92,8 @@ const updateFormData = (newData) => {
 
 const updateBillEntryMode = (newMode) => {
     billEntryMode.value = newMode;
+    // Salva anche nel formData per renderlo disponibile in tutti gli step
+    formData.value = { ...formData.value, billEntryMode: newMode };
 }
 
 const isNextDisabled = computed(() => {
