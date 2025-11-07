@@ -279,6 +279,7 @@ class PreventivoController extends Controller
 
                 // 7. Genera il PDF e salvalo su DigitalOcean Spaces
                 $preventivoWithRelations = Preventivo::with([
+                    'cliente',
                     'dettagliProdotti',
                     'vociEconomiche',
                     'dettagliBusinessPlan',
