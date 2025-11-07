@@ -2413,15 +2413,15 @@
                             <ul style="list-style: none; padding: 0; margin: 0;">
                                 <li style="margin-bottom: 15px; font-size: 13px; color: #333; font-family: Arial, sans-serif; overflow: hidden;">
                                     <img src="{{ public_path('images/pdf/preventivi_bonifico_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Prima rata: € {{ number_format($bonificoData['first_rate'], 2, ',', '.') }}</span>
+                                    <span style="margin-left: 25px; transform: translateY(-2px);">Prima rata: € {{ number_format(($bonificoData ?? [])['first_rate'] ?? 0, 2, ',', '.') }}</span>
                                 </li>
                                 <li style="margin-bottom: 15px; font-size: 13px; color: #333; font-family: Arial, sans-serif; overflow: hidden;">
                                     <img src="{{ public_path('images/pdf/preventivi_bonifico_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Seconda rata: € {{ number_format($bonificoData['second_rate'], 2, ',', '.') }}</span>
+                                    <span style="margin-left: 25px; transform: translateY(-2px);">Seconda rata: € {{ number_format(($bonificoData ?? [])['second_rate'] ?? 0, 2, ',', '.') }}</span>
                                 </li>
                                 <li style="margin-bottom: 15px; font-size: 13px; color: #333; font-family: Arial, sans-serif; overflow: hidden;">
                                     <img src="{{ public_path('images/pdf/preventivi_bonifico_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Terza rata: € {{ number_format($bonificoData['third_rate'], 2, ',', '.') }}</span>
+                                    <span style="margin-left: 25px; transform: translateY(-2px);">Terza rata: € {{ number_format(($bonificoData ?? [])['third_rate'] ?? 0, 2, ',', '.') }}</span>
                                 </li>
                             </ul>
                         </div>
@@ -2430,21 +2430,21 @@
                     <!-- Card Finanziamento (Blu Scuro) -->
                     <div style="width: 40%; float: right; background-color: #1A233B; border-radius: 8px; padding: 30px; margin-left: 2%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); box-sizing: border-box;">
                         <div style="font-size: 24px; font-weight: bold; color: #ffffff; margin-bottom: 15px; font-family: Arial, sans-serif;">Finanziamento</div>
-                        <div style="font-size: 32px; font-weight: bold; color: #ffffff; margin-bottom: 5px; font-family: Arial, sans-serif;">€ {{ number_format($finanziamentoData['rate_import'], 2, ',', '.') }}</div>
+                        <div style="font-size: 32px; font-weight: bold; color: #ffffff; margin-bottom: 5px; font-family: Arial, sans-serif;">€ {{ number_format(($finanziamentoData ?? [])['rate_import'] ?? 0, 2, ',', '.') }}</div>
                         <div style="font-size: 14px; color: #ffffff; opacity: 0.8; margin-bottom: 30px; font-family: Arial, sans-serif;">IVA esclusa</div>
                         <div style="border-top: 1px solid rgba(255,255,255,0.3); padding-top: 20px;">
                             <ul style="list-style: none; padding: 0; margin: 0;">
                                 <li style="margin-bottom: 15px; font-size: 13px; color: #ffffff; font-family: Arial, sans-serif; overflow: hidden;">
                                     <img src="{{ public_path('images/pdf/preventivi_finanziamento_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Importo rata 1: € {{ number_format($finanziamentoData['rate_import'] / $finanziamentoData['number_of_rate'], 2, ',', '.') }}</span>
+                                    <span style="margin-left: 25px; transform: translateY(-2px);">Importo rata 1: € {{ number_format((($finanziamentoData ?? [])['rate_import'] ?? 0) / ((($finanziamentoData ?? [])['number_of_rate'] ?? 1) > 0 ? (($finanziamentoData ?? [])['number_of_rate'] ?? 1) : 1), 2, ',', '.') }}</span>
                                 </li>
                                 <li style="margin-bottom: 15px; font-size: 13px; color: #ffffff; font-family: Arial, sans-serif; overflow: hidden;">
                                     <img src="{{ public_path('images/pdf/preventivi_finanziamento_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Numero di rate: {{ $finanziamentoData['number_of_rate'] ?? 'N/A' }}</span>
+                                    <span style="margin-left: 25px; transform: translateY(-2px);">Numero di rate: {{ ($finanziamentoData ?? [])['number_of_rate'] ?? 0 }}</span>
                                 </li>
                                 <li style="margin-bottom: 15px; font-size: 13px; color: #ffffff; font-family: Arial, sans-serif; overflow: hidden;">
                                     <img src="{{ public_path('images/pdf/preventivi_finanziamento_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Durata totale del finanziamento: {{ $finanziamentoData['number_of_rate'] ?? 'N/A' }} mesi</span>
+                                    <span style="margin-left: 25px; transform: translateY(-2px);">Durata totale del finanziamento: {{ ($finanziamentoData ?? [])['number_of_rate'] ?? 0 }} mesi</span>
                                 </li>
                             </ul>
                         </div>
