@@ -2369,18 +2369,21 @@
                 // Dati bonifico
                 $bonificoData = null;
                 $prezzoBonifico = 0;
+                $primaRataBonifico = 0;
+                $secondaRataBonifico = 0;
+                $terzaRataBonifico = 0;
                 if($preventivo->bonifico_data_json) {
                     $bonificoData = is_string($preventivo->bonifico_data_json) 
                         ? json_decode($preventivo->bonifico_data_json, true) 
                         : $preventivo->bonifico_data_json;
                     if(
                         $bonificoData 
-                        && isset($bonificoData['first_rate'], $bonificoData['second_rate'], $bonificoData['third_rate'])
+                        && isset($bonificoData['first_rate'], $bonificoData['second_rate'], $bonificoData['third_rate'], $bonificoData['amount'])
                     ) {
-                        $prezzoBonifico = 
-                            (float)$bonificoData['first_rate'] 
-                            + (float)$bonificoData['second_rate'] 
-                            + (float)$bonificoData['third_rate'];
+                        $prezzoBonifico = (float)$bonificoData['amount'];
+                        $primaRataBonifico = $prezzoBonifico * ((float)$bonificoData['first_rate'] / 100);
+                        $secondaRataBonifico = $prezzoBonifico * ((float)$bonificoData['second_rate'] / 100);
+                        $terzaRataBonifico = $prezzoBonifico * ((float)$bonificoData['third_rate'] / 100);
                     }
                 }
                 
@@ -2413,15 +2416,15 @@
                             <ul style="list-style: none; padding: 0; margin: 0;">
                                 <li style="margin-bottom: 15px; font-size: 13px; color: #333; font-family: Arial, sans-serif; overflow: hidden;">
                                     <img src="{{ public_path('images/pdf/preventivi_bonifico_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Prima rata: € {{ number_format(($bonificoData ?? [])['first_rate'] ?? 0, 2, ',', '.') }}</span>
+                                    <span style="margin-left: 25px; transform: translateY(-2px);">Prima rata: € {{ number_format($primaRataBonifico, 2, ',', '.') }}</span>
                                 </li>
                                 <li style="margin-bottom: 15px; font-size: 13px; color: #333; font-family: Arial, sans-serif; overflow: hidden;">
                                     <img src="{{ public_path('images/pdf/preventivi_bonifico_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Seconda rata: € {{ number_format(($bonificoData ?? [])['second_rate'] ?? 0, 2, ',', '.') }}</span>
+                                    <span style="margin-left: 25px; transform: translateY(-2px);">Seconda rata: € {{ number_format($secondaRataBonifico, 2, ',', '.') }}</span>
                                 </li>
                                 <li style="margin-bottom: 15px; font-size: 13px; color: #333; font-family: Arial, sans-serif; overflow: hidden;">
                                     <img src="{{ public_path('images/pdf/preventivi_bonifico_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Terza rata: € {{ number_format(($bonificoData ?? [])['third_rate'] ?? 0, 2, ',', '.') }}</span>
+                                    <span style="margin-left: 25px; transform: translateY(-2px);">Terza rata: € {{ number_format($terzaRataBonifico, 2, ',', '.') }}</span>
                                 </li>
                             </ul>
                         </div>

@@ -28,7 +28,7 @@ class BonificoDataRule implements ValidationRule
             return;
         }
 
-        $requiredKeys = ['first_rate', 'second_rate', 'third_rate'];
+        $requiredKeys = ['first_rate', 'second_rate', 'third_rate', 'amount'];
 
         foreach ($requiredKeys as $key) {
             if (!array_key_exists($key, $data)) {
