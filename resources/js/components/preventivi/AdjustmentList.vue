@@ -17,9 +17,11 @@
                 <input 
                     type="number" 
                     :placeholder="item.tipo_valore === '%' ? 'Importo (%)' : 'Importo (€)'"
-                    :value="item.amount" 
-                    readonly
-                    class="field-input" style="width:90px;"
+                    :value="item.tipo_valore === '%' ? (item.valore_default || item.amount) : (item.amount || item.valore_default)" 
+                    @input="handleAmountChange(index, $event.target.value)"
+                    :step="item.tipo_valore === '%' ? '0.01' : '0.01'"
+                    min="0"
+                    class="field-input" style="width:85px;"
                 />
                 <button @click="handleRemoveItem(index)" class="btn-icon danger" aria-label="Rimuovi">&times;</button>
             </div>
@@ -163,5 +165,30 @@ const handleAddItem = () => {
 
 const handleRemoveItem = (index) => {
     emit('update:items', props.items.filter((_, i) => i !== index));
+};
+
+const handleAmountChange = (index, newValue) => {
+    const newList = [...props.items];
+    const item = newList[index];
+    const numValue = Number(newValue) || 0;
+    
+    if (item) {
+        if (item.tipo_valore === '%') {
+            // Se è una percentuale, aggiorna valore_default
+            newList[index] = {
+                ...item,
+                valore_default: numValue,
+                amount: numValue, // Mantieni anche amount per compatibilità
+            };
+        } else {
+            // Se è un importo fisso, aggiorna amount
+            newList[index] = {
+                ...item,
+                amount: numValue,
+                valore_default: numValue, // Aggiorna anche valore_default per coerenza
+            };
+        }
+        emit('update:items', newList);
+    }
 };
 </script>
