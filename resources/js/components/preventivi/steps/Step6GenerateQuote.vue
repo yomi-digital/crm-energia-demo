@@ -21,7 +21,7 @@
         <SummaryItem label="Manutenzione" :value="formData.maintenance.enabled ? `Sì (${formData.maintenance.cost.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })})` : 'No'" />
         <SummaryItem label="Assicurazione" :value="formData.insurance.enabled ? `Sì (${formData.insurance.cost.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })})` : 'No'" />
         <SummaryItem label="Business Plan" :value="formData.generateBusinessPlan ? 'Incluso' : 'Non incluso'" />
-        <AdjustmentListSummary title="Incentivi" :items="formData.incentives" />
+        <AdjustmentListSummary title="PNRR" :items="formData.incentives" />
         <AdjustmentListSummary title="Sconti" :items="formData.discounts" />
         <AdjustmentListSummary title="Costi Aggiuntivi" :items="formData.additionalCosts" />
       </div>
@@ -240,22 +240,35 @@ const formatBillData = () => {
         'Maggio': 'maggio', 'Giugno': 'giugno', 'Luglio': 'luglio', 'Agosto': 'agosto',
         'Settembre': 'settembre', 'Ottobre': 'ottobre', 'Novembre': 'novembre', 'Dicembre': 'dicembre'
     };
+
+    const toCapitalizedMonth = (name) => {
+        if (!name) return '';
+        const trimmed = name.trim();
+        const normalizedLower = monthNamesMap[trimmed]
+            || monthNamesMap[`${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()}`]
+            || trimmed.toLowerCase();
+        return `${normalizedLower.charAt(0).toUpperCase()}${normalizedLower.slice(1)}`;
+    };
     
     return props.formData.billData.map((bill) => {
         // Estrai il nome del mese dal campo month (può essere "Gennaio" o "Gennaio-Febbraio" per bimestri)
         let monthName = bill.month;
+        let periodo;
+        
         if (monthName && monthName.includes('-')) {
-            // Se è un bimestre, prendi il primo mese
-            monthName = monthName.split('-')[0].trim();
+            // Se è un bimestre, capitalizza entrambi i mesi e uniscili con spazio
+            const months = monthName.split('-').map(m => toCapitalizedMonth(m));
+            const year = bill.year || new Date().getFullYear();
+            periodo = `${months.join(' ')} ${year}`;
+        } else {
+            // Se è un mese singolo, capitalizza il nome
+            monthName = toCapitalizedMonth(monthName);
+            const year = bill.year || new Date().getFullYear();
+            periodo = `${monthName} ${year}`;
         }
         
-        // Converti in minuscolo se necessario
-        monthName = monthNamesMap[monthName] || monthName.toLowerCase();
-        
-        const year = bill.year || new Date().getFullYear();
-        
         return {
-            periodo: `${monthName}_${year}`,
+            periodo: periodo,
             f1_kwh: bill.f1 || 0,
             f2_kwh: bill.f2 || 0,
             f3_kwh: bill.f3 || 0,
@@ -281,10 +294,7 @@ const preparePayload = () => {
     let tipologiaBolletta = 'mensile';
     if (props.formData.billEntryMode === 'bimonthly') {
         tipologiaBolletta = 'bimestrale';
-    } else if (props.formData.billEntryMode === 'annual') {
-        tipologiaBolletta = 'annuale';
     }
-
     // Trova anno e mese di partenza
     const firstBill = props.formData.billData[0];
     const startYear = firstBill?.year || new Date().getFullYear();
@@ -302,6 +312,7 @@ const preparePayload = () => {
             : firstBill.month;
         startMonth = monthNamesToNumber[monthName] || 1;
     }
+    
 
     // Formatta modalità pagamento
     const paymentMethod = props.formData.paymentMethod || '';

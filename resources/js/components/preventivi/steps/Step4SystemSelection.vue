@@ -190,16 +190,16 @@
                 <div class="pill" style="display:flex;align-items:center;justify-content:space-between;">
                     <label for="maintenance-check" style="font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;">
                      <input type="checkbox" id="maintenance-check" :checked="formData.maintenance.enabled" @change="updateFormData('maintenance', {...formData.maintenance, enabled: $event.target.checked})" style="margin-right:8px;"/>
-                        Manutenzione
+                        Manutenzione (costo annuale)
                     </label>
-                    <input v-if="formData.maintenance.enabled" type="number" placeholder="Importo" :value="formData.maintenance.cost" @input="updateFormData('maintenance', {...formData.maintenance, cost: Number($event.target.value)})" class="field-input" style="width:130px;"/>
+                    <input v-if="formData.maintenance.enabled" type="number" placeholder="Importo" :value="formData.maintenance.cost" @input="updateFormData('maintenance', {...formData.maintenance, cost: Number($event.target.value)})" class="field-input" style="width:90px;"/>
                 </div>
                  <div class="pill" style="display:flex;align-items:center;justify-content:space-between;">
                     <label for="insurance-check" style="font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;">
                      <input type="checkbox" id="insurance-check" :checked="formData.insurance.enabled" @change="updateFormData('insurance', {...formData.insurance, enabled: $event.target.checked})" style="margin-right:8px;"/>
-                        Assicurazione
+                        Assicurazione (costo annuale)
                     </label>
-                    <input v-if="formData.insurance.enabled" type="number" placeholder="Importo" :value="formData.insurance.cost" @input="updateFormData('insurance', {...formData.insurance, cost: Number($event.target.value)})" class="field-input" style="width:130px;"/>
+                    <input v-if="formData.insurance.enabled" type="number" placeholder="Importo" :value="formData.insurance.cost" @input="updateFormData('insurance', {...formData.insurance, cost: Number($event.target.value)})" class="field-input" style="width:90px;"/>
                 </div>
             </div>
         </div>
