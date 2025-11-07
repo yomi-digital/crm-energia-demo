@@ -12,8 +12,9 @@ class CustomersController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->get('itemsPerPage', 10);
+        $skipControl = filter_var($request->get('skipControl', false), FILTER_VALIDATE_BOOLEAN);
 
-        $customers = new \App\Models\Customer;
+        $customers = \App\Models\Customer::query();
 
         if ($request->get('id')) {
             $customers = $customers->where('id', $request->get('id'));
@@ -45,7 +46,7 @@ class CustomersController extends Controller
         }
 
         // If the looged in user has role 'agente', filter for only his customers
-        if ($request->user()->hasRole('agente') || $request->user()->hasRole('struttura')) {
+        if ($skipControl === false && ($request->user()->hasRole('agente') || $request->user()->hasRole('struttura'))) {
             $customers = $customers->where(function ($query) use ($request) {
                 $query->whereHas('paperworks', function ($query) use ($request) {
                     $query->where('user_id', $request->user()->id);
@@ -537,7 +538,7 @@ class CustomersController extends Controller
 
     public function export(Request $request)
     {
-        $customers = new \App\Models\Customer;
+        $customers = \App\Models\Customer::query();
 
         if ($request->get('id')) {
             $customers = $customers->where('id', $request->get('id'));

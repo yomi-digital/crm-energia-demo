@@ -2341,7 +2341,7 @@
                 <div class="yellow-footer-title">GUADAGNO ACCUMULATO</div>
                 <div class="yellow-footer-line-chart">
                     <div style="height: 20px;"></div>
-                    <h2 style="text-align: center; font-weight: bolder; font-size: 30px;">€ {{ number_format($totaleBeneficiAnnuo, 1) }}</h2>
+                    <h2 style="text-align: center; font-weight: bolder; font-size: 30px;">€ {{ number_format($totaleBeneficiAnnuo, 1) }} (mensile)</h2>
                 </div>
                 </div>
             </div>
@@ -2562,7 +2562,7 @@
                         <th>Costo Man.</th>
                         <th>Risparmio Bolletta</th>
                         <th>Eccedenze</th>
-                        <th>CER</th>
+                        <th>Incentivo CER</th>
                         <th>Incentivo PNNR</th>
                         <th>Detrazione</th>
                         <th>Sconto</th>
