@@ -2616,124 +2616,115 @@
             <div class="privacy-columns-container">
                 <!-- Colonna sinistra -->
                 <div class="privacy-column">
-                    <!-- Sezione 1 -->
+                    <!-- Introduzione -->
                     <div class="privacy-section">
-                        <div class="privacy-section-number">1. TITOLARE DEL TRATTAMENTO</div>
-                        <div class="privacy-text">
-                            Il titolare del trattamento è Energia Italia S.p.A., con sede in C.da Grotta Affumata snc - 92024 Canicatti (AG), Tel. +39 0922 858410, Fax +39 0922 737398, Email info@energiaitaliaspa.it, Pec energiaitaliaspa@pec.it.
+                        <div class="privacy-text" style="margin-bottom: 12px;">
+                            Gentile Cliente / Potenziale Cliente<br><br>
+                            ALFACOM S.R.L. con sede legale in Viale Leonardo Da Vinci, 8 – 95128 Catania (CT) P.IVA 05466900874 iscritta con il numero di REA 368504, la informa che i suoi dati saranno trattati ai sensi dell'Art.13 del Regolamento UE 2016/679 ("GDPR") e del D.Lgs. 30.06.2003 n.196, così come modificato e integrato dal D.Lgs. 10.08.2018, n101 (c.d "Codice in materia di dati personali o "Codice Privacy") al fine di offrirle i servizi di contatto e assistenza commerciale da lei richiesti.
                         </div>
                     </div>
 
-                    <!-- Sezione 2 -->
+                    <!-- FONTE DEI DATI -->
                     <div class="privacy-section">
-                        <div class="privacy-section-number">2. DEFINIZIONE DI DATO PERSONALE E CATEGORIE DI DATI PERSONALI TRATTATI</div>
+                        <div class="privacy-section-number">FONTE DEI DATI</div>
                         <div class="privacy-text">
-                            Per "Dato Personale" si intende qualsiasi informazione idonea a identificare, direttamente o indirettamente, una persona fisica (il cliente).
-                        </div>
-                        <div class="privacy-section-subtitle">2.1 Dati Personali non biometrici</div>
-                        <ul class="privacy-list">
-                            <li class="privacy-list-item">Dati anagrafici (es. nome, cognome, indirizzo)</li>
-                            <li class="privacy-list-item">Dati di contatto (es. telefono, indirizzo email)</li>
-                            <li class="privacy-list-item">Informazioni relative all'attività lavorativa e previdenziale</li>
-                            <li class="privacy-list-item">Informazioni finanziarie</li>
-                            <li class="privacy-list-item">Dati urbanistici-catastali</li>
-                            <li class="privacy-list-item">Qualsiasi altro dato e informazione necessari per la conclusione e l'esecuzione del contratto (es. IBAN, partita IVA)</li>
-                        </ul>
-                        <div class="privacy-section-subtitle">2.2 Dati Personali Biometrici</div>
-                        <div class="privacy-text">
-                            Energia Italia S.p.A. intende utilizzare, previo consenso specifico e revocabile, una tecnologia innovativa per la sottoscrizione elettronica dei documenti mediante Firma Elettronica Avanzata (FEA) utilizzando la firma "grafometrica". Tale consenso viene raccolto anche per conto di terzi che erogano servizi tramite Energia Italia S.p.A., in qualità di titolari autonomi del trattamento. La soluzione FEA è conforme al Codice dell'Amministrazione Digitale (D.lgs. n. 82/2005) e al DPCM 22 febbraio 2013, nonché alle misure di sicurezza del Regolamento UE 2016/679. Tale sistema garantisce maggiore certezza giuridica, rigorosa identificazione del sottoscrittore, collegamento univoco alla firma, maggiore sicurezza nella gestione dei documenti elettronici e contribuisce a prevenire frodi (furto di identità, contraffazione di firma). La prestazione dei dati biometrici è necessaria per tali finalità. Tuttavia, in caso di mancato consenso o revoca dello stesso, i documenti potranno essere sottoscritti in formato cartaceo. I dati grafometrici non verranno analizzati ma incorporati e registrati in modo non intelligibile e indecifrabile all'interno del documento elettronico, nel rispetto delle misure di sicurezza. Tali dati non saranno riproducibili né utilizzabili da Energia Italia S.p.A. per altre finalità.
+                            I suddetti dati sono forniti volontariamente dall'Interessato nell'ambito delle attività preliminari e propedeutiche alla conclusione di una proposta di contratto con il Titolare.
                         </div>
                     </div>
 
-                    <!-- Sezione 3 -->
+                    <!-- TIPOLOGIE DI DATI TRATTATI -->
                     <div class="privacy-section">
-                        <div class="privacy-section-number">3. BASE GIURIDICA DEL TRATTAMENTO</div>
+                        <div class="privacy-section-number">TIPOLOGIE DI DATI TRATTATI</div>
                         <div class="privacy-text">
-                            Il trattamento è necessario per l'esecuzione di un contratto con il cliente o per misure pre/post contrattuali adottate su richiesta del cliente o di Energia Italia S.p.A. (Art. 6.1, lett. b) GDPR). Il trattamento è altresì necessario per adempiere a un obbligo legale (Art. 6.1, lett. c) GDPR).
+                            I dati oggetto di Trattamento sono: dati che permettono l'identificazione diretta: dati anagrafici (es nome, cognome, indirizzo), dati di contatto (esempio telefono, cellulare, mail), dati urbanistici-catastali, e in generale ogni altro dato o informazione necessaria per la conclusione ed esecuzione del contratto, unicamente rivolti ad un miglior soddisfacimento delle richieste dell'Interessato nell'ambito delle finalità sotto descritte. È facoltà dell'Interessato fornire o non fornire tali informazioni, consapevole che in mancanza non sarà possibile fornire il servizio.
                         </div>
                     </div>
 
-                    <!-- Sezione 4 -->
+                    <!-- BASE GIURIDICA DEL TRATTAMENTO -->
                     <div class="privacy-section">
-                        <div class="privacy-section-number">4. FINALITÀ DEL TRATTAMENTO</div>
+                        <div class="privacy-section-number">BASE GIURIDICA DEL TRATTAMENTO</div>
                         <div class="privacy-text">
-                            Il titolare raccoglie e tratta i dati personali per:
+                            Il trattamento è necessario all'esecuzione di un contratto, di cui lei, nostro cliente o potenziale, è parte all'esecuzione di misure precontrattuali o post contrattuali adottate su sua richiesta o su richiesta di Alfacom S.r.l. ai sensi dell'Art.61 lett.b e lett.c. del GDPR.
+                        </div>
+                    </div>
+
+                    <!-- FINALITÀ DEL TRATTAMENTO E PERIODO DI CONSERVAZIONE -->
+                    <div class="privacy-section">
+                        <div class="privacy-section-number">FINALITÀ DEL TRATTAMENTO E PERIODO DI CONSERVAZIONE</div>
+                        <div class="privacy-text">
+                            I dati personali forniti al Titolare verranno da questa trattati per il perseguimento delle seguenti finalità:
                         </div>
                         <ul class="privacy-list">
-                            <li class="privacy-list-item">Attività precontrattuali, gestione ed esecuzione del rapporto contrattuale (attività amministrative e contabili, assistenza clienti, gestione reclami) e prestazione di servizi connessi. Tali dati sono necessari per l'acquisto di prodotti/servizi.</li>
-                            <li class="privacy-list-item">Formulazione o adempimento di richieste.</li>
-                            <li class="privacy-list-item">Trasmissioni e operazioni successive relative alla fornitura di servizi/beni (forniti/acquistati).</li>
-                            <li class="privacy-list-item">Invio di comunicazioni attraverso vari mezzi (telefono, cellulare, SMS, email, fax, posta, ecc.).</li>
-                            <li class="privacy-list-item">Adempimento degli obblighi di legge (contabili, fiscali, amministrativi) ai quali il titolare è soggetto, e quelli richiesti dalle autorità.</li>
-                            <li class="privacy-list-item">Finalità di promozione commerciale e marketing.</li>
+                            <li class="privacy-list-item"><strong>Rispondere alle richieste di informazioni sui prodotti/servizi.</strong> Base giuridica del trattamento per questa finalità è l'esecuzione di misure precontrattuali o contrattuali di cui l'interessato è parte. Le attività possono includere attività amministrative e contabili, invio di comunicazioni (telefono, cellulare, sms, mail, cartaceo) ad esse connesse. Periodo di conservazione dei dati: durata pre-contrattuale /contrattuali e per il periodo di prescrizione ordinario pari a 10 anni. Nel caso di contenzioso giudiziale, per tutta la durata dello stesso, fino all'esaurimento dei termini di esperibilità delle azioni di impugnazione.</li>
+                            <li class="privacy-list-item"><strong>Adempiere ad obblighi previsti da regolamenti e dalla normativa nazionale e sovranazionale applicabile.</strong> Base giuridica del trattamento per questa finalità è la necessità di assolvere gli obblighi di legge. Periodo di conservazione dei dati: per la durata degli obblighi di legge.</li>
+                            <li class="privacy-list-item"><strong>Se necessario, per accertare, esercitare o difendere i diritti del Titolare in sede giudiziaria.</strong> Base giuridica del trattamento per questa finalità è l'interesse legittimo del Titolare. Periodo di conservazione dei dati: tutta la durata del contenzioso, fino all'esaurimento dei termini di esperibilità delle azioni di impugnazione.</li>
+                            <li class="privacy-list-item"><strong>Inviare comunicazioni promozionali, commerciali e/o attività di marketing, anche per miglioramento della qualità dei servizi offerti, tramite sistemi di contatto telefonico o posta elettronica.</strong> Base giuridica del trattamento per questa finalità è il consenso dell'interessato. Periodo di conservazione dei dati: per 24 mesi dalla raccolta del consenso, ferma la possibilità per l'Interessato di modificare e/o revocare la propria volontà in qualsiasi momento avendo cura di comunicarlo secondo le modalità e tramite i contatti resi noti dal Titolare.</li>
+                            <li class="privacy-list-item"><strong>Autorizzare Alfacom S.r.l. alla ripresa fotografica e video del bene venduto (impianto) e utilizzare le foto per scopi pubblicitari, senza alcun riferimento diretto che permetta l'identificazione del Committente.</strong> Periodo di conservazione dei dati: per 24 mesi dalla raccolta del consenso, ferma la possibilità per l'Interessato di modificare e/o revocare la propria volontà in qualsiasi momento avendo cura di comunicarlo secondo le modalità e tramite i contatti resi noti dal Titolare.</li>
                         </ul>
                     </div>
 
-                    <!-- Sezione 5 -->
+                    <!-- MODALITA DEL TRATTAMENTO -->
                     <div class="privacy-section">
-                        <div class="privacy-section-number">5. MODALITÀ DEL TRATTAMENTO</div>
+                        <div class="privacy-section-number">MODALITA DEL TRATTAMENTO</div>
                         <div class="privacy-text">
-                            Energia Italia S.p.A. raccoglie i dati personali direttamente e, in alcuni casi, tramite terzi (Agenzie e Agenti Commerciali) con i quali è stato sottoscritto un contratto. Il trattamento avviene su supporto elettronico, magnetico e cartaceo, nel rispetto delle regole di riservatezza e sicurezza (Art. 32 GDPR).
+                            Alfacom S.r.l, nella qualità di Titolare del trattamento, raccoglie i suoi dati personali, direttamente, nonché in taluni casi, per mezzo di soggetti Terzi nel rispetto delle norme di riservatezza e sicurezza previste dall'art.32 del Regolamento.
                         </div>
                     </div>
                 </div>
 
                 <!-- Colonna destra -->
                 <div class="privacy-column">
-                    <!-- Sezione 6 -->
+                    <!-- DESTINATARI DEI DATI -->
                     <div class="privacy-section">
-                        <div class="privacy-section-number">6. DESTINATARI DEI DATI</div>
+                        <div class="privacy-section-number">DESTINATARI DEI DATI</div>
                         <div class="privacy-text">
-                            I dati personali non verranno diffusi a soggetti indeterminati. I dati potranno essere comunicati a dipendenti e collaboratori esterni del titolare, nel rispetto delle finalità indicate. In particolare, dipendenti/collaboratori autorizzati al trattamento dei dati in base al ruolo e alle mansioni svolte, formati e istruiti dal titolare. I dati potranno essere comunicati, strettamente come necessario, a soggetti che devono fornire/consegnare beni o eseguire/ricevere servizi per conto di Energia Italia S.p.A. per l'emissione di ordini, richieste di informazioni, preventivi o prestazione di servizi. Il personale tecnico o consulenti/aziende esterne che forniscono assistenza potranno accedere ai dati. I dati potranno essere comunicati a Istituti di Credito, Compagnie Assicurative e autorità pubbliche (es. Agenzia delle Entrate). Infine, i dati potranno essere comunicati a soggetti autorizzati dalla legge, dalle norme o dalle disposizioni comunitarie.
+                            I dati possono essere trattati da soggetti esterni operanti in qualità di Titolare quali, a titolo esemplificativo, Autorità ed organi di vigilanza e controllo ed, in generale, soggetti, anche privati, legittimati a richiedere i dati, Pubbliche Autorità che ne facciano espressa richiesta al Titolare per finalità amministrative o istituzionali, secondo quanto disposto dalla normativa vigente, nazionale ed europea, nonché persone, società, associazioni o studi professionali che prestino attività di assistenza e consulenza, GSE, Distributore, e tutti quei soggetti cui la comunicazione sia necessaria per il corretto adempimento delle finalità connesse successive all'esecuzione del contratto.
                         </div>
-                    </div>
-
-                    <!-- Sezione 7 -->
-                    <div class="privacy-section">
-                        <div class="privacy-section-number">7. CONSERVAZIONE DEI DATI</div>
-                        <div class="privacy-text">
-                            Energia Italia S.p.A. si impegna a mantenere i dati aggiornati, conservandoli secondo standard e prassi del settore e adottando misure di sicurezza appropriate. I dati saranno conservati solo per il tempo necessario al perseguimento delle finalità definite o come richiesto dal contratto o dalla legge. Energia Italia S.p.A. cancellerà i dati personali dagli archivi quando non saranno più necessari per le finalità stabilite o quando diventeranno obsoleti. Generalmente, il periodo di conservazione è di 10 anni dalla cessazione del rapporto contrattuale; tuttavia, può variare in base a finalità e situazioni specifiche.
-                        </div>
-                    </div>
-
-                    <!-- Sezione 8 -->
-                    <div class="privacy-section">
-                        <div class="privacy-section-number">8. TRASFERIMENTO DATI</div>
-                        <div class="privacy-text">
-                            I dati personali saranno trattati all'interno dell'Unione Europea. Se necessario, il titolare trasferirà i dati personali al di fuori dell'Unione Europea, assicurando che tali trasferimenti rispettino misure tecniche e organizzative conformi alle normative applicabili (Art. 45 e 46 del Regolamento UE 2016/679).
-                        </div>
-                    </div>
-
-                    <!-- Sezione 9 -->
-                    <div class="privacy-section">
-                        <div class="privacy-section-number">9. DIRITTI DELL'INTERESSATO</div>
-                        <div class="privacy-text">
-                            L'interessato può, in qualsiasi momento, inviando una comunicazione agli indirizzi di cui al punto 2, esercitare i propri diritti previsti dal Regolamento Privacy:
+                        <div class="privacy-text" style="margin-top: 8px;">
+                            I dati possono altresì essere trattati, per conto del Titolare, da soggetti esterni designati come Responsabili del trattamento ai sensi dell'art. 28 del GDPR, a cui sono impartite adeguate istruzioni operative, quali a titolo esemplificativo:
                         </div>
                         <ul class="privacy-list">
-                            <li class="privacy-list-item">(a) Ottenere la conferma dell'esistenza o meno di dati personali e riceverne comunicazione.</li>
-                            <li class="privacy-list-item">(b) Conoscere l'origine dei dati personali, le finalità e le modalità del trattamento e la logica applicata al trattamento elettronico.</li>
-                            <li class="privacy-list-item">(c) Richiedere l'aggiornamento, la rettifica o, se di interesse, l'integrazione dei dati personali.</li>
-                            <li class="privacy-list-item">(d) Ottenere la cancellazione, l'anonimizzazione o il blocco dei dati trattati in violazione di legge, e opporsi al trattamento per motivi legittimi.</li>
-                            <li class="privacy-list-item">(e) Revocare il consenso al trattamento dei dati personali in qualsiasi momento, senza pregiudicare la liceità del trattamento basato sul consenso prestato prima della revoca.</li>
-                            <li class="privacy-list-item">(f) Richiedere al titolare la limitazione del trattamento dei dati.</li>
-                            <li class="privacy-list-item">(g) Opporsi al trattamento dei propri dati in qualsiasi momento.</li>
-                            <li class="privacy-list-item">(h) Richiedere la cancellazione dei propri dati senza indebito ritardo.</li>
-                            <li class="privacy-list-item">(i) Ottenere la portabilità dei dati.</li>
+                            <li class="privacy-list-item">Partner commerciali, collaboratori in P.IVA;</li>
+                            <li class="privacy-list-item">Società che offrono servizi di manutenzione dei siti web e dei sistemi informativi;</li>
+                            <li class="privacy-list-item">Società che svolgono servizi di gestione e manutenzione del database del Titolare;</li>
                         </ul>
+                        <div class="privacy-text" style="margin-top: 8px;">
+                            I Suoi dati personali possono essere trattati da personale interno debitamente nominato "autorizzato al trattamento".
+                        </div>
                     </div>
 
-                    <!-- Sezione 10 -->
+                    <!-- DIRITTI DEGLI INTERESSATI -->
                     <div class="privacy-section">
-                        <div class="privacy-section-number">10. MODIFICA ED AGGIORNAMENTO INFORMATIVA SULLA PRIVACY</div>
+                        <div class="privacy-section-number">DIRITTI DEGLI INTERESSATI</div>
                         <div class="privacy-text">
-                            Il titolare del trattamento si riserva il diritto di modificare e/o implementare la presente informativa, anche in seguito a successive modifiche legislative relative al rapporto precontrattuale o contrattuale, o a raccomandazioni, autorizzazioni generali, linee guida e ulteriori misure di garanzia indicate dal Garante della Privacy italiano o europeo, sempre al fine di fornire una maggiore protezione al trattamento dei dati personali.
+                            Gli articoli dal 15 al 21 del Regolamento UE n. 2016/679 conferiscono all'interessato l'esercizio di specifici diritti, tra cui quello di ottenere dal titolare la conferma dell'esistenza o meno di propri dati personali e la loro messa a disposizione in forma intellegibile. L'interessato ha diritto di avere conoscenza dell'origine dei dati, della finalità e delle modalità del trattamento, della logica applicata al trattamento, degli estremi identificativi del titolare e dei soggetti cui i dati possono essere comunicati.
                         </div>
+                        <div class="privacy-text" style="margin-top: 8px;">
+                            L'interessato ha inoltre diritto di ottenere l'aggiornamento, la rettificazione e l'integrazione dei dati, la cancellazione, la trasformazione in forma anonima o il blocco dei dati trattati in violazione della legge. L'interessato ha diritto di opporsi per motivi legittimi, al trattamento dei dati.
+                        </div>
+                        <div class="privacy-text" style="margin-top: 8px;">
+                            L'interessato che intenda avvalersi dei diritti sopra descritti può invitare comunicazione mediante posta raccomandata A/A indirizzata ad ALFACOM SRL, Viale Leonardo da Vinci, 8, 95128 Catania.
+                        </div>
+                    </div>
+
+                    <!-- MODIFICA ED AGGIORNAMENTO INFORMATIVA SULLA PRIVACY -->
+                    <div class="privacy-section">
+                        <div class="privacy-section-number">MODIFICA ED AGGIORNAMENTO INFORMATIVA SULLA PRIVACY</div>
+                        <div class="privacy-text">
+                            Il titolare del Trattamento si riserva il diritto di modificare e/o implementare la presente informativa, anche in ragione di modifiche legislative successive al rapporto pre-contrattuale o contrattuale con lei instaurato, ovvero raccomandazioni, autorizzazioni generali, linee guida, ulteriori misure di garanzia indicate dal Garante della privacy italiana o europeo, ma sempre al fine fornire maggiore tutela per il trattamento dei suoi dati.
+                        </div>
+                    </div>
+
+                    <!-- Autorizzazione -->
+                    <div class="privacy-section" style="margin-top: 15px;">
+                        <div class="privacy-text" style="font-weight: bold; margin-bottom: 8px;">Il Committente:</div>
+                        <div class="privacy-text" style="margin-bottom: 5px;">☐ Autorizza ALFACOM S.R.L ad utilizzare i miei dati per le finalità e secondo le modalità sopra richiamate.</div>
+                        <div class="privacy-text">☐ Non Autorizza ALFACOM S.R.L ad utilizzare i miei dati per le finalità e secondo le modalità sopra richiamate.</div>
                     </div>
 
                     <!-- Firma Cliente -->
-                    <div class="" style="margin-top: 10px; border-top: 1px solid #e0e0e0; padding-top: 5px;">
-                        <div class="">
+                    <div class="privacy-signature-section" style="margin-top: 15px; border:unset;">
+                        <div class="signature-row">
                             <div class="">
                                 <div class="signature-label">Luogo e data</div>
                                 <div class="signature-line"></div>
