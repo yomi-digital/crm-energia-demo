@@ -2562,7 +2562,7 @@
                         <th>Costo Man.</th>
                         <th>Risparmio Bolletta</th>
                         <th>Eccedenze</th>
-                        <th>CER</th>
+                        <th>Incentivo CER</th>
                         <th>Incentivo PNNR</th>
                         <th>Detrazione</th>
                         <th>Sconto</th>
