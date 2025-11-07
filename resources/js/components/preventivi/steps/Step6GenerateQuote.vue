@@ -325,6 +325,29 @@ const preparePayload = () => {
         modalitaPagamentoSalvata = 'bonifico';
     }
 
+    // Calcola totale sistema per bonifico amount
+    let productPriceForTotal = 0;
+    if (props.formData.selectedProduct && prodottiFotovoltaico.value.length > 0) {
+        const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
+        if (selectedProduct && selectedProduct.prezzo_base) {
+            productPriceForTotal = selectedProduct.prezzo_base;
+        }
+    }
+    const roofTypePriceForTotal = props.formData.roofTypePrice || 0;
+    
+    const calculateAdjustmentAmountForTotal = (item) => {
+        if (!item) return 0;
+        if (item.tipo_valore === '%') {
+            const baseAmount = productPriceForTotal + roofTypePriceForTotal;
+            return (baseAmount * item.valore_default) / 100;
+        }
+        return item.amount || item.valore_default || 0;
+    };
+    
+    const additionalCostsTotalForTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmountForTotal(item), 0);
+    const discountsTotalForTotal = (props.formData.discounts || []).reduce((sum, item) => sum + calculateAdjustmentAmountForTotal(item), 0);
+    const totalSystemCostForBonifico = productPriceForTotal + roofTypePriceForTotal + additionalCostsTotalForTotal - discountsTotalForTotal;
+
     // Prepara dati bonifico
     let bonificoData = null;
     if (modalitaPagamentoSalvata.includes('bonifico')) {
@@ -334,12 +357,14 @@ const preparePayload = () => {
                 first_rate: misto.primaRata || 0,
                 second_rate: misto.secondaRata || 0,
                 third_rate: 100 - (misto.primaRata || 0) - (misto.secondaRata || 0),
+                amount: misto.bonificoAmount || 0,
             };
         } else if (props.formData.paymentBonifico) {
             bonificoData = {
                 first_rate: props.formData.paymentBonifico.primaRata || 0,
                 second_rate: props.formData.paymentBonifico.secondaRata || 0,
                 third_rate: 100 - (props.formData.paymentBonifico.primaRata || 0) - (props.formData.paymentBonifico.secondaRata || 0),
+                amount: totalSystemCostForBonifico,
             };
         }
     }
