@@ -21,7 +21,7 @@
         <SummaryItem label="Manutenzione" :value="formData.maintenance.enabled ? `Sì (${formData.maintenance.cost.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })})` : 'No'" />
         <SummaryItem label="Assicurazione" :value="formData.insurance.enabled ? `Sì (${formData.insurance.cost.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })})` : 'No'" />
         <SummaryItem label="Business Plan" :value="formData.generateBusinessPlan ? 'Incluso' : 'Non incluso'" />
-        <AdjustmentListSummary title="PNRR" :items="formData.incentives" />
+        <AdjustmentListSummary title="Incentivi" :items="formData.incentives" />
         <AdjustmentListSummary title="Sconti" :items="formData.discounts" />
         <AdjustmentListSummary title="Costi Aggiuntivi" :items="formData.additionalCosts" />
       </div>
@@ -69,7 +69,7 @@
 import { usePreventiviApi } from '@/composables/usePreventiviApi';
 import { computed, defineProps, onMounted, ref } from 'vue';
 import AdjustmentListSummary from '../AdjustmentListSummary.vue';
-import { calculateBatteryPrice, PRICE_RITIRO_DEDICATO, PRODUCTS } from '../constants';
+import { PRICE_RITIRO_DEDICATO, PRODUCTS } from '../constants';
 import SummaryItem from '../SummaryItem.vue';
 
 const props = defineProps({
@@ -401,18 +401,6 @@ const preparePayload = () => {
                 potenza_impianto_consigliata: prodotto.potenza_kwp ? prodotto.potenza_kwp / 1000 : 0,
             });
         }
-    }
-
-    // Aggiungi batteria
-    if (props.formData.selectedBatteryCapacity > 0) {
-        dettagliProdotto.push({
-            nome_prodotto_salvato: `Batteria Li-Ion ${props.formData.selectedBatteryCapacity}kWh`,
-            categoria_prodotto_salvata: 'Batterie',
-            quantita: 1,
-            prezzo_unitario_salvato: calculateBatteryPrice(props.formData.selectedBatteryCapacity),
-            capacita_batteria_salvata: props.formData.selectedBatteryCapacity,
-            potenza_impianto_consigliata: props.formData.selectedPowerKw || 0,
-        });
     }
 
     // Prepara voci economiche
