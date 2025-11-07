@@ -41,6 +41,7 @@
                         <th v-if="hasMaintenance" class="text-right">Costo manutenzione</th>
                         <th v-if="hasAnnualSavings" class="text-right">Risparmio bolletta</th>
                         <th v-if="hasEnergySale" class="text-right">Vendita energia</th>
+                        <th v-if="hasCer" class="text-right">Incentivo CER</th>
                         <th v-if="hasFiscalDeduction" class="text-right">Detrazione fiscale</th>
                         <th v-if="hasIncentives" class="text-right">Incentivi</th>
                         <th v-if="hasDiscounts" class="text-right">Sconti</th>
@@ -56,6 +57,7 @@
                         <td v-if="hasMaintenance" class="text-right">{{ formatCurrency(row.maintenanceCost) }}</td>
                         <td v-if="hasAnnualSavings" class="text-right" style="color:#059669;">{{ formatCurrency(row.annualSavings) }}</td>
                         <td v-if="hasEnergySale" class="text-right" style="color:#059669;">{{ formatCurrency(row.energySale) }}</td>
+                        <td v-if="hasCer" class="text-right" style="color:#059669;">{{ formatCurrency(row.cer) }}</td>
                         <td v-if="hasFiscalDeduction" class="text-right" style="color:#059669;">{{ formatCurrency(row.fiscalDeduction) }}</td>
                         <td v-if="hasIncentives" class="text-right" style="color:#059669;">{{ formatCurrency(row.incentives) }}</td>
                         <td v-if="hasDiscounts" class="text-right" style="color:#059669;">{{ formatCurrency(row.discounts) }}</td>
@@ -72,7 +74,7 @@
 <script setup lang="js">
 import { usePreventiviApi } from '@/composables/usePreventiviApi';
 import { computed, defineEmits, defineProps, onMounted, ref } from 'vue';
-import { calculateBatteryPrice, PRICE_RITIRO_DEDICATO } from '../constants';
+import { PRICE_RITIRO_DEDICATO } from '../constants';
 
 const props = defineProps({
   formData: Object,
@@ -91,6 +93,7 @@ const simulationData = computed(() => {
         return {
             risparmioAutoconsumo: 0,
             venditaEccedenza: 0,
+            incentivoCer: 0,
         };
     }
 
@@ -113,10 +116,14 @@ const simulationData = computed(() => {
 
     const energiaImmessaInRete = Math.max(0, annualProductionKwh - totalAutoconsumoKwh);
     const venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO;
+    
+    // Calcola incentivo CER - eccedenza × 0.108 €/kWh (solo se abilitato)
+    const incentivoCer = props.formData.enableCer ? energiaImmessaInRete * 0.108 : 0;
 
     return {
         risparmioAutoconsumo,
         venditaEccedenza,
+        incentivoCer,
     };
 });
 
@@ -184,6 +191,7 @@ const hasInsurance = computed(() => props.formData.insurance?.enabled && props.f
 const hasMaintenance = computed(() => props.formData.maintenance?.enabled && props.formData.maintenance?.cost > 0);
 const hasAnnualSavings = computed(() => simulationData.value.risparmioAutoconsumo > 0);
 const hasEnergySale = computed(() => simulationData.value.venditaEccedenza > 0);
+const hasCer = computed(() => props.formData.enableCer && simulationData.value.venditaEccedenza > 0);
 const hasFiscalDeduction = computed(() => {
     return props.formData.fiscalDeductionType === 'prima_casa' || props.formData.fiscalDeductionType === 'seconda_casa';
 });
@@ -235,6 +243,9 @@ const businessPlanData = computed(() => {
         const risparmioAnnuale = year > 0 ? simulationData.value.risparmioAutoconsumo * Math.pow(1.02, year - 1) : 0;
         const venditaEnergia = year > 0 ? simulationData.value.venditaEccedenza * Math.pow(1.02, year - 1) : 0;
         
+        // Incentivo CER - sempre lo stesso valore per 20 anni se abilitato (eccedenza × 0.108)
+        const cer = year > 0 && props.formData.enableCer ? simulationData.value.incentivoCer : 0;
+        
         // Detrazione fiscale solo per i primi 10 anni
         const fiscalDeduction = year > 0 && year <= 10 ? fiscalDeductionAnnual : 0;
         
@@ -262,7 +273,7 @@ const businessPlanData = computed(() => {
         if (year === 0) {
             cashFlow = initialInvestment;
         } else {
-            const cashIn = risparmioAnnuale + venditaEnergia + fiscalDeduction + incentivesTotal;
+            const cashIn = risparmioAnnuale + venditaEnergia + cer + fiscalDeduction + incentivesTotal;
             const cashOut = loanPayment + insuranceCost + maintenanceCost + discountsTotal;
             cashFlow = cashIn - cashOut;
         }
@@ -276,6 +287,7 @@ const businessPlanData = computed(() => {
             maintenanceCost,
             annualSavings: risparmioAnnuale,
             energySale: venditaEnergia,
+            cer,
             fiscalDeduction,
             incentives: incentivesTotal,
             discounts: discountsTotal,

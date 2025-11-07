@@ -182,6 +182,9 @@ const simulationData = computed(() => {
     const energiaImmessaInRete = Math.max(0, annualProductionKwh - totalAutoconsumoKwh);
     const venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO;
 
+    // CALCOLO INCENTIVO CER - eccedenza × 0.108 €/kWh (solo se abilitato)
+    const incentivoCer = props.formData.enableCer ? energiaImmessaInRete * 0.108 : 0;
+
     // Calcola costo totale sistema per detrazione fiscale
     let productPrice = 0;
     if (props.formData.selectedProduct && prodottiFotovoltaico.value.length > 0) {
@@ -205,17 +208,6 @@ const simulationData = computed(() => {
     const additionalCostsTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = (props.formData.discounts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
-
-    // Calcola incentivo CER (PNRR) - somma degli incentivi attivi nel primo anno
-    let incentivoCer = 0;
-    (props.formData.incentives || []).forEach(inc => {
-        const annoInizio = inc.anno_inizio || 1;
-        const annoFine = inc.anno_fine || 1;
-        // Se l'incentivo è attivo nel primo anno (anno 1)
-        if (annoInizio <= 1 && annoFine >= 1) {
-            incentivoCer += calculateAdjustmentAmount(inc);
-        }
-    });
 
     let deductionPercentage = 0;
     if (props.formData.fiscalDeductionType === 'prima_casa') {
@@ -495,35 +487,19 @@ const preparePayload = () => {
             const risparmioAnnuale = simulationData.value.risparmioAutoconsumo * Math.pow(1.02, year - 1);
             const venditaEnergia = simulationData.value.venditaEccedenza * Math.pow(1.02, year - 1);
             
+            // Incentivo CER - sempre lo stesso valore per 20 anni se abilitato (eccedenza × 0.108)
+            const ricavoIncentivoCer = props.formData.enableCer ? simulationData.value.incentivoCer : 0;
+            
             // Detrazione fiscale solo per i primi 10 anni
             const fiscalDeduction = year <= 10 ? fiscalDeductionAnnual : 0;
             
-            // Incentivo CER - sempre lo stesso valore se attivo nell'anno corrente
-            let ricavoIncentivoCer = 0;
-            (props.formData.incentives || []).forEach(inc => {
-                const annoInizio = inc.anno_inizio || 1;
-                const annoFine = inc.anno_fine || 1;
-                // Se l'incentivo è attivo nell'anno corrente
-                if (year >= annoInizio && year <= annoFine) {
-                    // Verifica se è un incentivo CER/PNRR (controlla il nome)
-                    const nomeVoce = (inc.nome_voce || inc.description || '').toLowerCase();
-                    if (nomeVoce.includes('cer') || nomeVoce.includes('pnrr') || nomeVoce.includes('pnnr')) {
-                        ricavoIncentivoCer += calculateAdjustmentAmount(inc);
-                    }
-                }
-            });
-            
-            // Incentivo PNRR (diverso dal CER) - per altri incentivi PNRR specifici
+            // Incentivi PNRR (diversi dal CER) - per altri incentivi PNRR specifici
             let incentivoPnrr = 0;
             (props.formData.incentives || []).forEach(inc => {
                 const annoInizio = inc.anno_inizio || 1;
                 const annoFine = inc.anno_fine || 1;
                 if (year >= annoInizio && year <= annoFine) {
-                    const nomeVoce = (inc.nome_voce || inc.description || '').toLowerCase();
-                    // Se è PNRR ma non CER
-                    if ((nomeVoce.includes('pnrr') || nomeVoce.includes('pnnr')) && !nomeVoce.includes('cer')) {
-                        incentivoPnrr += calculateAdjustmentAmount(inc);
-                    }
+                    incentivoPnrr += calculateAdjustmentAmount(inc);
                 }
             });
             
@@ -540,11 +516,11 @@ const preparePayload = () => {
             let cashFlow = 0;
             if (year === 1) {
                 // L'anno 1 include l'investimento iniziale negativo
-                const cashIn = risparmioAnnuale + venditaEnergia + fiscalDeduction + ricavoIncentivoCer + incentivoPnrr;
+                const cashIn = risparmioAnnuale + venditaEnergia + ricavoIncentivoCer + fiscalDeduction + incentivoPnrr;
                 const cashOut = totalSystemCost + loanPayment + insuranceCost + maintenanceCost + sconto;
                 cashFlow = cashIn - cashOut;
             } else {
-                const cashIn = risparmioAnnuale + venditaEnergia + fiscalDeduction + ricavoIncentivoCer + incentivoPnrr;
+                const cashIn = risparmioAnnuale + venditaEnergia + ricavoIncentivoCer + fiscalDeduction + incentivoPnrr;
                 const cashOut = loanPayment + insuranceCost + maintenanceCost + sconto;
                 cashFlow = cashIn - cashOut;
             }

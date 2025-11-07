@@ -230,6 +230,13 @@
       
         </div>
                 <!-- <AdjustmentList components will be added here -->
+                <div class="pill" style="display:flex;align-items:center;justify-content:space-between;">
+                    <label for="enable-cer-check" style="font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;">
+                        <input type="checkbox" id="enable-cer-check" :checked="formData.enableCer" @change="updateFormData('enableCer', $event.target.checked)" style="margin-right:8px;"/>
+                        Abilita Incentivo CER
+                    </label>
+                    <span class="help-text" style="font-size:12px;color:#6b7280;">Calcolo: eccedenza (kWh) × 0.108 €/kWh</span>
+                </div>
                 <AdjustmentList title="Incentivi" listName="incentives" :items="formData.incentives" @update:items="updateFormData('incentives', $event)" />
                 <div class="grid-responsive-2">
                 <EarningsInfoCard 
@@ -243,9 +250,9 @@
                     description="Guadagno annuale dalla vendita dell'energia non consumata."
                 />
                 <EarningsInfoCard 
-                    title="INCENTIVO CER (PNRR)" 
+                    title="INCENTIVO CER" 
                     :value="simulationResults.incentivoCer.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 1 })"
-                    description="Incentivo annuale PNRR per l'energia condivisa nella Comunità Energetica."
+                    description="Incentivo annuale CER per l'energia condivisa nella Comunità Energetica (eccedenza × 0.108 €/kWh)."
                 />
                 <EarningsInfoCard 
                     title="DETRAZIONE FISCALE" 
@@ -298,6 +305,7 @@ onMounted(async () => {
   try {
     // Carica tipologie tetto
     const tipologie = await loadTipologieTetto();
+    console.log(tipologie);
     // Gestisci la risposta paginata o diretta
     tipologieTetto.value = Array.isArray(tipologie) ? tipologie : (tipologie?.data || []);
     
@@ -581,7 +589,7 @@ const simulationResults = computed(() => {
     // La batteria può fornire energia solo fino alla sua capacità giornaliera × 365 giorni
     const batteryEnergyPerYear = batteryCapacityKwh * 365; // kWh disponibili dalla batteria all'anno
     // L'autoconsumo è: consumo diurno (coperto dalla produzione diretta) + min(energia batteria annua, consumo notturno)
-    const totalAutoconsumoKwh = daytimeConsumptionKwh + Math.min(nighttimeConsumptionKwh, nighttimeConsumptionKwh);
+    const totalAutoconsumoKwh = daytimeConsumptionKwh + Math.min(batteryEnergyPerYear, nighttimeConsumptionKwh);
     const risparmioAutoconsumo = totalAutoconsumoKwh * props.formData.costPerKwh;
 
     // CALCOLO VENDITA ECCEDENZA (RID)
@@ -589,6 +597,9 @@ const simulationResults = computed(() => {
     // L'energia immessa in rete può essere venduta al prezzo di ritiro dedicato
     const energiaImmessaInRete = Math.max(0, annualProductionKwh - totalAutoconsumoKwh);
     const venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO;
+
+    // CALCOLO INCENTIVO CER - eccedenza × 0.108 €/kWh (solo se abilitato)
+    const incentivoCer = props.formData.enableCer ? energiaImmessaInRete * 0.108 : 0;
 
     // Cerca il prezzo del prodotto selezionato
     let productPrice = 0;
@@ -616,17 +627,6 @@ const simulationResults = computed(() => {
         return item.amount || item.valore_default || 0;
     };
     
-    // Calcola incentivo CER (PNRR) - somma degli incentivi attivi nel primo anno
-    let incentivoCer = 0;
-    (props.formData.incentives || []).forEach(inc => {
-        const annoInizio = inc.anno_inizio || 1;
-        const annoFine = inc.anno_fine || 1;
-        // Se l'incentivo è attivo nel primo anno (anno 1)
-        if (annoInizio <= 1 && annoFine >= 1) {
-            incentivoCer += calculateAdjustmentAmount(inc);
-        }
-    });
-    
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = props.formData.discounts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     
@@ -638,7 +638,7 @@ const simulationResults = computed(() => {
     } else if (props.formData.fiscalDeductionType === 'seconda_casa') {
         deductionPercentage = 0.36;
     }
-    const detrazioneFiscale = (productPrice * deductionPercentage) / 10;
+    const detrazioneFiscale = (totalSystemCost * deductionPercentage) / 10;
     
     return { risparmioAutoconsumo, venditaEccedenza, incentivoCer, detrazioneFiscale };
 });
