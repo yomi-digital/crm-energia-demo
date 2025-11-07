@@ -225,38 +225,40 @@
                         >Nessuna</button>
                     </div>
                 </div>
+                <div v-if="formData.selectedProduct" style="display:flex;flex-direction:column;gap:16px;">
+            <h3 class="section-subtitle">Simulazione Guadagni Annuali Stimati</h3>
+      
+        </div>
                 <!-- <AdjustmentList components will be added here -->
                 <AdjustmentList title="Incentivi" listName="incentives" :items="formData.incentives" @update:items="updateFormData('incentives', $event)" />
+                <div class="grid-responsive-2">
+                <EarningsInfoCard 
+                    title="RISPARMIO DA AUTOCONSUMO" 
+                    :value="simulationResults.risparmioAutoconsumo.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 1 })"
+                    description="Risparmio annuale generato dall'energia prodotta e consumata."
+                />
+                <EarningsInfoCard 
+                    title="VENDITA ECCEDENZA (RID)" 
+                    :value="simulationResults.venditaEccedenza.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 1 })"
+                    description="Guadagno annuale dalla vendita dell'energia non consumata."
+                />
+                <EarningsInfoCard 
+                    title="INCENTIVO CER (PNRR)" 
+                    :value="simulationResults.incentivoCer.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 1 })"
+                    description="Incentivo annuale PNRR per l'energia condivisa nella Comunità Energetica."
+                />
+                <EarningsInfoCard 
+                    title="DETRAZIONE FISCALE" 
+                    :value="simulationResults.detrazioneFiscale.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 1 })"
+                    description="Importo annuale della detrazione fiscale per 10 anni."
+                />
+            </div>
                 <AdjustmentList title="Sconti" listName="discounts" :items="formData.discounts" @update:items="updateFormData('discounts', $event)" />
                 <AdjustmentList title="Costi Aggiuntivi" listName="additionalCosts" :items="formData.additionalCosts" @update:items="updateFormData('additionalCosts', $event)" />
              </div>
         </div>
 
-        <div v-if="formData.selectedProduct" style="display:flex;flex-direction:column;gap:16px;">
-            <h3 class="section-subtitle">Simulazione Guadagni Annuali Stimati</h3>
-            <div class="grid-responsive-2">
-                <EarningsInfoCard 
-                    title="RISPARMIO DA AUTOCONSUMO" 
-                    :value="simulationResults.risparmioAutoconsumo.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
-                    description="Risparmio annuale generato dall'energia prodotta e consumata."
-                />
-                <EarningsInfoCard 
-                    title="VENDITA ECCEDENZA (RID)" 
-                    :value="simulationResults.venditaEccedenza.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
-                    description="Guadagno annuale dalla vendita dell'energia non consumata."
-                />
-                <EarningsInfoCard 
-                    title="INCENTIVO CER (PNRR)" 
-                    :value="simulationResults.incentivoCer.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
-                    description="Incentivo annuale PNRR per l'energia condivisa nella Comunità Energetica."
-                />
-                <EarningsInfoCard 
-                    title="DETRAZIONE FISCALE" 
-                    :value="simulationResults.detrazioneFiscale.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })"
-                    description="Importo annuale della detrazione fiscale per 10 anni."
-                />
-            </div>
-        </div>
+        
     </div>
 </template>
 
@@ -636,7 +638,7 @@ const simulationResults = computed(() => {
     } else if (props.formData.fiscalDeductionType === 'seconda_casa') {
         deductionPercentage = 0.36;
     }
-    const detrazioneFiscale = (totalSystemCost * deductionPercentage) / 10;
+    const detrazioneFiscale = (productPrice * deductionPercentage) / 10;
     
     return { risparmioAutoconsumo, venditaEccedenza, incentivoCer, detrazioneFiscale };
 });
