@@ -2560,7 +2560,6 @@
                         <th>Risparmio Bolletta</th>
                         <th>Eccedenze</th>
                         <th>CER</th>
-                        <th>F.P.PNRR</th>
                         <th>Incentivo PNNR</th>
                         <th>Detrazione</th>
                         <th>Sconto</th>
@@ -2578,7 +2577,6 @@
                         <td class="text-right">€ {{ number_format($bp->ricavo_risparmio_bolletta, 2, ',', '.') }}</td>
                         <td class="text-right">€ {{ number_format($bp->ricavo_vendita_eccedenze, 2, ',', '.') }}</td>
                         <td class="text-right">€ {{ number_format($bp->ricavo_incentivo_cer, 2, ',', '.') }}</td>
-                        <td class="text-right">€ {{ number_format($bp->ricavo_fondo_perduto, 2, ',', '.') }}</td>
                         <td class="text-right">€ {{ number_format($bp->incentivo_pnnr ?? 0, 2, ',', '.') }}</td>
                         <td class="text-right">€ {{ number_format($bp->detrazione_fiscale ?? 0, 2, ',', '.') }}</td>
                         <td class="text-right">€ {{ number_format($bp->sconto ?? 0, 2, ',', '.') }}</td>
