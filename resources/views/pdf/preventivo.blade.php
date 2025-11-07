@@ -457,20 +457,20 @@
 
         .client-detail-item {
             margin-bottom: 16px;
-            font-size: 15px;
+            font-size: 7.5px;
         }
 
         .client-detail-item .label {
             font-weight: bold;
             display: inline;
-            font-size: 15px;
+            font-size: 7.5px;
             margin: 0;
             padding: 0;
         }
 
         .client-detail-item .value {
             font-weight: normal;
-            font-size: 15px;
+            font-size: 7.5px;
             white-space: nowrap;
             display: block;
             margin: 0;
