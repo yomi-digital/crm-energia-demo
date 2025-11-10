@@ -151,6 +151,8 @@ const exportReport = async () => {
         user_id: selectedUser.value,
         brand_id: selectedBrand.value,
         product_id: selectedProduct.value,
+        status: selectedStatus.value,
+        category: selectedCategory.value,
       },
       responseType: 'blob'
     })

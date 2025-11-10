@@ -223,7 +223,7 @@ class ReportsController extends Controller
 
         if ($request->has('export')) {
             $allPaperworks = $paperworks->get();
-            $csvPath = $this->transformPaperworksToCSV($allPaperworks, $user);
+            $csvPath = $this->transformPaperworksAdminToCSV($allPaperworks, $user);
 
             // Transform csv to excel
             $data = array_map('str_getcsv', file($csvPath));
@@ -240,9 +240,9 @@ class ReportsController extends Controller
                 {
                     return collect($this->data);
                 }
-            }, 'report_produzione.xlsx');
+            }, 'report_amministrativo.xlsx');
             
-            return response()->download($csvPath, 'report_produzione.csv');
+            return response()->download($csvPath, 'report_amministrativo.csv');
         }
 
         $perPage = $request->get('itemsPerPage', 500);
@@ -404,8 +404,8 @@ class ReportsController extends Controller
             'order_code' => $paperwork->order_code,
             'account_pod_pdr' => $paperwork->account_pod_pdr,
             'paperwork_id' => $paperwork->id,
-            'inserted_at' => $paperwork->partner_sent_at,
-            'activated_at' => $paperwork->partner_outcome_at,
+            'inserted_at' => $paperwork->partner_sent_at ? \Carbon\Carbon::parse($paperwork->partner_sent_at)->format(config('app.date_format')) : null,
+            'activated_at' => $paperwork->partner_outcome_at ? \Carbon\Carbon::parse($paperwork->partner_outcome_at)->format(config('app.date_format')) : null,
             'status' => $paperwork->partner_outcome ?: $paperwork->order_status,
             'order_status' => $paperwork->order_status,
             'payout' => $this->calculatePaperworkPayout($paperwork, $parent),
@@ -471,6 +471,75 @@ class ReportsController extends Controller
                 $data['status'],
             ]);
         }
+
+        fclose($fp);
+
+        return $csvPath;
+    }
+
+    private function transformPaperworksAdminToCSV($paperworks, $user)
+    {
+        $headers = [
+            'Pratica',
+            'Account POD/PDR',
+            'Struttura',
+            'Collaboratore',
+            'Cliente',
+            'CF',
+            'Partita IVA',
+            'Brand',
+            'Prodotto',
+            'Stato',
+            'Data Inserimento',
+            'Data Esito Partner',
+            'Compenso €',
+        ];
+
+        // Save csv to /tmp 
+        $csvPath = tempnam(sys_get_temp_dir(), 'csv');
+        $fp = fopen($csvPath, 'w');
+        fputcsv($fp, $headers);
+
+        $totalPayout = 0;
+        foreach ($paperworks as $paperwork) {
+            $data = $this->transformPaperworkAdmin($paperwork, $user);
+            $payout = $data['payout'] ?? 0;
+            $totalPayout += $payout;
+            
+            fputcsv($fp, [
+                $data['order_code'],
+                $data['account_pod_pdr'],
+                $data['parent'],
+                $data['agent'],
+                $data['customer'],
+                $data['tax_id_code'],
+                $data['vat_number'],
+                $data['brand'],
+                $data['product'],
+                $data['status'],
+                $data['inserted_at'] ? \Carbon\Carbon::parse($data['inserted_at'])->format(config('app.date_format')) : '',
+                $data['activated_at'] ? \Carbon\Carbon::parse($data['activated_at'])->format(config('app.date_format')) : '',
+                $payout,
+            ]);
+        }
+
+        // Aggiungi riga vuota e riga totale
+        fputcsv($fp, []); // Riga vuota
+        fputcsv($fp, [
+            '', // Pratica
+            '', // Account POD/PDR
+            '', // Struttura
+            '', // Collaboratore
+            '', // Cliente
+            '', // CF
+            '', // Partita IVA
+            '', // Brand
+            '', // Prodotto
+            'TOTALE', // Stato
+            '', // Data Inserimento
+            '', // Data Esito Partner
+            $totalPayout, // Compenso €
+        ]);
 
         fclose($fp);
 
