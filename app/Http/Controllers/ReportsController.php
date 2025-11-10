@@ -495,7 +495,11 @@ class ReportsController extends Controller
         $fp = fopen($csvPath, 'w');
         fputcsv($fp, $headers);
 
+        $totalPayout = 0;
         foreach ($entries as $entry) {
+            $payout = $entry->payout_confirmed ?? 0;
+            $totalPayout += $payout;
+            
             fputcsv($fp, [
                 $entry->agent,
                 $entry->brand,
@@ -504,9 +508,22 @@ class ReportsController extends Controller
                 $entry->inserted_at,
                 $entry->activated_at,
                 $entry->status,
-                $entry->payout_confirmed,
+                $payout,
             ]);
         }
+
+        // Aggiungi riga vuota e riga totale
+        fputcsv($fp, []); // Riga vuota
+        fputcsv($fp, [
+            '', // Agente
+            '', // Brand
+            '', // Prodotto
+            '', // Pratica
+            '', // Data Inserimento
+            '', // Data Attivazione
+            'TOTALE', // Stato
+            $totalPayout, // Compenso €
+        ]);
 
         fclose($fp);
 
