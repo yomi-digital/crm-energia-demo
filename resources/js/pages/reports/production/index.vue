@@ -218,8 +218,28 @@ const statuses = ref([
     value: '',
   },
   {
+    title: 'ACCANTONATO',
+    value: 'ACCANTONATO',
+  },
+  {
+    title: 'ATTIVO',
+    value: 'ATTIVO',
+  },
+  {
+    title: 'IN PROVISIONING',
+    value: 'IN PROVISIONING',
+  },
+  {
     title: 'OK PAGABILE',
     value: 'OK PAGABILE',
+  },
+  {
+    title: 'CONFERMATO',
+    value: 'CONFERMATO',
+  },
+  {
+    title: 'INVIATO',
+    value: 'INVIATO',
   },
   {
     title: 'KO',
