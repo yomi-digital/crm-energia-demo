@@ -75,6 +75,12 @@ class UsersController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'area' => 'required|string',
+        ], [
+            'area.required' => 'Il campo area è obbligatorio.',
+        ]);
+
         $user = new \App\Models\User($request->all());
 
         if ($request->filled('password')) {

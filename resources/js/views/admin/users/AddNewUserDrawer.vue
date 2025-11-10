@@ -1,4 +1,5 @@
 <script setup>
+import { AREAS } from '@/utils/constants';
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
 
 const props = defineProps({
@@ -26,6 +27,9 @@ const email = ref('')
 const password = ref(Math.random().toString(36).slice(-10))
 const role = ref()
 const enabled = ref(1)
+const area = ref('')
+
+const areas = AREAS.filter(a => a.value !== '') // Rimuovi "Tutte" dalla lista
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
@@ -47,6 +51,7 @@ const onSubmit = () => {
         email: email.value,
         password: password.value,
         enabled: enabled.value,
+        area: area.value,
       })
       emit('update:isDrawerOpen', false)
       nextTick(() => {
@@ -137,6 +142,17 @@ const handleDrawerModelValueUpdate = val => {
                   placeholder="Seleziona un ruolo"
                   :rules="[requiredValidator]"
                   :items="roles"
+                />
+              </VCol>
+
+              <!-- 👉 Area -->
+              <VCol cols="12">
+                <AppSelect
+                  v-model="area"
+                  label="Area"
+                  placeholder="Seleziona un'area"
+                  :rules="[requiredValidator]"
+                  :items="areas"
                 />
               </VCol>
 
