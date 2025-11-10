@@ -22,6 +22,14 @@ class ReportsController extends Controller
             $reports = $reports->where('id', $request->get('id'));
         }
 
+        // Filtro per area
+        $area = $request->get('area', null);
+        if ($area) {
+            // Trova tutti gli utenti con quella area
+            $usersInArea = \App\Models\User::where('area', $area)->pluck('id');
+            $reports = $reports->whereIn('user_id', $usersInArea);
+        }
+
         if ($request->filled('user_id')) {
             $reports = $reports->where('user_id', $request->get('user_id'));
         }
@@ -472,7 +480,6 @@ class ReportsController extends Controller
     private function transformEntriesToCSV($entries, $report)
     {
         $headers = [
-            'Struttura',
             'Agente',
             'Brand',
             'Prodotto',
@@ -480,7 +487,7 @@ class ReportsController extends Controller
             'Data Inserimento',
             'Data Attivazione',
             'Stato',
-            'Compenso',
+            'Compenso €',
         ];
 
         // Save csv to /tmp 
@@ -490,7 +497,6 @@ class ReportsController extends Controller
 
         foreach ($entries as $entry) {
             fputcsv($fp, [
-                $entry->parent,
                 $entry->agent,
                 $entry->brand,
                 $entry->product,

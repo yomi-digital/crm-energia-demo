@@ -22,11 +22,6 @@ const updateOptions = options => {
 // Headers
 const headers = [
   {
-    title: 'Struttura',
-    key: 'parent',
-    sortable: false,
-  },
-  {
     title: 'Agente',
     key: 'agent',
     sortable: false,
@@ -284,22 +279,6 @@ const saveAddEntry = async () => {
                   {{ item.agent || 'N/A' }}
                 </span>
               </h6>
-            </div>
-          </div>
-        </template>
-
-        <!-- Struttura -->
-        <template #item.parent="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-capitalize text-high-emphasis text-body-1">
-              <RouterLink
-                v-if="item.parent_id"
-                :to="{ name: 'admin-users-id', params: { id: item.parent_id } }"
-                class="font-weight-medium text-link"
-                :title="item.parent"
-              >
-                {{ item.parent }}
-              </RouterLink>
             </div>
           </div>
         </template>

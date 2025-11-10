@@ -1,4 +1,6 @@
 <script setup>
+import { AREAS } from '@/utils/constants'
+
 definePage({
   meta: {
     action: 'access',
@@ -17,6 +19,7 @@ const orderBy = ref()
 
 const selectedUser = ref('')
 const selectedStatus = ref('')
+const selectedArea = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -62,11 +65,14 @@ const {
     orderBy,
     user_id: selectedUser,
     status: selectedStatus,
+    area: selectedArea,
   },
 }))
 
 const entries = computed(() => reportData.value.entries)
 const totalEntries = computed(() => reportData.value.totalEntries)
+
+const areas = AREAS
 
 const users = ref([
   {
@@ -129,6 +135,16 @@ const deleteReport = async id => {
     <VCard class="mb-6">
       <VCardText>
         <VRow>
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedArea"
+              label="Filtra per Area"
+              clearable
+              :items="areas"
+              placeholder="Seleziona un'Area"
+            />
+          </VCol>
+
           <VCol cols="3">
             <AppAutocomplete
               v-model="selectedUser"
