@@ -268,7 +268,7 @@ class ReportsController extends Controller
             ], 400);
         }
 
-        $paperworks = \App\Models\Paperwork::with(['user', 'product', 'product.brand'])
+        $paperworks = \App\Models\Paperwork::with(['user', 'product', 'product.brand', 'mandate'])
             ->whereBetween('partner_sent_at', [
                 $request->get('from') . ' 00:00:00',
                 $request->get('to') . ' 23:59:59'
@@ -305,6 +305,10 @@ class ReportsController extends Controller
 
         if ($request->filled('agent_id')) {
             $paperworks = $paperworks->where('user_id', $request->get('agent_id'));
+        }
+
+        if ($request->filled('agency_id')) {
+            $paperworks = $paperworks->where('mandate_id', $request->get('agency_id'));
         }
 
         if ($request->filled('status')) {
@@ -428,6 +432,8 @@ class ReportsController extends Controller
             'parent' => $parent ? implode(' ', array_filter([$parent->name, $parent->last_name])) : null,
             'agent_id' => $paperwork->user_id,
             'agent' => implode(' ', array_filter([$paperwork->user->name, $paperwork->user->last_name])),
+            'agency_id' => $paperwork->mandate_id,
+            'agency' => $paperwork->mandate ? $paperwork->mandate->name : null,
             'brand_id' => $paperwork->product->brand_id,
             'brand' => $paperwork->product->brand->name,
             'product_id' => $paperwork->product_id,
@@ -447,6 +453,7 @@ class ReportsController extends Controller
         $headers = [
             'Struttura',
             'Agente',
+            'Agenzia',
             'Brand',
             'Prodotto',
             'Pratica',
@@ -464,6 +471,7 @@ class ReportsController extends Controller
             fputcsv($fp, [
                 $data['parent'],
                 $data['agent'],
+                $data['agency'],
                 $data['brand'],
                 $data['product'],
                 $data['order_code'],

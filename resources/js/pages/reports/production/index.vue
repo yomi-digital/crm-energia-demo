@@ -21,6 +21,7 @@ const selectedArea = ref('')
 const selectedBrand = ref('')
 const selectedProduct = ref('')
 const selectedAgent = ref('')
+const selectedAgency = ref('')
 const selectedStatus = ref('')
 const selectedCategory = ref('')
 const selectedHasAppointment = ref('')
@@ -40,6 +41,11 @@ const headers = [
   {
     title: 'Agente',
     key: 'agent',
+    sortable: false,
+  },
+  {
+    title: 'Agenzia',
+    key: 'agency',
     sortable: false,
   },
   {
@@ -112,6 +118,7 @@ const {
     brand_id: selectedBrand,
     product_id: selectedProduct,
     agent_id: selectedAgent,
+    agency_id: selectedAgency,
     status: selectedStatus,
     category: selectedCategory,
     has_appointment: selectedHasAppointment,
@@ -135,6 +142,7 @@ const exportReport = async () => {
         brand_id: selectedBrand.value,
         product_id: selectedProduct.value,
         agent_id: selectedAgent.value,
+        agency_id: selectedAgency.value,
         status: selectedStatus.value,
         category: selectedCategory.value,
         has_appointment: selectedHasAppointment.value,
@@ -164,6 +172,14 @@ const entries = computed(() => reportData.value.entries)
 const totalEntries = computed(() => reportData.value.totalEntries)
 
 const areas = AREAS
+
+const defaultAgencyOption = {
+  title: 'Tutte',
+  value: '',
+}
+
+const agencies = ref([defaultAgencyOption])
+const isFetchingAgencies = ref(false)
 
 const products = ref([
   {
@@ -303,6 +319,42 @@ const fetchAgents = async (query) => {
 }
 fetchAgents()
 
+const fetchAgencies = async (query = '') => {
+  try {
+    isFetchingAgencies.value = true
+
+    const response = await $api('/agencies', {
+      query: {
+        itemsPerPage: 100,
+        q: query,
+      },
+    })
+
+    const fetchedAgencies = response.agencies?.map(agency => ({
+      title: agency.name,
+      value: agency.id,
+    })) || []
+
+    const nextAgencies = [defaultAgencyOption, ...fetchedAgencies]
+    const selectedAgencyOption = agencies.value.find(agency => agency.value === selectedAgency.value)
+
+    if (selectedAgency.value && selectedAgencyOption && !nextAgencies.some(agency => agency.value === selectedAgency.value))
+      nextAgencies.push(selectedAgencyOption)
+
+    agencies.value = nextAgencies
+  } catch (error) {
+    console.error('Errore durante il recupero delle agenzie:', error)
+  } finally {
+    isFetchingAgencies.value = false
+  }
+}
+
+const handleAgenciesSearch = useDebounceFn(value => {
+  fetchAgencies(value)
+}, 300)
+
+fetchAgencies()
+
 </script>
 
 <template>
@@ -393,6 +445,20 @@ fetchAgents()
             />
           </VCol>
         </VRow>
+
+        <VRow>
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedAgency"
+              label="Filtra per Agenzia"
+              clearable
+              :items="agencies"
+            :loading="isFetchingAgencies"
+              placeholder="Seleziona un'Agenzia"
+            @update:search="handleAgenciesSearch"
+            />
+          </VCol>
+        </VRow>
       </VCardText>
 
       <VDivider />
@@ -457,6 +523,15 @@ fetchAgents()
                   {{ item.agent || 'N/A' }}
                 </span>
               </h6>
+            </div>
+          </div>
+        </template>
+
+        <!-- Agenzia -->
+        <template #item.agency="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              {{ item.agency || 'N/A' }}
             </div>
           </div>
         </template>
