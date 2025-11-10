@@ -445,6 +445,8 @@ class ReportsController extends Controller
             'order_status' => $paperwork->order_status,
             'category' => $paperwork->category,
             'has_appointment' => $paperwork->appointment_id ? 'SI' : 'NO',
+            'notes' => $paperwork->notes,
+            'alfacom_notes' => $paperwork->owner_notes,
         ];
     }
 
@@ -459,6 +461,8 @@ class ReportsController extends Controller
             'Pratica',
             'Insertita',
             'Stato',
+            'Note',
+            'Note Alfacom',
         ];
 
         // Save csv to /tmp 
@@ -477,6 +481,8 @@ class ReportsController extends Controller
                 $data['order_code'],
                 $data['inserted_at'],
                 $data['status'],
+                $data['notes'] ?? '',
+                $data['alfacom_notes'] ?? '',
             ]);
         }
 
