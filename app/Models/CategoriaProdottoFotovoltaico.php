@@ -16,6 +16,11 @@ class CategoriaProdottoFotovoltaico extends Model
     protected $fillable = [
         'nome_categoria',
         'descrizione',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function prodotti()
