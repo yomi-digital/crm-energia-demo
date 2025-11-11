@@ -31,7 +31,7 @@ class CoefficientiProduzioneController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        abort(405, 'Operazione non consentita.');
     }
 
     /**
@@ -39,7 +39,9 @@ class CoefficientiProduzioneController extends Controller
      */
     public function show(string $id)
     {
-        //
+        return response()->json(
+            CoefficienteProduzioneFotovoltaico::findOrFail($id)
+        );
     }
 
     /**
@@ -47,7 +49,31 @@ class CoefficientiProduzioneController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $coefficiente = CoefficienteProduzioneFotovoltaico::findOrFail($id);
+
+        $validator = \Validator::make(
+            $request->all(),
+            [
+                'coefficiente_kwh_kwp' => ['required', 'numeric', 'gt:0'],
+            ],
+            [
+                'coefficiente_kwh_kwp.required' => 'Specificare il coefficiente kWh/kWp.',
+                'coefficiente_kwh_kwp.numeric' => 'Il coefficiente deve essere un numero.',
+                'coefficiente_kwh_kwp.gt' => 'Il coefficiente deve essere maggiore di 0.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Errore di validazione.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $coefficiente->coefficiente_kwh_kwp = $validator->validated()['coefficiente_kwh_kwp'];
+        $coefficiente->save();
+
+        return response()->json($coefficiente);
     }
 
     /**
@@ -55,6 +81,6 @@ class CoefficientiProduzioneController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        abort(405, 'Operazione non consentita.');
     }
 }

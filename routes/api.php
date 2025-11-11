@@ -219,6 +219,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::delete('product-categories/{id}', [ProductCategoriesController::class, 'destroy']);
 
     Route::get('coefficienti-produzione', [CoefficientiProduzioneController::class, 'index']);
+    Route::put('coefficienti-produzione/{id}', [CoefficientiProduzioneController::class, 'update']);
     
     Route::get('prodotti-fotovoltaico', [ProdottoFotovoltaicoController::class, 'index']);
     Route::post('prodotti-fotovoltaico', [ProdottoFotovoltaicoController::class, 'store']);
