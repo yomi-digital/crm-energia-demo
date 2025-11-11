@@ -233,6 +233,10 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::delete('tipologie-tetto/{id}', [TipologiaTettoController::class, 'destroy']);
     
     Route::get('voci-economiche', [VoceEconomicaController::class, 'index']);
+    Route::post('voci-economiche', [VoceEconomicaController::class, 'store']);
+    Route::get('voci-economiche/{id}', [VoceEconomicaController::class, 'show']);
+    Route::put('voci-economiche/{id}', [VoceEconomicaController::class, 'update']);
+    Route::delete('voci-economiche/{id}', [VoceEconomicaController::class, 'destroy']);
     
     Route::get('modalita-pagamento', [ModalitaPagamentoController::class, 'index']);
     Route::post('modalita-pagamento', [ModalitaPagamentoController::class, 'store']);
