@@ -16,6 +16,11 @@ class ModalitaPagamento extends Model
     protected $fillable = [
         'nome_modalita',
         'descrizione',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function applicabilita()
