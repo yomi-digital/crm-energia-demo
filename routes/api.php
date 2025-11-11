@@ -216,6 +216,10 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('coefficienti-produzione', [CoefficientiProduzioneController::class, 'index']);
     Route::get('prodotti-fotovoltaico', [ProdottoFotovoltaicoController::class, 'index']);
     Route::get('tipologie-tetto', [TipologiaTettoController::class, 'index']);
+    Route::post('tipologie-tetto', [TipologiaTettoController::class, 'store']);
+    Route::get('tipologie-tetto/{id}', [TipologiaTettoController::class, 'show']);
+    Route::put('tipologie-tetto/{id}', [TipologiaTettoController::class, 'update']);
+    Route::delete('tipologie-tetto/{id}', [TipologiaTettoController::class, 'destroy']);
     Route::get('voci-economiche', [VoceEconomicaController::class, 'index']);
     Route::get('modalita-pagamento', [ModalitaPagamentoController::class, 'index']);
 

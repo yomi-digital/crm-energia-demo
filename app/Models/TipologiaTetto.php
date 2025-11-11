@@ -17,9 +17,11 @@ class TipologiaTetto extends Model
         'nome_tipologia',
         'note',
         'costo_extra_kwp',
+        'is_active',
     ];
 
     protected $casts = [
         'costo_extra_kwp' => 'float',
+        'is_active' => 'boolean',
     ];
 }
