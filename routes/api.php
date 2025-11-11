@@ -219,7 +219,12 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::delete('product-categories/{id}', [ProductCategoriesController::class, 'destroy']);
 
     Route::get('coefficienti-produzione', [CoefficientiProduzioneController::class, 'index']);
+    
     Route::get('prodotti-fotovoltaico', [ProdottoFotovoltaicoController::class, 'index']);
+    Route::post('prodotti-fotovoltaico', [ProdottoFotovoltaicoController::class, 'store']);
+    Route::get('prodotti-fotovoltaico/{id}', [ProdottoFotovoltaicoController::class, 'show']);
+    Route::put('prodotti-fotovoltaico/{id}', [ProdottoFotovoltaicoController::class, 'update']);
+    Route::delete('prodotti-fotovoltaico/{id}', [ProdottoFotovoltaicoController::class, 'destroy']);
 
     Route::get('tipologie-tetto', [TipologiaTettoController::class, 'index']);
     Route::post('tipologie-tetto', [TipologiaTettoController::class, 'store']);

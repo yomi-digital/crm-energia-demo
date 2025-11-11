@@ -22,12 +22,14 @@ class ProdottoFotovoltaico extends Model
         'prezzo_base',
         'finanziamento_rate_standard',
         'link_scheda_prodotto_tecnica',
+        'is_active',
     ];
 
     protected $casts = [
         'potenza_kwp' => 'float',
         'capacita_kwh' => 'float',
         'prezzo_base' => 'float',
+        'is_active' => 'boolean',
     ];
 
     /**
