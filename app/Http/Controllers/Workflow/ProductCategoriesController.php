@@ -5,12 +5,39 @@ namespace App\Http\Controllers\Workflow;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use App\Models\CategoriaProdottoFotovoltaico;
 
 class ProductCategoriesController extends Controller
 {
     public function index(Request $request)
     {
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'is_active' => ['nullable', 'string', Rule::in(['true', 'false', '1', '0', 'all', 'TRUE', 'FALSE', 'All', 'ALL'])],
+                'isActive' => ['nullable', 'string', Rule::in(['true', 'false', '1', '0', 'all', 'TRUE', 'FALSE', 'All', 'ALL'])],
+                'q' => ['nullable', 'string'],
+                'itemsPerPage' => ['nullable', 'integer', 'min:1'],
+            ],
+            [
+                'is_active.in' => 'Il parametro is_active può essere solo true, false o all.',
+                'is_active.string' => 'Il parametro is_active deve essere una stringa.',
+                'isActive.in' => 'Il parametro isActive può essere solo true, false o all.',
+                'isActive.string' => 'Il parametro isActive deve essere una stringa.',
+                'q.string' => 'Il parametro q deve essere una stringa.',
+                'itemsPerPage.integer' => 'Il parametro itemsPerPage deve essere un numero intero.',
+                'itemsPerPage.min' => 'Il parametro itemsPerPage deve essere almeno 1.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Parametri non validi.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $perPage = $request->get('itemsPerPage', 10);
 
         $categories = CategoriaProdottoFotovoltaico::query();
@@ -20,7 +47,11 @@ class ProductCategoriesController extends Controller
             : ($request->has('isActive') ? 'isActive' : null);
 
         if ($isActiveKey !== null) {
-            $categories->where('is_active', $request->boolean($isActiveKey));
+            $isActiveValue = strtolower(trim($request->input($isActiveKey)));
+
+            if ($isActiveValue !== 'all') {
+                $categories->where('is_active', $request->boolean($isActiveKey));
+            }
         } else {
             $categories->where('is_active', true);
         }

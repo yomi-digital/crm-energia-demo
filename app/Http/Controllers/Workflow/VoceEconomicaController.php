@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Workflow;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use App\Models\VoceEconomica;
 use App\Models\ApplicabilitaVoce;
 
@@ -11,6 +13,37 @@ class VoceEconomicaController extends Controller
 {
     public function index(Request $request)
     {
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'is_active' => ['nullable', 'string', Rule::in(['true', 'false', '1', '0', 'all', 'TRUE', 'FALSE', 'All', 'ALL'])],
+                'isActive' => ['nullable', 'string', Rule::in(['true', 'false', '1', '0', 'all', 'TRUE', 'FALSE', 'All', 'ALL'])],
+                'customer_type' => ['nullable', 'string', Rule::in(['residenziale', 'business', 'RESIDENZIALE', 'BUSINESS'])],
+                'tipo_voce' => ['nullable', 'string'],
+                'q' => ['nullable', 'string'],
+                'itemsPerPage' => ['nullable', 'integer', 'min:1'],
+            ],
+            [
+                'is_active.in' => 'Il parametro is_active può essere solo true, false o all.',
+                'is_active.string' => 'Il parametro is_active deve essere una stringa.',
+                'isActive.in' => 'Il parametro isActive può essere solo true, false o all.',
+                'isActive.string' => 'Il parametro isActive deve essere una stringa.',
+                'customer_type.in' => 'Il parametro customer_type può essere solo RESIDENZIALE o BUSINESS.',
+                'customer_type.string' => 'Il parametro customer_type deve essere una stringa.',
+                'tipo_voce.string' => 'Il parametro tipo_voce deve essere una stringa.',
+                'q.string' => 'Il parametro q deve essere una stringa.',
+                'itemsPerPage.integer' => 'Il parametro itemsPerPage deve essere un numero intero.',
+                'itemsPerPage.min' => 'Il parametro itemsPerPage deve essere almeno 1.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Parametri non validi.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $perPage = $request->get('itemsPerPage', 10);
 
         $vociEconomiche = VoceEconomica::query();
@@ -20,7 +53,11 @@ class VoceEconomicaController extends Controller
             : ($request->has('isActive') ? 'isActive' : null);
 
         if ($isActiveKey !== null) {
-            $vociEconomiche->where('is_active', $request->boolean($isActiveKey));
+            $isActiveValue = strtolower(trim($request->input($isActiveKey)));
+
+            if ($isActiveValue !== 'all') {
+                $vociEconomiche->where('is_active', $request->boolean($isActiveKey));
+            }
         } else {
             $vociEconomiche->where('is_active', true);
         }
