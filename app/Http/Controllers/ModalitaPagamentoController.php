@@ -77,9 +77,16 @@ class ModalitaPagamentoController extends Controller
             });
         }
 
+        $modalitaPagamento = $request->filled('itemsPerPage')
+            ? $modalitaPagamento->paginate((int) $request->get('itemsPerPage', 10))
+            : $modalitaPagamento->get();
+
         if ($request->has('export')) {
-            $allModalita = $modalitaPagamento->get();
-            $csvPath = $this->transformEntriesToCSV($allModalita);
+            $pageModalita = $modalitaPagamento instanceof \Illuminate\Pagination\LengthAwarePaginator
+                ? $modalitaPagamento->getCollection()
+                : $modalitaPagamento;
+
+            $csvPath = $this->transformEntriesToCSV($pageModalita);
 
             $data = array_map('str_getcsv', file($csvPath));
 
@@ -97,10 +104,6 @@ class ModalitaPagamentoController extends Controller
                 }
             }, 'modalita_pagamento_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
         }
-
-        $modalitaPagamento = $request->filled('itemsPerPage')
-            ? $modalitaPagamento->paginate((int) $request->get('itemsPerPage', 10))
-            : $modalitaPagamento->get();
 
         return response()->json($modalitaPagamento);
     }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Rules\DettagliConsumoJsonRule;
 use App\Rules\BusinessPlanAnnoSimulazioneRule;
@@ -17,15 +16,375 @@ use Closure;
 use App\Rules\StrictNumberRule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Preventivo;
 use App\Models\ConsumoPreventivo;
 use App\Models\DettaglioProdottoPreventivo;
 use App\Models\PreventivoVoceEconomica;
 use App\Models\DettaglioBusinessPlan;
 use App\Services\PreventivoPdfService;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class PreventivoController extends Controller
 {
+    public function index(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'itemsPerPage' => ['nullable', 'integer', 'min:1'],
+                'stato' => ['nullable', 'string'],
+                'customerId' => ['nullable', 'integer'],
+                'agentId' => ['nullable', 'integer'],
+                'q' => ['nullable', 'string'],
+                'sortBy' => ['nullable', 'string', Rule::in(['data_preventivo', 'created_at', 'updated_at', 'numero_preventivo'])],
+                'orderBy' => ['nullable', 'string', Rule::in(['asc', 'desc'])],
+                'dataFrom' => ['nullable', 'date'],
+                'dataTo' => ['nullable', 'date'],
+                'roof' => ['nullable', 'string'],
+                'exposition' => ['nullable', 'string'],
+                'geoArea' => ['nullable', 'string'],
+                'paymentMode' => ['nullable', 'string', Rule::in(['bonifico', 'finanziamento', 'bonifico,finanziamento'])],
+                'maintenanceOption' => ['nullable', 'string', Rule::in(['si', 'no'])],
+                'insuranceOption' => ['nullable', 'string', Rule::in(['si', 'no'])],
+                'maintenanceCostMin' => ['nullable', 'numeric', 'gte:0'],
+                'maintenanceCostMax' => ['nullable', 'numeric', 'gte:0'],
+                'insuranceCostMin' => ['nullable', 'numeric', 'gte:0'],
+                'insuranceCostMax' => ['nullable', 'numeric', 'gte:0'],
+                'productionEstimatedMin' => ['nullable', 'numeric', 'gte:0'],
+                'productionEstimatedMax' => ['nullable', 'numeric', 'gte:0'],
+                'selfConsumptionSavingMin' => ['nullable', 'numeric', 'gte:0'],
+                'selfConsumptionSavingMax' => ['nullable', 'numeric', 'gte:0'],
+                'excessSaleRidMin' => ['nullable', 'numeric', 'gte:0'],
+                'excessSaleRidMax' => ['nullable', 'numeric', 'gte:0'],
+                'cerIncentiveMin' => ['nullable', 'numeric', 'gte:0'],
+                'cerIncentiveMax' => ['nullable', 'numeric', 'gte:0'],
+                'taxDeductionMin' => ['nullable', 'numeric', 'gte:0'],
+                'taxDeductionMax' => ['nullable', 'numeric', 'gte:0'],
+            ],
+            [
+                'itemsPerPage.integer' => 'Il parametro itemsPerPage deve essere un numero intero.',
+                'itemsPerPage.min' => 'Il parametro itemsPerPage deve essere almeno 1.',
+                'stato.string' => 'Il parametro stato deve essere una stringa.',
+                'customerId.integer' => 'Il parametro customerId deve essere numerico.',
+                'agentId.integer' => 'Il parametro agentId deve essere numerico.',
+                'q.string' => 'Il parametro q deve essere una stringa.',
+                'sortBy.in' => 'Il parametro sortBy non è supportato.',
+                'orderBy.in' => 'Il parametro orderBy deve essere asc o desc.',
+                'dataFrom.date' => 'Il parametro dataFrom deve essere una data valida.',
+                'dataTo.date' => 'Il parametro dataTo deve essere una data valida.',
+                'roof.string' => 'Il parametro roof deve essere una stringa.',
+                'exposition.string' => 'Il parametro exposition deve essere una stringa.',
+                'geoArea.string' => 'Il parametro geoArea deve essere una stringa.',
+                'paymentMode.in' => 'Il parametro paymentMode deve essere uno tra: bonifico, finanziamento, bonifico,finanziamento.',
+                'maintenanceOption.in' => 'Il parametro maintenanceOption deve essere uno tra: si, no.',
+                'insuranceOption.in' => 'Il parametro insuranceOption deve essere uno tra: si, no.',
+                'maintenanceCostMin.numeric' => 'Il parametro maintenanceCostMin deve essere numerico.',
+                'maintenanceCostMin.gte' => 'Il parametro maintenanceCostMin deve essere maggiore o uguale a 0.',
+                'maintenanceCostMax.numeric' => 'Il parametro maintenanceCostMax deve essere numerico.',
+                'maintenanceCostMax.gte' => 'Il parametro maintenanceCostMax deve essere maggiore o uguale a 0.',
+                'insuranceCostMin.numeric' => 'Il parametro insuranceCostMin deve essere numerico.',
+                'insuranceCostMin.gte' => 'Il parametro insuranceCostMin deve essere maggiore o uguale a 0.',
+                'insuranceCostMax.numeric' => 'Il parametro insuranceCostMax deve essere numerico.',
+                'insuranceCostMax.gte' => 'Il parametro insuranceCostMax deve essere maggiore o uguale a 0.',
+                'productionEstimatedMin.numeric' => 'Il parametro productionEstimatedMin deve essere numerico.',
+                'productionEstimatedMin.gte' => 'Il parametro productionEstimatedMin deve essere maggiore o uguale a 0.',
+                'productionEstimatedMax.numeric' => 'Il parametro productionEstimatedMax deve essere numerico.',
+                'productionEstimatedMax.gte' => 'Il parametro productionEstimatedMax deve essere maggiore o uguale a 0.',
+                'selfConsumptionSavingMin.numeric' => 'Il parametro selfConsumptionSavingMin deve essere numerico.',
+                'selfConsumptionSavingMin.gte' => 'Il parametro selfConsumptionSavingMin deve essere maggiore o uguale a 0.',
+                'selfConsumptionSavingMax.numeric' => 'Il parametro selfConsumptionSavingMax deve essere numerico.',
+                'selfConsumptionSavingMax.gte' => 'Il parametro selfConsumptionSavingMax deve essere maggiore o uguale a 0.',
+                'excessSaleRidMin.numeric' => 'Il parametro excessSaleRidMin deve essere numerico.',
+                'excessSaleRidMin.gte' => 'Il parametro excessSaleRidMin deve essere maggiore o uguale a 0.',
+                'excessSaleRidMax.numeric' => 'Il parametro excessSaleRidMax deve essere numerico.',
+                'excessSaleRidMax.gte' => 'Il parametro excessSaleRidMax deve essere maggiore o uguale a 0.',
+                'cerIncentiveMin.numeric' => 'Il parametro cerIncentiveMin deve essere numerico.',
+                'cerIncentiveMin.gte' => 'Il parametro cerIncentiveMin deve essere maggiore o uguale a 0.',
+                'cerIncentiveMax.numeric' => 'Il parametro cerIncentiveMax deve essere numerico.',
+                'cerIncentiveMax.gte' => 'Il parametro cerIncentiveMax deve essere maggiore o uguale a 0.',
+                'taxDeductionMin.numeric' => 'Il parametro taxDeductionMin deve essere numerico.',
+                'taxDeductionMin.gte' => 'Il parametro taxDeductionMin deve essere maggiore o uguale a 0.',
+                'taxDeductionMax.numeric' => 'Il parametro taxDeductionMax deve essere numerico.',
+                'taxDeductionMax.gte' => 'Il parametro taxDeductionMax deve essere maggiore o uguale a 0.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Parametri non validi.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if ($request->filled('maintenanceCostMin') && $request->filled('maintenanceCostMax')) {
+            $min = (float) $request->get('maintenanceCostMin');
+            $max = (float) $request->get('maintenanceCostMax');
+
+            if ($min > $max) {
+                return response()->json([
+                    'message' => 'Parametri non validi.',
+                    'errors' => [
+                        'maintenanceCostMax' => ['Il parametro maintenanceCostMax deve essere maggiore o uguale a maintenanceCostMin.'],
+                    ],
+                ], 422);
+            }
+        }
+
+        if ($request->filled('insuranceCostMin') && $request->filled('insuranceCostMax')) {
+            $min = (float) $request->get('insuranceCostMin');
+            $max = (float) $request->get('insuranceCostMax');
+
+            if ($min > $max) {
+                return response()->json([
+                    'message' => 'Parametri non validi.',
+                    'errors' => [
+                        'insuranceCostMax' => ['Il parametro insuranceCostMax deve essere maggiore o uguale a insuranceCostMin.'],
+                    ],
+                ], 422);
+            }
+        }
+
+        if ($request->filled('productionEstimatedMin') && $request->filled('productionEstimatedMax')) {
+            $min = (float) $request->get('productionEstimatedMin');
+            $max = (float) $request->get('productionEstimatedMax');
+
+            if ($min > $max) {
+                return response()->json([
+                    'message' => 'Parametri non validi.',
+                    'errors' => [
+                        'productionEstimatedMax' => ['Il parametro productionEstimatedMax deve essere maggiore o uguale a productionEstimatedMin.'],
+                    ],
+                ], 422);
+            }
+        }
+
+        if ($request->filled('selfConsumptionSavingMin') && $request->filled('selfConsumptionSavingMax')) {
+            $min = (float) $request->get('selfConsumptionSavingMin');
+            $max = (float) $request->get('selfConsumptionSavingMax');
+
+            if ($min > $max) {
+                return response()->json([
+                    'message' => 'Parametri non validi.',
+                    'errors' => [
+                        'selfConsumptionSavingMax' => ['Il parametro selfConsumptionSavingMax deve essere maggiore o uguale a selfConsumptionSavingMin.'],
+                    ],
+                ], 422);
+            }
+        }
+
+        if ($request->filled('excessSaleRidMin') && $request->filled('excessSaleRidMax')) {
+            $min = (float) $request->get('excessSaleRidMin');
+            $max = (float) $request->get('excessSaleRidMax');
+
+            if ($min > $max) {
+                return response()->json([
+                    'message' => 'Parametri non validi.',
+                    'errors' => [
+                        'excessSaleRidMax' => ['Il parametro excessSaleRidMax deve essere maggiore o uguale a excessSaleRidMin.'],
+                    ],
+                ], 422);
+            }
+        }
+
+        if ($request->filled('cerIncentiveMin') && $request->filled('cerIncentiveMax')) {
+            $min = (float) $request->get('cerIncentiveMin');
+            $max = (float) $request->get('cerIncentiveMax');
+
+            if ($min > $max) {
+                return response()->json([
+                    'message' => 'Parametri non validi.',
+                    'errors' => [
+                        'cerIncentiveMax' => ['Il parametro cerIncentiveMax deve essere maggiore o uguale a cerIncentiveMin.'],
+                    ],
+                ], 422);
+            }
+        }
+
+        if ($request->filled('taxDeductionMin') && $request->filled('taxDeductionMax')) {
+            $min = (float) $request->get('taxDeductionMin');
+            $max = (float) $request->get('taxDeductionMax');
+
+            if ($min > $max) {
+                return response()->json([
+                    'message' => 'Parametri non validi.',
+                    'errors' => [
+                        'taxDeductionMax' => ['Il parametro taxDeductionMax deve essere maggiore o uguale a taxDeductionMin.'],
+                    ],
+                ], 422);
+            }
+        }
+
+        $perPage = (int) $request->get('itemsPerPage', 10);
+
+        $preventivi = Preventivo::query()->with(['cliente', 'agente']);
+
+        if ($request->filled('stato')) {
+            $preventivi->where('stato', $request->get('stato'));
+        }
+
+        if ($request->filled('customerId')) {
+            $preventivi->where('fk_cliente', $request->get('customerId'));
+        }
+
+        if ($request->filled('agentId')) {
+            $preventivi->where('fk_agente', $request->get('agentId'));
+        }
+
+        if ($request->filled('dataFrom')) {
+            $preventivi->whereDate('data_preventivo', '>=', $request->get('dataFrom'));
+        }
+
+        if ($request->filled('dataTo')) {
+            $preventivi->whereDate('data_preventivo', '<=', $request->get('dataTo'));
+        }
+
+        if ($request->filled('roof')) {
+            $roof = $request->get('roof');
+            $preventivi->where('tetto_salvato', 'like', '%' . $roof . '%');
+        }
+
+        if ($request->filled('exposition')) {
+            $exposition = $request->get('exposition');
+            $preventivi->where('esposizione_salvata', 'like', '%' . $exposition . '%');
+        }
+
+        if ($request->filled('geoArea')) {
+            $geoArea = $request->get('geoArea');
+            $preventivi->where('area_geografica_salvata', 'like', '%' . $geoArea . '%');
+        }
+
+        if ($request->filled('paymentMode')) {
+            $preventivi->where('modalita_pagamento_salvata', $request->get('paymentMode'));
+        }
+
+        if ($request->filled('maintenanceOption')) {
+            $preventivi->where('opzione_manutenzione_salvata', $request->get('maintenanceOption'));
+        }
+
+        if ($request->filled('insuranceOption')) {
+            $preventivi->where('opzione_assicurazione_salvata', $request->get('insuranceOption'));
+        }
+
+        if ($request->filled('maintenanceCostMin')) {
+            $preventivi->where('opzione_manutenzione_salvata', 'si')
+                ->where('costo_annuo_manutenzione_salvato', '>=', (float) $request->get('maintenanceCostMin'));
+        }
+
+        if ($request->filled('maintenanceCostMax')) {
+            $preventivi->where('opzione_manutenzione_salvata', 'si')
+                ->where('costo_annuo_manutenzione_salvato', '<=', (float) $request->get('maintenanceCostMax'));
+        }
+
+        if ($request->filled('insuranceCostMin')) {
+            $preventivi->where('opzione_assicurazione_salvata', 'si')
+                ->where('costo_annuo_assicurazione_salvato', '>=', (float) $request->get('insuranceCostMin'));
+        }
+
+        if ($request->filled('insuranceCostMax')) {
+            $preventivi->where('opzione_assicurazione_salvata', 'si')
+                ->where('costo_annuo_assicurazione_salvato', '<=', (float) $request->get('insuranceCostMax'));
+        }
+
+        if ($request->filled('productionEstimatedMin')) {
+            $preventivi->where('produzione_annua_stimata', '>=', (float) $request->get('productionEstimatedMin'));
+        }
+
+        if ($request->filled('productionEstimatedMax')) {
+            $preventivi->where('produzione_annua_stimata', '<=', (float) $request->get('productionEstimatedMax'));
+        }
+
+        if ($request->filled('selfConsumptionSavingMin')) {
+            $preventivi->where('risparmio_autoconsumo_annuo', '>=', (float) $request->get('selfConsumptionSavingMin'));
+        }
+
+        if ($request->filled('selfConsumptionSavingMax')) {
+            $preventivi->where('risparmio_autoconsumo_annuo', '<=', (float) $request->get('selfConsumptionSavingMax'));
+        }
+
+        if ($request->filled('excessSaleRidMin')) {
+            $preventivi->where('vendita_eccedenze_rid_annua', '>=', (float) $request->get('excessSaleRidMin'));
+        }
+
+        if ($request->filled('excessSaleRidMax')) {
+            $preventivi->where('vendita_eccedenze_rid_annua', '<=', (float) $request->get('excessSaleRidMax'));
+        }
+
+        if ($request->filled('cerIncentiveMin')) {
+            $preventivi->where('incentivo_cer_annuo', '>=', (float) $request->get('cerIncentiveMin'));
+        }
+
+        if ($request->filled('cerIncentiveMax')) {
+            $preventivi->where('incentivo_cer_annuo', '<=', (float) $request->get('cerIncentiveMax'));
+        }
+
+        if ($request->filled('taxDeductionMin')) {
+            $preventivi->where('detrazione_fiscale_annua', '>=', (float) $request->get('taxDeductionMin'));
+        }
+
+        if ($request->filled('taxDeductionMax')) {
+            $preventivi->where('detrazione_fiscale_annua', '<=', (float) $request->get('taxDeductionMax'));
+        }
+
+        if ($request->filled('q')) {
+            $search = $request->get('q');
+            $preventivi->where(function ($query) use ($search) {
+                $query->where('numero_preventivo', 'like', "%{$search}%")
+                    ->orWhere('stato', 'like', "%{$search}%")
+                    ->orWhereHas('cliente', function ($subQuery) use ($search) {
+                        $subQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('business_name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('agente', function ($subQuery) use ($search) {
+                        $subQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($request->filled('sortBy')) {
+            $preventivi->orderBy(
+                $request->get('sortBy'),
+                $request->get('orderBy', 'desc')
+            );
+        } else {
+            $preventivi->orderByDesc('created_at');
+        }
+
+        $preventivi = $preventivi->paginate($perPage);
+
+        if ($request->has('export')) {
+            $pageEntries = $preventivi->getCollection();
+            $csvPath = $this->transformEntriesToCSV($pageEntries);
+
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private array $data;
+
+                public function __construct(array $data)
+                {
+                    $this->data = $data;
+                }
+
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, 'preventivi_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
+        }
+
+        return response()->json([
+            'preventivi' => $preventivi->getCollection(),
+            'totalPages' => $preventivi->lastPage(),
+            'totalPreventivi' => $preventivi->total(),
+            'page' => $preventivi->currentPage(),
+        ]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -324,5 +683,52 @@ class PreventivoController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : 'Si è verificato un errore durante il salvataggio dei dati.',
             ], 500);
         }
+    }
+
+    private function transformEntriesToCSV($entries)
+    {
+        $headers = [
+            //'ID',
+            'Numero Preventivo',
+            'Data Preventivo',
+            'Cliente',
+            'Agente',
+            'Stato',
+            'Modalità Pagamento',
+            'Produzione Annua Stimata',
+            'Risparmio Autoconsumo Annuo',
+            'Vendita Eccedenze RID Annuo',
+            'Incentivo CER Annuo',
+            'Detrazione Fiscale Annuo',
+            'Creato il',
+            'Aggiornato il',
+        ];
+
+        $csvPath = tempnam(sys_get_temp_dir(), 'csv');
+        $fp = fopen($csvPath, 'w');
+        fputcsv($fp, $headers);
+
+        foreach ($entries as $preventivo) {
+            fputcsv($fp, [
+                //$preventivo->id_preventivo,
+                $preventivo->numero_preventivo,
+                optional($preventivo->data_preventivo)->format('Y-m-d'),
+                $preventivo->cliente ? trim(($preventivo->cliente->name ?? '') . ' ' . ($preventivo->cliente->last_name ?? '')) : '',
+                $preventivo->agente ? trim(($preventivo->agente->name ?? '') . ' ' . ($preventivo->agente->last_name ?? '')) : '',
+                $preventivo->stato,
+                $preventivo->modalita_pagamento_salvata,
+                $preventivo->produzione_annua_stimata,
+                $preventivo->risparmio_autoconsumo_annuo,
+                $preventivo->vendita_eccedenze_rid_annua,
+                $preventivo->incentivo_cer_annuo,
+                $preventivo->detrazione_fiscale_annua,
+                optional($preventivo->created_at)->format('Y-m-d H:i:s'),
+                optional($preventivo->updated_at)->format('Y-m-d H:i:s'),
+            ]);
+        }
+
+        fclose($fp);
+
+        return $csvPath;
     }
 }

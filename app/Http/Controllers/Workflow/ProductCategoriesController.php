@@ -66,9 +66,11 @@ class ProductCategoriesController extends Controller
             });
         }
 
+        $categories = $categories->paginate($perPage);
+
         if ($request->has('export')) {
-            $allCategories = $categories->get();
-            $csvPath = $this->transformEntriesToCSV($allCategories);
+            $pageCategories = $categories->getCollection();
+            $csvPath = $this->transformEntriesToCSV($pageCategories);
 
             $data = array_map('str_getcsv', file($csvPath));
 
@@ -86,8 +88,6 @@ class ProductCategoriesController extends Controller
                 }
             }, 'product_categories_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
         }
-
-        $categories = $categories->paginate($perPage);
 
         return response()->json($categories);
     }

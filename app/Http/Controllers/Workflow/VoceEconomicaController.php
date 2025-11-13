@@ -80,9 +80,11 @@ class VoceEconomicaController extends Controller
             $vociEconomiche->where('nome_voce', 'like', "%{$search}%");
         }
 
+        $vociEconomiche = $vociEconomiche->paginate($perPage);
+
         if ($request->has('export')) {
-            $allVoci = $vociEconomiche->with('applicabilita')->get();
-            $csvPath = $this->transformEntriesToCSV($allVoci);
+            $pageVoci = $vociEconomiche->getCollection()->load('applicabilita');
+            $csvPath = $this->transformEntriesToCSV($pageVoci);
 
             $data = array_map('str_getcsv', file($csvPath));
 
@@ -100,8 +102,6 @@ class VoceEconomicaController extends Controller
                 }
             }, 'voci_economiche_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
         }
-
-        $vociEconomiche = $vociEconomiche->paginate($perPage);
 
         return response()->json($vociEconomiche);
     }

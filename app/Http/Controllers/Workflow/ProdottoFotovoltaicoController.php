@@ -66,9 +66,11 @@ class ProdottoFotovoltaicoController extends Controller
             });
         }
 
+        $prodotti = $prodotti->paginate($perPage);
+
         if ($request->has('export')) {
-            $allProducts = $prodotti->get();
-            $csvPath = $this->transformEntriesToCSV($allProducts);
+            $pageProducts = $prodotti->getCollection();
+            $csvPath = $this->transformEntriesToCSV($pageProducts);
 
             $data = array_map('str_getcsv', file($csvPath));
 
@@ -86,8 +88,6 @@ class ProdottoFotovoltaicoController extends Controller
                 }
             }, 'prodotti_fotovoltaico_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
         }
-
-        $prodotti = $prodotti->paginate($perPage);
 
         return response()->json($prodotti);
     }

@@ -245,6 +245,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::put('modalita-pagamento/{id}', [ModalitaPagamentoController::class, 'update']);
     Route::delete('modalita-pagamento/{id}', [ModalitaPagamentoController::class, 'destroy']);
 
+    Route::get('preventivi', [PreventivoController::class, 'index']);
     Route::post('preventivi-add', [PreventivoController::class, 'store']);
 
 });

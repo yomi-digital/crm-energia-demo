@@ -66,9 +66,11 @@ class TipologiaTettoController extends Controller
             });
         }
 
+        $tipologieTetto = $tipologieTetto->paginate($perPage);
+
         if ($request->has('export')) {
-            $allTipologie = $tipologieTetto->get();
-            $csvPath = $this->transformEntriesToCSV($allTipologie);
+            $pageTipologie = $tipologieTetto->getCollection();
+            $csvPath = $this->transformEntriesToCSV($pageTipologie);
 
             $data = array_map('str_getcsv', file($csvPath));
 
@@ -86,8 +88,6 @@ class TipologiaTettoController extends Controller
                 }
             }, 'tipologie_tetto_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
         }
-
-        $tipologieTetto = $tipologieTetto->paginate($perPage);
 
         return response()->json($tipologieTetto);
     }
@@ -217,7 +217,7 @@ class TipologiaTettoController extends Controller
                 //$tipologia->id_voce,
                 $tipologia->nome_tipologia,
                 $tipologia->note,
-                $tipologia->costo_extra_kwp,
+                $tipologia->costo_extra_kwp . ' €',
                 $tipologia->is_active ? 'Attivo' : 'Inattivo',
                 optional($tipologia->created_at)->format('Y-m-d H:i:s'),
                 optional($tipologia->updated_at)->format('Y-m-d H:i:s'),
