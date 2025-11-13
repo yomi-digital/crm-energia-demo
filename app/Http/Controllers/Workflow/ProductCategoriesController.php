@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Models\CategoriaProdottoFotovoltaico;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class ProductCategoriesController extends Controller
 {
@@ -62,6 +64,27 @@ class ProductCategoriesController extends Controller
                 $query->where('nome_categoria', 'like', "%{$search}%")
                     ->orWhere('descrizione', 'like', "%{$search}%");
             });
+        }
+
+        if ($request->has('export')) {
+            $allCategories = $categories->get();
+            $csvPath = $this->transformEntriesToCSV($allCategories);
+
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private array $data;
+
+                public function __construct(array $data)
+                {
+                    $this->data = $data;
+                }
+
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, 'product_categories_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
         }
 
         $categories = $categories->paginate($perPage);
@@ -165,5 +188,36 @@ class ProductCategoriesController extends Controller
         $categoria->save();
 
         return response()->json($categoria->fresh(), 200);
+    }
+
+    private function transformEntriesToCSV($entries)
+    {
+        $headers = [
+            //'ID',
+            'Nome categoria',
+            'Descrizione',
+            'Attiva',
+            'Creata il',
+            'Aggiornata il',
+        ];
+
+        $csvPath = tempnam(sys_get_temp_dir(), 'csv');
+        $fp = fopen($csvPath, 'w');
+        fputcsv($fp, $headers);
+
+        foreach ($entries as $categoria) {
+            fputcsv($fp, [
+                //$categoria->id_categoria,
+                $categoria->nome_categoria,
+                $categoria->descrizione,
+                $categoria->is_active ? 'Attivo' : 'Inattivo',
+                optional($categoria->created_at)->format('Y-m-d H:i:s'),
+                optional($categoria->updated_at)->format('Y-m-d H:i:s'),
+            ]);
+        }
+
+        fclose($fp);
+
+        return $csvPath;
     }
 }

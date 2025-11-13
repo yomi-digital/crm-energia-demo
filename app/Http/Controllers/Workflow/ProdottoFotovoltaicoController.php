@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Models\ProdottoFotovoltaico;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class ProdottoFotovoltaicoController extends Controller
 {
@@ -62,6 +64,27 @@ class ProdottoFotovoltaicoController extends Controller
                 $query->where('codice_prodotto', 'like', "%{$search}%")
                     ->orWhere('descrizione', 'like', "%{$search}%");
             });
+        }
+
+        if ($request->has('export')) {
+            $allProducts = $prodotti->get();
+            $csvPath = $this->transformEntriesToCSV($allProducts);
+
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private array $data;
+
+                public function __construct(array $data)
+                {
+                    $this->data = $data;
+                }
+
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, 'prodotti_fotovoltaico_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
         }
 
         $prodotti = $prodotti->paginate($perPage);
@@ -213,5 +236,53 @@ class ProdottoFotovoltaicoController extends Controller
         $prodotto->save();
 
         return response()->json($prodotto->fresh(['categoria']), 200);
+    }
+
+    private function transformEntriesToCSV($entries)
+    {
+        $headers = [
+            //'ID',
+            'Codice prodotto',
+            'Descrizione',
+            'Categoria',
+            'Potenza kWp',
+            'Capacità kWh',
+            'Prezzo base',
+            //'Rate standard',
+            'Link scheda tecnica',
+            'Attivo',
+            'Creato il',
+            'Aggiornato il',
+        ];
+
+        $csvPath = tempnam(sys_get_temp_dir(), 'csv');
+        $fp = fopen($csvPath, 'w');
+        fputcsv($fp, $headers);
+
+        foreach ($entries as $prodotto) {
+            $rateStandard = $prodotto->finanziamento_rate_standard;
+            if (is_array($rateStandard) || is_object($rateStandard)) {
+                $rateStandard = json_encode($rateStandard);
+            }
+
+            fputcsv($fp, [
+                //$prodotto->id_prodotto,
+                $prodotto->codice_prodotto,
+                $prodotto->descrizione,
+                optional($prodotto->categoria)->nome_categoria,
+                $prodotto->potenza_kwp . ' kWp',
+                $prodotto->capacita_kwh . ' kWh',
+                $prodotto->prezzo_base . ' €',
+                //$rateStandard,
+                $prodotto->link_scheda_prodotto_tecnica,
+                $prodotto->is_active ? 'Attivo' : 'Inattivo',
+                optional($prodotto->created_at)->format('Y-m-d H:i:s'),
+                optional($prodotto->updated_at)->format('Y-m-d H:i:s'),
+            ]);
+        }
+
+        fclose($fp);
+
+        return $csvPath;
     }
 }

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Models\VoceEconomica;
 use App\Models\ApplicabilitaVoce;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class VoceEconomicaController extends Controller
 {
@@ -76,6 +78,27 @@ class VoceEconomicaController extends Controller
         if ($request->get('q')) {
             $search = $request->get('q');
             $vociEconomiche->where('nome_voce', 'like', "%{$search}%");
+        }
+
+        if ($request->has('export')) {
+            $allVoci = $vociEconomiche->with('applicabilita')->get();
+            $csvPath = $this->transformEntriesToCSV($allVoci);
+
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private array $data;
+
+                public function __construct(array $data)
+                {
+                    $this->data = $data;
+                }
+
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, 'voci_economiche_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
         }
 
         $vociEconomiche = $vociEconomiche->paginate($perPage);
@@ -250,5 +273,68 @@ class VoceEconomicaController extends Controller
         $voceEconomica->save();
 
         return response()->json($voceEconomica->fresh('applicabilita'), 200);
+    }
+
+    private function transformEntriesToCSV($entries)
+    {
+        $headers = [
+            //'ID',
+            'Nome voce',
+            'Tipo voce',
+            'Tipo valore',
+            'Valore default',
+            'Anno inizio',
+            'Anno fine',
+            'Attiva',
+            'Tipi cliente',
+            'Creata il',
+            'Aggiornata il',
+        ];
+
+        $csvPath = tempnam(sys_get_temp_dir(), 'csv');
+        $fp = fopen($csvPath, 'w');
+        fputcsv($fp, $headers);
+
+        foreach ($entries as $voce) {
+            $tipiCliente = $voce->relationLoaded('applicabilita')
+                ? $voce->applicabilita->pluck('tipo_cliente')->implode(', ')
+                : '';
+
+            $tipoValoreFormatted = "";
+            if ($voce->tipo_valore == '$') {
+                $tipoValoreFormatted = 'Valore fisso';
+            } else if ($voce->tipo_valore == '%') {
+                $tipoValoreFormatted = 'Valore percentuale';
+            } else {
+                $tipoValoreFormatted = $voce->tipo_valore;
+            }
+
+            $valoreDefaultFormatted = "";
+            if ($voce->tipo_valore == '$') {
+                $valoreDefaultFormatted = $voce->valore_default . ' €';
+            } else if ($voce->tipo_valore == '%') {
+                $valoreDefaultFormatted = $voce->valore_default . ' %';
+            } else {
+                $valoreDefaultFormatted = $voce->valore_default;
+            }
+
+            fputcsv($fp, [
+                //$voce->id_voce,
+                $voce->nome_voce,
+                $voce->tipo_voce,
+                $tipoValoreFormatted,
+                $valoreDefaultFormatted,
+                $voce->anno_inizio,
+                $voce->anno_fine,
+                $voce->is_active ? 'Attivo' : 'Inattivo',
+                $tipiCliente,
+                optional($voce->created_at)->format('Y-m-d H:i:s'),
+                optional($voce->updated_at)->format('Y-m-d H:i:s'),
+            ]);
+        }
+
+        fclose($fp);
+
+        return $csvPath;
     }
 }

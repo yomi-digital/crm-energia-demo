@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Models\TipologiaTetto;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class TipologiaTettoController extends Controller
 {
@@ -62,6 +64,27 @@ class TipologiaTettoController extends Controller
                 $query->where('nome_tipologia', 'like', "%{$search}%")
                     ->orWhere('note', 'like', "%{$search}%");
             });
+        }
+
+        if ($request->has('export')) {
+            $allTipologie = $tipologieTetto->get();
+            $csvPath = $this->transformEntriesToCSV($allTipologie);
+
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private array $data;
+
+                public function __construct(array $data)
+                {
+                    $this->data = $data;
+                }
+
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, 'tipologie_tetto_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
         }
 
         $tipologieTetto = $tipologieTetto->paginate($perPage);
@@ -171,5 +194,38 @@ class TipologiaTettoController extends Controller
         $tipologiaTetto->save();
 
         return response()->json($tipologiaTetto->fresh(), 200);
+    }
+
+    private function transformEntriesToCSV($entries)
+    {
+        $headers = [
+            //'ID',
+            'Nome tipologia',
+            'Note',
+            'Costo extra kWp',
+            'Attiva',
+            'Creata il',
+            'Aggiornata il',
+        ];
+
+        $csvPath = tempnam(sys_get_temp_dir(), 'csv');
+        $fp = fopen($csvPath, 'w');
+        fputcsv($fp, $headers);
+
+        foreach ($entries as $tipologia) {
+            fputcsv($fp, [
+                //$tipologia->id_voce,
+                $tipologia->nome_tipologia,
+                $tipologia->note,
+                $tipologia->costo_extra_kwp,
+                $tipologia->is_active ? 'Attivo' : 'Inattivo',
+                optional($tipologia->created_at)->format('Y-m-d H:i:s'),
+                optional($tipologia->updated_at)->format('Y-m-d H:i:s'),
+            ]);
+        }
+
+        fclose($fp);
+
+        return $csvPath;
     }
 }

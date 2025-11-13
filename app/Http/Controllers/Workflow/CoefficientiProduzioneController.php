@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Workflow;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\CoefficienteProduzioneFotovoltaico;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class CoefficientiProduzioneController extends Controller
 {
@@ -19,6 +21,27 @@ class CoefficientiProduzioneController extends Controller
                     ->orWhere('esposizione', 'like', "%{$search}%")
                     ->orWhere('coefficiente_kwh_kwp', 'like', "%{$search}%");
             });
+        }
+
+        if ($request->has('export')) {
+            $allCoefficienti = $coefficienti->get();
+            $csvPath = $this->transformEntriesToCSV($allCoefficienti);
+
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private array $data;
+
+                public function __construct(array $data)
+                {
+                    $this->data = $data;
+                }
+
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, 'coefficienti_produzione_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
         }
 
         $coefficienti = $coefficienti->get();
@@ -82,5 +105,36 @@ class CoefficientiProduzioneController extends Controller
     public function destroy(string $id)
     {
         abort(405, 'Operazione non consentita.');
+    }
+
+    private function transformEntriesToCSV($entries)
+    {
+        $headers = [
+            //'ID',
+            'Area geografica',
+            'Esposizione',
+            'Coefficiente kWh/kWp',
+            'Creato il',
+            'Aggiornato il',
+        ];
+
+        $csvPath = tempnam(sys_get_temp_dir(), 'csv');
+        $fp = fopen($csvPath, 'w');
+        fputcsv($fp, $headers);
+
+        foreach ($entries as $coefficiente) {
+            fputcsv($fp, [
+                //$coefficiente->id_coeff,
+                $coefficiente->area_geografica,
+                $coefficiente->esposizione,
+                $coefficiente->coefficiente_kwh_kwp,
+                optional($coefficiente->created_at)->format('Y-m-d H:i:s'),
+                optional($coefficiente->updated_at)->format('Y-m-d H:i:s'),
+            ]);
+        }
+
+        fclose($fp);
+
+        return $csvPath;
     }
 }

@@ -7,6 +7,8 @@ use App\Models\ApplicabilitaModalitaPagamento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class ModalitaPagamentoController extends Controller
 {
@@ -73,6 +75,27 @@ class ModalitaPagamentoController extends Controller
                 $query->where('nome_modalita', 'like', "%{$search}%")
                     ->orWhere('descrizione', 'like', "%{$search}%");
             });
+        }
+
+        if ($request->has('export')) {
+            $allModalita = $modalitaPagamento->get();
+            $csvPath = $this->transformEntriesToCSV($allModalita);
+
+            $data = array_map('str_getcsv', file($csvPath));
+
+            return Excel::download(new class($data) implements FromCollection {
+                private array $data;
+
+                public function __construct(array $data)
+                {
+                    $this->data = $data;
+                }
+
+                public function collection()
+                {
+                    return collect($this->data);
+                }
+            }, 'modalita_pagamento_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
         }
 
         $modalitaPagamento = $request->filled('itemsPerPage')
@@ -227,5 +250,42 @@ class ModalitaPagamentoController extends Controller
         $modalitaPagamento->save();
 
         return response()->json($modalitaPagamento->fresh('applicabilita'), 200);
+    }
+
+    private function transformEntriesToCSV($entries)
+    {
+        $headers = [
+            //'ID',
+            'Nome modalità',
+            'Descrizione',
+            'Attiva',
+            'Tipi cliente',
+            'Creata il',
+            'Aggiornata il',
+        ];
+
+        $csvPath = tempnam(sys_get_temp_dir(), 'csv');
+        $fp = fopen($csvPath, 'w');
+        fputcsv($fp, $headers);
+
+        foreach ($entries as $modalita) {
+            $tipiCliente = $modalita->relationLoaded('applicabilita')
+                ? $modalita->applicabilita->pluck('tipo_cliente')->implode(', ')
+                : '';
+
+            fputcsv($fp, [
+                //$modalita->id_modalita,
+                $modalita->nome_modalita,
+                $modalita->descrizione,
+                $modalita->is_active ? 'Attivo' : 'Inattivo',
+                $tipiCliente,
+                optional($modalita->created_at)->format('Y-m-d H:i:s'),
+                optional($modalita->updated_at)->format('Y-m-d H:i:s'),
+            ]);
+        }
+
+        fclose($fp);
+
+        return $csvPath;
     }
 }
