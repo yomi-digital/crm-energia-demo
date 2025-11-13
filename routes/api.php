@@ -246,6 +246,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::delete('modalita-pagamento/{id}', [ModalitaPagamentoController::class, 'destroy']);
 
     Route::get('preventivi', [PreventivoController::class, 'index']);
+    Route::get('preventivi/download/{id}', [PreventivoController::class, 'download']);
     Route::post('preventivi-add', [PreventivoController::class, 'store']);
 
 });

@@ -17,6 +17,7 @@ use App\Rules\StrictNumberRule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Preventivo;
 use App\Models\ConsumoPreventivo;
 use App\Models\DettaglioProdottoPreventivo;
@@ -683,6 +684,40 @@ class PreventivoController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : 'Si è verificato un errore durante il salvataggio dei dati.',
             ], 500);
         }
+    }
+
+    public function download(Request $request, $id)
+    {
+        $preventivo = Preventivo::find($id);
+
+        if (! $preventivo) {
+            return response()->json([
+                'message' => 'Preventivo non trovato',
+            ], 404);
+        }
+
+        if (! $preventivo->pdf_url) {
+            return response()->json([
+                'message' => 'Nessun PDF disponibile per questo preventivo',
+            ], 404);
+        }
+
+        if (! Storage::disk('do')->exists($preventivo->pdf_url)) {
+            return response()->json([
+                'message' => 'Il PDF del preventivo è stato eliminato dal cloud',
+            ], 404);
+        }
+
+        $expirationMinutes = 60 * 6;
+
+        $pdfService = new PreventivoPdfService();
+        $temporaryUrl = $pdfService->getTemporaryUrlFromPath($preventivo->pdf_url, $expirationMinutes);
+
+        return response()->json([
+            'downloadUrl' => $temporaryUrl,
+            'expiresAt' => now()->addMinutes($expirationMinutes)->toIso8601String(),
+            'expiresInMinutes' => $expirationMinutes,
+        ]);
     }
 
     private function transformEntriesToCSV($entries)
