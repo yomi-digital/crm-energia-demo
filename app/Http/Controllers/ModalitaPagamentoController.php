@@ -46,6 +46,8 @@ class ModalitaPagamentoController extends Controller
             ], 422);
         }
 
+        $perPage = (int) $request->get('itemsPerPage', 10);
+
         $modalitaPagamento = ModalitaPagamento::query()->with('applicabilita');
 
         $isActiveKey = $request->has('is_active')
@@ -77,15 +79,10 @@ class ModalitaPagamentoController extends Controller
             });
         }
 
-        $modalitaPagamento = $request->filled('itemsPerPage')
-            ? $modalitaPagamento->paginate((int) $request->get('itemsPerPage', 10))
-            : $modalitaPagamento->get();
+        $modalitaPagamento = $modalitaPagamento->paginate($perPage);
 
         if ($request->has('export')) {
-            $pageModalita = $modalitaPagamento instanceof \Illuminate\Pagination\LengthAwarePaginator
-                ? $modalitaPagamento->getCollection()
-                : $modalitaPagamento;
-
+            $pageModalita = $modalitaPagamento->getCollection();
             $csvPath = $this->transformEntriesToCSV($pageModalita);
 
             $data = array_map('str_getcsv', file($csvPath));
@@ -105,7 +102,12 @@ class ModalitaPagamentoController extends Controller
             }, 'modalita_pagamento_' . now()->format('Y-m-d_H-i-s') . '.xlsx');
         }
 
-        return response()->json($modalitaPagamento);
+        return response()->json([
+            'modalita_pagamento' => $modalitaPagamento->getCollection(),
+            'totalPages' => $modalitaPagamento->lastPage(),
+            'totalModalita' => $modalitaPagamento->total(),
+            'page' => $modalitaPagamento->currentPage(),
+        ]);
     }
 
     /**
