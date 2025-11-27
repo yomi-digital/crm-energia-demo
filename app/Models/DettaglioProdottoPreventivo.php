@@ -21,12 +21,14 @@ class DettaglioProdottoPreventivo extends Model
         'quantita',
         'prezzo_unitario_salvato',
         'capacita_batteria_salvata',
+        'kWp_salvato',
     ];
 
     protected $casts = [
         'quantita' => 'float',
         'prezzo_unitario_salvato' => 'float',
         'capacita_batteria_salvata' => 'float',
+        'kWp_salvato' => 'float',
     ];
 
     public function preventivo()

@@ -1809,15 +1809,152 @@
     </div>
 
     <!-- Seconda Pagina - Contenuto -->
-    <div class="page" style="page-break-before: auto;">
-        <!-- Contenuto principale -->
-        <div class="page-content" style="position: relative; padding: 20mm 15mm;">
-            <!-- Contenitore per tutto il contenuto sulla stessa pagina -->
-            <div style="page-break-inside: avoid; break-inside: avoid; position: relative; min-height: 257mm;">
-            <!-- Header verde ANALISI DEI CONSUMI -->
-            <div class="section-header-green"><span>ANALISI DEI CONSUMI</span></div>
+    <div style="height: 297mm; width: 200mm;">
+        <!-- Header -->
+        <div style="width: 210mm; padding-top: 10mm; padding-bottom: 10mm; position: relative; height: 20mm;">
             
-            <!-- Analisi Consumi -->
+            <div style="width:55mm; height: 18mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
+                <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(4mm)">
+                    alfacomsolar.it
+                </div>
+            </div>
+
+            <div style="position: absolute; top: 50%; left: 50%;">
+                P R E V E N T I V O
+            </div>
+
+            <div style="position: absolute; top: 40%; right: 5mm;">
+                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+            </div>
+        </div>
+
+        <div style="height: 250mm; width: 200mm;">
+            <!-- Oggetto -->
+            <div style="width: 90%; height: 100mm; padding-left: 18mm; padding-right: 18mm;">
+                @php
+                    $potenza_totale_kwp = 0;
+                    if ($preventivo->dettagliProdotti) {
+                        foreach ($preventivo->dettagliProdotti as $dettaglioProdotto) {
+                            // Usa kWp_salvato se disponibile, altrimenti calcola da prodotto
+                            if (isset($dettaglioProdotto->kWp_salvato) && $dettaglioProdotto->kWp_salvato > 0) {
+                                $potenza_totale_kwp += $dettaglioProdotto->kWp_salvato;
+                            } elseif ($dettaglioProdotto->prodotto && isset($dettaglioProdotto->prodotto->potenza_kwp)) {
+                                // Fallback al calcolo originale per retrocompatibilità
+                                $potenza_totale_kwp += $dettaglioProdotto->quantita * $dettaglioProdotto->prodotto->potenza_kwp;
+                            }
+                        }
+                    }
+                @endphp
+                <h3 style="margin-bottom: 10px;">OGGETTO:</h3>
+                <p style="margin-bottom: 10px;"><b>Offerta per la realizzazione "chiavi in mano" di un impianto fotovoltaico per un totale di circa {{ number_format($potenza_totale_kwp, 1, ',', '.') }} kWp sulla copertura esistente.</b></p>
+                <p><i>Spett.le Cliente</i></p>
+                <p style="margin-bottom: 10px;">in riferimento ai colloqui intercorsi ed alla Sua richiesta, Le formuliamo la nostra proposta per l'esecuzione di quanto in oggetto alle seguenti principali condizioni. L'Azienda rimane a disposizione per ulteriori chiarimenti.</p>
+                <p>La presente proposta commerciale comprende:</p>
+                <ul style="padding-left: 20px;">
+                    <li>
+                        servizi di ingegneria relativi alla progettazione, al conseguimento di tutti i pareri necessari presso gli enti d'interesse, alla direzione lavori, alla sicurezza, al collaudo dell'impianto ed all'espletamento della pratica per 
+                        <span style="border-bottom: 1px solid black; display: inline-block; padding-bottom: 1px;">l'accesso tramite il GSE alla convenzione "Scambio sul posto e/o Ritiro dedicato"</span>;
+                    </li>
+                    <li>fornitura dei componenti costituenti gli impianti offerti;</li>
+                    <li>installazione dell'impianto a regola d'arte;</li>
+                </ul>
+            </div>
+
+            <!-- Tabella Componenti -->
+            <div style="width: 100%; height: auto; padding-left: 18mm; padding-right: 18mm;">
+                <h3 style="margin-top: 20px; text-align: left;">Più in dettaglio:</h3>
+                <h2 style="text-align: left; margin-bottom: 20px;">DESCRIZIONE DEI COMPONENTI DELL'IMPIANTO STANDARD:</h2>
+
+                <table style="width: calc(210mm - 35mm); margin: 0 auto; border-collapse: collapse; font-size: 12px; transform: translateX(-12mm);">
+                    <thead>
+                        <tr style="background-color: #4BAE66; color: white;">
+                            <th style="background-color: #4BAE66; padding: 8px; border: 1px solid #ddd; text-align: left; width: 15%;">QUANTITÀ</th>
+                            <th style="background-color: #4BAE66; padding: 8px; border: 1px solid #ddd; text-align: left; width: 30%;">PRODOTTO</th>
+                            <th style="background-color: #4BAE66; padding: 8px; border: 1px solid #ddd; text-align: left; width: 55%;">MARCA E DESCRIZIONE PRODOTTO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($preventivo->dettagliProdotti as $prodotto)
+                        <tr style="background-color: #f9f9f9;">
+                            <td style="padding: 8px; border: 1px solid #ddd;">{{ $prodotto->quantita ?? '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">{{ $prodotto->nome_prodotto_salvato ?? '' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">
+                                {{ $prodotto->nome_prodotto_salvato ?? '' }}: 
+                                @if($prodotto->prodotto && $prodotto->prodotto->brand)
+                                    Marca {{ $prodotto->prodotto->brand->name ?? '' }},
+                                @endif
+                                {{ $prodotto->categoria_prodotto_salvata ?? '' }}. 
+                                <!-- Qui puoi aggiungere ulteriori dettagli se presenti nell'oggetto prodotto, ad esempio potenza, modello, ecc. -->
+                                @if($prodotto->nome_prodotto_salvato == 'Moduli fotovoltaici')
+                                    TRINA SOLAR, JA SOLAR, e o similari ed equivalente. Compresi di cavo e connettori, min da 500Wp
+                                @elseif($prodotto->nome_prodotto_salvato == 'Inverter')
+                                    trifase da 10kWp. Marca HUAWEI, ZCS.
+                                @elseif($prodotto->nome_prodotto_salvato == 'Quadro elettrico DC/AC')
+                                    Conforme alla legge italiana.
+                                @elseif($prodotto->nome_prodotto_salvato == 'Cavi solari di collegamento e cablaggi')
+                                    Cavi solari lato DC e cavi AC di collegamento incluso cablaggi e tubazione apposita (entro 30mt)
+                                @elseif($prodotto->nome_prodotto_salvato == 'Sistema di fissaggio')
+                                    In alluminio complanare alla copertura del tetto. Marca Wurth e o similare.
+                                @elseif($prodotto->nome_prodotto_salvato == 'Installazione')
+                                    A regola d'arte
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+
+                        @if($preventivo->dettagliProdotti->isEmpty())
+                            <tr style="background-color: #f9f9f9;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">23</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Moduli fotovoltaici</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Moduli fotovoltaici: TRINA SOLAR, JA SOLAR, e o similari ed equivalente. Compresi di cavo e connettori, min da 500Wp</td>
+                            </tr>
+                            <tr style="background-color: #f9f9f9;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">1</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Inverter</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Inverter trifase da 10kWp. Marca HUAWEI, ZCS.</td>
+                            </tr>
+                            <tr style="background-color: #f9f9f9;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">1</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Quadro elettrico DC/AC</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Conforme alla legge italiana.</td>
+                            </tr>
+                            <tr style="background-color: #f9f9f9;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">1</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Cavi solari di collegamento e cablaggi</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Cavi solari lato DC e cavi AC di collegamento incluso cablaggi e tubazione apposita (entro 30mt)</td>
+                            </tr>
+                            <tr style="background-color: #f9f9f9;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">1</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Sistema di fissaggio</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">In alluminio complanare alla copertura del tetto. Marca Wurth e o similare.</td>
+                            </tr>
+                            <tr style="background-color: #f9f9f9;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">1</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">Installazione</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">A regola d'arte</td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+
+        <div>
+        <!-- Footer Aziendale -->
+        <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
+            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+        </div>
+        <!-- Contenuto principale -->
+        <!-- <div class="page-content" style="position: relative; padding: 20mm 15mm; border:1px solid red;">
+            <div style="page-break-inside: avoid; break-inside: avoid; position: relative; min-height: 257mm;">
+            
+             <div style="width: 100%; border:1px solid blue;">
+                <div style="width:55mm; height: 18mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
+                        <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(4mm)">
+                            alfacomsolar.it
+                        </div>
+                </div>
+            </div>
+
             @if($preventivo->consumi && $preventivo->consumi->count() > 0)
             
             @php
@@ -1835,10 +1972,7 @@
                 }
             @endphp
             
-            <!-- Blocco 1: Tabella dei costi (superiore) -->
-            <div style="margin-bottom: 20px;">
             @if(strtolower($tipologiaBolletta) === 'mensile')
-            <!-- Tabella Mensile -->
             <div class="table-subtitle">{{ ucfirst($tipologiaBolletta) }}:</div>
             @if($dettagli && count($dettagli) > 0)
             <table class="table-monthly">
@@ -1888,7 +2022,6 @@
             </table>
             @endif
             @elseif(strtolower($tipologiaBolletta) === 'bimestrale')
-            <!-- Tabella Bimestrale -->
             <div class="table-subtitle">{{ ucfirst($tipologiaBolletta) }}:</div>
             @if($dettagli && count($dettagli) > 0)
             <table class="table-bimonthly">
@@ -1938,14 +2071,11 @@
             </table>
             @endif
             @endif
-            </div>
-            <!-- Fine Blocco 1 -->
+            </div> 
+
             
-            <!-- Blocco 2: Grafico e Lista costi (inferiore) -->
             <div style="position: absolute; bottom: -20mm; left: -15mm; right: -15mm; width: calc(100% + 30mm); page-break-inside: avoid; break-inside: avoid;">
-            <!-- Contenitore per grafico e costi affiancati con space-between -->
             <div style="overflow: hidden; position: relative; width: 100%; min-height: 150mm;">
-                <!-- Blocco 2.1: Grafico e legenda (sinistra) -->
                 <div style="display: inline-block; width: 48%; vertical-align: top;">
                     <div style="text-align: center; font-size: 16px; font-weight: bolder; margin-bottom: 5px; font-color: black; padding-left: 50px; text-align: left;">TOTALE <br>CONSUMI</div>
                     <div class="donut-chart-container" style="text-align: center;">
@@ -1996,7 +2126,6 @@
                     </div>
                 </div>
 
-                <!-- Blocco 2.2: Box lista costi complessivi (destra) -->
                 @if($preventivo->dettagliProdotti && $preventivo->dettagliProdotti->count() > 0)
                 <div style="display: inline-block; width: 48%; vertical-align: top; text-align: right; position: relative;">
                     <div class="costi-box" style="position: absolute; bottom: 0; right: 0; width: 65%; border-radius: 30px 30px 0 0; top: 0; padding-right: 15mm;">
@@ -2020,11 +2149,9 @@
                 </div>
                 @endif
             </div>
-            <!-- Fine Blocco 2 -->
             @endif
             </div>
-            <!-- Fine contenitore tutto il contenuto sulla stessa pagina -->
-        </div>
+        </div> -->
     </div>
 
     <!-- Terza Pagina - Simulazione Impianto e Produzione -->
@@ -2601,6 +2728,9 @@
         </div>
         @endif
 
+    
+    
+    
     <!-- Ottava Pagina - Informativa Privacy -->
     <div class="page page-break">
         <!-- Margine sinistro blu scuro -->

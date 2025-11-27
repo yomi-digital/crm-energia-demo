@@ -527,6 +527,7 @@ class PreventivoController extends Controller
             'DETTAGLI_PRODOTTO_PREVENTIVO.*.quantita' => ['required', new StrictPositiveNumberRule('DETTAGLI_PRODOTTO_PREVENTIVO.*.quantita', true, 1, true)],
             'DETTAGLI_PRODOTTO_PREVENTIVO.*.prezzo_unitario_salvato' => ['required', new StrictPositiveNumberRule('DETTAGLI_PRODOTTO_PREVENTIVO.*.prezzo_unitario_salvato', false, 0, true)],
             'DETTAGLI_PRODOTTO_PREVENTIVO.*.capacita_batteria_salvata' => 'nullable|numeric|min:0',
+            'DETTAGLI_PRODOTTO_PREVENTIVO.*.kWp_salvato' => ['required', new StrictPositiveNumberRule('DETTAGLI_PRODOTTO_PREVENTIVO.*.kWp_salvato', false, 0, true)],
 
             'PREVENTIVI_VOCE_ECONOMICHE' => 'nullable|array',
             'PREVENTIVI_VOCE_ECONOMICHE.*.nome_voce_salvato' => 'required|string|max:255',
