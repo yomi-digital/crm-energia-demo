@@ -278,11 +278,21 @@
         /* Prima pagina con layout a due pannelli */
         .first-page {
             width: 210mm;
-            min-height: 297mm;
+            height: 297mm; /* Altezza fissa per accomodare i blocchi */
             position: relative;
-            display: flex;
             overflow: hidden;
             background: white;
+        }
+
+        /* Il pannello sinistro e destro non saranno più usati in questo modo */
+        /* first-page-left non sarà più una colonna a sé stante */
+        .first-page-left {
+            display: none; /* Rimuovo la visualizzazione */
+        }
+
+        /* first-page-right non sarà più una colonna a sé stante */
+        .first-page-right {
+            display: none; /* Rimuovo la visualizzazione */
         }
 
         /* Pannello sinistro */
@@ -1732,79 +1742,69 @@
     </style>
 </head>
 <body>
+    <!-- 297mm , 210mm -->
     <!-- Prima Pagina -->
     <div class="first-page">
-        <!-- Pannello sinistro -->
-        <div class="first-page-left">
-            <!-- Immagine kit singola posizionata sopra il blocco blu -->
-            <div class="solar-kit-image">
-                <img src="{{ public_path('images/pdf/preventivi_kit.png') }}" alt="Kit solare" onerror="this.style.display='none'">
+        <!-- Blocco Superiore: Immagine e Testo -->
+        <div style="position: relative; width: 100%; height: 162mm; overflow: hidden; background-image: url('{{ public_path('images/pdf/HomePage4-min.webp') }}'); background-size: cover; background-position: center;">
+            <div style="position: absolute; bottom: 10mm; left: 25mm; color: white; font-size: 20px; line-height: 1.2; font-weight: bold;">
+                LA SIMULAZIONE PERFETTA<br>
+                PER PROGETTARE<br>
+                IL TUO IMPIANTO FOTOVOLTAICO
             </div>
-            
-            <!-- Blocco verde superiore -->
-            <div class="first-page-green-block">
-                <!-- Logo -->
-                <div class="first-page-logo">
-                    <img src="{{ public_path('images/pdf/preventivi_logo.svg') }}" alt="Logo alfacom SOLAR" onerror="this.style.display='none'">
-                </div>
-            </div>
-            
-            <!-- Blocco blu scuro sopra il verde in basso -->
-            <div class="first-page-blue-block">
-                <div class="excellence-title">
-                    UN PARTNER DI<br>
-                    ECCELLENZA.
-                </div>
-                <div class="preventivo-number">Preventivo #{{ $preventivo->numero_preventivo ?? str_pad($preventivo->id_preventivo, 3, '0', STR_PAD_LEFT) }}</div>
-                
-                <div class="client-container">
-                    <div class="client-label-vertical">
-                        <span style="display: block; transform: rotate(-90deg); font-size: 10px;">T</span>
-                        <span style="display: block; transform: rotate(-90deg); font-size: 10px;">N</span>
-                        <span style="display: block; transform: rotate(-90deg); font-size: 10px;">E</span>
-                        <span style="display: block; transform: rotate(-90deg); font-size: 10px;">I</span>
-                        <span style="display: block; transform: rotate(-90deg); font-size: 10px;">L</span>
-                        <span style="display: block; transform: rotate(-90deg); font-size: 10px;">C</span>
-                    </div>
-                    <div class="client-details">
-                        @if($preventivo->cliente)
-                            <div class="client-detail-item">
-                                <span class="value"><span class="label font-bold">NAME:</span>{{ $preventivo->cliente->name ?? '' }} {{ $preventivo->cliente->last_name ?? '' }}
-                                    @if($preventivo->cliente->business_name)
-                                        {{ $preventivo->cliente->business_name }}
-                                    @endif
-                                </span>
-                            </div>
-                            @if($preventivo->cliente->address)
-                            <div class="client-detail-item">
-                                <span class="value"><span class="label font-bold">VIA:</span>{{ $preventivo->cliente->address }}</span>
-                            </div>
-                            @endif
-                            @if($preventivo->cliente->phone || $preventivo->cliente->mobile)
-                            <div class="client-detail-item">
-                                <span class="value"><span class="label font-bold">TELEFONO:</span>{{ $preventivo->cliente->phone ?? $preventivo->cliente->mobile }}</span>
-                            </div>
-                            @endif
-                            @if($preventivo->cliente->email)
-                            <div class="client-detail-item">
-                                <span class="value"><span class="label font-bold">E-MAIL:</span>{{ $preventivo->cliente->email }}</span>
-                            </div>
-                            @endif
-                        @else
-                            <div class="client-detail-item">
-                                <span class="value"><span class="label font-bold">Cliente ID:</span>{{ $preventivo->fk_cliente }}</span>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-            </div>
-            <!-- Fine Box Inferiore -->
         </div>
-        
-        <!-- Pannello destro bianco con foto -->
-        <div class="first-page-right">
-            <img src="{{ public_path('images/pdf/preventivi_house.png') }}" alt="Casa con pannelli solari" class="first-page-image" onerror="this.style.display='none'">
+
+        <!-- Blocco Inferiore: Dati Preventivo/Cliente e Logo/Agente -->
+        <div style="width: 100%; height: 117mm; position: relative;">
+            <!-- Colonna Sinistra: Dati Preventivo e Cliente -->
+            <div style="width:88mm; height: 117mm; display:inline-block; vertical-align: top;">
+                <!-- Barra verde con alfacomsolar.it -->
+                <div style="width:55mm; height: 18mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
+                    <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(4mm)">
+                        alfacomsolar.it
+                    </div>
+                </div>
+
+                <div style="padding-left: 18mm; padding-top: 10mm;">
+                    <div style="margin-bottom: 20px; line-height: 1.3;">
+                        <div style="font-size: 14px; color: #666;">P R E V E N T I V O</div>
+                        <div style="font-size: 16px; color: #4BAE66; font-weight: bold;">#{{ $preventivo->numero_preventivo ?? str_pad($preventivo->id_preventivo, 3, '0', STR_PAD_LEFT) }}</div>
+                        <div style="font-size: 12px; color: #666;">Data: {{ \Carbon\Carbon::parse($preventivo->data_creazione)->format('d/m/Y') }}</div>
+                    </div>
+                    <div style="font-size: 14px; color: #666; margin-top: 30px; margin-bottom: 1px;">C L I E N T E</div>
+                    @if($preventivo->cliente)
+                        <div style="font-size: 12px; line-height: 1.3;">
+                            <span>Name:</span> <span style="font-weight: bold;">{{ $preventivo->cliente->name ?? '' }} {{ $preventivo->cliente->last_name ?? '' }} @if($preventivo->cliente->business_name) {{ $preventivo->cliente->business_name }} @endif</span><br>
+                            @if($preventivo->cliente->address)<span>Via:</span> <span style="font-weight: bold;">{{ $preventivo->cliente->address }}</span> @endif<br>
+                            @if($preventivo->cliente->phone || $preventivo->cliente->mobile)<span>Telefono:</span> <span style="font-weight: bold;">{{ $preventivo->cliente->phone ?? $preventivo->cliente->mobile }}</span> @endif<br>
+                            @if($preventivo->cliente->email)<span>E-mail:</span> <span style="font-weight: bold;">{{ $preventivo->cliente->email }}</span> @endif<br>
+                            @if($preventivo->tetto_salvato)<span>Tipologia tetto:</span> <span style="font-weight: bold;">{{ $preventivo->tetto_salvato ?? '' }}</span> @endif<br>
+                            @if($preventivo->area_geografica_salvata)<span>Area:</span> <span style="font-weight: bold;">{{ $preventivo->area_geografica_salvata }}</span> @endif<br>
+                            @if($preventivo->esposizione_salvata)<span>Esposizione:</span> <span style="font-weight: bold;">{{ $preventivo->esposizione_salvata }}</span> @endif
+                        </div>
+                    @endif
+                </div>
+
+            </div>
+
+            <!-- Colonna Destra: Logo e Agente -->
+            <div style="width:110mm; height: 117mm; display:inline-block; vertical-align: top;">
+                @if($preventivo->agente)
+                    <div style="font-size: 12px; color: #333; margin-top: 18px; margin-left: 30px;">
+                        <span>Agente: <b>{{ $preventivo->agente->name ?? '' }} {{ $preventivo->agente->last_name ?? '' }}</b></span>
+                    </div>
+                @endif
+                <div style="transform: translateY(45mm) translateX(20mm)">
+                    <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: 65mm; height: auto;">
+                </div>
+                <div style="absolute; bottom: 0; left: 0; border-left: 1px solid gray; width: 0px; height: 70mm;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Aziendale -->
+        <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
+        ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
         </div>
     </div>
 
