@@ -1759,8 +1759,8 @@
             <!-- Colonna Sinistra: Dati Preventivo e Cliente -->
             <div style="width:88mm; height: 117mm; display:inline-block; vertical-align: top;">
                 <!-- Barra verde con alfacomsolar.it -->
-                <div style="width:55mm; height: 18mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
-                    <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(4mm)">
+                <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
+                    <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
                         alfacomsolar.it
                     </div>
                 </div>
@@ -1813,17 +1813,17 @@
         <!-- Header -->
         <div style="width: 210mm; padding-top: 10mm; padding-bottom: 10mm; position: relative; height: 20mm;">
             
-            <div style="width:55mm; height: 18mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
-                <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(4mm)">
+            <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
+                <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
                     alfacomsolar.it
                 </div>
             </div>
 
-            <div style="position: absolute; top: 50%; left: 50%;">
+            <div style="position: absolute; top: 35%; left: 50%;">
                 P R E V E N T I V O
             </div>
 
-            <div style="position: absolute; top: 40%; right: 5mm;">
+            <div style="position: absolute; top: 30%; right: 15mm;">
                 <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
             </div>
         </div>
@@ -1868,72 +1868,43 @@
                 <table style="width: calc(210mm - 35mm); margin: 0 auto; border-collapse: collapse; font-size: 12px; transform: translateX(-12mm);">
                     <thead>
                         <tr style="background-color: #4BAE66; color: white;">
-                            <th style="background-color: #4BAE66; padding: 8px; border: 1px solid #ddd; text-align: left; width: 15%;">QUANTITÀ</th>
-                            <th style="background-color: #4BAE66; padding: 8px; border: 1px solid #ddd; text-align: left; width: 30%;">PRODOTTO</th>
-                            <th style="background-color: #4BAE66; padding: 8px; border: 1px solid #ddd; text-align: left; width: 55%;">MARCA E DESCRIZIONE PRODOTTO</th>
+                            <th style="background-color: #4BAE66; padding: 8px; border: 1px solid #ddd; text-align: center; width: 15%;">QUANTITÀ</th>
+                            <th style="background-color: #4BAE66; padding: 8px; border: 1px solid #ddd; text-align: center; width: 30%;">PRODOTTO</th>
+                            <th style="background-color: #4BAE66; padding: 8px; border: 1px solid #ddd; text-align: center; width: 55%;">MARCA E DESCRIZIONE PRODOTTO</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($preventivo->dettagliProdotti as $prodotto)
+                        <!-- Righe fisse sempre presenti -->
                         <tr style="background-color: #f9f9f9;">
-                            <td style="padding: 8px; border: 1px solid #ddd;">{{ $prodotto->quantita ?? '' }}</td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">{{ $prodotto->nome_prodotto_salvato ?? '' }}</td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">
-                                {{ $prodotto->nome_prodotto_salvato ?? '' }}: 
-                                @if($prodotto->prodotto && $prodotto->prodotto->brand)
-                                    Marca {{ $prodotto->prodotto->brand->name ?? '' }},
-                                @endif
-                                {{ $prodotto->categoria_prodotto_salvata ?? '' }}. 
-                                <!-- Qui puoi aggiungere ulteriori dettagli se presenti nell'oggetto prodotto, ad esempio potenza, modello, ecc. -->
-                                @if($prodotto->nome_prodotto_salvato == 'Moduli fotovoltaici')
-                                    TRINA SOLAR, JA SOLAR, e o similari ed equivalente. Compresi di cavo e connettori, min da 500Wp
-                                @elseif($prodotto->nome_prodotto_salvato == 'Inverter')
-                                    trifase da 10kWp. Marca HUAWEI, ZCS.
-                                @elseif($prodotto->nome_prodotto_salvato == 'Quadro elettrico DC/AC')
-                                    Conforme alla legge italiana.
-                                @elseif($prodotto->nome_prodotto_salvato == 'Cavi solari di collegamento e cablaggi')
-                                    Cavi solari lato DC e cavi AC di collegamento incluso cablaggi e tubazione apposita (entro 30mt)
-                                @elseif($prodotto->nome_prodotto_salvato == 'Sistema di fissaggio')
-                                    In alluminio complanare alla copertura del tetto. Marca Wurth e o similare.
-                                @elseif($prodotto->nome_prodotto_salvato == 'Installazione')
-                                    A regola d'arte
-                                @endif
-                            </td>
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">23</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Moduli fotovoltaici</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Moduli fotovoltaici: TRINA SOLAR, JA SOLAR, e o similari ed equivalente. Compresi di cavo e connettori, min da 500Wp</td>
                         </tr>
-                        @endforeach
-
-                        @if($preventivo->dettagliProdotti->isEmpty())
-                            <tr style="background-color: #f9f9f9;">
-                                <td style="padding: 8px; border: 1px solid #ddd;">23</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Moduli fotovoltaici</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Moduli fotovoltaici: TRINA SOLAR, JA SOLAR, e o similari ed equivalente. Compresi di cavo e connettori, min da 500Wp</td>
-                            </tr>
-                            <tr style="background-color: #f9f9f9;">
-                                <td style="padding: 8px; border: 1px solid #ddd;">1</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Inverter</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Inverter trifase da 10kWp. Marca HUAWEI, ZCS.</td>
-                            </tr>
-                            <tr style="background-color: #f9f9f9;">
-                                <td style="padding: 8px; border: 1px solid #ddd;">1</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Quadro elettrico DC/AC</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Conforme alla legge italiana.</td>
-                            </tr>
-                            <tr style="background-color: #f9f9f9;">
-                                <td style="padding: 8px; border: 1px solid #ddd;">1</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Cavi solari di collegamento e cablaggi</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Cavi solari lato DC e cavi AC di collegamento incluso cablaggi e tubazione apposita (entro 30mt)</td>
-                            </tr>
-                            <tr style="background-color: #f9f9f9;">
-                                <td style="padding: 8px; border: 1px solid #ddd;">1</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Sistema di fissaggio</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">In alluminio complanare alla copertura del tetto. Marca Wurth e o similare.</td>
-                            </tr>
-                            <tr style="background-color: #f9f9f9;">
-                                <td style="padding: 8px; border: 1px solid #ddd;">1</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">Installazione</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">A regola d'arte</td>
-                            </tr>
-                        @endif
+                        <tr style="background-color: #f9f9f9;">
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Inverter</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Inverter trifase da 10kWp. Marca HUAWEI, ZCS</td>
+                        </tr>
+                        <tr style="background-color: #f9f9f9;">
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Quadro elettrico DC/AC</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Conforme alla legge italiana</td>
+                        </tr>
+                        <tr style="background-color: #f9f9f9;">
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Cavi solari di collegamento e cablaggi</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Cavi solari lato DC e cavi AC di collegamento incluso cablaggi e tubazione apposita (entro 30mt)</td>
+                        </tr>
+                        <tr style="background-color: #f9f9f9;">
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Sistema di fissaggio</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">In alluminio complanare alla copertura del tetto. Marca Wurth e o similare.</td>
+                        </tr>
+                        <tr style="background-color: #f9f9f9;">
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Installazione</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">A regola d'arte</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -2155,763 +2126,663 @@
     </div>
 
     <!-- Terza Pagina - Simulazione Impianto e Produzione -->
-    <div class="page page-break">
-        <!-- Margine sinistro verde -->
-        <div class="page-left-margin"></div>
-        
-        <!-- Contenuto principale -->
-        <div class="page-content" style=" padding-bottom: 0mm; min-height: calc(297mm - 40mm); position: relative;">
-            <!-- Blocco 1: Header e Tabelle (in alto) -->
-            <div style="position: relative;">
-            <div class="section-header-green"><span>SIMULAZIONE IMPIANTO</span></div>
+    <div class="page page-break"  style="height: 297mm; width: 210mm;">
+        <!-- Header -->
+        <div style="width: 210mm; padding-top: 10mm; padding-bottom: 10mm; position: relative; height: 20mm;">
             
-            @php
-                $consumo = $preventivo->consumi ? $preventivo->consumi->first() : null;
-                $costoMedioKwh = $consumo->costo_kwh_bolletta_medio;
-                $costoTotaleBolletta = $consumo->costo_kwh_bolletta_totale;
-            @endphp
-
-            <!-- Prima Tabella - Costi e Consumi (Header Verde) -->
-            <div style=""> 
-                <div class="table-subtitle">Simulazione costi e consumi:</div>
-                <table class="data-table-green">
-                    <tr>
-                        <td>Totale dei costi annui in euro</td>
-                        <td>{{ number_format($consumo->totale_costi_annui ?? 0, 2, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Totale dei consumi annui in kWh</td>
-                        <td>{{ number_format($consumo->totale_consumo_annuo ?? 0, 2, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Il costo medio bolletta in kWh</td>
-                        <td>{{ number_format($costoMedioKwh, 2, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Il costo totale della bolletta in kWh</td>
-                        <td>{{ number_format($costoTotaleBolletta, 2, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Totale del consumo annuo</td>
-                        <td>{{ number_format($consumo->totale_consumo_annuo ?? 0, 2, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Consumo diurno</td>
-                        <td>{{ number_format($consumo->consumo_diurno_annuo ?? 0, 2, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Consumo notturno</td>
-                        <td>{{ number_format($consumo->consumo_notturno_annuo ?? 0, 2, ',', '.') }}</td>
-                    </tr>
-                </table>
-
-                <!-- Seconda Tabella - Risparmi e Benefici (Header Rosso-Arancio) -->
-                <div class="table-subtitle">Simulazione costi e consumi:</div>
-                <table class="data-table-orange">
-                    <tr>
-                        <td>Totale dei costi annui in euro</td>
-                        <td>{{ number_format($consumo->totale_costi_annui ?? 0, 2, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Totale dei consumi annui in kWh</td>
-                        <td>{{ number_format($consumo->totale_consumo_annuo ?? 0, 2, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Il costo medio bolletta in kWh</td>
-                        <td>{{ number_format($costoMedioKwh, 2, ',', '.') }}</td>
-                    </tr>
-                </table>
-            </div>
-            </div>
-            <!-- Fine Blocco 1 -->
-
-            <!-- Blocco 2: Sezione Grafico (in basso) -->
-            <div class="chart-section" style="box-sizing: border-box; position: absolute; bottom: 0; left: 0; right: 0; width: 100%; padding-bottom: 20mm;">
-                @php
-                    $consumoAnnuo = $consumo->totale_consumo_annuo ?? 0;
-                    $produzioneAnnuo = $preventivo->produzione_annua_stimata ?? 0;
-                    $maxValue = max($consumoAnnuo, $produzioneAnnuo);
-                    
-                    // Valori monetari dai campi del preventivo
-                    $incentivoCerAnnuo = $preventivo->incentivo_cer_annuo ?? 0;
-                    $venditaEccedenzeRidAnnuo = $preventivo->vendita_eccedenze_rid_annua ?? 0;
-                    $risparmioAutoconsumoAnnuo = $preventivo->risparmio_autoconsumo_annuo ?? 0;
-                    $detrazioneFiscaleAnnuo = $preventivo->detrazione_fiscale_annua ?? 0;
-                    
-                    // Totale benefici/ricavi annui per calcolare le percentuali monetarie
-                    $totaleBeneficiAnnuo = $risparmioAutoconsumoAnnuo + $venditaEccedenzeRidAnnuo + $incentivoCerAnnuo + $detrazioneFiscaleAnnuo;
-                    
-                    // Energia accumulata (somma capacità batterie in kWh)
-                    $energiaAccumulata = $preventivo->dettagliProdotti 
-                        ? $preventivo->dettagliProdotti->sum('capacita_batteria_salvata') 
-                        : 0;
-                    
-                    
-                    // Energia accumulata: percentuale rispetto alla produzione annua stimata (in kWh)
-                    $percentualeEnergiaAccumulata = $produzioneAnnuo > 0 ? ($energiaAccumulata / $produzioneAnnuo) * 100 : 0;
-                    
-                    $quarters = [
-                        ['consumi' => $consumoAnnuo * 0.25, 'produzione' => $produzioneAnnuo * 0.25],
-                        ['consumi' => $consumoAnnuo * 0.30, 'produzione' => $produzioneAnnuo * 0.30],
-                        ['consumi' => $consumoAnnuo * 0.20, 'produzione' => $produzioneAnnuo * 0.20],
-                        ['consumi' => $consumoAnnuo * 0.25, 'produzione' => $produzioneAnnuo * 0.25],
-                    ];
-                @endphp
-                <!-- Grafico consumi vs produzione -->
-                <div style="height:200px; width: 48%; box-sizing: border-box; float: left; position: relative; margin-right: 2%; text-align: center;">
-                    <img src="{{ public_path('images/pdf/preventivi_consumo_produzione.png') }}" alt="Grafico Consumi vs Produzione" style="max-width: 100%; max-height: 100%; width: auto; height: auto; vertical-align: middle;">
+            <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
+                <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
+                    alfacomsolar.it
                 </div>
-
-                <!-- Metriche con icone -->
-                <div style="height:200px; width: 48%; box-sizing: border-box; float: right; padding: 20px; margin-left: 2%;">
-                    <div style="margin-bottom: 20px;">
-                        <div style="width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-right: 10px;">
-                            <img src="{{ public_path('images/pdf/preventivi_sun.svg') }}" alt="Sole" style="width: 24px; height: 24px;">
-                        </div>
-                        <div style="display: inline-block; vertical-align: middle;">
-                            <span style="font-size: 16px; font-weight: bold; color: #0F1137;"> € {{ number_format($incentivoCerAnnuo, 0) }}</span>
-                            <span style="font-size: 12px; color: #0F1137; margin-left: 5px;">INCENTIVO CER</span>
-                        </div>
-                    </div>
-                    <div style="margin-bottom: 20px;">
-                        <div style="width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-right: 10px;">
-                            <img src="{{ public_path('images/pdf/preventivi_battery_low.svg') }}" alt="Batteria" style="width: 24px; height: 24px;">
-                        </div>
-                        <div style="display: inline-block; vertical-align: middle;">
-                            <span style="font-size: 16px; font-weight: bold; color: #0F1137;"> € {{ number_format($risparmioAutoconsumoAnnuo, 0) }}</span>
-                            <span style="font-size: 12px; color: #0F1137; margin-left: 5px;">RISPARMIO AUTOCONSUMO ANNUO</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="width: 24px; height: 24px; display: inline-block; vertical-align: middle; margin-right: 10px;">
-                            <img src="{{ public_path('images/pdf/preventivi_lightning.svg') }}" alt="Fulmine" style="width: 24px; height: 24px;">
-                        </div>
-                        <div style="display: inline-block; vertical-align: middle;">
-                            <span style="font-size: 16px; font-weight: bold; color: #0F1137;"> € {{ number_format($venditaEccedenzeRidAnnuo, 0) }}</span>
-                            <span style="font-size: 12px; color: #0F1137; margin-left: 5px;">ECCEDENZE VENDUTE</span>
-                        </div>
-                    </div>
-                </div>
-
-                
-                <div style="clear: both;"></div>
             </div>
-            <!-- Fine Blocco 2 -->
 
+            <div style="position: absolute; top: 35%; left: 50%;">
+                P R E V E N T I V O
+            </div>
+
+            <div style="position: absolute; top: 30%; right: 15mm;">
+                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+            </div>
         </div>
-        
-        <!-- Footer verde con logo -->
-        <div class="page-footer">
-            <div class="page-footer-green-bar"></div>
-            <img src="{{ public_path('images/pdf/preventivi_logo_verde.svg') }}" style="height: 100px; width: auto;" alt="Logo" class="page-footer-logo" onerror="this.style.display='none'">
+
+        <div style="height: 250mm; width: 100%;">
+
+            <!-- Box 1 -->
+            <div style="height: 55mm; padding-left: 18mm; padding-right: 18mm;">
+                <p style="margin-bottom: 10px; font-size: 12px;"><b>Le prestazioni da eseguirsi consistono nelle seguenti attività:</b></p>
+                <ul style="padding-left: 20px; margin: 0; font-size: 11px; line-height: 1.6;">
+                    <li>Sopralluogo tecnico assieme al Committente con conseguente redazione progetto preliminare;</li>
+                    <li>Definizione materiali e progettazione esecutiva dell'impianto;</li>
+                    <li>Elaborazione della domanda di connessione in rete sul portale E-DISTRIBUZIONE;</li>
+                    <li>Assistenza tecnica in cantiere, direzione lavori e coordinamento della sicurezza in fase di realizzazione;</li>
+                    <li>Montaggio a regola d'arte dell'impianto e collaudo finale;</li>
+                </ul>
+            </div>
+
+            <!-- Tabella -->
+            <div style="height: 45mm; padding-left: 25mm;">
+                <table style="width: 178mm; margin: 0 auto; border-collapse: collapse; font-size: 12px; transform: translateX(-12mm);">
+                    <thead>
+                        <tr style="background-color: #4BAE66; color: white;">
+                            <th colspan="2" style="background-color: #4BAE66; padding: 8px; border: 1px solid #ddd; text-align: center;">GARANZIA DEI COMPONENTI DELL'IMPIANTO (come da schede tecniche dei fornitori)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background-color: #f9f9f9;">
+                            <td style="padding: 8px; border: 1px solid #ddd; width: 50%;">Moduli fotovoltaici / Inverter / Batterie</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; width: 50%;">Garanzia come da casa madre</td>
+                        </tr>
+                        <tr style="background-color: #f9f9f9;">
+                            <td style="padding: 8px; border: 1px solid #ddd;">Assistenza tecnica</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Come indicata della Legge italiana</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Banner immagine Tecnico -->
+            <div style="height: 142mm; background-image: url('{{ public_path('images/pdf/Tecnico-min.webp') }}'); background-size: cover; background-position: center;">
+            </div>
+        <div>
+
+        <!-- Footer Aziendale -->
+        <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
+            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
         </div>
     </div>
 
     <!-- Quarta Pagina - Risparmi e Benefici Economici -->
-    <div class="page page-break">
-        <!-- Margine sinistro verde -->
-        <div class="page-left-margin"></div>
-        
-        <!-- Contenuto principale -->
-        <div class="page-content" style="padding-bottom: 200px;">
-            <div class="section-header-green"><span>RISPARMI E BENEFICI</span></div>
+    <div class="page page-break" style="height: 297mm; width: 210mm;">
+        <!-- Header -->
+        <div style="width: 210mm; padding-top: 10mm; padding-bottom: 10mm; position: relative; height: 20mm;">
             
-            @php
-                $risparmioAutoconsumo = $preventivo->risparmio_autoconsumo_annuo ?? 0;
-                $venditaEccedenze = $preventivo->vendita_eccedenze_rid_annua ?? 0;
-                $incentivoCer = $preventivo->incentivo_cer_annuo ?? 0;
-                $detrazioneFiscale = $preventivo->detrazione_fiscale_annua ?? 0;
-                $totaleBenefici = $risparmioAutoconsumo + $venditaEccedenze + $incentivoCer + $detrazioneFiscale;
-                
-                // Calcolo ROI e tempo di rientro (esempio)
-                $investimentoTotale = $preventivo->dettagliProdotti 
-                    ? $preventivo->dettagliProdotti->sum(function($p) { return $p->quantita * $p->prezzo_unitario_salvato; })
-                    : 0;
-                $roiPercentuale = $investimentoTotale > 0 ? ($totaleBenefici / $investimentoTotale) * 100 : 0;
-                $tempoRientro = $totaleBenefici > 0 ? $investimentoTotale / $totaleBenefici : 0;
-                
-                $maxValue = max($risparmioAutoconsumo, $venditaEccedenze, $incentivoCer, $detrazioneFiscale, $totaleBenefici, $roiPercentuale);
-            @endphp
-
-            <!-- Box Superiore -->
-            <div style="page-break-inside: avoid; break-inside: avoid; padding: 10px;">
-            <!-- Grafico a barre orizzontali HTML+CSS -->
-            @php
-                $categories = [
-                    ['label' => 'Risparmio da autoconsumo', 'value' => $risparmioAutoconsumo],
-                    ['label' => 'Vendita eccedenze RID', 'value' => $venditaEccedenze],
-                    ['label' => 'Incentivo CER', 'value' => $incentivoCer],
-                    ['label' => 'Detrazione fiscale', 'value' => $detrazioneFiscale],
-                    ['label' => 'Totale benefici annuali', 'value' => $totaleBenefici],
-                ];
-                
-                $maxBarValue = max($risparmioAutoconsumo, $venditaEccedenze, $incentivoCer, $detrazioneFiscale, $totaleBenefici);
-                // Arrotonda il valore massimo al multiplo di 1000 più vicino per le linee della griglia
-                $maxGridValue = ceil($maxBarValue / 1000) * 1000;
-                if ($maxGridValue == 0) $maxGridValue = 1000;
-                
-                $barHeight = 25;
-                $barSpacing = 20;
-                $gridHeight = (count($categories) * ($barHeight + $barSpacing)) - $barSpacing;
-                
-                // Calcola i valori per le linee della griglia (5 linee: 0, 25%, 50%, 75%, 100%)
-                $gridValues = [];
-                for ($i = 0; $i <= 4; $i++) {
-                    $gridValues[] = ($maxGridValue / 4) * $i;
-                }
-            @endphp
-            
-            <div style="position: relative; width: 100%; max-width: 600px; margin: 0 auto; padding: 20px 0;">
-                <!-- Griglia di sfondo -->
-                <div style="position: absolute; left: 180px; right: 50px; top: 40px; height: {{ $gridHeight }}px; background-image: repeating-linear-gradient(to right, transparent, transparent 73px, #ddd 73px, #ddd 74px), repeating-linear-gradient(to bottom, transparent, transparent 33px, #ddd 33px, #ddd 34px); background-size: 100% 100%; opacity: 0.5;"></div>
-                
-                <!-- Linee verticali della griglia e etichette valori economici -->
-                <div style="position: absolute; left: 180px; right: 50px; top: 40px; height: {{ $gridHeight }}px;">
-                    @foreach($gridValues as $gridValue)
-                        @php
-                            $leftPos = $maxGridValue > 0 ? ($gridValue / $maxGridValue) * 100 : 0;
-                        @endphp
-                        <div style="position: absolute; left: {{ $leftPos }}%; top: 0; bottom: 0; width: 1px; border-left: 2px dashed rgba(189, 189, 189, 1);"></div>
-                        <div style="position: absolute; left: {{ $leftPos }}%; bottom: -20px; transform: translateX(-50%); font-size: 10px; color: #666; font-family: Arial, sans-serif;">€ {{ number_format($gridValue, 0, ',', '.') }}</div>
-                    @endforeach
+            <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
+                <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
+                    alfacomsolar.it
                 </div>
-                
-                <!-- Barre -->
-                @foreach($categories as $index => $category)
-                    @php
-                        $barWidthPercent = $maxGridValue > 0 ? ($category['value'] / $maxGridValue) * 100 : 0;
-                        $topPos = 40 + ($index * ($barHeight + $barSpacing));
-                    @endphp
-                    <div style="position: relative; margin-bottom: {{ $barSpacing }}px; height: {{ $barHeight }}px;">
-                        <!-- Etichetta categoria -->
-                        <div style="position: absolute; left: 0; width: 170px; top: 50%; transform: translateY(-50%); font-size: 10px; color: #333; font-family: Arial, sans-serif; text-align: right; padding-right: 10px;">{{ $category['label'] }}</div>
-                        
-                        <!-- Contenitore barra -->
-                        <div style="position: absolute; left: 180px; right: 50px; height: {{ $barHeight }}px; background-color: transparent; border-radius: 2px;">
-                            <!-- Barra -->
-                            <div style="position: absolute; left: 0; top: 0; height: 100%; width: {{ $barWidthPercent }}%; background-color: #1A233B; border-radius: 2px;">
-                                @if($barWidthPercent > 5)
-                                    <span style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); font-size: 9px; color: #fff; font-weight: bold; font-family: Arial, sans-serif;">€ {{ number_format($category['value'], 0, ',', '.') }}</span>
-                                @endif
-                            </div>
-                            @if($barWidthPercent <= 5)
-                                <span style="position: absolute; left: {{ $barWidthPercent }}%; margin-left: 5px; top: 50%; transform: translateY(-50%); font-size: 9px; color: #333; font-weight: bold; font-family: Arial, sans-serif;">€ {{ number_format($category['value'], 0, ',', '.') }}</span>
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
             </div>
-            </div>
-            <!-- Fine Box Superiore -->
 
-            <!-- Box Centrale -->
-            <div style="page-break-inside: avoid; break-inside: avoid;">
-            <!-- Sezione centrale con grafico a torta e risparmio annuo -->
-            <div style="margin-top: 30px; overflow: hidden;">
-                <!-- Blocco Sinistro -->
-                <div style="width: 48%; float: left; padding: 20px; text-align: center; margin-right: 2%;">
-                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 15px; color: #333; font-family: Arial, sans-serif;">Ottimizzazione dei consumi</div>
-                    <img src="{{ public_path('images/pdf/preventivo_torta.svg') }}" alt="Grafico a torta" style="width: 225px; height: auto; display: block; margin: 0 auto;">
-                    <div class="donut-legend" style="text-align: center; margin-top: 20px; white-space: nowrap; height: 30px; line-height: 30px;">
-                        <div class="donut-legend-item" style="display: inline-block; vertical-align: middle; margin: 0 10px; font-size: 11px; white-space: nowrap;">
-                            <div class="donut-legend-square" style="width: 45px; height: 20px; border-top-left-radius: 8px; border-top-right-radius: 8px; background-color: #e74c3c; display: inline-block; vertical-align: middle; margin-right: 5px;"></div>
-                            <span>F1</span>
-                        </div>
-                        <div class="donut-legend-item" style="display: inline-block; vertical-align: middle; margin: 0 10px; font-size: 11px; white-space: nowrap;">
-                            <div class="donut-legend-square" style="width: 45px; height: 20px; border-top-left-radius: 8px; border-top-right-radius: 8px; background-color: #4BAE66; display: inline-block; vertical-align: middle; margin-right: 5px;"></div>
-                            <span>F2</span>
-                        </div>
-                        <div class="donut-legend-item" style="display: inline-block; vertical-align: middle; margin: 0 10px; font-size: 11px; white-space: nowrap;">
-                            <div class="donut-legend-square" style="width: 45px; height: 20px; border-top-left-radius: 8px; border-top-right-radius: 8px; background-color: #1A233B; display: inline-block; vertical-align: middle; margin-right: 5px;"></div>
-                            <span>F3</span>
-                        </div>
+            <div style="position: absolute; top: 35%; left: 50%;">
+                P R E V E N T I V O
+            </div>
+
+            <div style="position: absolute; top: 30%; right: 15mm;">
+                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+            </div>
+        </div>
+
+        <div style="height: 250mm; width: 100%;">
+            <!-- Analisi e consumi -->
+            <div style="height: 140mm; padding-left: 18mm; padding-right: 18mm;">
+                <div style="height: 20mm; position: relative;">
+                    <div style="position: absolute;  left: 0;">
+                        <p style="font-size: 18px; font-weight: bold;">Analisi Consumi e Risparmio</p>
+                    </div>
+                    <div style="position: absolute; top:3mm; right: 0;">
+                        <p style="font-size: 10px;">Questa sezione mostra i calcoli automatici basati sui dati</br>
+                        forniti. È puramente informativa.</p>
                     </div>
                 </div>
-                
-                <!-- Blocco Destro -->
-                <div style="width: 48%; float: right; padding: 20px; text-align: center; margin-left: 2%;">
-                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 15px; color: #333; font-family: Arial, sans-serif;">Totale benefici annuo</div>
-                    <img src="{{ public_path('images/pdf/preventivi_annuo_stimato.svg') }}" alt="Risparmio annuo stimato" style="width: 180px; height: auto; display: block; margin: 0 auto;">
-                    @php
-                        $risparmioAutoconsumo = $preventivo->risparmio_autoconsumo_annuo ?? 0;
-                        $venditaEccedenze = $preventivo->vendita_eccedenze_rid_annua ?? 0;
-                        $incentivoCer = $preventivo->incentivo_cer_annuo ?? 0;
-                        $detrazioneFiscale = $preventivo->detrazione_fiscale_annua ?? 0;
-                        $totaleBenefici = $risparmioAutoconsumo + $venditaEccedenze + $incentivoCer + $detrazioneFiscale;
-                        $investimentoTotale = $preventivo->dettagliProdotti 
-                            ? $preventivo->dettagliProdotti->sum(function($p) { return $p->quantita * $p->prezzo_unitario_salvato; })
-                            : 0;
-                        $roiPercentuale = $investimentoTotale > 0 ? ($totaleBenefici / $investimentoTotale) * 100 : 0;
-                            // Valori monetari dai campi del preventivo
-                        $incentivoCerAnnuo = $preventivo->incentivo_cer_annuo ?? 0;
-                        $venditaEccedenzeRidAnnuo = $preventivo->vendita_eccedenze_rid_annua ?? 0;
-                        $risparmioAutoconsumoAnnuo = $preventivo->risparmio_autoconsumo_annuo ?? 0;
-                        $detrazioneFiscaleAnnuo = $preventivo->detrazione_fiscale_annua ?? 0;
-                        
-                        // Totale benefici/ricavi annui per calcolare le percentuali monetarie
-                        $totaleBeneficiAnnuo = $risparmioAutoconsumoAnnuo + $venditaEccedenzeRidAnnuo + $incentivoCerAnnuo + $detrazioneFiscaleAnnuo;
 
-                    @endphp
-                    <div style="font-size: 18px; font-weight: bold; margin-top: 20px; height: 30px; line-height: 30px; color: #333; font-family: Arial, sans-serif;"> € {{ number_format($totaleBeneficiAnnuo, 1) }}</div>
-                </div>
-                
-                <!-- Clear float -->
-                <div style="clear: both;"></div>
-            </div>
-            </div>
-            <!-- Fine Box Centrale -->
+                <!-- Totale consumo annuo & Totale costi annui -->
+                @php
+                    $consumo = $preventivo->consumi ? $preventivo->consumi->first() : null;
+                    $totaleConsumoAnnuo = $consumo->totale_consumo_annuo ?? 0;
+                    $totaleCostiAnnuo = $consumo->totale_costi_annui ?? 0;
+                    $consumoDiurnoAnnuo = $consumo->consumo_diurno_annuo ?? 0;
+                    $consumoNotturnoAnnuo = $consumo->consumo_notturno_annuo ?? 0;
+                    $capacitaBatteriaConsigliata = $consumo->capacita_batteria_consigliata ?? 0;
+                    $potenzaImpiantoConsigliata = $consumo->potenza_impianto_consigliata ?? 0;
+                @endphp
+                <div style="width: 100%; height: 37mm; position: relative;">
+                    
+                    <div style="position: absolute; top: 4mm; left: 0;">
+                        <div style="position: absolute; top: 5.8mm; left: 4.8mm; height: 10mm; width: 10mm; background-image: url('{{ public_path('images/pdf/Arrow_2.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
+                        <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">TOTALE CONSUMO <span style="color: #4BAE66; font-weight: bold;">ANNUO</span></span>
+                        <div style="border:1px solid #e0e0e0; height: 22mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(116, 13, 13) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <p style="font-size: 18px; font-weight: bold; transform: translateY(5mm) translateX(5mm);">{{ number_format($totaleConsumoAnnuo, 2, ',', '.') }} <span style="color: #999;">kWh</span></p>
+                        </div>
+                    </div>
 
-            <!-- Box Inferiore -->
-            <div style="page-break-inside: avoid; break-inside: avoid; position: absolute; bottom: 0; left: 0; right: 0; width: 100%; margin-left: -15mm; margin-right: -15mm; padding-left: 15mm; padding-right: 15mm; border-top-left-radius: 8px; border-top-right-radius: 8px;">
-            <!-- Footer giallo con grafico GUADAGNO ACCUMULATO -->
-            <div class="yellow-footer" style="margin-top: 0;">
-                <div class="yellow-footer-title">GUADAGNO ACCUMULATO</div>
-                <div class="yellow-footer-line-chart">
-                    <div style="height: 20px;"></div>
-                    <h2 style="text-align: center; font-weight: bolder; font-size: 30px;">€ {{ number_format($totaleBeneficiAnnuo, 1) }} (mensile)</h2>
-                </div>
-                </div>
-            </div>
-            </div>
-            <!-- Fine Box Inferiore -->
+                    <div style="position: absolute; top: 4mm; right: 0;">
+                        <div style="position: absolute; top: 5.8mm; right: 70mm; height: 10mm; width: 10mm; background-image: url('{{ public_path('images/pdf/Arrow_1.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
+                        <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">TOTALE COSTI <span style="color: #4BAE66; font-weight: bold;">ANNUI</span></span>
+                        <div style="border:1px solid #e0e0e0; height: 22mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(206, 206, 206) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <p style="font-size: 18px; font-weight: bold; transform: translateY(5mm) translateX(5mm);">{{ number_format($totaleCostiAnnuo, 2, ',', '.') }} <span style="color: #999;">€</span></p>
+                        </div>
+                    </div>
 
+                </div>
+                <div style="width: 100%; height: 37mm; position: relative;">
+                    
+                    <div style="position: absolute; top: 4mm; left: 0;">
+                        <div style="position: absolute; top: 5.8mm; left: 4.8mm; height: 10mm; width: 10mm; background-image: url('{{ public_path('images/pdf/Arrow_2.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
+                        <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">CONSUMO <span style="color: #4BAE66; font-weight: bold;">DIURNO ANNUO</span></span>
+                        <div style="border:1px solid #e0e0e0; height: 22mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(116, 13, 13) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <p style="font-size: 18px; font-weight: bold; transform: translateY(5mm) translateX(5mm);">{{ number_format($consumoDiurnoAnnuo, 2, ',', '.') }} <span style="color: #999;">kWh</span></p>
+                        </div>
+                    </div>
+
+                    <div style="position: absolute; top: 4mm; right: 0;">
+                        <div style="position: absolute; top: 5.8mm; right: 70mm; height: 10mm; width: 10mm; background-image: url('{{ public_path('images/pdf/Arrow_1.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
+                        <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">CONSUMO <span style="color: #4BAE66; font-weight: bold;">NOTTURNO ANNUO</span></span>
+                        <div style="border:1px solid #e0e0e0; height: 22mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(206, 206, 206) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <p style="font-size: 18px; font-weight: bold; transform: translateY(5mm) translateX(5mm);">{{ number_format($consumoNotturnoAnnuo, 2, ',', '.') }} <span style="color: #999;">kWh</span></p>
+                        </div>
+                    </div>
+
+                </div>
+                <div style="width: 100%; height: 37mm; position: relative;">
+                    
+                    <div style="position: absolute; top: 4mm; left: 0;">
+                        <div style="position: absolute; top: 5.8mm; left: 4.8mm; height: 10mm; width: 10mm; background-image: url('{{ public_path('images/pdf/Arrow_3.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
+                        <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">CAPACITÀ BATTERIA <span style="color: #4BAE66; font-weight: bold;">CONSIGLIATA</span></span>
+                        <div style="border:1px solid #e0e0e0; height: 22mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(116, 13, 13) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <p style="font-size: 18px; font-weight: bold; transform: translateY(5mm) translateX(5mm);">{{ number_format($capacitaBatteriaConsigliata, 2, ',', '.') }} <span style="color: #999;">kWh</span></p>
+                        </div>
+                    </div>
+
+                    <div style="position: absolute; top: 4mm; right: 0;">
+                        <div style="position: absolute; top: 5.8mm; right: 70mm; height: 10mm; width: 10mm; background-image: url('{{ public_path('images/pdf/Arrow_3.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
+                        <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">IMPIANTO CHE <span style="color: #4BAE66; font-weight: bold;">PAREGGIA I CONSUMI</span></span>
+                        <div style="border:1px solid #e0e0e0; height: 22mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(206, 206, 206) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                            <p style="font-size: 18px; font-weight: bold; transform: translateY(5mm) translateX(5mm);">{{ number_format($potenzaImpiantoConsigliata, 2, ',', '.') }} <span style="color: #999;">kWp</span></p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Grafico -->
+            <div style="height: 100mm; padding-left: 18mm; padding-right: 18mm;">
+                <div style=" width: 100%; height: 100%; background-image: url('{{ public_path('images/pdf/Serie.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
+                    
+                </div>
+            </div>
+        </div>
+
+       <!-- Footer Aziendale -->
+       <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
+            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
         </div>
     </div>
 
     <!-- Quinta Pagina - Offerta Economica -->
-    <div class="page page-break">
-        <!-- Margine sinistro verde -->
-        <div class="page-left-margin"></div>
-        
-        <!-- Contenuto principale -->
-        <div class="page-content" style="position: relative; padding-bottom: 200px;">
-            <div class="section-header-green"><span>OFFERTA ECONOMICA</span></div>
+    <div class="page page-break" style="height: 297mm; width: 210mm;">
+        <!-- Header -->
+        <div style="width: 210mm; padding-top: 10mm; padding-bottom: 10mm; position: relative; height: 20mm;">
             
-            @php
-                // Calcolo totale investimento
-                $investimentoTotale = $preventivo->dettagliProdotti 
-                    ? $preventivo->dettagliProdotti->sum(function($p) { return $p->quantita * $p->prezzo_unitario_salvato; })
-                    : 0;
-                
-                // Dati bonifico
-                $bonificoData = null;
-                $prezzoBonifico = 0;
-                $primaRataBonifico = 0;
-                $secondaRataBonifico = 0;
-                $terzaRataBonifico = 0;
-                if($preventivo->bonifico_data_json) {
-                    $bonificoData = is_string($preventivo->bonifico_data_json) 
-                        ? json_decode($preventivo->bonifico_data_json, true) 
-                        : $preventivo->bonifico_data_json;
-                    if(
-                        $bonificoData 
-                        && isset($bonificoData['first_rate'], $bonificoData['second_rate'], $bonificoData['third_rate'], $bonificoData['amount'])
-                    ) {
-                        $prezzoBonifico = (float)$bonificoData['amount'];
-                        $primaRataBonifico = $prezzoBonifico * ((float)$bonificoData['first_rate'] / 100);
-                        $secondaRataBonifico = $prezzoBonifico * ((float)$bonificoData['second_rate'] / 100);
-                        $terzaRataBonifico = $prezzoBonifico * ((float)$bonificoData['third_rate'] / 100);
-                    }
-                }
-                
-                // Dati finanziamento/offerta
-                $finanziamentoData = null;
-                $prezzoOfferta = $investimentoTotale;
-                if($preventivo->finanziamento_data_json) {
-                    $finanziamentoData = is_string($preventivo->finanziamento_data_json) 
-                        ? json_decode($preventivo->finanziamento_data_json, true) 
-                        : $preventivo->finanziamento_data_json;
-                    if($finanziamentoData && isset($finanziamentoData['importo'])) {
-                        $prezzoOfferta = $finanziamentoData['importo'];
-                    }
-                }
-                
-                // Prezzo con IVA per il banner
-                $prezzoConIva = $prezzoOfferta * 1.22; // IVA 22%
-            @endphp
-
-            <!-- Blocco Superiore: Card Offerte -->
-            <div style="margin-top: 30px; overflow: hidden; page-break-inside: avoid; break-inside: avoid;">
-                <!-- Card Offerte Container -->
-                <div style="overflow: hidden;">
-                    <!-- Card Bonifico (Bianca) -->
-                    <div style="width: 40%; float: left; background-color: rgba(251, 251, 251, 1); border: 1px solid grey; border-radius: 8px; padding: 30px; margin-right: 2%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); box-sizing: border-box;">
-                        <div style="font-size: 24px; font-weight: bold; color: #333; margin-bottom: 15px; font-family: Arial, sans-serif;">Bonifico</div>
-                        <div style="font-size: 32px; font-weight: bold; color: #333; margin-bottom: 5px; font-family: Arial, sans-serif;">€ {{ number_format($prezzoBonifico, 2, ',', '.') }}</div>
-                        <div style="font-size: 14px; color: #666; margin-bottom: 30px; font-family: Arial, sans-serif;">IVA esclusa</div>
-                        <div style="border-top: 1px solid #e0e0e0; padding-top: 20px;">
-                            <ul style="list-style: none; padding: 0; margin: 0;">
-                                <li style="margin-bottom: 15px; font-size: 13px; color: #333; font-family: Arial, sans-serif; overflow: hidden;">
-                                    <img src="{{ public_path('images/pdf/preventivi_bonifico_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Prima rata: € {{ number_format($primaRataBonifico, 2, ',', '.') }}</span>
-                                </li>
-                                <li style="margin-bottom: 15px; font-size: 13px; color: #333; font-family: Arial, sans-serif; overflow: hidden;">
-                                    <img src="{{ public_path('images/pdf/preventivi_bonifico_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Seconda rata: € {{ number_format($secondaRataBonifico, 2, ',', '.') }}</span>
-                                </li>
-                                <li style="margin-bottom: 15px; font-size: 13px; color: #333; font-family: Arial, sans-serif; overflow: hidden;">
-                                    <img src="{{ public_path('images/pdf/preventivi_bonifico_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Terza rata: € {{ number_format($terzaRataBonifico, 2, ',', '.') }}</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Card Finanziamento (Blu Scuro) -->
-                    <div style="width: 40%; float: right; background-color: #1A233B; border-radius: 8px; padding: 30px; margin-left: 2%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); box-sizing: border-box;">
-                        <div style="font-size: 24px; font-weight: bold; color: #ffffff; margin-bottom: 15px; font-family: Arial, sans-serif;">Finanziamento</div>
-                        <div style="font-size: 32px; font-weight: bold; color: #ffffff; margin-bottom: 5px; font-family: Arial, sans-serif;">€ {{ number_format(($finanziamentoData ?? [])['rate_import'] ?? 0, 2, ',', '.') }}</div>
-                        <div style="font-size: 14px; color: #ffffff; opacity: 0.8; margin-bottom: 30px; font-family: Arial, sans-serif;">IVA esclusa</div>
-                        <div style="border-top: 1px solid rgba(255,255,255,0.3); padding-top: 20px;">
-                            <ul style="list-style: none; padding: 0; margin: 0;">
-                                <li style="margin-bottom: 15px; font-size: 13px; color: #ffffff; font-family: Arial, sans-serif; overflow: hidden;">
-                                    <img src="{{ public_path('images/pdf/preventivi_finanziamento_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Importo rata 1: € {{ number_format((($finanziamentoData ?? [])['rate_import'] ?? 0) / ((($finanziamentoData ?? [])['number_of_rate'] ?? 1) > 0 ? (($finanziamentoData ?? [])['number_of_rate'] ?? 1) : 1), 2, ',', '.') }}</span>
-                                </li>
-                                <li style="margin-bottom: 15px; font-size: 13px; color: #ffffff; font-family: Arial, sans-serif; overflow: hidden;">
-                                    <img src="{{ public_path('images/pdf/preventivi_finanziamento_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Numero di rate: {{ ($finanziamentoData ?? [])['number_of_rate'] ?? 0 }}</span>
-                                </li>
-                                <li style="margin-bottom: 15px; font-size: 13px; color: #ffffff; font-family: Arial, sans-serif; overflow: hidden;">
-                                    <img src="{{ public_path('images/pdf/preventivi_finanziamento_check.svg') }}" alt="Check" style="width: 18px; height: 18px; float: left; margin-right: 10px;">
-                                    <span style="margin-left: 25px; transform: translateY(-2px);">Durata totale del finanziamento: {{ ($finanziamentoData ?? [])['number_of_rate'] ?? 0 }} mesi</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div style="clear: both;"></div>
+            <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
+                <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
+                    alfacomsolar.it
                 </div>
             </div>
 
-            <!-- Blocco Inferiore: Banner e Foto (Footer) -->
-            <div style="position: absolute; bottom: 0; left: 0; right: 0; width: 100%; margin-left: -15mm; margin-right: -15mm; padding-left: 15mm; padding-right: 15mm; page-break-inside: avoid; break-inside: avoid;">
-                <!-- Banner Blu Scuro con Prezzo -->
-                <div style="background-color: #1A233B; padding: 20px 30px; overflow: hidden;">
-                    <div style="float: left; color: #ffffff; font-family: Arial, sans-serif;">
-                        <span style="font-size: 24px; font-weight: bold; visibility: hidden;">a soli </span>
-                        <span style="color: #4BAE66; font-size: 32px; font-weight: bold; visibility: hidden;">{{ number_format($prezzoConIva, 0, ',', '.') }} €</span>
-                        <span style="font-size: 14px; margin-left: 10px; visibility: hidden;">IVA INCLUSA</span>
-                    </div>
-                    <div style="float: right; color: #ffffff; font-size: 14px; font-weight: bold; font-family: Arial, sans-serif; line-height: 40px; visibility: hidden;">
-                        POSSIBILITÀ DI RATEIZZAZIONE
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-                
-                <!-- Immagine Pannelli Solari -->
-                <img src="{{ public_path('images/pdf/preventivi_solare_2.png') }}" alt="Pannelli solari" style="width: 100%; height: 120mm; object-fit: cover; display: block;" onerror="this.style.display='none'">
+            <div style="position: absolute; top: 35%; left: 50%;">
+                P R E V E N T I V O
             </div>
 
-            <!-- Logo piccolo in basso a destra -->
-            <div class="page-logo-small">
-                <img src="{{ public_path('images/pdf/preventivi_logo_min.svg') }}" alt="Logo" onerror="this.style.display='none'">
+            <div style="position: absolute; top: 30%; right: 15mm;">
+                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
             </div>
         </div>
-    </div>
 
-    <!-- Settima Pagina - Manutenzione e Assicurazione -->
-    <div class="page page-break">
-        <!-- Margine sinistro verde -->
-        <div class="page-left-margin"></div>
-        
         <!-- Contenuto principale -->
-        <div class="page-content" style="position: relative;">
-            <div class="section-header-green"><span>MANUTENZIONE E ASSICURAZIONE</span></div>
-            
-            <div class="service-blocks-container">
-                <div style="width: 100%; height: 200px;"></div>
-
-                <!-- Blocco Manutenzione (Verde) -->
-                <div class="service-block service-block-green">
-                    <div class="service-header">
-                        <div class="service-icon service-icon-white">
-                            <img src="{{ public_path('images/pdf/preventivi_settings.svg') }}" alt="Settings">
-                        </div>
-                        <div class="service-title">MANUTENZIONE {{ $preventivo->opzione_manutenzione_salvata == 'si' ? '(INCLUSA)' : '(NON INCLUSA)' }}</div>
-                    </div>
-                    <div class="service-description">
-                        Servizio di manutenzione completo per garantire il massimo rendimento del tuo impianto fotovoltaico. Include controlli periodici, pulizia dei pannelli e assistenza tecnica dedicata.
-                    </div>
-
-                    <div class="service-price-container service-price-container-red" style="{{ $preventivo->opzione_manutenzione_salvata == 'no' ? 'border: none;' : '' }}">
-                        <div class="service-price" style="{{ $preventivo->opzione_manutenzione_salvata == 'no' ? 'visibility: hidden;' : '' }}">
-                            € {{ number_format($preventivo->costo_annuo_manutenzione_salvato ?? 0, 2, ',', '.') }}
-                        </div>
-                        <div class="service-vat" style="{{ $preventivo->opzione_manutenzione_salvata == 'no' ? 'visibility: hidden;' : '' }}">IVA INCLUSA</div>
+        <div style="height: 250mm; width: 100%;">
+        <div style="height: 65mm; padding-left: 18mm; padding-right: 18mm;">
+            <div style="width: 100%; height: 28mm; position: relative;">
+                        
+                <div style="position: absolute; top: 0mm; left: 0;">
+                    <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">RISPARMIO DA AUTOCONSUMO</span>
+                    <div style="border:1px solid #e0e0e0; height: 18mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(116, 13, 13) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <p style="font-size: 18px; font-weight: bold; transform: translateY(4mm) translateX(5mm);">{{ number_format($preventivo->risparmio_autoconsumo_annuo ?? 0, 2, ',', '.') }} <span style="color: #999;">€</span></p>
                     </div>
                 </div>
 
-                <!-- Blocco Assicurazione (Blu Scuro) -->
-                <div class="service-block service-block-blue">
-                    <div class="service-header">
-                        <div class="service-icon service-icon-white" style="margin-top: 5px;">
-                            <img src="{{ public_path('images/pdf/preventivi_check.svg') }}" alt="Check">
-                        </div>
-                        <div class="service-title">ASSICURAZIONE {{ $preventivo->opzione_assicurazione_salvata == 'si' ? '(INCLUSA)' : '(NON INCLUSA)' }}</div>
-                    </div>
-                    <div class="service-description">
-                        Copertura assicurativa completa per proteggere il tuo investimento. Include danni accidentali, furto, eventi atmosferici e responsabilità civile per garantire la massima tranquillità.
-                    </div>
-                    <div class="service-price-container service-price-container-red" style="{{ $preventivo->opzione_assicurazione_salvata == 'no' ? 'border: none;' : '' }}">
-                        <div class="service-price" style="{{ $preventivo->opzione_assicurazione_salvata == 'no' ? 'visibility: hidden;' : '' }}">
-                            € {{ number_format($preventivo->costo_annuo_assicurazione_salvato ?? 0, 2, ',', '.') }}
-                        </div>
-                        <div class="service-vat" style="{{ $preventivo->opzione_assicurazione_salvata == 'no' ? 'visibility: hidden;' : '' }}">IVA INCLUSA</div>
+                <div style="position: absolute; top: 0mm; right: 0;">
+                    <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">VENDITA ECCEDENZE (RID)</span>
+                    <div style="border:1px solid #e0e0e0; height: 18mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(206, 206, 206) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <p style="font-size: 18px; font-weight: bold; transform: translateY(4mm) translateX(5mm);">{{ number_format($preventivo->vendita_eccedenze_rid_annua ?? 0, 2, ',', '.') }} <span style="color: #999;">€</span></p>
                     </div>
                 </div>
+
             </div>
-            
-            <!-- Footer verde con logo -->
-            <div class="page-footer">
-                <div class="page-footer-green-bar"></div>
-                <img src="{{ public_path('images/pdf/preventivi_logo_verde.svg') }}" style="height: 100px; width: auto;" alt="Logo" class="page-footer-logo" onerror="this.style.display='none'">
-            </div>
+            <div style="width: 100%; height: 28mm; position: relative;">
+                
+                <div style="position: absolute; top: 0mm; left: 0;">
+                    <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">INCENTIVO CER</span>
+                    <div style="border:1px solid #e0e0e0; height: 18mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(116, 13, 13) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <p style="font-size: 18px; font-weight: bold; transform: translateY(4mm) translateX(5mm);">{{ number_format($preventivo->incentivo_cer_annuo ?? 0, 2, ',', '.') }} <span style="color: #999;">€</span></p>
+                    </div>
+                </div>
+
+                <div style="position: absolute; top: 0mm; right: 0;">
+                    <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">DETRAZIONE FISCALE</span>
+                    <div style="border:1px solid #e0e0e0; height: 18mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(206, 206, 206) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <p style="font-size: 18px; font-weight: bold; transform: translateY(4mm) translateX(5mm);">{{ number_format($preventivo->detrazione_fiscale_annua ?? 0, 2, ',', '.') }} <span style="color: #999;">€</span></p>
+                    </div>
+                </div>
+
+                </div>
         </div>
-    </div>
 
-    <!-- Sesta Pagina - Business Plan -->
-        @if($preventivo->dettagliBusinessPlan && $preventivo->dettagliBusinessPlan->count() > 0)
-    <div class="page page-break">
-        <!-- Margine sinistro verde -->
-        <div class="page-left-margin"></div>
-        
-        <!-- Contenuto principale -->
-        <div class="page-content" style="padding: 20mm 15mm; position: relative; padding-bottom: 150mm;">
-            <div class="section-header-green" style="margin-bottom: 5px;"><span>BUSINESS PLAN</span></div>
-            <div style="height: 50px;"></div>
-            <table class="business-plan-table">
+        <!-- BUSINESS PLAN -->
+        <div style="width: 100%; height: 160mm; position: relative; padding-left: 18mm; padding-right: 18mm;">
+            <span style="font-size: 20px; font-weight: bold; margin-bottom: 3mm;">
+                BUSINESS <span style="color: #4BAE66;">PLAN</span>
+            </span>
+            <table class="business-plan-table" style="width: 175mm;">
                 <thead>
                     <tr>
-                        <th>Anno</th>
-                        <th>Rata</th>
-                        <th>Costo Ass.</th>
-                        <th>Costo Man.</th>
-                        <th>Risparmio Bolletta</th>
-                        <th>Eccedenze</th>
-                        <th>Incentivo CER</th>
-                        <th>Incentivo PNNR</th>
-                        <th>Detrazione</th>
-                        <th>Sconto</th>
-                        <th>Flussi di cassa</th>
-                        <th>Flussi cumulati</th>
+                        <th style="text-align: center; border: 1px solid #e0e0e0;">Anno</th>
+                        <th style="text-align: center; border: 1px solid #e0e0e0;">Rata</th>
+                        <th style="text-align: center; border: 1px solid #e0e0e0;">Costo Ass.</th>
+                        <th style="text-align: center; border: 1px solid #e0e0e0;">Costo Man.</th>
+                        <th style="text-align: center; border: 1px solid #e0e0e0;">Risparmio <br>Bolletta</th>
+                        <th style="text-align: center; border: 1px solid #e0e0e0;">Eccedenze <br> (RID)</th>
+                        <th style="text-align: center; border: 1px solid #e0e0e0;">Incentivo   CER</th>
+                        <th style="text-align: center; border: 1px solid #e0e0e0;">Incentivo <br> PNNR</th>
+                        <th style="text-align: center; border: 1px solid #e0e0e0;">Detrazione</th>
+                        <th style="text-align: center; border: 1px solid #e0e0e0;">Sconto</th>
+                        <th style="text-align: center; border: 1px solid #e0e0e0;">Flussi <br> cassa</th>
+                        <th style="text-align: center; border: 1px solid #e0e0e0;">Flussi <br> cumulati</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($preventivo->dettagliBusinessPlan as $bp)
-                    <tr>
-                        <td class="text-center">{{ $bp->anno_simulazione }}</td>
-                        <td class="text-right">€ {{ number_format($bp->costo_annuo_investimento, 2, ',', '.') }}</td>
-                        <td class="text-right">€ {{ number_format($bp->costo_annuo_assicurazione, 2, ',', '.') }}</td>
-                        <td class="text-right">€ {{ number_format($bp->costo_annuo_manutenzione, 2, ',', '.') }}</td>
-                        <td class="text-right">€ {{ number_format($bp->ricavo_risparmio_bolletta, 2, ',', '.') }}</td>
-                        <td class="text-right">€ {{ number_format($bp->ricavo_vendita_eccedenze, 2, ',', '.') }}</td>
-                        <td class="text-right">€ {{ number_format($bp->ricavo_incentivo_cer, 2, ',', '.') }}</td>
-                        <td class="text-right">€ {{ number_format($bp->incentivo_pnnr ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-right">€ {{ number_format($bp->detrazione_fiscale ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-right">€ {{ number_format($bp->sconto ?? 0, 2, ',', '.') }}</td>
-                        <td class="text-right">€ {{ number_format($bp->flusso_cassa_annuo, 2, ',', '.') }}</td>
-                        <td class="text-right text-bold">€ {{ number_format($bp->flusso_cassa_cumulato, 2, ',', '.') }}</td>
-                    </tr>
-                    @endforeach
+                    @if($preventivo->dettagliBusinessPlan && $preventivo->dettagliBusinessPlan->count() > 0)
+                        @foreach($preventivo->dettagliBusinessPlan as $bp)
+                        <tr>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">{{ $bp->anno_simulazione }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->costo_annuo_investimento, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->costo_annuo_assicurazione, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->costo_annuo_manutenzione, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->ricavo_risparmio_bolletta, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->ricavo_vendita_eccedenze, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->ricavo_incentivo_cer, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->incentivo_pnnr ?? 0, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->detrazione_fiscale ?? 0, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->sconto ?? 0, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->flusso_cassa_annuo, 2, ',', '.') }}</td>
+                            <td class="text-center text-bold" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->flusso_cassa_cumulato, 2, ',', '.') }}</td>
+                        </tr>
+                        @endforeach
+                    @else
+                        @for($i = 1; $i <= 20; $i++)
+                        <tr>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">{{ $i }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">-</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">-</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">-</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">-</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">-</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">-</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">-</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">-</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">-</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">-</td>
+                            <td class="text-center text-bold" style="padding: 7.2px 3px; text-align: center;">-</td>
+                        </tr>
+                        @endfor
+                    @endif
                 </tbody>
             </table>
-
-            <!-- Footer con immagine solare -->
-            <div style="position: absolute; bottom: 0; left: 0; right: 0; width: 100%; margin-left: -15mm; margin-right: -15mm; padding-left: 15mm; padding-right: 15mm; page-break-inside: avoid; break-inside: avoid;">
-                <!-- Immagine Pannelli Solari -->
-                <img src="{{ public_path('images/pdf/preventivo_solare.png') }}" alt="Pannelli solari" style="width: 100%; height: 120mm; object-fit: cover; display: block;" onerror="this.style.display='none'">
-                <!-- Barra verde sotto l'immagine -->
-                <div class="business-plan-footer"></div>
-            </div>
         </div>
-        </div>
-        @endif
 
-    
-    
-    
-    <!-- Ottava Pagina - Informativa Privacy -->
-    <div class="page page-break">
-        <!-- Margine sinistro blu scuro -->
-        <div class="page-left-margin-blue"></div>
-        
-        <!-- Contenuto principale -->
-        <div class="privacy-page-content" style="padding-bottom: 60mm;">
-            <div class="section-header-blue">
-                INFORMATIVA SUL TRATTAMENTO DEI DATI PERSONALI<br>
-                <span style="font-size: 14px; font-weight: normal; display: block; margin-top: 1px;">
-                    (Regolamento UE 2016/679, di seguito Regolamento)
-                </span>
-            </div>
-
-            <!-- Container due colonne superiori -->
-            <div class="privacy-columns-container">
-                <!-- Colonna sinistra -->
-                <div class="privacy-column">
-                    <!-- Introduzione -->
-                    <div class="privacy-section">
-                        <div class="privacy-text" style="margin-bottom: 12px;">
-                            Gentile Cliente / Potenziale Cliente<br><br>
-                            ALFACOM S.R.L. con sede legale in Viale Leonardo Da Vinci, 8 – 95128 Catania (CT) P.IVA 05466900874 iscritta con il numero di REA 368504, la informa che i suoi dati saranno trattati ai sensi dell'Art.13 del Regolamento UE 2016/679 ("GDPR") e del D.Lgs. 30.06.2003 n.196, così come modificato e integrato dal D.Lgs. 10.08.2018, n101 (c.d "Codice in materia di dati personali o "Codice Privacy") al fine di offrirle i servizi di contatto e assistenza commerciale da lei richiesti.
-                        </div>
-                    </div>
-
-                    <!-- FONTE DEI DATI -->
-                    <div class="privacy-section">
-                        <div class="privacy-section-number">FONTE DEI DATI</div>
-                        <div class="privacy-text">
-                            I suddetti dati sono forniti volontariamente dall'Interessato nell'ambito delle attività preliminari e propedeutiche alla conclusione di una proposta di contratto con il Titolare.
-                        </div>
-                    </div>
-
-                    <!-- TIPOLOGIE DI DATI TRATTATI -->
-                    <div class="privacy-section">
-                        <div class="privacy-section-number">TIPOLOGIE DI DATI TRATTATI</div>
-                        <div class="privacy-text">
-                            I dati oggetto di Trattamento sono: dati che permettono l'identificazione diretta: dati anagrafici (es nome, cognome, indirizzo), dati di contatto (esempio telefono, cellulare, mail), dati urbanistici-catastali, e in generale ogni altro dato o informazione necessaria per la conclusione ed esecuzione del contratto, unicamente rivolti ad un miglior soddisfacimento delle richieste dell'Interessato nell'ambito delle finalità sotto descritte. È facoltà dell'Interessato fornire o non fornire tali informazioni, consapevole che in mancanza non sarà possibile fornire il servizio.
-                        </div>
-                    </div>
-
-                    <!-- BASE GIURIDICA DEL TRATTAMENTO -->
-                    <div class="privacy-section">
-                        <div class="privacy-section-number">BASE GIURIDICA DEL TRATTAMENTO</div>
-                        <div class="privacy-text">
-                            Il trattamento è necessario all'esecuzione di un contratto, di cui lei, nostro cliente o potenziale, è parte all'esecuzione di misure precontrattuali o post contrattuali adottate su sua richiesta o su richiesta di Alfacom S.r.l. ai sensi dell'Art.61 lett.b e lett.c. del GDPR.
-                        </div>
-                    </div>
-
-                    <!-- FINALITÀ DEL TRATTAMENTO E PERIODO DI CONSERVAZIONE -->
-                    <div class="privacy-section">
-                        <div class="privacy-section-number">FINALITÀ DEL TRATTAMENTO E PERIODO DI CONSERVAZIONE</div>
-                        <div class="privacy-text">
-                            I dati personali forniti al Titolare verranno da questa trattati per il perseguimento delle seguenti finalità:
-                        </div>
-                        <ul class="privacy-list">
-                            <li class="privacy-list-item"><strong>Rispondere alle richieste di informazioni sui prodotti/servizi.</strong> Base giuridica del trattamento per questa finalità è l'esecuzione di misure precontrattuali o contrattuali di cui l'interessato è parte. Le attività possono includere attività amministrative e contabili, invio di comunicazioni (telefono, cellulare, sms, mail, cartaceo) ad esse connesse. Periodo di conservazione dei dati: durata pre-contrattuale /contrattuali e per il periodo di prescrizione ordinario pari a 10 anni. Nel caso di contenzioso giudiziale, per tutta la durata dello stesso, fino all'esaurimento dei termini di esperibilità delle azioni di impugnazione.</li>
-                            <li class="privacy-list-item"><strong>Adempiere ad obblighi previsti da regolamenti e dalla normativa nazionale e sovranazionale applicabile.</strong> Base giuridica del trattamento per questa finalità è la necessità di assolvere gli obblighi di legge. Periodo di conservazione dei dati: per la durata degli obblighi di legge.</li>
-                            <li class="privacy-list-item"><strong>Se necessario, per accertare, esercitare o difendere i diritti del Titolare in sede giudiziaria.</strong> Base giuridica del trattamento per questa finalità è l'interesse legittimo del Titolare. Periodo di conservazione dei dati: tutta la durata del contenzioso, fino all'esaurimento dei termini di esperibilità delle azioni di impugnazione.</li>
-                            <li class="privacy-list-item"><strong>Inviare comunicazioni promozionali, commerciali e/o attività di marketing, anche per miglioramento della qualità dei servizi offerti, tramite sistemi di contatto telefonico o posta elettronica.</strong> Base giuridica del trattamento per questa finalità è il consenso dell'interessato. Periodo di conservazione dei dati: per 24 mesi dalla raccolta del consenso, ferma la possibilità per l'Interessato di modificare e/o revocare la propria volontà in qualsiasi momento avendo cura di comunicarlo secondo le modalità e tramite i contatti resi noti dal Titolare.</li>
-                            <li class="privacy-list-item"><strong>Autorizzare Alfacom S.r.l. alla ripresa fotografica e video del bene venduto (impianto) e utilizzare le foto per scopi pubblicitari, senza alcun riferimento diretto che permetta l'identificazione del Committente.</strong> Periodo di conservazione dei dati: per 24 mesi dalla raccolta del consenso, ferma la possibilità per l'Interessato di modificare e/o revocare la propria volontà in qualsiasi momento avendo cura di comunicarlo secondo le modalità e tramite i contatti resi noti dal Titolare.</li>
-                        </ul>
-                    </div>
-
-                    <!-- MODALITA DEL TRATTAMENTO -->
-                    <div class="privacy-section">
-                        <div class="privacy-section-number">MODALITA DEL TRATTAMENTO</div>
-                        <div class="privacy-text">
-                            Alfacom S.r.l, nella qualità di Titolare del trattamento, raccoglie i suoi dati personali, direttamente, nonché in taluni casi, per mezzo di soggetti Terzi nel rispetto delle norme di riservatezza e sicurezza previste dall'art.32 del Regolamento.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Colonna destra -->
-                <div class="privacy-column">
-                    <!-- DESTINATARI DEI DATI -->
-                    <div class="privacy-section">
-                        <div class="privacy-section-number">DESTINATARI DEI DATI</div>
-                        <div class="privacy-text">
-                            I dati possono essere trattati da soggetti esterni operanti in qualità di Titolare quali, a titolo esemplificativo, Autorità ed organi di vigilanza e controllo ed, in generale, soggetti, anche privati, legittimati a richiedere i dati, Pubbliche Autorità che ne facciano espressa richiesta al Titolare per finalità amministrative o istituzionali, secondo quanto disposto dalla normativa vigente, nazionale ed europea, nonché persone, società, associazioni o studi professionali che prestino attività di assistenza e consulenza, GSE, Distributore, e tutti quei soggetti cui la comunicazione sia necessaria per il corretto adempimento delle finalità connesse successive all'esecuzione del contratto.
-                        </div>
-                        <div class="privacy-text" style="margin-top: 8px;">
-                            I dati possono altresì essere trattati, per conto del Titolare, da soggetti esterni designati come Responsabili del trattamento ai sensi dell'art. 28 del GDPR, a cui sono impartite adeguate istruzioni operative, quali a titolo esemplificativo:
-                        </div>
-                        <ul class="privacy-list">
-                            <li class="privacy-list-item">Partner commerciali, collaboratori in P.IVA;</li>
-                            <li class="privacy-list-item">Società che offrono servizi di manutenzione dei siti web e dei sistemi informativi;</li>
-                            <li class="privacy-list-item">Società che svolgono servizi di gestione e manutenzione del database del Titolare;</li>
-                        </ul>
-                        <div class="privacy-text" style="margin-top: 8px;">
-                            I Suoi dati personali possono essere trattati da personale interno debitamente nominato "autorizzato al trattamento".
-                        </div>
-                    </div>
-
-                    <!-- DIRITTI DEGLI INTERESSATI -->
-                    <div class="privacy-section">
-                        <div class="privacy-section-number">DIRITTI DEGLI INTERESSATI</div>
-                        <div class="privacy-text">
-                            Gli articoli dal 15 al 21 del Regolamento UE n. 2016/679 conferiscono all'interessato l'esercizio di specifici diritti, tra cui quello di ottenere dal titolare la conferma dell'esistenza o meno di propri dati personali e la loro messa a disposizione in forma intellegibile. L'interessato ha diritto di avere conoscenza dell'origine dei dati, della finalità e delle modalità del trattamento, della logica applicata al trattamento, degli estremi identificativi del titolare e dei soggetti cui i dati possono essere comunicati.
-                        </div>
-                        <div class="privacy-text" style="margin-top: 8px;">
-                            L'interessato ha inoltre diritto di ottenere l'aggiornamento, la rettificazione e l'integrazione dei dati, la cancellazione, la trasformazione in forma anonima o il blocco dei dati trattati in violazione della legge. L'interessato ha diritto di opporsi per motivi legittimi, al trattamento dei dati.
-                        </div>
-                        <div class="privacy-text" style="margin-top: 8px;">
-                            L'interessato che intenda avvalersi dei diritti sopra descritti può invitare comunicazione mediante posta raccomandata A/A indirizzata ad ALFACOM SRL, Viale Leonardo da Vinci, 8, 95128 Catania.
-                        </div>
-                    </div>
-
-                    <!-- MODIFICA ED AGGIORNAMENTO INFORMATIVA SULLA PRIVACY -->
-                    <div class="privacy-section">
-                        <div class="privacy-section-number">MODIFICA ED AGGIORNAMENTO INFORMATIVA SULLA PRIVACY</div>
-                        <div class="privacy-text">
-                            Il titolare del Trattamento si riserva il diritto di modificare e/o implementare la presente informativa, anche in ragione di modifiche legislative successive al rapporto pre-contrattuale o contrattuale con lei instaurato, ovvero raccomandazioni, autorizzazioni generali, linee guida, ulteriori misure di garanzia indicate dal Garante della privacy italiana o europeo, ma sempre al fine fornire maggiore tutela per il trattamento dei suoi dati.
-                        </div>
-                    </div>
-
-                    <!-- Autorizzazione -->
-                    <div class="privacy-section" style="margin-top: 15px;">
-                        <div class="privacy-text" style="font-weight: bold; margin-bottom: 8px;">Il Committente:</div>
-                        <div class="privacy-text" style="margin-bottom: 5px;">☐ Autorizza ALFACOM S.R.L ad utilizzare i miei dati per le finalità e secondo le modalità sopra richiamate.</div>
-                        <div class="privacy-text">☐ Non Autorizza ALFACOM S.R.L ad utilizzare i miei dati per le finalità e secondo le modalità sopra richiamate.</div>
-                    </div>
-
-                    <!-- Firma Cliente -->
-                    <div class="privacy-signature-section" style="margin-top: 15px; border:unset;">
-                        <div class="signature-row">
-                            <div class="">
-                                <div class="signature-label">Luogo e data</div>
-                                <div class="signature-line"></div>
-                            </div>
-                            <div class="">
-                                <div class="signature-label">Firma del Cliente</div>
-                                <div class="signature-line"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Container due blocchi inferiori -->
-            <div class="privacy-bottom-blocks">
-                <!-- Blocco: Sezione Firma -->
-                <div class="privacy-bottom-block">
-                    <!-- Sezione Firma -->
-                    <div class="privacy-signature-section">
-                        <div class="privacy-footer-title" style="font-size: 14px; font-weight: bolder;">SIMULAZIONE GENERATA DA</div>
-                        <div class="signature-row">
-                            <div class="signature-field">
-                                <div class="signature-label">Agenzia</div>
-                                <div class="signature-line"></div>
-                            </div>
-                            <div class="signature-field">
-                                <div class="signature-label">Agente</div>
-                                <div class="signature-line"></div>
-                            </div>
-                            <div class="signature-field">
-                                <div class="signature-label">Firma Agente</div>
-                                <div class="signature-line"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer blu con logo e contatti -->
-            <div class="page-footer-blue">
-                <!-- Logo -->
-                <img src="{{ public_path('images/pdf/preventivi_logo_white.svg') }}" alt="Logo Gruppo Alfacom" class="page-footer-blue-logo" onerror="this.style.display='none'">
-                
-                <!-- Informazioni di contatto -->
-                <div class="page-footer-blue-contact">
-                    <div class="page-footer-blue-company">Gruppo Alfacom S.r.l</div>
-                    <div>Viale Leonardo Da Vinci, 8,</div>
-                    <div>95128 Catania CT</div>
-                    <div>095 818 5744 gruppoalfacom@gmail.com</div>
-                </div>
-                
-                <div style="clear: both;"></div>
-            </div>
+        <!-- Footer Aziendale -->
+        <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
+            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
         </div>
     </div>
+
+    <!-- Sesta Pagina - Manutenzione e Assicurazione -->
+    <div class="page page-break" style="height: 297mm; width: 210mm;">
+        <!-- Header -->
+        <div style="width: 210mm; padding-top: 10mm; padding-bottom: 10mm; position: relative; height: 20mm;">
+            
+            <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
+                <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
+                    alfacomsolar.it
+                </div>
+            </div>
+
+            <div style="position: absolute; top: 35%; left: 50%;">
+                P R E V E N T I V O
+            </div>
+
+            <div style="position: absolute; top: 30%; right: 15mm;">
+                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+            </div>
+        </div>
+
+        <!-- Contenuto principale -->
+        <div style="height: 250mm; width: 100%;">
+            <div style="width:100%; height: 78mm; position: relative; padding-left: 18mm; padding-right: 18mm;">
+                <span style="font-size: 24px; font-weight: bold; margin-bottom: 8px; transform: translateY(-10mm);">
+                    la nostra OFFERTA <span style="color: #4BAE66;">ECONOMICA</span>
+                <div style="width:60mm; height:40mm; position: absolute; top: 25mm; left: 18mm; border-radius: 4mm; background-image: url('{{ public_path('images/pdf/rectangular-gradient.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+
+                </div>
+                <div style="width:70mm; height:80mm; position: absolute; top: 10mm; left: 55mm; background-image: url('{{ public_path('images/pdf/Contatore-min.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
+
+                </div>
+                <div style="width:65mm; height:60mm; position: absolute; top: 10mm; right: 50mm; background-image: url('{{ public_path('images/pdf/Sopralluogo_gratuito.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
+
+                </div>
+
+            </div>
+            <div style="width:100%; height: 60mm; position: relative;">
+                <!-- Cosa è incluso -->
+                <div style="position: absolute; top: 5mm; left: 18mm; width: 83mm;">
+                    <p style="font-size: 20px; font-weight: bold; margin-bottom: 8px;">
+                        Cosa è <span style="color: #4BAE66;">incluso</span>
+                    </p>
+                    <ul style="font-size: 12px; margin: 0; padding-left: 20px;">
+                        <li style="line-height: 1.0;">Installazione a regola d'arte</li>
+                        <li style="line-height: 1.0;">Progettazione dell'impianto</li>
+                        <li style="line-height: 1.0;">Pratiche autorizzative comunali e distributore di rete</li>
+                        <li style="line-height: 1.0;">Fornitura e posa in opera di materiali</li>
+                        <li style="line-height: 1.0;">Collaudo e certificazione L.81/10</li>
+                        <li style="line-height: 1.0;">Attivazione sistema di monitoraggio</li>
+                        <li style="line-height: 1.0;">Dichiarazione di conformità (D.M. 37/08)</li>
+                        <li style="line-height: 1.0;">Pratiche convenzione Scambio sul Posto GSE</li>
+                    </ul>
+                </div>
+                <!-- Cosa è escluso -->
+                <div style="position: absolute; top: 5mm; right: 18mm; width: 83mm;">
+                    <p style="font-size: 20px; font-weight: bold; margin-bottom: 8px;">
+                        Cosa è <span style="color: #e74c3c;">escluso</span>
+                    </p>
+                    <ul style="font-size: 12px; margin: 0; padding-left: 20px;">
+                        <li style="line-height: 1.0;">Linea vita ed eventuale noleggio Gru</li>
+                        <li style="line-height: 1.0;">Distanza zona inverter/contatore oltre i 15mt</li>
+                        <li style="line-height: 1.0;">Eventuali opere murarie</li>
+                        <li style="line-height: 1.0;">Integrazioni e/o modifiche sulle coperture</li>
+                        <li style="line-height: 1.0;">Oneri di gestione per pratiche comunali</li>
+                        <li style="line-height: 1.0;">Corrispettivo per ottenimento e accettazione del preventivo di connessione del Distributore di Rete</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="width:100%; height: 75mm; position: relative;background-image: url('{{ public_path('images/pdf/rectangular-gradient-large.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+                @php
+                    // Calcola potenza totale
+                    $potenza_totale_kwp_simulazione = 0;
+                    if ($preventivo->dettagliProdotti) {
+                        foreach ($preventivo->dettagliProdotti as $dettaglioProdotto) {
+                            if (isset($dettaglioProdotto->kWp_salvato) && $dettaglioProdotto->kWp_salvato > 0) {
+                                $potenza_totale_kwp_simulazione += $dettaglioProdotto->kWp_salvato;
+                            } elseif ($dettaglioProdotto->prodotto && isset($dettaglioProdotto->prodotto->potenza_kwp)) {
+                                $potenza_totale_kwp_simulazione += $dettaglioProdotto->quantita * $dettaglioProdotto->prodotto->potenza_kwp;
+                            }
+                        }
+                    }
+                    
+                    // Calcola capacità batteria totale
+                    $capacita_batteria_totale = 0;
+                    if ($preventivo->dettagliProdotti) {
+                        foreach ($preventivo->dettagliProdotti as $dettaglioProdotto) {
+                            $capacita_batteria_totale += $dettaglioProdotto->capacita_batteria_salvata ?? 0;
+                        }
+                    }
+                    
+                    // Calcola totale offerta economica
+                    $totale_offerta = 0;
+                    if ($preventivo->dettagliProdotti) {
+                        foreach ($preventivo->dettagliProdotti as $dettaglioProdotto) {
+                            $totale_offerta += ($dettaglioProdotto->prezzo_unitario_salvato ?? 0) * ($dettaglioProdotto->quantita ?? 1);
+                        }
+                    }
+                    
+                    // Decodifica dati finanziamento
+                    $finanziamentoData = [];
+                    if ($preventivo->finanziamento_data_json) {
+                        $decoded = is_string($preventivo->finanziamento_data_json) 
+                            ? json_decode($preventivo->finanziamento_data_json, true) 
+                            : $preventivo->finanziamento_data_json;
+                        if (is_array($decoded)) {
+                            $finanziamentoData = $decoded;
+                        }
+                    }
+                    
+                    // Calcolo rate basato su rate_import e number_of_rate
+                    $rata36 = 0;
+                    $rata60 = 0;
+                    $rata120 = 0;
+                    $importoFinanziamento = $totale_offerta;
+                    
+                    if (isset($finanziamentoData['rate_import']) && isset($finanziamentoData['number_of_rate'])) {
+                        $rateImport = floatval($finanziamentoData['rate_import']);
+                        $numberOfRate = intval($finanziamentoData['number_of_rate']);
+                        
+                        // Calcola il capitale totale
+                        $capitale = $numberOfRate * $rateImport;
+                        
+                        // Calcola le rate per 36, 60, 120
+                        $rata36 = $capitale / 36;
+                        $rata60 = $capitale / 60;
+                        $rata120 = $capitale / 120;
+                        
+                        $importoFinanziamento = $capitale;
+                    } else {
+                        // Fallback ai valori precedenti se non ci sono i nuovi campi
+                        $rata36 = $finanziamentoData['rata_36'] ?? $finanziamentoData['36'] ?? 0;
+                        $rata60 = $finanziamentoData['rata_60'] ?? $finanziamentoData['60'] ?? 0;
+                        $rata120 = $finanziamentoData['rata_120'] ?? $finanziamentoData['120'] ?? 0;
+                        $importoFinanziamento = $finanziamentoData['importo'] ?? $totale_offerta;
+                    }
+                @endphp
+                
+                <!-- Titolo -->
+                <div style="position: absolute; top: 6mm; left: 18mm;">
+                    <h2 style="font-size: 30px; font-weight: bold; color: white; margin: 0; font-family: sans-serif;">SIMULAZIONE COSTI</h2>
+                </div>
+                
+                <!-- Testo esplicativo -->
+                <div style="position: absolute; top: 8mm; right: 18mm; width: 80mm; line-height: 1.0mm;">
+                    <p style="font-size: 8px; color: white; margin: 0; line-height: 1.4;">Questa stima è stata sviluppata considerando i consumi del cliente e le condizioni ottimali di utilizzo per una valutazione realistica del beneficio.</p>
+                </div>
+                
+                <!-- Potenza Fotovoltaico - Titolo -->
+                <div style="position: absolute; top: 25mm; left: 18mm; padding-left: 2mm;">
+                    <p style="font-size: 12px; color: white; font-weight: bold; margin: 0;">Potenza Fotovoltaico</p>
+                </div>
+                <!-- Potenza Fotovoltaico - Box -->
+                <div style="position: absolute; top: 31mm; left: 18mm; width: 50mm; height: 10mm; background-color: white; border-radius: 16px; padding: 2mm; text-align: left;">
+                    <p style="font-size: 18px; font-weight: bold; color: black; margin: 0; line-height: 10mm; transform: translateY(-3mm);">{{ number_format($potenza_totale_kwp_simulazione, 2, ',', '.') }} <span style="font-weight: normal;">kWp</span></p>
+                </div>
+                
+                <!-- Capacità Batteria - Titolo -->
+                <div style="position: absolute; top: 25mm; left: 77mm; padding-left: 2mm;">
+                    <p style="font-size: 12px; color: white; font-weight: bold; margin: 0; ">Capacità Batteria</p>
+                </div>
+                <!-- Capacità Batteria - Box -->
+                <div style="position: absolute; top: 31mm; left: 77mm; width: 50mm; height: 10mm; background-color: white; border-radius: 16px; padding: 2mm; text-align: left;">
+                    <p style="font-size: 18px; font-weight: bold; color: black; margin: 0; line-height: 10mm; transform: translateY(-3mm);">{{ number_format($capacita_batteria_totale, 2, ',', '.') }} <span style="font-weight: normal;">kWh</span></p>
+                </div>
+                
+                <!-- OFFERTA ECONOMICA - Titolo -->
+                <div style="position: absolute; top: 25mm; right: 18mm; width: 55mm; padding-left: 2mm;">
+                    <p style="font-size: 12px; color: white; font-weight: bold; margin: 0; transform: translateX(4mm);">OFFERTA ECONOMICA</p>
+                </div>
+                <!-- OFFERTA ECONOMICA - Box -->
+                <div style="position: absolute; top: 31mm; right: 18mm; width: 50mm; height: 10mm; background-color: white; border-radius: 16px; padding: 2mm; text-align: left;">
+                    <p style="font-size: 18px; font-weight: bold; color: black; margin: 0; line-height: 10mm; transform: translateY(-3mm);">{{ number_format($totale_offerta, 2, ',', '.') }} <span style="font-weight: normal;">€</span></p>
+                </div>
+                
+                @if($preventivo->finanziamento_data_json)
+                <!-- Importo FINANZIAMENTO - Titolo -->
+                <div style="position: absolute; top: 54mm; left: 20mm;">
+                    <p style="font-size: 14px; color: white; font-weight: bold; margin: 0; ">Importo FINANZIAMENTO</p>
+                </div>
+                
+                <!-- 36 RATE - Titolo -->
+                <div style="position: absolute; top: 48mm; left: 65mm; width: 40mm;">
+                    <p style="font-size: 10px; color: white; margin: 0 0 2mm 0; text-align: center; font-weight: bold;">36 RATE</p>
+                </div>
+                <!-- 36 RATE - Box -->
+                <div style="position: absolute; top: 53mm; left: 77mm; width: 32mm; height: 6mm; background-color: white; border-radius: 16px; padding: 2mm; text-align: left;">
+                    <p style="font-size: 14px; font-weight: bold; color: black; margin: 0; line-height: 8mm; transform: translateY(-4mm);">{{ number_format($rata36, 2, ',', '.') }} <span style="font-weight: normal;">€</span></p>
+                </div>
+                
+                <!-- 60 RATE - Titolo -->
+                <div style="position: absolute; top: 48mm; left: 105mm; width: 40mm;">
+                    <p style="font-size: 10px; color: white; margin: 0 0 2mm 0; text-align: center; font-weight: bold;">60 RATE</p>
+                </div>
+                <!-- 60 RATE - Box -->
+                <div style="position: absolute; top: 53mm; left: 117mm; width: 32mm; height: 6mm; background-color: white; border-radius: 16px; padding: 2mm; text-align: left;">
+                    <p style="font-size: 14px; font-weight: bold; color: black; margin: 0; line-height: 8mm; transform: translateY(-4mm);">{{ number_format($rata60, 2, ',', '.') }} <span style="font-weight: normal;">€</span></p>
+                </div>
+                
+                <!-- 120 RATE - Titolo -->
+                <div style="position: absolute; top: 48mm; left: 144mm; width: 46mm;">
+                    <p style="font-size: 10px; color: white; margin: 0 0 2mm 0; text-align: center; font-weight: bold;">120 RATE</p>
+                </div>
+                <!-- 120 RATE - Box -->
+                <div style="position: absolute; top: 53mm; left: 157mm; width: 32mm; height: 6mm; background-color: white; border-radius: 16px; padding: 2mm; text-align: left;">
+                    <p style="font-size: 14px; font-weight: bold; color: black; margin: 0; line-height: 8mm; transform: translateY(-4mm);">{{ number_format($rata120, 2, ',', '.') }} <span style="font-weight: normal;">€</span></p>
+                </div>
+                @endif
+            </div>
+        </div>
+        <span style="font-size: 8px; margin-bottom: 8px; padding-left: 18mm; transform: translateY(-32mm);">
+            *In caso di KO tecnico e/o amministrativo o di non accettazione della finanziaria
+        </span>
+        <!-- Footer Aziendale -->
+        <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
+            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+        </div>
+    </div>
+
+    <!-- Settima Pagina - Business Plan -->
+    <div class="page page-break" style="height: 297mm; width: 210mm;">
+         <!-- Header -->
+         <div style="width: 210mm; padding-top: 10mm; padding-bottom: 10mm; position: relative; height: 20mm;">
+            
+            <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
+                <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
+                    alfacomsolar.it
+                </div>
+            </div>
+
+            <div style="position: absolute; top: 35%; left: 50%;">
+                P R E V E N T I V O
+            </div>
+
+            <div style="position: absolute; top: 30%; right: 15mm;">
+                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+            </div>
+        </div>
+
+        <!-- Contenuto principale -->
+        <div style="height: 250mm; width: 100%;">
+            <div style="height: 120mm; width: 100%; position: relative;">
+                <!-- CONDIZIONI GENERALI -->
+                <div style="position: absolute; top: 5mm; left: 18mm; padding-right: 18mm;">
+                    <h3 style="font-size: 18px; font-weight: bold; margin: 0 0 5mm 0;">CONDIZIONI GENERALI</h3>
+                    <div style="margin-bottom: 2mm;">
+                        <p style="font-size: 13px; font-weight: bold; margin: 0 0 0mm 0;">Validità e Tempistica:</p>
+                        <p style="font-size: 12px; margin: 0 0 0mm 0; line-height: 1.2;">
+                            L'offerta è valida per <strong>30 giorni</strong> dalla data di emissione.
+                        </p>
+                        <p style="font-size: 12px; margin: 0; line-height: 1.2;">
+                            L'installazione è garantita entro <strong>30 giorni lavorativi</strong>. Tale garanzia è subordinata alla disponibilità dei materiali da parte dei distributori e al puntuale rispetto degli accordi di pagamento.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- MODALITA' DI PAGAMENTO -->
+                <div style="position: absolute; top: 47mm; left: 18mm;">
+                    <h3 style="font-size: 13px; font-weight: bold;">MODALITÀ DI PAGAMENTO</h3>
+                    <div style="margin-bottom: 2mm;">
+                        <p style="font-size: 12px; margin: 0; line-height: 1.4;">
+                            La modalità di pagamento accettata per i servizi è il <strong>Bonifico Bancario</strong>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- PAGAMENTI -->
+                <div style="position: absolute; top: 65mm; left: 18mm; padding-right: 18mm;">
+                    <h3 style="font-size: 13px; font-weight: bold; margin: 0 0 2mm 0;">PAGAMENTI</h3>
+                    <div style="margin-bottom: 2mm;">
+                        <p style="font-size: 12px; margin: 0 0 2mm 0; line-height: 1.4;">
+                            I pagamenti devono essere effettuati secondo le seguenti modalità:
+                        </p>
+                        <ul style="font-size: 12px; margin: 0; padding-left: 20px;">
+                            <li style="line-height: 1.0;"><strong>100%</strong> del contributo per l'iscrizione alla CER è dovuto alla firma dell'accordo.</li>
+                            <li style="line-height: 1.0;"><strong>30%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto all'ottenimento e accettazione del preventivo di connessione di E-Distribuzione.</li>
+                            <li style="line-height: 1.0;"><strong>50%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto all'ordine del materiale, prima della consegna del materiale in cantiere.</li>
+                            <li style="line-height: 1.0;"><strong>20%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto al completamento dell'installazione, al collaudo finale e prima del collegamento a ENEL.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div style="height: 120mm; width: 100%; background-image: url('{{ public_path('images/pdf/FreeEnergy-min.webp') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;" ></div>
+            
+        </div>
+
+        <!-- Footer Aziendale -->
+        <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
+            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+        </div>
+    </div>
+    
+    <!-- Ottava Pagina - Informativa Privacy -->
+    <div class="page page-break" style="height: 297mm; width: 210mm;">
+         <!-- Header -->
+         <div style="width: 210mm; padding-top: 10mm; padding-bottom: 10mm; position: relative; height: 20mm;">
+            
+            <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
+                <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
+                    alfacomsolar.it
+                </div>
+            </div>
+
+            <div style="position: absolute; top: 35%; left: 50%;">
+                P R E V E N T I V O
+            </div>
+
+            <div style="position: absolute; top: 30%; right: 15mm;">
+                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+            </div>
+        </div>
+
+        <!-- Contenuto principale -->
+        <div style="height: 250mm; width: 100%;">
+            <div style="width: 100%; height: 13mm; padding-left: 18mm; padding-top: 5mm;">
+                <div style="font-size: 18px; font-weight: bold; transform: translateY(-12mm);">INFORMATIVA SUL TRATTAMENTO DEI DATI PERSONALI</div>
+                <div style="font-size: 14px; transform: translateY(-12mm);">(Regolamento UE 2026/697, di seguito Regolamento)</div>
+            </div>
+            <div style="width: 174mm; height: 220mm; background-image: url('{{ public_path('images/pdf/informativa.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; transform: translateX(18mm);">
+
+            </div>
+        </div>
+
+        <!-- Footer Aziendale -->
+        <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
+            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+        </div>
+    </div>
+
+    <!-- Nona Pagina - Informativa Privacy -->
+    <div class="page page-break" style="height: 297mm; width: 210mm;">
+      
+            <div style="width:100%; height: 115mm; background-image: url('{{ public_path('images/pdf/House-min.webp') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+            </div>
+            <div style="width:100%; height: 80mm; text-align: center; position: relative;">
+                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: 65mm; height: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            </div>
+            <div style="width:100%; height: 80mm; position: relative; text-align: center;">
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                    <p style="font-size: 14px; font-weight: bold; margin: 0 0 3mm 0;">ALFACOM S.R.L.</p>
+                    <p style="font-size: 12px; margin: 0mm; line-height: 1.0;">Viale Leonardo da Vinci, 8</p>
+                    <p style="font-size: 12px; margin: 0mm; line-height: 1.0;">95128 Catania (CT)</p>
+                    <p style="font-size: 12px; margin: 0mm; line-height: 1.0;">P.IVA: 05466900874</p>
+                    <p style="font-size: 12px; margin: 0mm; line-height: 1.0;">Tel.: 095/8185744</p>
+                    <p style="font-size: 12px; margin: 0mm 0mm 3mm 0mm; line-height: 1.0;">E-mail: info@gruppoalfacom.it</p>
+                    <p style="font-size: 16px; color: #4BAE66; font-weight: bold; margin: 0;">alfacomsolar.it</p>
+                </div>
+            </div>
+        
+    </div>
+
 </body>
 </html>
