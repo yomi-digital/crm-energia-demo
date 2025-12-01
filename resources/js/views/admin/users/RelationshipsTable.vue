@@ -1,4 +1,11 @@
 <script setup>
+const props = defineProps({
+  userData: {
+    type: Object,
+    required: true,
+  },
+})
+
 const route = useRoute('admin-users-id')
 const searchQuery = ref('')
 const selectedStatus = ref()
@@ -187,6 +194,7 @@ await fetchAllUsers()
               prepend-icon="tabler-link"
               @click="isAddDialogVisible = true"
               v-if="$can('edit', 'users')"
+              :disabled="!props.userData?.team_leader"
             >
               Collega Account
             </VBtn>

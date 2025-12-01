@@ -101,7 +101,7 @@ if (isMarketing) {
         :touch="false"
       >
         <VWindowItem v-if="$can('access', 'users') && !isMarketing">
-          <UserTabRelationships />
+          <UserTabRelationships :user-data="userData" />
         </VWindowItem>
 
         <VWindowItem v-if="$can('access', 'brands') && (!isMarketing && !isTeamLeader)">
