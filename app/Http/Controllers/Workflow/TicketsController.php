@@ -11,13 +11,21 @@ class TicketsController extends Controller
     {
         $perPage = $request->get('itemsPerPage', 10);
 
-        $tickets = \App\Models\Ticket::with(['createdBy', 'paperwork', 'paperwork.customer', 'paperwork.user'])->withCount('attachments');
+        $tickets = \App\Models\Ticket::with(['createdBy', 'paperwork', 'paperwork.customer', 'paperwork.user', 'paperwork.product', 'paperwork.product.brand'])->withCount('attachments');
 
         // If the user has role agente, filter only for tickets related to his paperworks.
         if ($request->user()->hasRole('agente') || $request->user()->hasRole('struttura')) {
             // Get all paperworks of the agent.
             $paperworks = \App\Models\Paperwork::where('user_id', $request->user()->id)->pluck('id');
             $tickets = $tickets->whereIn('paperwork_id', $paperworks);
+        } elseif ($request->user()->hasRole('backoffice')) {
+            // Per il backoffice mostra solo i ticket associati alle pratiche
+            // il cui brand è abilitato per l'utente corrente
+            $brandIds = $request->user()->brands->pluck('id');
+
+            $tickets = $tickets->whereHas('paperwork.product.brand', function ($query) use ($brandIds) {
+                $query->whereIn('id', $brandIds);
+            });
         }
 
         if ($request->get('q')) {
