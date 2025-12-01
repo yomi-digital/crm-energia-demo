@@ -38,8 +38,8 @@
           <strong>Pratica AI ID:</strong> {{ aiPaperworkId }}
         </div>
 
-        <!-- Select per brand not-personal -->
-        <VSelect
+        <!-- Select per brand not-personal (ricercabile) -->
+        <AppAutocomplete
           v-model="selectedBrand"
           :items="brands"
           label="Seleziona Brand di Destinazione"
