@@ -10,6 +10,8 @@ const emit = defineEmits(['update:formData'])
 
 const formData = ref(props.formData)
 
+const hasAgentError = computed(() => !formData.value.id)
+
 watch(formData, () => {
   emit('update:formData', formData.value)
 })
@@ -45,6 +47,9 @@ watch(() => formData.value.id, () => {
           label="Agente"
           :items="agents"
           placeholder="Seleziona un agente"
+          :error="hasAgentError"
+          :error-messages="hasAgentError ? 'Seleziona un agente' : ''"
+          :rules="[v => !!v || 'Seleziona un agente']"
         />
       </VCol>
     </VRow>

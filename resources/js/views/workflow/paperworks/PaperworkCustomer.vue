@@ -10,6 +10,8 @@ const emit = defineEmits(['update:formData'])
 
 const formData = ref(props.formData)
 
+const hasCustomerError = computed(() => !formData.value.id)
+
 watch(formData, () => {
   emit('update:formData', formData.value)
 })
@@ -129,6 +131,9 @@ watch(() => formData.value.appointment_id, () => {
           item-title="title"
           item-value="value"
           clearable
+          :error="hasCustomerError"
+          :error-messages="hasCustomerError ? 'Seleziona un cliente' : ''"
+          :rules="[v => !!v || 'Seleziona un cliente']"
         />
         <div class="d-flex align-center gap-2 mt-2">
           <RouterLink

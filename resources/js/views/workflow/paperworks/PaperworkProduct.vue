@@ -21,6 +21,9 @@ const emit = defineEmits(['update:formData'])
 const formData = ref(props.formData)
 const selectedBrand = ref({})
 
+const hasBrandError = computed(() => !formData.value.brand_id)
+const hasProductError = computed(() => !formData.value.product_id)
+
 watch(formData, () => {
   emit('update:formData', formData.value)
 })
@@ -74,6 +77,9 @@ watch(() => formData.value.product_id, () => {
           item-title="name"
           item-value="id"
           placeholder="Seleziona un Brand"
+          :error="hasBrandError"
+          :error-messages="hasBrandError ? 'Seleziona un brand' : ''"
+          :rules="[v => !!v || 'Seleziona un brand']"
         />
       </VCol>
 
@@ -89,6 +95,9 @@ watch(() => formData.value.product_id, () => {
           item-value="id"
           :items="selectedBrand ? selectedBrand.products : []"
           placeholder="Seleziona un Prodotto"
+          :error="hasProductError"
+          :error-messages="hasProductError ? 'Seleziona un prodotto' : ''"
+          :rules="[v => !!v || 'Seleziona un prodotto']"
         />
       </VCol>
     </VRow>

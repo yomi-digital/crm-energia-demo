@@ -16,6 +16,11 @@ const isPodRequired = computed(() => {
   return formData.value.category !== 'ALLACCIO' && formData.value.energy_type !== 'MOBILE'
 })
 
+// Errori campi obbligatori step "Tipo Pratica"
+const hasContractTypeError = computed(() => !formData.value.category)
+const hasUserTypeError = computed(() => !formData.value.user_type)
+const hasEnergyTypeError = computed(() => !formData.value.energy_type)
+
 const paperworkTypes = [
   {
     icon: {
@@ -101,6 +106,9 @@ const contractTypesMobile = ref([
           label="Tipo Contratto"
           :items="formData.type === 'ENERGIA' ? contractTypes : contractTypesMobile"
           placeholder="Seleziona un tipo contratto"
+          :error="hasContractTypeError"
+          :error-messages="hasContractTypeError ? 'Seleziona un tipo contratto' : ''"
+          :rules="[v => !!v || 'Seleziona un tipo contratto']"
         />
       </VCol>
 
@@ -125,6 +133,9 @@ const contractTypesMobile = ref([
           label="Tipologia Pratica"
           :items="[{ title: 'Residenziale', value: 'RESIDENZIALE' }, { title: 'Business', value: 'BUSINESS' }]"
           placeholder="Seleziona un tipo"
+          :error="hasUserTypeError"
+          :error-messages="hasUserTypeError ? 'Seleziona la tipologia pratica' : ''"
+          :rules="[v => !!v || 'Seleziona la tipologia pratica']"
         />
       </VCol>
 
@@ -137,6 +148,9 @@ const contractTypesMobile = ref([
           label="Tipo Utenza"
           :items="selectableTypes()"
           placeholder="Seleziona un tipo di utenza"
+          :error="hasEnergyTypeError"
+          :error-messages="hasEnergyTypeError ? 'Seleziona il tipo di utenza' : ''"
+          :rules="[v => !!v || 'Seleziona il tipo di utenza']"
         />
       </VCol>
 
