@@ -105,6 +105,7 @@ const deleteBrand = async brand => {
   isRemoveDialogVisible.value = false
 
   fetchUserBrands()
+  fetchAllBrands()
 }
 
 const selectBrandForRemove = brand => {
@@ -119,7 +120,7 @@ const addBrand = async () => {
       brands: selectedBrandsAdd.value,
       pay_level: selectedBrandsAddPayLevel.value,
       race: selectedBrandsAddRace.value,
-      bonus: selectedBrandsAddBonus.value,
+      bonus: selectedBrandsAddBonus.value || 0,
     },
   })
   isAddDialogVisible.value = false
@@ -129,12 +130,13 @@ const addBrand = async () => {
   selectedBrandsAddBonus.value = null
 
   fetchUserBrands()
+  fetchAllBrands()
 }
 
 const allBrands = ref([])
 const fetchAllBrands = async () => {
   allBrands.value = []
-  const response = await $api('/brands?itemsPerPage=99999999&select=1&enabled=1')
+  const response = await $api(`/users/${route.params.id}/brands/available`)
   for (let i = 0; i < response.brands.length; i++) {
     allBrands.value.push({
       title: [response.brands[i].name, response.brands[i].type || 'N/A', response.brands[i].category || 'N/A'].join(' - '),
@@ -142,7 +144,14 @@ const fetchAllBrands = async () => {
     })
   }
 }
+
+// Prima popolazione della lista disponibili
 await fetchAllBrands()
+
+const openAddBrandDialog = async () => {
+  await fetchAllBrands()
+  isAddDialogVisible.value = true
+}
 
 const payLevels = [
   {
@@ -209,7 +218,9 @@ const updateBrandPayLevel = async (brand, payLevel) => {
             <!-- 👉 Add brand -->
             <VBtn
               prepend-icon="tabler-link"
-              @click="isAddDialogVisible = true"
+              @click="openAddBrandDialog"
+              :disabled="allBrands.length === 0"
+              :class="{ 'cursor-not-allowed': allBrands.length === 0 }"
               v-if="$can('edit', 'users')"
             >
               Abilita Brand
@@ -403,5 +414,9 @@ const updateBrandPayLevel = async (brand, payLevel) => {
   .invoice-list-search {
     inline-size: 12rem;
   }
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed !important;
 }
 </style>

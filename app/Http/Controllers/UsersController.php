@@ -248,6 +248,30 @@ class UsersController extends Controller
         ]);
     }
 
+    /**
+     * Restituisce i brand abilitati che l'utente NON ha ancora assegnati.
+     */
+    public function availableBrands(Request $request, $id)
+    {
+        $user = \App\Models\User::find($id);
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Brand già collegati all'utente
+        $userBrandIds = $user->brands()->pluck('brands.id');
+
+        // Solo brand enabled e non ancora assegnati all'utente
+        $brands = \App\Models\Brand::where('enabled', 1)
+            ->whereNotIn('id', $userBrandIds)
+            ->orderBy('name', 'asc')
+            ->select('id', 'name', 'type', 'category')
+            ->get();
+
+        return response()->json(['brands' => $brands]);
+    }
+
     public function addBrand(Request $request, $id)
     {
         $user = \App\Models\User::find($id);

@@ -129,6 +129,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::delete('users/{id}/relationships/{relatedId}', [UsersController::class, 'destroyRelationship']);
 
     Route::get('users/{id}/brands', [UsersController::class, 'brands']);
+    Route::get('users/{id}/brands/available', [UsersController::class, 'availableBrands']);
     Route::post('users/{id}/brands', [UsersController::class, 'addBrand']);
     Route::patch('users/{id}/brands/{brandId}', [UsersController::class, 'updateBrand']);
     Route::delete('users/{id}/brands/{brandId}', [UsersController::class, 'destroyBrand']);
