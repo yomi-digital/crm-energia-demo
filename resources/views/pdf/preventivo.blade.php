@@ -2524,11 +2524,14 @@
                         }
                     }
                     
-                    // Calcola totale offerta economica
-                    $totale_offerta = 0;
-                    if ($preventivo->dettagliProdotti) {
-                        foreach ($preventivo->dettagliProdotti as $dettaglioProdotto) {
-                            $totale_offerta += ($dettaglioProdotto->prezzo_unitario_salvato ?? 0) * ($dettaglioProdotto->quantita ?? 1);
+                    // Decodifica dati bonifico
+                    $bonificoData = [];
+                    if ($preventivo->bonifico_data_json) {
+                        $decoded = is_string($preventivo->bonifico_data_json) 
+                            ? json_decode($preventivo->bonifico_data_json, true) 
+                            : $preventivo->bonifico_data_json;
+                        if (is_array($decoded)) {
+                            $bonificoData = $decoded;
                         }
                     }
                     
@@ -2541,6 +2544,22 @@
                         if (is_array($decoded)) {
                             $finanziamentoData = $decoded;
                         }
+                    }
+                    
+                    // Calcola totale offerta economica
+                    // Formula: bonifico_data_json.amount + finanziamento_data_json.rate_import * number_of_rate
+                    $totale_offerta = 0;
+                    
+                    // Aggiungi importo bonifico se presente
+                    if (isset($bonificoData['amount'])) {
+                        $totale_offerta += floatval($bonificoData['amount']);
+                    }
+                    
+                    // Aggiungi importo finanziamento se presente
+                    if (isset($finanziamentoData['rate_import']) && isset($finanziamentoData['number_of_rate'])) {
+                        $rateImport = floatval($finanziamentoData['rate_import']);
+                        $numberOfRate = intval($finanziamentoData['number_of_rate']);
+                        $totale_offerta += $rateImport * $numberOfRate;
                     }
                     
                     // Calcolo rate basato su rate_import e number_of_rate
