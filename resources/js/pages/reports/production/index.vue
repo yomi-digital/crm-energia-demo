@@ -88,11 +88,6 @@ const headers = [
     key: 'notes',
     sortable: false,
   },
-  {
-    title: 'Note Alfacom',
-    key: 'alfacom_notes',
-    sortable: false,
-  },
 ]
 
 // Default to last 30 days
@@ -647,15 +642,6 @@ fetchAgencies()
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1" :title="item.notes || 'N/A'">
               {{ item.notes || 'N/A' }}
-            </div>
-          </div>
-        </template>
-
-        <!-- Alfacom Notes -->
-        <template #item.alfacom_notes="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1" :title="item.alfacom_notes || 'N/A'">
-              {{ item.alfacom_notes || 'N/A' }}
             </div>
           </div>
         </template>
