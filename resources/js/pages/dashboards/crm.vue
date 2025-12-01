@@ -13,6 +13,7 @@ definePage({
 const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
+const isAgent = loggedInUser?.roles?.some(role => role.name === 'agente')
 
 let quickLinks = [
   { name: 'Clienti', icon: 'tabler-users', to: '/workflow/customers' },
@@ -868,7 +869,10 @@ const handleSearch = () => {
     </VCard>
 
 
-    <VRow class="mt-6">
+    <VRow
+      v-if="!isAgent"
+      class="mt-6"
+    >
       <VCol cols="12">
         <VCard variant="outlined" class="pa-4">
           <VCardTitle class="text-h5 mb-4">
