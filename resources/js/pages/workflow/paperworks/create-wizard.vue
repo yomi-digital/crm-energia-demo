@@ -44,6 +44,11 @@ const createPaperworkSteps = [
     icon: 'tabler-file-text',
   },
   {
+    title: 'Carica Documenti',
+    subtitle: 'Carica eventuali documenti (opzionale)',
+    icon: 'tabler-file-upload',
+  },
+  {
     title: 'Crea Pratica',
     subtitle: 'Rivedi i dettagli e completa la pratica',
     icon: 'tabler-checkbox',
@@ -129,6 +134,11 @@ const validateMandateSelected = () => {
   isCurrentStepValid.value = true
 }
 
+const validateDocumentsStep = () => {
+  // Step opzionale: sempre valido, anche senza documenti
+  isCurrentStepValid.value = true
+}
+
 // Caricamento mandati
 const mandates = ref([])
 const isLoadingMandates = ref(false)
@@ -188,6 +198,7 @@ const createPaperworkData = ref({
     mandate_id: null,
     mandate_name: null,
   },
+  documents: [],
   paperworkReviewComplete: { notes: null, owner_notes: null, isPaperworkDetailsConfirmed: false },
 })
 
@@ -233,11 +244,49 @@ const goToNextStep = () => {
     validateProductSelected()
   } else if (currentStepTitle === 'Mandato') {
     validateMandateSelected()
+  } else if (currentStepTitle === 'Carica PDF') {
+    validateDocumentsStep()
   }
 
   if (isCurrentStepValid.value) {
     currentStep.value++
   }
+}
+
+// Gestione cumulativa dei documenti caricati nello step "Carica Documenti"
+const updateDocuments = files => {
+  const current = Array.isArray(createPaperworkData.value.documents) ? createPaperworkData.value.documents : []
+
+  if (!files || (Array.isArray(files) && files.length === 0)) {
+    createPaperworkData.value.documents = []
+    return
+  }
+
+  const incoming = Array.isArray(files) ? files : [files]
+
+  const isSameFile = (a, b) => a.name === b.name && a.size === b.size && a.lastModified === b.lastModified
+
+  // Caso rimozione: Vuetify passa l'array corrente meno qualche elemento
+  const isRemoval =
+    incoming.length <= current.length &&
+    incoming.every(f => current.some(c => isSameFile(f, c)))
+
+  if (isRemoval) {
+    createPaperworkData.value.documents = incoming
+    return
+  }
+
+  // Caso aggiunta: merge tra quelli già presenti e i nuovi
+  const merged = [...current]
+
+  incoming.forEach(file => {
+    const exists = merged.some(existing => isSameFile(existing, file))
+    if (!exists) {
+      merged.push(file)
+    }
+  })
+
+  createPaperworkData.value.documents = merged
 }
 
 const isCreating = ref(false)
@@ -250,6 +299,26 @@ const onSubmit = async () => {
       return false
     }
     isCreating.value = true
+
+    // Se sono stati caricati documenti nello step dedicato, effettuiamo ora l'upload su DO
+    const uploadedDocuments = []
+    if (createPaperworkData.value.documents && createPaperworkData.value.documents.length > 0) {
+      for (const file of createPaperworkData.value.documents) {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('scope', 'paperworks')
+
+        const uploadResponse = await $api('/uploads', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (uploadResponse?.path) {
+          uploadedDocuments.push({ path: uploadResponse.path })
+        }
+      }
+    }
+
     const response = await $api('/paperworks', {
       method: 'POST',
       body: {
@@ -267,6 +336,7 @@ const onSubmit = async () => {
         energy_type: createPaperworkData.value.paperworkType.energy_type,
         mobile_type: createPaperworkData.value.paperworkType.mobile_type,
         previous_provider: createPaperworkData.value.paperworkType.previous_provider,
+        documents: uploadedDocuments,
       }
     })
     isCreating.value = false
@@ -357,6 +427,35 @@ const onSubmit = async () => {
                       const selectedMandate = mandates.find(m => m.value === value)
                       createPaperworkData.mandate.mandate_name = selectedMandate ? selectedMandate.title : null
                     }"
+                  />
+                </VCol>
+              </VRow>
+            </VWindowItem>
+
+            <!-- Step Carica PDF (opzionale) -->
+            <VWindowItem>
+              <VRow>
+                <VCol cols="12">
+                  <h6 class="text-h6 mb-4">
+                    Carica documenti (opzionale)
+                  </h6>
+                  <p class="text-sm text-medium-emphasis mb-6">
+                    Puoi caricare uno o più file da associare alla pratica. Questo passaggio è facoltativo.
+                  </p>
+                </VCol>
+
+                <VCol cols="12">
+                  <VFileInput
+                    :model-value="createPaperworkData.documents"
+                    @update:model-value="updateDocuments"
+                    label="Documenti"
+                    accept=".pdf"
+                    multiple
+                    chips
+                    show-size
+                    clearable
+                    prepend-icon="tabler-file-upload"
+                    placeholder="Seleziona uno o più PDF"
                   />
                 </VCol>
               </VRow>

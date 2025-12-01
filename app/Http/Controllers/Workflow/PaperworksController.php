@@ -238,6 +238,21 @@ class PaperworksController extends Controller
 
         $paperwork->save();
 
+        // Salvataggio opzionale dei documenti collegati alla pratica
+        if ($request->filled('documents') && is_array($request->documents)) {
+            foreach ($request->documents as $document) {
+                if (empty($document['path'])) {
+                    continue;
+                }
+
+                $doc = new \App\Models\PaperworkDocument;
+                $doc->paperwork_id = $paperwork->id;
+                $doc->name = basename($document['path']);
+                $doc->url = $document['path'];
+                $doc->save();
+            }
+        }
+
         return response()->json($paperwork, 201);
     }
 
