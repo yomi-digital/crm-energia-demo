@@ -49,14 +49,14 @@
     <div class="content">
         <h2 class="title">{{ $communication->title }}</h2>
         
-        @if($communication->content)
+        @if($communication->body)
             <div>
-                {!! nl2br(e($communication->content)) !!}
+                {!! $communication->body !!}
             </div>
         @endif
 
         @if($communication->created_at)
-            <p><strong>Data:</strong> {{ $communication->created_at->format('d/m/Y H:i') }}</p>
+            <p><strong>Data:</strong> {{ $communication->created_at }}</p>
         @endif
     </div>
 

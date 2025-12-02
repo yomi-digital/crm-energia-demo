@@ -15,6 +15,11 @@ class Communication extends Model
         'body',
     ];
 
+    public function documents()
+    {
+        return $this->hasMany(CommunicationDocument::class);
+    }
+
     public function getCreatedAtAttribute($value)
     {
         return date(config('app.date_format'), strtotime($value));

@@ -7,7 +7,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Communication;
 
 class CommunicationEmail extends Mailable
@@ -51,6 +53,20 @@ class CommunicationEmail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        $attachments = [];
+
+        // Carica i documenti associati alla comunicazione
+        foreach ($this->communication->documents as $document) {
+            try {
+                // Crea l'allegato dal file su DigitalOcean Spaces
+                $attachments[] = Attachment::fromStorageDisk('do', $document->url)
+                    ->as($document->name);
+            } catch (\Exception $e) {
+                // Log dell'errore ma continua con gli altri allegati
+                \Log::error('Error attaching document to email: ' . $e->getMessage());
+            }
+        }
+
+        return $attachments;
     }
 }
