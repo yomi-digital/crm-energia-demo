@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue';
+import { useDebounceFn } from '@vueuse/core';
+import { ref, watch } from 'vue';
 
 const name = ref('')
 const lastName = ref('')
@@ -25,6 +26,114 @@ const zip = ref('')
 const refForm = ref()
 const isSaving = ref(false)
 const errorMessage = ref('')
+const duplicateWarning = ref('')
+const isDuplicateWarningVisible = ref(false)
+const emailError = ref('')
+const vatError = ref('')
+const taxIdError = ref('')
+const phoneError = ref('')
+const mobileError = ref('')
+const duplicateUsers = ref([])
+const isDuplicateModalVisible = ref(false)
+
+const normalizePhone = (p) => p ? p.replace(/\D/g, '') : ''
+
+const checkDuplicateCustomer = useDebounceFn(async () => {
+  // Reset errors
+  emailError.value = ''
+  vatError.value = ''
+  taxIdError.value = ''
+  phoneError.value = ''
+  mobileError.value = ''
+  duplicateUsers.value = []
+
+  // Gather data
+  const params = {}
+  
+  if (phone.value) params.telefono = phone.value
+  if (mobile.value) params.telefono = mobile.value
+  if (email.value) params.email = email.value
+  if (vatNumber.value) params.vat_number = vatNumber.value
+  if (taxIdCode.value) params.tax_id_code = taxIdCode.value
+
+  const hasData = Object.keys(params).length > 0
+  if (!hasData) return
+console.log(params)
+if(params.mobile) {
+  params.telefono = params.mobile
+  delete params.mobile
+}
+  try {
+    const response = await $api('/customers-search-by-phone-email-tax-iva', {
+      method: 'GET',
+      params: params
+    })
+
+    let foundUsers = []
+    if (response && response.users && Array.isArray(response.users)) {
+        foundUsers = response.users
+    } else if (Array.isArray(response)) {
+        foundUsers = response
+    } else if (response && response.data && Array.isArray(response.data)) {
+        foundUsers = response.data
+    } else if (response && response.customers && Array.isArray(response.customers)) {
+        foundUsers = response.customers
+    }
+
+    if (foundUsers.length > 0) {
+        duplicateUsers.value = foundUsers
+        for (const user of foundUsers) {
+            if (email.value && user.email && user.email.toLowerCase() === email.value.toLowerCase()) {
+                emailError.value = 'Questa email è già registrata per un altro cliente'
+            }
+            if (vatNumber.value && user.vat_number && user.vat_number === vatNumber.value) {
+                vatError.value = 'Questa Partita IVA è già registrata per un altro cliente'
+            }
+            if (taxIdCode.value && user.tax_id_code && user.tax_id_code.toUpperCase() === taxIdCode.value.toUpperCase()) {
+                taxIdError.value = 'Questo Codice Fiscale è già registrato per un altro cliente'
+            }
+            
+            // Check phones with normalization
+            const pVal = normalizePhone(phone.value)
+            const uPhone = normalizePhone(user.phone)
+            // Check if valid length to avoid matching short fragments
+            if (pVal && uPhone && pVal.length > 5 && uPhone.length > 5 && (uPhone.includes(pVal) || pVal.includes(uPhone))) {
+                 phoneError.value = 'Questo numero di telefono è già registrato'
+            }
+            
+            const mVal = normalizePhone(mobile.value)
+            const uMobile = normalizePhone(user.mobile)
+            if (mVal && uMobile && mVal.length > 5 && uMobile.length > 5 && (uMobile.includes(mVal) || mVal.includes(uMobile))) {
+                 mobileError.value = 'Questo numero di cellulare è già registrato'
+            }
+        }
+    }
+
+  } catch (error) {
+    console.error('Error checking duplicate customer:', error)
+  }
+}, 800)
+
+const openDuplicateModal = () => {
+    isDuplicateModalVisible.value = true
+}
+
+
+// Watchers
+watch(email, () => checkDuplicateCustomer())
+watch(vatNumber, () => checkDuplicateCustomer())
+watch(taxIdCode, () => checkDuplicateCustomer())
+watch(phone, () => checkDuplicateCustomer())
+watch(mobile, () => checkDuplicateCustomer())
+// Phone is also in the API params, so we should probably watch it too if we want to use this API for phone as well,
+// but phone has its own component. The user said "usando questa api ... controlli ... se esiste".
+// If I watch phone here, it might duplicate the check or show two warnings.
+// The user said "popup uguale a quello che gia esce al telefono". 
+// If the phone component already shows a warning, maybe I shouldn't duplicate it for phone.
+// But the user listed `telefono` in the API params.
+// I'll include phone in the params but trigger primarily on others, OR trigger on phone too but be careful about UI.
+// Since `CustomerTelPhoneInput` is already used, I'll stick to watching email, vat, taxId.
+// But I will include `phone.value` in the API call if available, to make the check more robust (e.g. combo check).
 
 const emit = defineEmits([
   'customerData',
@@ -357,6 +466,9 @@ const filteredProvinces = computed(() => {
           label="Codice Fiscale"
           placeholder="ABCDEF12G34H567I"
           :rules="[requiredValidator]"
+          :custom-error="taxIdError"
+          :show-error-details="!!taxIdError"
+          @click:errorDetails="openDuplicateModal"
           @input="taxIdCode = taxIdCode.toUpperCase()"
         />
       </VCol>
@@ -372,6 +484,9 @@ const filteredProvinces = computed(() => {
           label="Partita IVA"
           placeholder="12345678901"
           :rules="[requiredValidator]"
+          :custom-error="vatError"
+          :show-error-details="!!vatError"
+          @click:errorDetails="openDuplicateModal"
         />
       </VCol>
 
@@ -421,8 +536,11 @@ const filteredProvinces = computed(() => {
           label="Telefono"
           placeholder="Telefono fisso"
           name="phone"
+          :custom-error="phoneError"
+          :show-error-details="!!phoneError"
           @onCheckUpdate="handlePhoneCheckUpdate"
           @onValue="handlePhoneValue"
+          @click:errorDetails="openDuplicateModal"
         />
       </VCol>
 
@@ -438,8 +556,11 @@ const filteredProvinces = computed(() => {
           placeholder="Cellulare"
           name="mobile"
           required
+          :custom-error="mobileError"
+          :show-error-details="!!mobileError"
           @onCheckUpdate="handleMobileCheckUpdate"
           @onValue="handleMobileValue"
+          @click:errorDetails="openDuplicateModal"
         />
       </VCol>
 
@@ -453,6 +574,9 @@ const filteredProvinces = computed(() => {
           label="Email"
           placeholder="mail@mail.com"
           :rules="[requiredValidator]"
+          :custom-error="emailError"
+          :show-error-details="!!emailError"
+          @click:errorDetails="openDuplicateModal"
         />
       </VCol>
 
@@ -583,5 +707,61 @@ const filteredProvinces = computed(() => {
         </VBtn>
       </VCol>
     </VRow>
+    
+    <VDialog
+      v-model="isDuplicateModalVisible"
+      max-width="800"
+    >
+      <VCard>
+        <VCardTitle class="pa-4 d-flex align-center justify-space-between">
+          <span class="text-h5">Clienti trovati</span>
+          <VBtn
+            icon
+            variant="text"
+            color="default"
+            @click="isDuplicateModalVisible = false"
+          >
+            <VIcon icon="tabler-x" />
+          </VBtn>
+        </VCardTitle>
+        
+        <VDivider />
+        
+        <VCardText class="pa-4">
+          <p class="mb-4">Sono stati trovati i seguenti clienti con dati simili:</p>
+          
+          <VTable>
+            <thead>
+              <tr>
+                <th class="text-left">Nominativo</th>
+                <th class="text-left">Email</th>
+                <th class="text-left">Telefono</th>
+                <th class="text-left">Cellulare</th>
+                <th class="text-left">CF / P.IVA</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in duplicateUsers" :key="user.id">
+                <td>{{ user.business_name || (user.name + ' ' + user.last_name) }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone }}</td>
+                <td>{{ user.mobile }}</td>
+                <td>{{ user.vat_number || user.tax_id_code }}</td>
+              </tr>
+            </tbody>
+          </VTable>
+        </VCardText>
+        
+        <VCardActions class="pa-4 justify-end">
+          <VBtn
+            variant="tonal"
+            color="secondary"
+            @click="isDuplicateModalVisible = false"
+          >
+            Chiudi
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </VForm>
 </template>
