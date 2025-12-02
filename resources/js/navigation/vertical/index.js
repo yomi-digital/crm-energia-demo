@@ -5,6 +5,7 @@ import extra from './extra'
 import general from './general'
 import lead from './lead'
 import reports from './reports'
+import solar from './solar'
 import workflow from './workflow'
 // import marketing from './marketing'
 
@@ -19,6 +20,7 @@ export default [
     ...business,
     ...lead,
     ...extra,
+    ...solar,
     // ...marketing,
     // ...dashboard,
 ]
