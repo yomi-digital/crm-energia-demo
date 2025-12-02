@@ -196,6 +196,8 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('communications', [CommunicationsController::class, 'index']);
     Route::post('communications', [CommunicationsController::class, 'store']);
     Route::get('communications/{id}', [CommunicationsController::class, 'show']);
+    Route::get('communications/{id}/documents/{documentId}/download', [CommunicationsController::class, 'downloadDocument']);
+    Route::get('communications/{id}/documents/download-all', [CommunicationsController::class, 'downloadAllDocuments']);
     Route::put('communications/{id}', [CommunicationsController::class, 'update']);
 
     Route::get('statements', [StatementsController::class, 'index']);

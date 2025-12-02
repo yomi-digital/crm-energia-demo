@@ -107,13 +107,88 @@ class CommunicationsController extends Controller
 
     public function show(Request $request, $id)
     {
-        $communication = \App\Models\Communication::findOrFail($id);
+        $communication = \App\Models\Communication::with('documents')->findOrFail($id);
 
         if (!$communication) {
             return response()->json(['error' => 'Communication not found'], 404);
         }
 
         return response()->json($communication);
+    }
+
+    public function downloadDocument(Request $request, $id, $documentId)
+    {
+        $communication = \App\Models\Communication::find($id);
+
+        if (!$communication) {
+            return response()->json(['error' => 'Communication not found'], 404);
+        }
+
+        $document = \App\Models\CommunicationDocument::find($documentId);
+
+        if (!$document) {
+            return response()->json(['error' => 'Document not found'], 404);
+        }
+
+        // Verifica che il documento appartenga alla comunicazione
+        if ($document->communication_id != $communication->id) {
+            return response()->json(['error' => 'Document does not belong to this communication'], 403);
+        }
+
+        // Genera URL temporaneo valido per 24 ore
+        $expirationMinutes = 60 * 24; // 24 ore
+        $temporaryUrl = \Storage::disk('do')->temporaryUrl(
+            $document->url,
+            now()->addMinutes($expirationMinutes)
+        );
+
+        return response()->json([
+            'downloadUrl' => $temporaryUrl,
+            'fileName' => $document->name,
+            'expiresAt' => now()->addMinutes($expirationMinutes)->toIso8601String(),
+            'expiresInMinutes' => $expirationMinutes,
+        ]);
+    }
+
+    public function downloadAllDocuments(Request $request, $id)
+    {
+        $communication = \App\Models\Communication::with('documents')->find($id);
+
+        if (!$communication) {
+            return response()->json(['error' => 'Communication not found'], 404);
+        }
+
+        if ($communication->documents->count() === 0) {
+            return response()->json(['error' => 'No documents found for this communication'], 404);
+        }
+
+        // Genera URL temporanei per tutti i documenti (validi 24 ore)
+        $expirationMinutes = 60 * 24; // 24 ore
+        $documents = [];
+
+        foreach ($communication->documents as $document) {
+            try {
+                $temporaryUrl = \Storage::disk('do')->temporaryUrl(
+                    $document->url,
+                    now()->addMinutes($expirationMinutes)
+                );
+
+                $documents[] = [
+                    'id' => $document->id,
+                    'name' => $document->name,
+                    'downloadUrl' => $temporaryUrl,
+                ];
+            } catch (\Exception $e) {
+                \Log::error('Error generating temporary URL for document: ' . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'documents' => $documents,
+            'count' => count($documents),
+            'expiresAt' => now()->addMinutes($expirationMinutes)->toIso8601String(),
+            'expiresInMinutes' => $expirationMinutes,
+        ]);
     }
 
     public function update(Request $request, $id)
