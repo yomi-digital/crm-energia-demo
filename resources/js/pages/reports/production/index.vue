@@ -18,7 +18,7 @@ const sortBy = ref()
 const orderBy = ref()
 
 const selectedArea = ref('')
-const selectedBrand = ref('')
+const selectedBrand = ref([])
 const selectedProduct = ref('')
 const selectedAgent = ref('')
 const selectedAgency = ref('')
@@ -107,6 +107,13 @@ watch(dateRange, (newRange) => {
   }
 }, { deep: true })
 
+// Computed per concatenare i brand IDs
+const brandIdsParam = computed(() => {
+  return Array.isArray(selectedBrand.value) && selectedBrand.value.length > 0 
+    ? selectedBrand.value.join('-') 
+    : ''
+})
+
 const {
   data: reportData,
   execute: fetchReport,
@@ -120,7 +127,7 @@ const {
     from: fromDate,
     to: toDate,
     area: selectedArea,
-    brand_id: selectedBrand,
+    brand_id: brandIdsParam,
     product_id: selectedProduct,
     agent_id: selectedAgent,
     agency_id: selectedAgency,
@@ -132,6 +139,10 @@ const {
 
 const exportReport = async () => {
   try {
+    const brandIds = Array.isArray(selectedBrand.value) && selectedBrand.value.length > 0 
+      ? selectedBrand.value.join('-') 
+      : ''
+    
     const data = await $api(`/reports/production`, {
       method: 'GET',
       query: {
@@ -144,7 +155,7 @@ const exportReport = async () => {
         to: toDate.value,
         export: 'csv',
         area: selectedArea.value,
-        brand_id: selectedBrand.value,
+        brand_id: brandIds,
         product_id: selectedProduct.value,
         agent_id: selectedAgent.value,
         agency_id: selectedAgency.value,
@@ -193,12 +204,7 @@ const products = ref([
   },
 ])
 
-const brands = ref([
-  {
-    title: 'Tutti',
-    value: '',
-  },
-])
+const brands = ref([])
 
 const agents = ref([
   {
@@ -412,9 +418,27 @@ fetchAgencies()
               v-model="selectedBrand"
               label="Filtra per Brand"
               clearable
+              multiple
+              chips
+              closable-chips
               :items="brands"
-              placeholder="Seleziona una Brand"
-            />
+
+            >
+              <template #selection="{ item, index }">
+                <VChip v-if="index < 2">
+                  <span>{{ item.title }}</span>
+                </VChip>
+                <span
+                  v-if="index === 2"
+                  class="text-grey text-caption align-self-center"
+                >
+                  (+{{ selectedBrand.length - 2 }} altri)
+                </span>
+              </template>
+              <template #prepend-inner>
+                <span v-if="selectedBrand.length === 0" class="text-high-emphasis">Tutti</span>
+              </template>
+            </AppAutocomplete>
           </VCol>
 
           <VCol cols="3">

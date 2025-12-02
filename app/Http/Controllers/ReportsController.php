@@ -294,9 +294,15 @@ class ReportsController extends Controller
         $user = null;
 
         if ($request->filled('brand_id')) {
-            $paperworks = $paperworks->whereHas('product', function ($query) use ($request) {
-                $query->where('brand_id', $request->get('brand_id'));
-            });
+            // Split brand IDs by "-" delimiter
+            $brandIds = explode('-', $request->input('brand_id'));
+            $brandIds = array_filter($brandIds); // Remove empty values
+            
+            if (!empty($brandIds)) {
+                $paperworks = $paperworks->whereHas('product', function ($query) use ($brandIds) {
+                    $query->whereIn('brand_id', $brandIds);
+                });
+            }
         }
 
         if ($request->filled('product_id')) {
