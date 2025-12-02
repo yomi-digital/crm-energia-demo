@@ -188,7 +188,7 @@ class CustomersController extends Controller
                 'province' => 'required|string',
                 'region' => 'required|string',
                 'tax_id_code' => 'required_if:category,Residenziale|string',
-                'zip' => 'required|string',
+                'zip' => 'nullable|string',
             ], [
                 'address.required' => 'L\'indirizzo è obbligatorio.',
                 'city.required' => 'La città è obbligatoria.',
@@ -201,7 +201,6 @@ class CustomersController extends Controller
                 'province.required' => 'La provincia è obbligatoria.',
                 'region.required' => 'La regione è obbligatoria.',
                 'tax_id_code.required_if' => 'Il codice fiscale è obbligatorio per i clienti residenziali.',
-                'zip.required' => 'Il CAP è obbligatorio.',
             ]);
         }
 
@@ -209,7 +208,7 @@ class CustomersController extends Controller
         if($category === 'Business') {
             $request->validate([
                 'address' => 'required|string',
-                'ateco_code' => 'required|string',
+                'ateco_code' => 'nullable|string',
                 'business_name' => 'required|string',
                 'category' => 'required|in:Business',
                 'city' => 'required|string',
@@ -222,10 +221,9 @@ class CustomersController extends Controller
                 'region' => 'required|string',
                 'unique_code' => 'nullable|string',
                 'vat_number' => 'required|string',
-                'zip' => 'required|string',
+                'zip' => 'nullable|string',
             ], [
                 'address.required' => 'L\'indirizzo è obbligatorio.',
-                'ateco_code.required' => 'Il codice ATECO è obbligatorio.',
                 'business_name.required' => 'La ragione sociale è obbligatoria.',
                 'city.required' => 'La città è obbligatoria.',
                 'email.required' => 'L\'email è obbligatoria.',
@@ -235,7 +233,6 @@ class CustomersController extends Controller
                 'province.required' => 'La provincia è obbligatoria.',
                 'region.required' => 'La regione è obbligatoria.',
                 'vat_number.required' => 'La partita IVA è obbligatoria.',
-                'zip.required' => 'Il CAP è obbligatorio.',
             ]);
         }
 
@@ -259,7 +256,7 @@ class CustomersController extends Controller
                 'tax_id_code' => 'required|string',
                 'unique_code' => 'nullable|string',
                 'vat_number' => 'required|string',
-                'zip' => 'required|string',
+                'zip' => 'nullable|string',
             ], [
                 'address.required' => 'L\'indirizzo è obbligatorio.',
                 'business_name.required' => 'La ragione sociale è obbligatoria.',
@@ -274,7 +271,6 @@ class CustomersController extends Controller
                 'region.required' => 'La regione è obbligatoria.',
                 'tax_id_code.required' => 'Il codice fiscale è obbligatorio.',
                 'vat_number.required' => 'La partita IVA è obbligatoria.',
-                'zip.required' => 'Il CAP è obbligatorio.',
             ]);
         }
 
