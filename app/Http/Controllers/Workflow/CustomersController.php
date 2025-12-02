@@ -294,55 +294,6 @@ class CustomersController extends Controller
                 $errors['tax_id_code'] = 'Questo codice fiscale è già associato a un altro cliente';
             }
         }
-
-        //Validazione dei dati in ingresso ()
-        
-        // Controllo telefono fisso
-        if ($request->filled('phone')) {
-            $phoneNumber = $request->phone;
-            
-            // Controllo se il numero esiste già come telefono fisso
-            $existingPhone = \App\Models\Customer::where('phone', $phoneNumber)
-                ->whereNull('deleted_at')
-                ->first();
-                
-            if ($existingPhone) {
-                $errors['phone'] = 'Questo telefono fisso è già associato a un altro cliente';
-            }
-            
-            // Controllo incrociato: se il numero esiste già come cellulare
-            $existingMobile = \App\Models\Customer::where('mobile', $phoneNumber)
-                ->whereNull('deleted_at')
-                ->first();
-                
-            if ($existingMobile) {
-                $errors['phone'] = 'Questo numero è già registrato come cellulare di un altro cliente';
-            }
-        }
-        
-        // Controllo cellulare
-        if ($request->filled('mobile')) {
-            $mobileNumber = $request->mobile;
-            
-            // Controllo se il numero esiste già come cellulare
-            $existingMobile = \App\Models\Customer::where('mobile', $mobileNumber)
-                ->whereNull('deleted_at')
-                ->first();
-                
-            if ($existingMobile) {
-                $errors['mobile'] = 'Questo cellulare è già associato a un altro cliente';
-            }
-            
-            // Controllo incrociato: se il numero esiste già come telefono fisso
-            $existingPhone = \App\Models\Customer::where('phone', $mobileNumber)
-                ->whereNull('deleted_at')
-                ->first();
-                
-            if ($existingPhone) {
-                $errors['mobile'] = 'Questo numero è già registrato come telefono fisso di un altro cliente';
-            }
-        }
-        
         
         // Se ci sono errori, restituisci errore 422
         if (!empty($errors)) {
@@ -350,8 +301,6 @@ class CustomersController extends Controller
             $message = 'I dati forniti non sono validi.';
             if (isset($errors['tax_id_code'])) {
                 $message = 'Codice fiscale già esistente';
-            } elseif (isset($errors['phone']) || isset($errors['mobile'])) {
-                $message = 'Numero di telefono già esistente';
             }
             
             return response()->json([
@@ -402,56 +351,6 @@ class CustomersController extends Controller
                 $errors['tax_id_code'] = 'Questo codice fiscale è già associato a un altro cliente';
             }
         }
-        
-        // Controllo telefono fisso
-        if ($request->filled('phone')) {
-            $phoneNumber = $request->phone;
-            
-            // Controllo se il numero esiste già come telefono fisso in altri clienti
-            $existingPhone = \App\Models\Customer::where('phone', $phoneNumber)
-                ->where('id', '!=', $id)
-                ->whereNull('deleted_at')
-                ->first();
-                
-            if ($existingPhone) {
-                $errors['phone'] = 'Questo telefono fisso è già associato a un altro cliente';
-            }
-            
-            // Controllo incrociato: se il numero esiste già come cellulare in altri clienti
-            $existingMobile = \App\Models\Customer::where('mobile', $phoneNumber)
-                ->where('id', '!=', $id)
-                ->whereNull('deleted_at')
-                ->first();
-                
-            if ($existingMobile) {
-                $errors['phone'] = 'Questo numero è già registrato come cellulare di un altro cliente';
-            }
-        }
-        
-        // Controllo cellulare
-        if ($request->filled('mobile')) {
-            $mobileNumber = $request->mobile;
-            
-            // Controllo se il numero esiste già come cellulare in altri clienti
-            $existingMobile = \App\Models\Customer::where('mobile', $mobileNumber)
-                ->where('id', '!=', $id)
-                ->whereNull('deleted_at')
-                ->first();
-                
-            if ($existingMobile) {
-                $errors['mobile'] = 'Questo cellulare è già associato a un altro cliente';
-            }
-            
-            // Controllo incrociato: se il numero esiste già come telefono fisso in altri clienti
-            $existingPhone = \App\Models\Customer::where('phone', $mobileNumber)
-                ->where('id', '!=', $id)
-                ->whereNull('deleted_at')
-                ->first();
-                
-            if ($existingPhone) {
-                $errors['mobile'] = 'Questo numero è già registrato come telefono fisso di un altro cliente';
-            }
-        }
 
         
         // Se ci sono errori, restituisci errore 422
@@ -460,8 +359,6 @@ class CustomersController extends Controller
             $message = 'I dati forniti non sono validi.';
             if (isset($errors['tax_id_code'])) {
                 $message = 'Impossibile aggiornare il cliente: codice fiscale già esistente.';
-            } elseif (isset($errors['phone']) || isset($errors['mobile'])) {
-                $message = 'Impossibile aggiornare il cliente: numero di telefono già esistente.';
             }
             
             return response()->json([
