@@ -96,6 +96,54 @@ class CustomersController extends Controller
         ]);
     }
 
+    /**
+     * Ricerca clienti per email e/o telefono
+     */
+    public function searchByPhoneOrEmail(Request $request)
+    {
+        $email = $request->get('email');
+        $telefono = $request->get('telefono');
+
+        // Almeno un parametro deve essere fornito
+        if (!$email && !$telefono) {
+            return response()->json([
+                'error' => 'Specificare almeno un parametro di ricerca (email o telefono)',
+                'users' => []
+            ], 400);
+        }
+
+        $customers = \App\Models\Customer::query();
+
+        // Costruisci la query con i filtri
+        $customers->where(function ($query) use ($email, $telefono) {
+            $conditions = false;
+
+            if ($email) {
+                $query->where('email', 'like', "%{$email}%");
+                $conditions = true;
+            }
+
+            if ($telefono) {
+                if ($conditions) {
+                    $query->orWhere(function ($subQuery) use ($telefono) {
+                        $subQuery->where('phone', 'like', "%{$telefono}%")
+                                 ->orWhere('mobile', 'like', "%{$telefono}%");
+                    });
+                } else {
+                    $query->where('phone', 'like', "%{$telefono}%")
+                          ->orWhere('mobile', 'like', "%{$telefono}%");
+                }
+            }
+        });
+
+        $results = $customers->get();
+
+        return response()->json([
+            'users' => $results,
+            'count' => $results->count()
+        ]);
+    }
+
     public function show(Request $request, $id)
     {
         $customer = \App\Models\Customer::with(['addedByUser', 'confirmedByUser'])->whereId($id);
