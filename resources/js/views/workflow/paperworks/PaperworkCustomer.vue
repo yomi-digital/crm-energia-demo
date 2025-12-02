@@ -1,4 +1,6 @@
 <script setup>
+import FormCreate from '@/views/workflow/customers/FormCreate.vue'
+
 const props = defineProps({
   formData: {
     type: null,
@@ -19,6 +21,32 @@ watch(formData, () => {
 const customers = ref([])
 const search = ref()
 const loading = ref(false)
+
+const isModalOpen = ref(false)
+
+const openModal = () => {
+  isModalOpen.value = true
+}
+
+const closeModal = () => {
+  isModalOpen.value = false
+}
+
+const handleCustomerCreated = async (customerData) => {
+  if (!customerData || !customerData.id) {
+    return
+  }
+
+  try {
+    await fetchCustomers('', customerData.id)
+    
+    if (customers.value.length > 0) {
+      formData.value.id = customers.value[0]
+    }
+  } finally {
+    closeModal()
+  }
+}
 
 const getCustomerName = (customer) => {
   let name = ''
@@ -136,14 +164,39 @@ watch(() => formData.value.appointment_id, () => {
           :rules="[v => !!v || 'Seleziona un cliente']"
         />
         <div class="d-flex align-center gap-2 mt-2">
-          <RouterLink
-            :to="{ name: 'workflow-customers-create' }"
-            class="text-sm"
+          <a
+            href="#"
+            @click.prevent="openModal"
+            class="text-sm d-flex align-center gap-1"
             title="Crea nuovo cliente"
           >
-            Crea nuovo cliente <VIcon icon="tabler-external-link" size="small" />
-          </RouterLink>
+            Crea nuovo cliente <VIcon icon="tabler-plus" size="small" />
+          </a>
         </div>
+
+        <!-- Modal per creare un nuovo cliente -->
+        <VDialog
+          v-model="isModalOpen"
+          max-width="900px"
+        >
+          <VCard>
+            <VCardTitle class="d-flex justify-space-between align-center">
+              <span class="text-h5">Crea Nuovo Cliente</span>
+              <VBtn
+                icon
+                variant="text"
+                color="primary"
+                @click="closeModal"
+              >
+                <VIcon color="#000000" icon="tabler-x" />
+              </VBtn>
+            </VCardTitle>
+
+            <VCardText>
+              <FormCreate @customerData="handleCustomerCreated" />
+            </VCardText>
+          </VCard>
+        </VDialog>
       </VCol>
 
       <VCol

@@ -16,6 +16,9 @@ const route = useRoute('workflow-paperworks-create-wizard')
 
 const isPaperworkCreated = ref(false)
 const isPaperworkCreatedDialogVisible = ref(false)
+const isSnackbarVisible = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('success')
 
 const createPaperworkSteps = [
   {
@@ -339,7 +342,6 @@ const onSubmit = async () => {
         documents: uploadedDocuments,
       }
     })
-    isCreating.value = false
 
     isPaperworkCreated.value = true
     isPaperworkCreatedDialogVisible.value = true
@@ -349,7 +351,11 @@ const onSubmit = async () => {
       router.push({ name: 'workflow-paperworks-id', params: { id: response.id } })
     }, 5000)
   } catch (error) {
-    alert(error.message || 'Errore durante la creazione della pratica')
+    snackbarMessage.value = error.message || 'Errore durante la creazione della pratica'
+    snackbarColor.value = 'error'
+    isSnackbarVisible.value = true
+  } finally {
+    isCreating.value = false
   }
 }
 </script>
@@ -484,6 +490,7 @@ const onSubmit = async () => {
             <VBtn
               v-if="createPaperworkSteps.length - 1 === currentStep"
               :disabled="isCreating || !createPaperworkData.paperworkReviewComplete.isPaperworkDetailsConfirmed"
+              :loading="isCreating"
               color="success"
               @click="onSubmit"
             >
@@ -519,10 +526,19 @@ const onSubmit = async () => {
             size="60"
           />
           <h6 class="text-lg font-weight-medium">
-            La pratica è stata creata con successo.
+            La pratica è stata creata con successo. Verrai reindirizzato alla pratica al piu presto.
           </h6>
         </VCardText>
       </VCard>
     </VDialog>
+
+    <VSnackbar
+      v-model="isSnackbarVisible"
+      :color="snackbarColor"
+      location="top end"
+      variant="flat"
+    >
+      {{ snackbarMessage }}
+    </VSnackbar>
   </VCard>
 </template>
