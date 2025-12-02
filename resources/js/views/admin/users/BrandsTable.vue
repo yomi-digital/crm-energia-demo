@@ -362,6 +362,7 @@ const updateBrandPayLevel = async (brand, payLevel) => {
               <AppAutocomplete
                 v-model="selectedBrandsAdd"
                 label="Brand"
+                
                 :items="allBrands"
                 clearable
                 multiple
@@ -419,4 +420,9 @@ const updateBrandPayLevel = async (brand, payLevel) => {
 .cursor-not-allowed {
   cursor: not-allowed !important;
 }
+
+.v-autocomplete__content.app-autocomplete__content {
+  max-height: 150px !important;
+}
 </style>
+ 
