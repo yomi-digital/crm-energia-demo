@@ -97,17 +97,19 @@ class CustomersController extends Controller
     }
 
     /**
-     * Ricerca clienti per email e/o telefono
+     * Ricerca clienti per email, telefono, codice fiscale e/o partita IVA
      */
-    public function searchByPhoneOrEmail(Request $request)
+    public function searchByPhoneEmailTaxIva(Request $request)
     {
         $email = $request->get('email');
         $telefono = $request->get('telefono');
+        $taxIdCode = $request->get('tax_id_code');
+        $vatNumber = $request->get('vat_number');
 
         // Almeno un parametro deve essere fornito
-        if (!$email && !$telefono) {
+        if (!$email && !$telefono && !$taxIdCode && !$vatNumber) {
             return response()->json([
-                'error' => 'Specificare almeno un parametro di ricerca (email o telefono)',
+                'error' => 'Specificare almeno un parametro di ricerca (email, telefono, tax_id_code o vat_number)',
                 'users' => []
             ], 400);
         }
@@ -115,7 +117,7 @@ class CustomersController extends Controller
         $customers = \App\Models\Customer::query();
 
         // Costruisci la query con i filtri
-        $customers->where(function ($query) use ($email, $telefono) {
+        $customers->where(function ($query) use ($email, $telefono, $taxIdCode, $vatNumber) {
             $conditions = false;
 
             if ($email) {
@@ -132,6 +134,24 @@ class CustomersController extends Controller
                 } else {
                     $query->where('phone', 'like', "%{$telefono}%")
                           ->orWhere('mobile', 'like', "%{$telefono}%");
+                    $conditions = true;
+                }
+            }
+
+            if ($taxIdCode) {
+                if ($conditions) {
+                    $query->orWhere('tax_id_code', 'like', "%{$taxIdCode}%");
+                } else {
+                    $query->where('tax_id_code', 'like', "%{$taxIdCode}%");
+                    $conditions = true;
+                }
+            }
+
+            if ($vatNumber) {
+                if ($conditions) {
+                    $query->orWhere('vat_number', 'like', "%{$vatNumber}%");
+                } else {
+                    $query->where('vat_number', 'like', "%{$vatNumber}%");
                 }
             }
         });

@@ -141,7 +141,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('structures', [UsersController::class, 'structures']);
 
     Route::get('customers', [CustomersController::class, 'index']);
-    Route::get('customers-search-by-phone-or-email', [CustomersController::class, 'searchByPhoneOrEmail']);
+    Route::get('customers-search-by-phone-email-tax-iva', [CustomersController::class, 'searchByPhoneEmailTaxIva']);
     Route::get('customers-export', [CustomersController::class, 'export']);
     Route::get('customers/{id}', [CustomersController::class, 'show']);
     Route::post('customers', [CustomersController::class, 'store']);
