@@ -11,7 +11,7 @@ class CommunicationsController extends Controller
     {
         $perPage = $request->get('itemsPerPage', 10);
 
-        $communications = new \App\Models\Communication();
+        $communications = \App\Models\Communication::with('documents');
 
         if ($request->get('sortBy')) {
             $communications = $communications->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
