@@ -12,12 +12,29 @@
       :arrow="arrow"
       :list-height="listHeight"
       :has-error="!!errorMessage"
-      :error-message="errorMessage"
+      :error-message="null"
       :disabled="readonly"
       @phone="handlePhoneChange"
       @country="handleCountryChange"
       @phoneData="handlePhoneData"
     />
+    
+    <div v-if="displayError" class="custom-error-message d-flex align-center justify-space-between mt-1">
+      <div class="d-flex align-center">
+        <VIcon icon="tabler-alert-circle" size="18" class="me-2" />
+        <span>{{ displayError }}</span>
+      </div>
+      <VBtn 
+        v-if="props.showErrorDetails" 
+        size="x-small" 
+        variant="text" 
+        color="error" 
+        @click="$emit('click:errorDetails')"
+        style="height: 24px; padding: 0 8px;"
+      >
+        Dettagli
+      </VBtn>
+    </div>
   </div>
 </template>
 
@@ -37,14 +54,19 @@ const props = defineProps({
   listHeight: {type: Number,default: 150},
   allowed: {type: Array, default: () => []},
   customerId: {type: [String, Number],default: null},
-  readonly: {type: Boolean,default: false}
+  readonly: {type: Boolean,default: false},
+  customError: {type: String,default: ''},
+  showErrorDetails: {type: Boolean,default: false}
 })
 
-const emit = defineEmits(['update:modelValue', 'onCheckUpdate', 'onValue'])
+const emit = defineEmits(['update:modelValue', 'onCheckUpdate', 'onValue', 'click:errorDetails'])
 
 // Stato interno
 const phoneNumber = ref('')
-const errorMessage = ref('')
+const internalErrorMessage = ref('')
+
+// Computed per l'errore da mostrare (priorità a customError esterno, poi errore interno)
+const displayError = computed(() => props.customError || internalErrorMessage.value)
 
 // Computed value per la libreria (rimuove il + dal numero)
 const formattedValueForLibrary = computed(() => {
@@ -72,35 +94,57 @@ let debounceTimer = null
 
 // Funzione per controllare la disponibilità del numero
 const checkAvailability = async (number) => {
-  if (!number || number.length < 10) {
-    errorMessage.value = ''
+  if (!number || number.length < 6) {
+    internalErrorMessage.value = ''
     emit('onCheckUpdate', { available: true, message: '' })
     return
   }
 
   try {
-    const url = `/customers/mobile/${props.type}/check/${encodeURIComponent(number)}`
     const params = {}
     
-    if (props.customerId) {
-      params.customerId = props.customerId
+    if (props.type === 'mobile') {
+      params.telefono = number
+    } else {
+      params.telefono = number
     }
-    
-    const response = await $api(url, {
+    if(params.mobile) {
+      params.telefono = params.telefono
+      delete params.mobile
+    }
+
+
+    const response = await $api('/customers-search-by-phone-email-tax-iva', {
       method: 'GET',
       params: params
     })
     
-    const result = {
-      available: response.available,
-      message: response.message
+    let foundUsers = []
+    if (response && response.users && Array.isArray(response.users)) {
+        foundUsers = response.users
+    } else if (Array.isArray(response)) {
+        foundUsers = response
+    } else if (response && response.data && Array.isArray(response.data)) {
+        foundUsers = response.data
+    } else if (response && response.customers && Array.isArray(response.customers)) {
+        foundUsers = response.customers
+    }
+
+    if (props.customerId && foundUsers.length > 0) {
+        foundUsers = foundUsers.filter(u => u.id != props.customerId)
+    }
+
+    if (foundUsers.length > 0) {
+        const msg = 'Questo numero è già registrato'
+        internalErrorMessage.value = msg
+        emit('onCheckUpdate', { available: false, message: msg, users: foundUsers })
+    } else {
+        internalErrorMessage.value = ''
+        emit('onCheckUpdate', { available: true, message: '' })
     }
     
-    errorMessage.value = response.available ? '' : response.message
-    emit('onCheckUpdate', result)
-    
   } catch (error) {
-    errorMessage.value = 'Errore durante la verifica'
+    internalErrorMessage.value = 'Errore durante la verifica'
     emit('onCheckUpdate', { available: false, message: 'Errore durante la verifica' })
   }
 }
@@ -137,7 +181,7 @@ const handlePhoneChange = (phone) => {
       }
       checkAvailability(checkNumber)
     } else {
-      errorMessage.value = ''
+      internalErrorMessage.value = ''
       emit('onCheckUpdate', { available: true, message: '' })
     }
   }, 500)
@@ -145,11 +189,15 @@ const handlePhoneChange = (phone) => {
 
 </script>
 
-<style>
-.error-message {
-  color: #d32f2f;
-  font-size: 0.75rem;
-  margin-top: 0.5rem;
+<style lang="scss" scoped>
+.custom-error-message {
+  background-color: #FFEBEE;
+  color: #D32F2F;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  border: 1px solid #FFCDD2;
+  line-height: 1.2;
 }
 
 .baseinput-core {
@@ -160,4 +208,4 @@ const handlePhoneChange = (phone) => {
   margin: 3px !important;
   font-weight: normal !important;
 }
-</style> 
+</style>
