@@ -42,6 +42,9 @@ function extractDataFromResponse(response) {
   if (response?.results && Array.isArray(response.results)) {
     return response.results;
   }
+  if(response?.modalita_pagamento && Array.isArray(response.modalita_pagamento)) {
+    return response.modalita_pagamento;
+  }
   
   // Se non è un array e non ha proprietà note, restituisci array vuoto
   return [];
@@ -191,6 +194,7 @@ export function usePreventiviApi() {
     error.value = null;
     try {
       const response = await fetchApi('/api/modalita-pagamento');
+      console.log(response)
       const data = extractDataFromResponse(response);
       cache.modalitaPagamento = data;
       return data;

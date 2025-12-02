@@ -394,6 +394,7 @@ const preparePayload = () => {
         if (prodotto) {
             dettagliProdotto.push({
                 nome_prodotto_salvato: prodotto.codice_prodotto,
+                kWp_salvato: prodotto.potenza_kwp ? prodotto.potenza_kwp : 0,
                 categoria_prodotto_salvata: prodotto.categoria?.nome_categoria || 'Fotovoltaico',
                 quantita: 1,
                 prezzo_unitario_salvato: prodotto.prezzo_base ? prodotto.prezzo_base : 0,
