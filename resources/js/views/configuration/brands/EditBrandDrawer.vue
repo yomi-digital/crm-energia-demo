@@ -25,6 +25,11 @@ const type = ref()
 const notes = ref()
 const enabled = ref()
 
+const isLoading = ref(false)
+const isSnackbarVisible = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('success')
+
 name.value = props.brand.name
 category.value = props.brand.category
 type.value = props.brand.type
@@ -51,21 +56,39 @@ const closeNavigationDrawer = () => {
 }
 
 const onSubmit = () => {
-  refForm.value?.validate().then(({ valid }) => {
+  refForm.value?.validate().then(async ({ valid }) => {
     if (valid) {
-      emit('brandData', {
-        id: props.brand.id,
-        name: name.value,
-        category: category.value,
-        type: type.value,
-        notes: notes.value,
-        enabled: enabled.value === true ? 1 : 0,
-      })
-      emit('update:isDrawerOpen', false)
-      nextTick(() => {
-        refForm.value?.reset()
-        refForm.value?.resetValidation()
-      })
+      isLoading.value = true
+      try {
+        await $api(`/brands/${props.brand.id}`, {
+          method: 'PUT',
+          body: {
+            name: name.value,
+            category: category.value,
+            type: type.value,
+            notes: notes.value,
+            enabled: enabled.value === true ? 1 : 0,
+          },
+        })
+
+        snackbarMessage.value = 'Brand aggiornato con successo'
+        snackbarColor.value = 'success'
+        isSnackbarVisible.value = true
+
+        emit('brandData')
+        
+        setTimeout(() => {
+          emit('update:isDrawerOpen', false)
+        }, 500)
+
+      } catch (error) {
+        console.error(error)
+        snackbarMessage.value = 'Errore durante l\'aggiornamento del brand'
+        snackbarColor.value = 'error'
+        isSnackbarVisible.value = true
+      } finally {
+        isLoading.value = false
+      }
     }
   })
 }
@@ -152,6 +175,7 @@ const handleDrawerModelValueUpdate = val => {
                 <VBtn
                   type="submit"
                   class="me-3"
+                  :loading="isLoading"
                 >
                   Salva
                 </VBtn>
@@ -170,4 +194,13 @@ const handleDrawerModelValueUpdate = val => {
       </VCard>
     </PerfectScrollbar>
   </VNavigationDrawer>
+
+  <VSnackbar
+    v-model="isSnackbarVisible"
+    :color="snackbarColor"
+    location="top end"
+    variant="flat"
+  >
+    {{ snackbarMessage }}
+  </VSnackbar>
 </template>

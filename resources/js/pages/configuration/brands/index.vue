@@ -90,27 +90,9 @@ const isAddNewBrandDrawerVisible = ref(false)
 const isEditBrandDrawerVisible = ref(false)
 const isRemoveDialogVisible = ref(false)
 
-const addNewBrand = async brandData => {
-  await $api('/brands', {
-    method: 'POST',
-    body: brandData,
-  })
-
-  fetchBrands()
-}
-
 const deleteBrand = async id => {
   await $api(`/brands/${ id }`, { method: 'DELETE' })
   isRemoveDialogVisible.value = false
-
-  fetchBrands()
-}
-
-const updateBrand = async brandData => {
-  await $api(`/brands/${ brandData.id }`, {
-    method: 'PUT',
-    body: brandData,
-  })
 
   fetchBrands()
 }
@@ -330,12 +312,12 @@ const statuses = [
     <AddNewBrandDrawer
       v-if="$can('create', 'brands')"
       v-model:isDrawerOpen="isAddNewBrandDrawerVisible"
-      @brand-data="addNewBrand"
+      @brand-data="fetchBrands"
     />
     <!-- 👉 Edit Brand -->
     <EditBrandDrawer v-if="selectedBrand && $can('edit', 'brands')"
       v-model:isDrawerOpen="isEditBrandDrawerVisible"
-      @brand-data="updateBrand"
+      @brand-data="fetchBrands"
       :brand="selectedBrand"
     />
     <VDialog

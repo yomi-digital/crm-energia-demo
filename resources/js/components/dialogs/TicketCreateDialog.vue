@@ -29,6 +29,11 @@ const emit = defineEmits([
   'update:isDialogVisible',
 ])
 
+const isLoading = ref(false)
+const isSnackbarVisible = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('success')
+
 const ticketData = ref({
   paperwork_id: props.paperworkId,
   title: '',
@@ -72,25 +77,50 @@ const removeFile = (index) => {
 }
 
 const onFormSubmit = async () => {
-  // Create FormData to handle file uploads
-  const formData = new FormData()
-  formData.append('paperwork_id', ticketData.value.paperwork_id)
-  formData.append('title', ticketData.value.title)
-  formData.append('description', ticketData.value.description)
-  formData.append('category', ticketData.value.category)
-  
-  // Append each attachment
-  ticketData.value.attachments.forEach((file, index) => {
-    formData.append(`attachments[${index}]`, file)
-  })
+  if (isLoading.value) return
 
-  await $api('/tickets', {
-      method: 'POST',
-      body: formData,
-  }).then(response => {
-    onFormReset()
+  isLoading.value = true
+  
+  try {
+    // Create FormData to handle file uploads
+    const formData = new FormData()
+    formData.append('paperwork_id', ticketData.value.paperwork_id)
+    formData.append('title', ticketData.value.title)
+    formData.append('description', ticketData.value.description)
+    formData.append('category', ticketData.value.category)
+    
+    // Append each attachment
+    ticketData.value.attachments.forEach((file, index) => {
+      formData.append(`attachments[${index}]`, file)
+    })
+
+    const response = await $api('/tickets', {
+        method: 'POST',
+        body: formData,
+    })
+
+    snackbarMessage.value = 'Ticket creato con successo'
+    snackbarColor.value = 'success'
+    isSnackbarVisible.value = true
+
     emit('submit', response)
-  })
+    
+    // Chiudiamo il dialog dopo un breve ritardo per mostrare il successo se necessario, 
+    // oppure subito se il componente non viene distrutto.
+    // Dato che spesso questi dialog sono v-if, il toast potrebbe sparire.
+    // Ma se il parent usa v-model senza v-if, sopravvive.
+    setTimeout(() => {
+      onFormReset()
+    }, 500)
+
+  } catch (error) {
+    console.error(error)
+    snackbarMessage.value = 'Errore durante la creazione del ticket'
+    snackbarColor.value = 'error'
+    isSnackbarVisible.value = true
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const onFormReset = () => {
@@ -218,7 +248,10 @@ const dialogModelValueUpdate = val => {
               cols="12"
               class="d-flex flex-wrap justify-center gap-4"
             >
-              <VBtn type="submit">
+              <VBtn
+                type="submit"
+                :loading="isLoading"
+              >
                 Crea
               </VBtn>
 
@@ -235,4 +268,13 @@ const dialogModelValueUpdate = val => {
       </VCardText>
     </VCard>
   </VDialog>
+
+  <VSnackbar
+    v-model="isSnackbarVisible"
+    :color="snackbarColor"
+    location="top end"
+    variant="flat"
+  >
+    {{ snackbarMessage }}
+  </VSnackbar>
 </template>
