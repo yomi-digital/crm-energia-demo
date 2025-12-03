@@ -164,6 +164,31 @@ class CustomersController extends Controller
         ]);
     }
 
+    public function getByEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $email = $request->get('email');
+        
+        $customer = \App\Models\Customer::with(['addedByUser', 'confirmedByUser'])
+            ->where('email', $email)
+            ->first();
+
+        if (!$customer) {
+            return response()->json([
+                'found' => false,
+                'customer' => null
+            ]);
+        }
+
+        return response()->json([
+            'found' => true,
+            'customer' => $customer
+        ]);
+    }
+
     public function show(Request $request, $id)
     {
         $customer = \App\Models\Customer::with(['addedByUser', 'confirmedByUser'])->whereId($id);

@@ -5,6 +5,7 @@ import BrandOverrideAlert from '@/components/BrandOverrideAlert.vue'
 import ProcessingAIStutteringBanner from '@/components/ProcessingAIStutteringBanner.vue'
 import TransferTable from '@/components/TransferTable.vue'
 import GeneralErrorDialog from '@/components/dialogs/GeneralErrorDialog.vue'
+import { useDebounceFn } from '@vueuse/core'
 import { onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -573,6 +574,40 @@ const updateEmailAndRefresh = async () => {
     isUpdatingEmail.value = false
   }
 }
+
+// Auto-popolamento ragione sociale quando cambia l'email
+const searchCustomerByEmail = async (email) => {
+  if (!email || !email.trim()) {
+    return
+  }
+
+  try {
+    const response = await $api('/customers-by-email', {
+      query: { email: email.trim() }
+    })
+
+    if (response.found && response.customer) {
+      // Se il cliente trovato ha una ragione sociale, auto-popola il campo
+      if (response.customer.business_name) {
+        extractedCustomer.value.business_name = response.customer.business_name
+        console.log('Business name auto-populated:', response.customer.business_name)
+      }
+    }
+  } catch (error) {
+    console.error('Error searching customer by email:', error)
+  }
+}
+
+// Watch sull'email con debounce per cercare il cliente
+const debouncedSearchByEmail = useDebounceFn((email) => {
+  searchCustomerByEmail(email)
+}, 500)
+
+watch(() => extractedCustomer.value.email, (newEmail) => {
+  if (newEmail && aiPaperwork.value?.status !== 5) {
+    debouncedSearchByEmail(newEmail)
+  }
+})
 
 // Gestione eventi di trasferimento
 const onHandleTrasferConfirmed = (transferData) => {
