@@ -113,6 +113,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('documents', [DocumentsController::class, 'index']);
     Route::post('documents/new-folder', [DocumentsController::class, 'newFolder']);
     Route::post('documents/upload', [DocumentsController::class, 'upload']);
+    Route::put('documents/rename', [DocumentsController::class, 'rename']);
     Route::delete('documents/remove', [DocumentsController::class, 'destroy']);
     Route::get('documents/download', [DocumentsController::class, 'download']);
 

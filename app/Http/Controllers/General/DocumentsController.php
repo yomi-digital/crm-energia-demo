@@ -133,4 +133,76 @@ class DocumentsController extends Controller
 
         return \Storage::disk('do')->download('/documents/' . $path);
     }
+
+    public function rename(Request $request)
+    {
+        $request->validate([
+            'path' => 'required|string',
+            'new_name' => 'required|string',
+        ], [
+            'path.required' => 'Il percorso della cartella è obbligatorio',
+            'new_name.required' => 'Il nuovo nome è obbligatorio',
+        ]);
+
+        // 1. Prelevo il path della cartella vecchia e il nuovo nome
+        $path = $request->get('path', '');
+        $newName = $request->get('new_name', '');
+
+        // 2. Verifica che il nome della cartella nuova non sia identico alla vecchia
+        $oldFileName = basename($path);
+        if ($oldFileName === $newName) {
+            return response()->json(['error' => 'Il nuovo nome della cartella è identico alla vecchia'], 400);
+        }
+
+        //3. Verifica che la cartella che si sta tentando di rinominare esista
+        $oldFullPath = '/documents/' . $path;
+        $parentPath = dirname($path);
+        $parentPath = $parentPath === '.' ? '' : $parentPath;
+        if (!\Storage::disk('do')->directoryExists($oldFullPath)) {
+            return response()->json(['error' => 'Cartella non trovata'], 404);
+        }
+        
+        //4. Verifica che la cartella se rinominata non abbia conflitti con un'altra cartella con medesimo nome
+        $newFullPath = '/documents/' . ($parentPath ? $parentPath . '/' : '') . $newName;
+        try {
+            $newContentsIterator = \Storage::disk('do')->listContents($newFullPath, false);
+            $newContents = iterator_to_array($newContentsIterator);
+            
+            if (count($newContents) > 0) {
+                return response()->json([
+                    'error' => 'Una cartella con questo nome esiste già', 
+                    'new_full_path' => $newFullPath, 
+                    'new_contents' => array_map(fn($item) => $item->path(), $newContents)
+                ], 409);
+            }
+        } catch (\Exception $e) {
+            // Se il path non esiste, va bene - possiamo procedere
+        }
+
+        //5. Creo la cartella nuova con detro un .keeps
+        \Storage::disk('do')->makeDirectory($newFullPath);
+        \Storage::disk('do')->put($newFullPath . '/.keep', '');
+
+        //6. Copio i file dalla cartella vecchia alla nuova
+        $files = \Storage::disk('do')->allFiles($oldFullPath);
+        $copiedFiles = [];
+        foreach ($files as $file) {
+            $fileName = basename($file);
+            $copiedFiles[] = $fileName;
+            \Storage::disk('do')->copy($file, $newFullPath . '/' . $fileName);
+        }
+
+        //7. Rimuovo il .keep nella nuova cartella
+        \Storage::disk('do')->delete($newFullPath . '/.keep');
+
+        //8. Rimuovo la vecchia cartella con tutti i file dentro
+        \Storage::disk('do')->deleteDirectory($oldFullPath);
+
+        return response()->json([
+            'message' => 'Cartella rinominata con successo',
+            'old_full_path' => $oldFullPath,
+            'new_full_path' => $newFullPath,
+            'copied_files' => $copiedFiles,
+        ], 200);
+    }
 }
