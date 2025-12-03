@@ -287,6 +287,9 @@ const downloadDocument = async doc => {
                 <div class="text-body-1 mb-2">
                   <span class="font-weight-medium">Tipologia Pratica:</span> {{ paperworkData.contract_type || 'N/A' }}
                 </div>
+                <div v-if="paperworkData.contract_type === 'Business'" class="text-body-1 mb-2">
+                  <span class="font-weight-medium">Ragione Sociale:</span> {{ paperworkData.customer?.business_name || 'N/A' }}
+                </div>
                 <div class="text-body-1 mb-2">
                   <span class="font-weight-medium">Categoria:</span> {{ paperworkData.type || 'N/A' }}
                 </div>

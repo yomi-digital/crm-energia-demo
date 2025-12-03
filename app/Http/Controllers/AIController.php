@@ -196,6 +196,52 @@ class AIController extends Controller
         return response()->json($aiPaperwork);
     }
 
+    /**
+     * Conferma una pratica AI e crea il cliente e la pratica definitivi
+     * 
+     * MATRICE GESTIONE CLIENTI E TIPOLOGIE CONTRATTO:
+     * 
+     * ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+     * │ CLIENTE NUOVO (id: null)                                                                               │
+     * ├─────────────────────────────┬──────────────────────────────────────────────────────────────────────────┤
+     * │ Tipo Contratto: Residenziale│ → category: 'Residenziale', business_name: null                         │
+     * │                             │ → ✅ Cliente Residenziale creato                                         │
+     * ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+     * │ Tipo Contratto: Business    │ → category: null (Ditta), business_name: obbligatoria                   │
+     * │                             │ → ✅ Cliente Ditta Individuale creato con ragione sociale                │
+     * └─────────────────────────────┴──────────────────────────────────────────────────────────────────────────┘
+     * 
+     * ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+     * │ CLIENTE ESISTENTE - RESIDENZIALE (category: 'Residenziale')                                            │
+     * ├─────────────────────────────┬──────────────────────────────────────────────────────────────────────────┤
+     * │ Tipo Contratto: Residenziale│ → category: 'Residenziale', business_name: null                         │
+     * │                             │ → ✅ Resta Residenziale                                                  │
+     * ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+     * │ Tipo Contratto: Business    │ → category: null (Ditta), business_name: aggiornata                     │
+     * │                             │ → ✅ Passa da Residenziale a Ditta Individuale                           │
+     * └─────────────────────────────┴──────────────────────────────────────────────────────────────────────────┘
+     * 
+     * ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+     * │ CLIENTE ESISTENTE - BUSINESS (category: 'Business')                                                    │
+     * ├─────────────────────────────┬──────────────────────────────────────────────────────────────────────────┤
+     * │ Tipo Contratto: Residenziale│ → ❌ ERRORE: "Non si può assegnare pratica residenziale a Business"     │
+     * ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+     * │ Tipo Contratto: Business    │ → category: 'Business', business_name: aggiornata                       │
+     * │                             │ → ✅ Resta Business, ragione sociale aggiornata                          │
+     * └─────────────────────────────┴──────────────────────────────────────────────────────────────────────────┘
+     * 
+     * ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+     * │ CLIENTE ESISTENTE - DITTA INDIVIDUALE (category: null)                                                 │
+     * ├─────────────────────────────┬──────────────────────────────────────────────────────────────────────────┤
+     * │ Tipo Contratto: Residenziale│ → ❌ ERRORE: "Non si può assegnare pratica residenziale a Ditta"        │
+     * ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
+     * │ Tipo Contratto: Business    │ → category: null (Ditta), business_name: aggiornata                     │
+     * │                             │ → ✅ Resta Ditta Individuale, ragione sociale aggiornata                 │
+     * └─────────────────────────────┴──────────────────────────────────────────────────────────────────────────┘
+     * 
+     * NOTA: Tutti i campi anagrafica (nome, email, indirizzo, ecc.) hanno priorità ai dati forniti,
+     *       altrimenti mantengono i valori esistenti del cliente (nessun dato viene perso).
+     */
     public function confirm(Request $request, $id)
     {
         $request->validate([
@@ -251,6 +297,19 @@ class AIController extends Controller
             $customerData = json_decode($aiPaperwork->ai_extracted_customer, true) ?: [];
             $paperworkData = json_decode($aiPaperwork->ai_extracted_paperwork, true) ?: [];
 
+            // Se l'email è presente, cerca prima per email (potrebbe essere cambiata)
+            // Questo assicura che se l'utente cambia l'email, venga trovato il cliente corretto
+            if (!empty($customerData['email'])) {
+                $foundByEmail = \App\Models\Customer::where('email', $customerData['email'])->first();
+                if ($foundByEmail) {
+                    // Cliente trovato con la nuova email - usa questo
+                    $customerData['id'] = $foundByEmail->id;
+                } else {
+                    // Email non trovata - sarà un nuovo cliente
+                    unset($customerData['id']);
+                }
+            }
+
             // Create or update customer
             $customer = null;
             if (!empty($customerData['id'])) {
@@ -263,20 +322,61 @@ class AIController extends Controller
                 $customer->added_by = $request->user()->id;
             }
 
+            // Validazione condizionale: se contract_type è Business, business_name è obbligatoria
+            $contractType = $paperworkData['contract_type'] ?? null;
+            if ($contractType === 'Business' && empty($customerData['business_name'])) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'La ragione sociale è obbligatoria per i contratti Business.',
+                    'errors' => [
+                        'business_name' => 'La ragione sociale è obbligatoria per i contratti Business.'
+                    ]
+                ], 422);
+            }
+
+            $newCustomerCategory = $customer->category ?? null;
+            $newBusinessName = $customerData['business_name'] ?? null;
+
+            if($contractType === 'Business') {
+                //CASO DI CONTRATTO BUSINESS
+                if($customer->category === 'Residenziale') {
+                    $newCustomerCategory = null; //Cosi diventa dittà individuale
+                }
+
+            } else {
+                //CASO DI CONTRATTO RESIDENZIALE
+                $newBusinessName = null;
+                if($customer->category === 'Business' || ($customer->id && $customer->category === null)) {
+                    DB::rollBack();
+                    return response()->json([
+                        'error' => 'Non si può assegnare una pratica residenziale ad un business o ditta individuale',
+                        'customer' => $customer
+                    ], 500);
+                } else {
+                    // Se è un nuovo cliente, imposta come Residenziale
+                    if (!$customer->id) {
+                        $newCustomerCategory = 'Residenziale';
+                    }
+                }
+                
+            }
+
             // Map customer data
             $customer->fill([
-                'name' => $customerData['name'] ?? null,
-                'last_name' => $customerData['last_name'] ?? null,
-                'email' => $customerData['email'] ?? null,
-                'phone' => $customerData['phone'] ?? null,
-                'mobile' => $customerData['mobile'] ?? null,
-                'address' => $customerData['address'] ?? null,
-                'city' => $customerData['city'] ?? null,
-                'zip_code' => $customerData['zip_code'] ?? null,
-                'province' => $customerData['province'] ?? null,
-                'region' => $customerData['region'] ?? null,
-                'tax_id_code' => $customerData['tax_id_code'] ?? null,
-                'vat_number' => $customerData['vat_number'] ?? null,
+                'name' => $customerData['name'] ?? $customer->name,
+                'last_name' => $customerData['last_name'] ?? $customer->last_name,
+                'business_name' => $newBusinessName,
+                'email' => $customerData['email'] ?? $customer->email,
+                'phone' => $customerData['phone'] ?? $customer->phone,
+                'mobile' => $customerData['mobile'] ?? $customer->mobile,
+                'address' => $customerData['address'] ?? $customer->address,
+                'city' => $customerData['city'] ?? $customer->city,
+                'zip_code' => $customerData['zip_code'] ?? $customer->zip_code,
+                'province' => $customerData['province'] ?? $customer->province,
+                'region' => $customerData['region'] ?? $customer->region,
+                'tax_id_code' => $customerData['tax_id_code'] ?? $customer->tax_id_code,
+                'vat_number' => $customerData['vat_number'] ?? $customer->vat_number,
+                'category' => $newCustomerCategory
             ]);
 
             $customer->save();

@@ -392,6 +392,11 @@ const saveModifications = async () => {
     showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo POD/PDR è obbligatorio per questo tipo di pratica' } })
     return
   }
+  
+  if (extractedPaperwork.value.contract_type === 'Business' && (!extractedCustomer.value.business_name || extractedCustomer.value.business_name.trim() === '')) {
+    showErrorDialog('Campo obbligatorio', { data: { message: 'La ragione sociale è obbligatoria per i contratti Business' } })
+    return
+  }
 
   isSaving.value = true
   try {
@@ -443,6 +448,11 @@ const confirmPaperwork = async () => {
   
   if (isPodRequired.value && (!extractedPaperwork.value.account_pod_pdr || extractedPaperwork.value.account_pod_pdr.trim() === '')) {
     showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo POD/PDR è obbligatorio per questo tipo di pratica' } })
+    return
+  }
+  
+  if (extractedPaperwork.value.contract_type === 'Business' && (!extractedCustomer.value.business_name || extractedCustomer.value.business_name.trim() === '')) {
+    showErrorDialog('Campo obbligatorio', { data: { message: 'La ragione sociale è obbligatoria per i contratti Business' } })
     return
   }
 
@@ -992,6 +1002,18 @@ onUnmounted(() => {
                       label="Tipo Contratto"
                       :readonly="aiPaperwork?.status === 5"
                       :items="['Residenziale', 'Business']"
+                    />
+                  </VCol>
+                </VRow>
+
+                <VRow v-if="extractedPaperwork.contract_type === 'Business'">
+                  <VCol cols="12">
+                    <AppTextField
+                      v-model="extractedCustomer.business_name"
+                      label="Ragione Sociale *"
+                      :readonly="aiPaperwork?.status === 5"
+                      :error="aiPaperwork?.status !== 5 && extractedPaperwork.contract_type === 'Business' && !extractedCustomer.business_name"
+                      :error-messages="aiPaperwork?.status !== 5 && extractedPaperwork.contract_type === 'Business' && !extractedCustomer.business_name ? 'La ragione sociale è obbligatoria per i contratti Business' : ''"
                     />
                   </VCol>
                 </VRow>
