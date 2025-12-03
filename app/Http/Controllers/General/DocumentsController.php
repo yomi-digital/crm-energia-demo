@@ -183,26 +183,30 @@ class DocumentsController extends Controller
         \Storage::disk('do')->makeDirectory($newFullPath);
         \Storage::disk('do')->put($newFullPath . '/.keep', '');
 
-        //6. Copio i file dalla cartella vecchia alla nuova
+        //6. Copio i file dalla cartella vecchia alla nuova mantenendo la struttura delle sottocartelle
         $files = \Storage::disk('do')->allFiles($oldFullPath);
         $copiedFiles = [];
+        $destPaths = [];
         foreach ($files as $file) {
-            $fileName = basename($file);
-            $copiedFiles[] = $fileName;
-            \Storage::disk('do')->copy($file, $newFullPath . '/' . $fileName);
+            $relativePath = str_replace(ltrim($oldFullPath, '/') . '/', '', $file);
+            $copiedFiles[] = $relativePath;
+            $destPath = $newFullPath . '/' . $relativePath;
+            $destPaths[] = $destPath;
+            \Storage::disk('do')->copy($file, $destPath);
         }
 
         //7. Rimuovo il .keep nella nuova cartella
         \Storage::disk('do')->delete($newFullPath . '/.keep');
 
         //8. Rimuovo la vecchia cartella con tutti i file dentro
-        \Storage::disk('do')->deleteDirectory($oldFullPath);
+        //\Storage::disk('do')->deleteDirectory($oldFullPath);
 
         return response()->json([
             'message' => 'Cartella rinominata con successo',
             'old_full_path' => $oldFullPath,
             'new_full_path' => $newFullPath,
             'copied_files' => $copiedFiles,
+            'dest_paths' => $destPaths,
         ], 200);
     }
 }
