@@ -199,7 +199,7 @@ class DocumentsController extends Controller
         \Storage::disk('do')->delete($newFullPath . '/.keep');
 
         //8. Rimuovo la vecchia cartella con tutti i file dentro
-        //\Storage::disk('do')->deleteDirectory($oldFullPath);
+        \Storage::disk('do')->deleteDirectory($oldFullPath);
 
         return response()->json([
             'message' => 'Cartella rinominata con successo',
