@@ -38,4 +38,8 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    'google_maps' => [
+        'api_key' => env('GOOGLE_MAPS_API'),
+    ],
+
 ];

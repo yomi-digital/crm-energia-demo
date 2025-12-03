@@ -30,6 +30,7 @@ use App\Http\Controllers\Workflow\TipologiaTettoController;
 use App\Http\Controllers\Workflow\VoceEconomicaController;
 use App\Http\Controllers\ModalitaPagamentoController;
 use App\Http\Controllers\PreventivoController;
+use App\Http\Controllers\GeocodingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -150,6 +151,8 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::delete('customers/{id}', [CustomersController::class, 'destroy']); // GDPR Compliant deletion
     Route::get('customers/mobile/{type}/check/{number}', [CustomersController::class, 'checkMobile']);
     Route::get('cities', [CustomersController::class, 'cities']);
+
+    Route::get('geocoding/postal-code', [GeocodingController::class, 'getPostalCode']);
 
     Route::get('reports', [ReportsController::class, 'index']);
     Route::put('reports/{id}/update', [ReportsController::class, 'update']);
