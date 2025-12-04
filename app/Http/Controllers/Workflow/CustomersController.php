@@ -116,42 +116,44 @@ class CustomersController extends Controller
 
         $customers = \App\Models\Customer::query();
 
-        // Costruisci la query con i filtri (case insensitive)
+        // Costruisci la query con i filtri
+        // Match ESATTO (case insensitive) per CF, P.IVA, telefono, email
         $customers->where(function ($query) use ($email, $telefono, $taxIdCode, $vatNumber) {
             $conditions = false;
 
             if ($email) {
-                $query->whereRaw('LOWER(email) LIKE ?', ['%' . strtolower($email) . '%']);
+                $query->whereRaw('LOWER(email) = ?', [strtolower(trim($email))]);
                 $conditions = true;
             }
 
             if ($telefono) {
+                $telefonoNormalized = strtolower(trim($telefono));
                 if ($conditions) {
-                    $query->orWhere(function ($subQuery) use ($telefono) {
-                        $subQuery->whereRaw('LOWER(phone) LIKE ?', ['%' . strtolower($telefono) . '%'])
-                                 ->orWhereRaw('LOWER(mobile) LIKE ?', ['%' . strtolower($telefono) . '%']);
+                    $query->orWhere(function ($subQuery) use ($telefonoNormalized) {
+                        $subQuery->whereRaw('LOWER(phone) = ?', [$telefonoNormalized])
+                                 ->orWhereRaw('LOWER(mobile) = ?', [$telefonoNormalized]);
                     });
                 } else {
-                    $query->whereRaw('LOWER(phone) LIKE ?', ['%' . strtolower($telefono) . '%'])
-                          ->orWhereRaw('LOWER(mobile) LIKE ?', ['%' . strtolower($telefono) . '%']);
+                    $query->whereRaw('LOWER(phone) = ?', [$telefonoNormalized])
+                          ->orWhereRaw('LOWER(mobile) = ?', [$telefonoNormalized]);
                     $conditions = true;
                 }
             }
 
             if ($taxIdCode) {
                 if ($conditions) {
-                    $query->orWhereRaw('LOWER(tax_id_code) LIKE ?', ['%' . strtolower($taxIdCode) . '%']);
+                    $query->orWhereRaw('LOWER(tax_id_code) = ?', [strtolower(trim($taxIdCode))]);
                 } else {
-                    $query->whereRaw('LOWER(tax_id_code) LIKE ?', ['%' . strtolower($taxIdCode) . '%']);
+                    $query->whereRaw('LOWER(tax_id_code) = ?', [strtolower(trim($taxIdCode))]);
                     $conditions = true;
                 }
             }
 
             if ($vatNumber) {
                 if ($conditions) {
-                    $query->orWhereRaw('LOWER(vat_number) LIKE ?', ['%' . strtolower($vatNumber) . '%']);
+                    $query->orWhereRaw('LOWER(vat_number) = ?', [strtolower(trim($vatNumber))]);
                 } else {
-                    $query->whereRaw('LOWER(vat_number) LIKE ?', ['%' . strtolower($vatNumber) . '%']);
+                    $query->whereRaw('LOWER(vat_number) = ?', [strtolower(trim($vatNumber))]);
                 }
             }
         });

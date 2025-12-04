@@ -366,23 +366,64 @@ class AIController extends Controller
                 
             }
 
-            // Map customer data
-            $customer->fill([
-                'name' => $customerData['name'] ?? $customer->name,
-                'last_name' => $customerData['last_name'] ?? $customer->last_name,
-                'business_name' => $newBusinessName,
-                'email' => $customerData['email'] ?? $customer->email,
-                'phone' => $customerData['phone'] ?? $customer->phone,
-                'mobile' => $customerData['mobile'] ?? $customer->mobile,
-                'address' => $customerData['address'] ?? $customer->address,
-                'city' => $customerData['city'] ?? $customer->city,
-                'zip_code' => $customerData['zip_code'] ?? $customer->zip_code,
-                'province' => $customerData['province'] ?? $customer->province,
-                'region' => $customerData['region'] ?? $customer->region,
-                'tax_id_code' => $customerData['tax_id_code'] ?? $customer->tax_id_code,
-                'vat_number' => $customerData['vat_number'] ?? $customer->vat_number,
-                'category' => $newCustomerCategory
-            ]);
+            // Parametro per controllare se sovrascrivere i dati del cliente esistente
+            $overrideCustomer = $request->input('override_customer', true);
+            
+            // Se è un cliente esistente e override_customer è false, mantieni tutti i dati esistenti
+            // Solo category e business_name vengono gestiti dalla logica sopra
+            if ($customer->id && !$overrideCustomer) {
+                // Cliente esistente, NON sovrascrivere - aggiorna solo category e business_name
+                $customer->business_name = $newBusinessName;
+                $customer->category = $newCustomerCategory;
+            } else {
+                // Nuovo cliente OPPURE override_customer=true - aggiorna tutti i campi forniti
+                // Cerco tutti i clienti con lo stesso codice fiscale o partita iva e faccio fill per tutti
+                $customersToRefill = collect([]);
+                if (!empty($customerData['vat_number'])) {
+                    $customersToRefill = \App\Models\Customer::whereRaw('LOWER(vat_number) = ?', [strtolower(trim($customerData['vat_number']))])->get();
+                } elseif (!empty($customerData['tax_id_code'])) {
+                    $customersToRefill = \App\Models\Customer::whereRaw('LOWER(tax_id_code) = ?', [strtolower(trim($customerData['tax_id_code']))])->get();
+                }
+                
+                foreach ($customersToRefill as $customerToRefill) {
+                    if($customerToRefill->id === $customer->id) {
+                        continue;
+                    }
+                    $customerToRefill->fill([
+                        'name' => $customerData['name'] ?? $customerToRefill->name,
+                        'last_name' => $customerData['last_name'] ?? $customerToRefill->last_name,
+                        'business_name' => $customerToRefill->business_name,
+                        'email' => $customerData['email'] ?? $customerToRefill->email,
+                        'phone' => $customerData['phone'] ?? $customerToRefill->phone,
+                        'mobile' => $customerData['mobile'] ?? $customerToRefill->mobile,
+                        'address' => $customerData['address'] ?? $customerToRefill->address,
+                        'city' => $customerData['city'] ?? $customerToRefill->city,
+                        'zip_code' => $customerData['zip_code'] ?? $customerToRefill->zip_code,
+                        'province' => $customerData['province'] ?? $customerToRefill->province,
+                        'region' => $customerData['region'] ?? $customerToRefill->region,
+                        'tax_id_code' => $customerData['tax_id_code'] ?? $customerToRefill->tax_id_code,
+                        'vat_number' => $customerData['vat_number'] ?? $customerToRefill->vat_number,
+                        'category' => $customerToRefill->category
+                    ]);
+                    $customerToRefill->save();
+                }
+                $customer->fill([
+                    'name' => $customerData['name'] ?? $customer->name,
+                    'last_name' => $customerData['last_name'] ?? $customer->last_name,
+                    'business_name' => $newBusinessName,
+                    'email' => $customerData['email'] ?? $customer->email,
+                    'phone' => $customerData['phone'] ?? $customer->phone,
+                    'mobile' => $customerData['mobile'] ?? $customer->mobile,
+                    'address' => $customerData['address'] ?? $customer->address,
+                    'city' => $customerData['city'] ?? $customer->city,
+                    'zip_code' => $customerData['zip_code'] ?? $customer->zip_code,
+                    'province' => $customerData['province'] ?? $customer->province,
+                    'region' => $customerData['region'] ?? $customer->region,
+                    'tax_id_code' => $customerData['tax_id_code'] ?? $customer->tax_id_code,
+                    'vat_number' => $customerData['vat_number'] ?? $customer->vat_number,
+                    'category' => $newCustomerCategory
+                ]);
+            }
 
             $customer->save();
 
