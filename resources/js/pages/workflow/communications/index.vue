@@ -28,6 +28,11 @@ const headers = [
     key: 'title',
   },
   {
+    title: 'Documenti',
+    key: 'documents',
+    sortable: false,
+  },
+  {
     title: 'Inserita',
     key: 'created_at',
   },
@@ -56,6 +61,73 @@ const {
 
 const communications = computed(() => communicationsData.value.communications)
 const totalCommunications = computed(() => communicationsData.value.totalCommunications)
+
+const downloadFile = async (communicationId, documentId) => {
+  try {
+    const response = await $api(`/communications/${communicationId}/documents/${documentId}/download`)
+    if (response.downloadUrl) {
+      const fileResponse = await fetch(response.downloadUrl);
+            const blob = await fileResponse.blob();
+            
+            // 2. Crea un URL temporaneo per il blob
+            const url = window.URL.createObjectURL(blob);
+            
+            // 3. Crea il link e cliccalo
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // Cerca di ottenere il nome file dall'URL o usane uno di default
+            const fileName = response.fileName || 'download'; 
+            link.setAttribute('download', fileName);
+            
+            document.body.appendChild(link);
+            link.click();
+            
+            // 4. Pulizia
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const downloadAllFiles = async (communicationId) => {
+  try {
+    const response = await $api(`/communications/${communicationId}/documents/download-all`)
+    if (response.documents) {
+      for (const doc of response.documents) {
+        if (doc.downloadUrl) {
+          const fileResponse = await fetch(doc.downloadUrl);
+          const blob = await fileResponse.blob();
+          
+          // 2. Crea un URL temporaneo per il blob
+          const url = window.URL.createObjectURL(blob);
+          
+          // 3. Crea il link e cliccalo
+          const link = document.createElement('a');
+          link.href = url;
+          
+          // Cerca di ottenere il nome file dall'URL o usane uno di default
+          const fileName = doc.name || 'download'; 
+          link.setAttribute('download', fileName);
+          
+          document.body.appendChild(link);
+          link.click();
+          
+          // 4. Pulizia
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          // Attendi 500ms prima del prossimo download
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
 </script>
 
 <template>
@@ -134,6 +206,34 @@ const totalCommunications = computed(() => communicationsData.value.totalCommuni
               </RouterLink>
             </div>
           </div>
+        </template>
+
+        <!-- Documents -->
+        <template #item.documents="{ item }">
+          <div v-if="item.documents && item.documents.length" class="d-flex align-center gap-2">
+            <VBtn
+              v-if="item.documents.length > 1"
+              icon="tabler-download"
+              variant="text"
+              color="primary"
+              size="small"
+              @click="downloadAllFiles(item.id)"
+              :title="`Scarica tutti (${item.documents.length})`"
+            />
+            <VBtn
+              v-else
+              icon="tabler-file-download"
+              variant="text"
+              color="primary"
+              size="small"
+              @click="downloadFile(item.id, item.documents[0].id)"
+              :title="item.documents[0].name"
+            />
+            <span class="text-caption text-medium-emphasis">
+              {{ item.documents.length }} {{ item.documents.length === 1 ? 'file' : 'files' }}
+            </span>
+          </div>
+          <span v-else>-</span>
         </template>
 
         <!-- 👉 Date -->
