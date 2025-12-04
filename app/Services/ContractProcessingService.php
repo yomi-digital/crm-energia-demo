@@ -317,9 +317,9 @@ class ContractProcessingService
 
         if (isset($customerDb)) {
             if ($customerDb->vat_number) {
-                $paperwork->contract_type = 'BUSINESS';
+                $paperwork->contract_type = 'Business';
             } else {
-                $paperwork->contract_type = 'RESIDENZIALE';
+                $paperwork->contract_type = 'Residenziale';
             }
         }
         $paperwork->energy_type = $contract['tipo_fornitura_energia'] ?? null;

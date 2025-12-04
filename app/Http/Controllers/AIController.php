@@ -224,7 +224,8 @@ class AIController extends Controller
      * ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
      * │ CLIENTE ESISTENTE - BUSINESS (category: 'Business')                                                    │
      * ├─────────────────────────────┬──────────────────────────────────────────────────────────────────────────┤
-     * │ Tipo Contratto: Residenziale│ → ❌ ERRORE: "Non si può assegnare pratica residenziale a Business"     │
+     * │ Tipo Contratto: Residenziale│ → ❌ ERRORE: "Non si può assegnare pratica residenziale a cliente       │
+     * │                             │              Business"                                                   │
      * ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
      * │ Tipo Contratto: Business    │ → category: 'Business', business_name: aggiornata                       │
      * │                             │ → ✅ Resta Business, ragione sociale aggiornata                          │
@@ -233,7 +234,8 @@ class AIController extends Controller
      * ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
      * │ CLIENTE ESISTENTE - DITTA INDIVIDUALE (category: null)                                                 │
      * ├─────────────────────────────┬──────────────────────────────────────────────────────────────────────────┤
-     * │ Tipo Contratto: Residenziale│ → ❌ ERRORE: "Non si può assegnare pratica residenziale a Ditta"        │
+     * │ Tipo Contratto: Residenziale│ → category: null (Ditta), business_name: null                           │
+     * │                             │ → ✅ Resta Ditta Individuale, può avere pratiche Residenziali            │
      * ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────┤
      * │ Tipo Contratto: Business    │ → category: null (Ditta), business_name: aggiornata                     │
      * │                             │ → ✅ Resta Ditta Individuale, ragione sociale aggiornata                 │
@@ -351,10 +353,11 @@ class AIController extends Controller
             } else {
                 //CASO DI CONTRATTO RESIDENZIALE
                 $newBusinessName = null;
-                if($customer->category === 'Business' || ($customer->id && $customer->category === null)) {
+                if($customer->category === 'Business') {
+                    // Solo i Business non possono diventare Residenziali
                     DB::rollBack();
                     return response()->json([
-                        'error' => 'Non si può assegnare una pratica residenziale ad un business o ditta individuale',
+                        'error' => 'Non si può assegnare una pratica residenziale ad un cliente Business',
                         'customer' => $customer
                     ], 500);
                 } else {
@@ -362,6 +365,8 @@ class AIController extends Controller
                     if (!$customer->id) {
                         $newCustomerCategory = 'Residenziale';
                     }
+                    // Se è Ditta Individuale (category null), resta Ditta
+                    // Se è già Residenziale, resta Residenziale
                 }
                 
             }
