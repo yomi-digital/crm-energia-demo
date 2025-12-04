@@ -805,6 +805,18 @@ onUnmounted(() => {
                   </VCol>
                 </VRow>
 
+                <VRow v-if="extractedPaperwork.contract_type === 'Business'">
+                  <VCol cols="12">
+                    <AppTextField
+                      v-model="extractedCustomer.business_name"
+                      label="Ragione Sociale *"
+                      :readonly="aiPaperwork?.status === 5"
+                      :error="aiPaperwork?.status !== 5 && extractedPaperwork.contract_type === 'Business' && !extractedCustomer.business_name"
+                      :error-messages="aiPaperwork?.status !== 5 && extractedPaperwork.contract_type === 'Business' && !extractedCustomer.business_name ? 'La ragione sociale è obbligatoria per i contratti Business' : ''"
+                    />
+                  </VCol>
+                </VRow>
+
                 <VRow>
                   <VCol cols="9">
                     <AppTextField
@@ -1041,18 +1053,6 @@ onUnmounted(() => {
                       label="Tipo Contratto"
                       :readonly="aiPaperwork?.status === 5"
                       :items="['Residenziale', 'Business']"
-                    />
-                  </VCol>
-                </VRow>
-
-                <VRow v-if="extractedPaperwork.contract_type === 'Business'">
-                  <VCol cols="12">
-                    <AppTextField
-                      v-model="extractedCustomer.business_name"
-                      label="Ragione Sociale *"
-                      :readonly="aiPaperwork?.status === 5"
-                      :error="aiPaperwork?.status !== 5 && extractedPaperwork.contract_type === 'Business' && !extractedCustomer.business_name"
-                      :error-messages="aiPaperwork?.status !== 5 && extractedPaperwork.contract_type === 'Business' && !extractedCustomer.business_name ? 'La ragione sociale è obbligatoria per i contratti Business' : ''"
                     />
                   </VCol>
                 </VRow>
