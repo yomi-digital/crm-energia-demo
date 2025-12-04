@@ -435,6 +435,8 @@ const phoneError = ref('')
 const mobileError = ref('')
 const duplicateUsers = ref([])
 const isDuplicateModalVisible = ref(false)
+const overrideDuplicates = ref(true)
+const isOverrideInfoModalVisible = ref(false)
 
 const checkDuplicateCustomer = useDebounceFn(async () => {
   // Se lo stato è 5 (Confermato), non fare controlli
@@ -706,6 +708,7 @@ const confirmPaperwork = async () => {
         ai_extracted_paperwork: extractedPaperwork.value,
         status: 5,
         mandate_id: extractedPaperwork.value.mandate_id,
+        override_customer: overrideDuplicates.value || false,
       }
     })
     // Update local status
@@ -893,8 +896,8 @@ onUnmounted(() => {
           :original-brand-id="extractedPaperwork.original_brand_id"
         />
         
-        <div class="d-flex justify-space-between align-center w-100">
-          <div class="d-flex gap-2">
+        <div class="d-flex justify-space-between align-start w-100">
+          <div class="d-flex gap-2 align-start">
             <VBtn
               color="primary"
               prepend-icon="tabler-download"
@@ -902,14 +905,30 @@ onUnmounted(() => {
             >
               Scarica PDF
             </VBtn>
-            <VBtn
-              v-if="aiPaperwork?.status === 2"
-              color="success"
-              prepend-icon="tabler-check"
-              @click="confirmPaperwork"
-            >
-              Conferma Pratica
-            </VBtn>
+            <div v-if="aiPaperwork?.status === 2" class="d-flex flex-column">
+              <VBtn
+                color="success"
+                prepend-icon="tabler-check"
+                @click="confirmPaperwork"
+              >
+                Conferma Pratica
+              </VBtn>
+              <div class="d-flex align-center mt-1">
+                <VCheckbox
+                  v-model="overrideDuplicates"
+                  label="Sovrascrivi tutti i duplicati"
+                  density="compact"
+                  hide-details
+                  class="pa-0 ma-0"
+                />
+                <VIcon
+                  icon="tabler-info-circle"
+                  size="small"
+                  class="cursor-pointer ml-1 text-medium-emphasis"
+                  @click="isOverrideInfoModalVisible = true"
+                />
+              </div>
+            </div>
             <!-- <VBtn
               v-if="aiPaperwork?.status !== 8 && aiPaperwork?.status !== 5"
               color="error"
@@ -1357,19 +1376,23 @@ onUnmounted(() => {
             <thead>
               <tr>
                 <th class="text-left">Nominativo</th>
+                <th class="text-left">Tipologia</th>
                 <th class="text-left">Email</th>
                 <th class="text-left">Telefono</th>
                 <th class="text-left">Cellulare</th>
-                <th class="text-left">CF / P.IVA</th>
+                <th class="text-left">CF</th>
+                <th class="text-left">P.IVA</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="user in duplicateUsers" :key="user.id">
                 <td>{{ user.business_name || (user.name + ' ' + user.last_name) }}</td>
+                <td>{{ user.category }}</td>
                 <td>{{ user.email }}</td>
                 <td>{{ user.phone }}</td>
                 <td>{{ user.mobile }}</td>
-                <td>{{ user.vat_number || user.tax_id_code }}</td>
+                <td>{{ user.tax_id_code }}</td>
+                <td>{{ user.vat_number }}</td>
               </tr>
             </tbody>
           </VTable>
@@ -1380,6 +1403,39 @@ onUnmounted(() => {
             variant="tonal"
             color="secondary"
             @click="isDuplicateModalVisible = false"
+          >
+            Chiudi
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Override Info Dialog -->
+    <VDialog
+      v-model="isOverrideInfoModalVisible"
+      max-width="500"
+    >
+      <VCard>
+        <VCardTitle class="pa-4 d-flex align-center justify-space-between">
+          <span class="text-h6">Info Sovrascrittura Duplicati</span>
+           <VBtn
+            icon
+            variant="text"
+            color="default"
+            @click="isOverrideInfoModalVisible = false"
+          >
+            <VIcon icon="tabler-x" />
+          </VBtn>
+        </VCardTitle>
+        <VDivider />
+        <VCardText class="pa-4">
+          Selezionando l'opzione <strong>"Sovrascrivi tutti i duplicati"</strong>, verranno sovrascritti i dati anagrafici di tutti i clienti già esistenti nel sistema che presentano lo stesso <strong>Codice Fiscale</strong> o <strong>Partita IVA</strong> del cliente attuale.
+        </VCardText>
+        <VCardActions class="pa-4 justify-end">
+          <VBtn
+            variant="tonal"
+            color="secondary"
+            @click="isOverrideInfoModalVisible = false"
           >
             Chiudi
           </VBtn>
