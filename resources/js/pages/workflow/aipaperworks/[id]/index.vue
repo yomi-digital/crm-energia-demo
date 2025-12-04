@@ -543,38 +543,6 @@ const isPodRequired = computed(() => {
   return extractedPaperwork.value.energy_type !== 'MOBILE'
 })
 
-const updateEmailAndRefresh = async () => {
-  if (!extractedCustomer.value.email || !extractedCustomer.value.email.trim()) {
-    showErrorDialog('Email richiesta', { data: { message: 'Inserisci un\'email valida' } })
-    return
-  }
-  
-  isUpdatingEmail.value = true
-  
-  try {
-    const response = await $api(`/ai-paperworks/${id}/update-email`, {
-      method: 'POST',
-      body: {
-        email: extractedCustomer.value.email
-      }
-    })
-    
-    // Mostra messaggio di successo
-    const message = response.customer_found 
-      ? `Email aggiornata! Cliente esistente trovato (ID: ${response.customer_id})`
-      : 'Email aggiornata! Nessun cliente esistente trovato con questa email'
-    
-    // Show success message with reload on close
-    showSuccessDialog('Email aggiornata', message, true)
-    
-  } catch (error) {
-    console.error('Error updating email:', error)
-    showErrorDialog('Errore durante l\'aggiornamento', error)
-  } finally {
-    isUpdatingEmail.value = false
-  }
-}
-
 // Auto-popolamento ragione sociale quando cambia l'email
 const searchCustomerByEmail = async (email) => {
   if (!email || !email.trim()) {
@@ -794,20 +762,6 @@ onUnmounted(() => {
                       label="Email"
                       :readonly="aiPaperwork?.status === 5"
                     />
-                  </VCol>
-                  <VCol cols="3" class="d-flex align-center">
-                    <VBtn
-                      v-if="aiPaperwork?.status !== 5"
-                      color="primary"
-                      variant="outlined"
-                      size="small"
-                      class="mt-6"
-                      @click="updateEmailAndRefresh"
-                      :loading="isUpdatingEmail"
-                      :disabled="!extractedCustomer.email || !extractedCustomer.email.trim()"
-                    >
-                      Aggiorna Email
-                    </VBtn>
                   </VCol>
                 </VRow>
 

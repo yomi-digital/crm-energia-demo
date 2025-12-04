@@ -297,17 +297,22 @@ class AIController extends Controller
             $customerData = json_decode($aiPaperwork->ai_extracted_customer, true) ?: [];
             $paperworkData = json_decode($aiPaperwork->ai_extracted_paperwork, true) ?: [];
 
-            // Se l'email è presente, cerca prima per email (potrebbe essere cambiata)
-            // Questo assicura che se l'utente cambia l'email, venga trovato il cliente corretto
-            if (!empty($customerData['email'])) {
-                $foundByEmail = \App\Models\Customer::where('email', $customerData['email'])->first();
-                if ($foundByEmail) {
-                    // Cliente trovato con la nuova email - usa questo
-                    $customerData['id'] = $foundByEmail->id;
-                } else {
-                    // Email non trovata - sarà un nuovo cliente
-                    unset($customerData['id']);
-                }
+            // Ricerca intelligente cliente basata su CF (Residenziale) o P.IVA (Business)
+            // NO fallback email - solo identificatori fiscali univoci
+            $contractType = $paperworkData['contract_type'] ?? null;
+            $foundCustomer = null;
+            
+            if (!empty($customerData['vat_number'])) {
+                $foundCustomer = \App\Models\Customer::whereRaw('LOWER(vat_number) = ?', [strtolower(trim($customerData['vat_number']))])->first();
+            } elseif (!empty($customerData['tax_id_code'])) {
+                $foundCustomer = \App\Models\Customer::whereRaw('LOWER(tax_id_code) = ?', [strtolower(trim($customerData['tax_id_code']))])->first();
+            }
+            
+            if ($foundCustomer) {
+                $customerData['id'] = $foundCustomer->id;
+            } else {
+                // Cliente non trovato - sarà creato un nuovo cliente
+                unset($customerData['id']);
             }
 
             // Create or update customer

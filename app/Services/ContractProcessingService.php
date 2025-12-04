@@ -244,10 +244,13 @@ class ContractProcessingService
     public function makeCustomerFromAIData($customer)
     {
         $customerDb = null;
-        if (isset($customer['email']) && $customer['email']) {
-            $sanitizedEmail = $this->sanitizeEmail($customer['email']);
-            $customerDb = Customer::where('email', $sanitizedEmail)->first();
+
+        if(!empty($customer['partita_iva'])){
+            $customerDb = Customer::whereRaw('LOWER(vat_number) = ?', [strtolower(trim($customer['partita_iva']))])->first();
+        }else if(!empty($customer['codice_fiscale'])){
+            $customerDb = Customer::whereRaw('LOWER(tax_id_code) = ?', [strtolower(trim($customer['codice_fiscale']))])->first();
         }
+                
         if (!$customerDb) {
             $customerDb = new Customer();
             $customerDb->name = $customer['nome'];
