@@ -119,6 +119,55 @@ const downloadDocument = async doc => {
   window.URL.revokeObjectURL(url)
 }
 
+
+const isRenameFolderDialogVisible = ref(false)
+const selectedFolderToRename = ref(null)
+const newFolderName = ref('')
+
+// Snackbar state
+const isSnackbarVisible = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('success')
+
+const openRenameDialog = (item) => {
+  selectedFolderToRename.value = item
+  newFolderName.value = item.title
+  isRenameFolderDialogVisible.value = true
+}
+
+const renameFolder = async () => {
+  try {
+    await $api('/documents/rename', {
+      method: 'PUT',
+      body: {
+        path: selectedFolderToRename.value.path,
+        new_name: newFolderName.value
+      }
+    })
+    
+    isRenameFolderDialogVisible.value = false
+    snackbarMessage.value = 'Cartella rinominata con successo'
+    snackbarColor.value = 'success'
+    isSnackbarVisible.value = true
+    
+    refetchDocuments()
+  } catch (error) {
+    console.error(error)
+    isRenameFolderDialogVisible.value = false
+    
+    let errorMessage = 'Errore durante la rinomina della cartella'
+    if (error.data && error.data.error) {
+      errorMessage = error.data.error
+    } else if (error.message) {
+        errorMessage = error.message
+    }
+    
+    snackbarMessage.value = errorMessage
+    snackbarColor.value = 'error'
+    isSnackbarVisible.value = true
+  }
+}
+
 const breadcrumbs = ref([
   { title: 'Documenti', active: true, path: '' },
 ])
@@ -248,6 +297,13 @@ const navigateBreadcrumbs = item => {
                 </VListItemTitle>
 
                 <template #append>
+                  <VBtn
+                    v-if="item.type === 'dir' && currentPath !== '' && ($can('edit', 'documents') || canCreateFolders)"
+                    variant="text"
+                    color="info"
+                    icon="tabler-pencil"
+                    @click.stop="openRenameDialog(item)"
+                  />
                   <VBtn
                     v-if="item.type === 'file'"
                     variant="text"
@@ -381,5 +437,36 @@ const navigateBreadcrumbs = item => {
         </VCardText>
       </VCard>
     </VDialog>
+
+    <!-- Rename Folder Dialog -->
+    <VDialog
+      v-model="isRenameFolderDialogVisible"
+      width="500"
+    >
+      <DialogCloseBtn @click="isRenameFolderDialogVisible = !isRenameFolderDialogVisible" />
+      <VCard title="Rinomina Cartella">
+        <VCardText>
+          <AppTextField
+            v-model="newFolderName"
+            label="Nuovo Nome"
+            placeholder="Inserisci il nuovo nome"
+          />
+        </VCardText>
+        <VCardText class="d-flex justify-end">
+          <VBtn color="primary" @click="renameFolder">
+            Salva
+          </VBtn>
+        </VCardText>
+      </VCard>
+    </VDialog>
+
+    <VSnackbar
+      v-model="isSnackbarVisible"
+      :color="snackbarColor"
+      location="top end"
+      variant="flat"
+    >
+      {{ snackbarMessage }}
+    </VSnackbar>
   </section>
 </template>
