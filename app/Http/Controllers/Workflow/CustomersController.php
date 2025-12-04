@@ -189,6 +189,129 @@ class CustomersController extends Controller
         ]);
     }
 
+    /**
+     * Ricerca avanzata clienti con filtri multipli in AND
+     * POST /api/customers-search
+     */
+    public function search(Request $request)
+    {
+        // Parametri di ricerca
+        $name = $request->input('name');
+        $lastName = $request->input('last_name');
+        $email = $request->input('email');
+        $phone = $request->input('phone');
+        $mobile = $request->input('mobile');
+        $businessName = $request->input('business_name');
+        $taxIdCode = $request->input('tax_id_code');
+        $vatNumber = $request->input('vat_number');
+        $atecoCode = $request->input('ateco_code');
+        $category = $request->input('category');
+        $address = $request->input('address');
+        $region = $request->input('region');
+        $province = $request->input('province');
+        $city = $request->input('city');
+        $zip = $request->input('zip');
+        $privacy = $request->input('privacy');
+
+        // Verifica che almeno un parametro sia fornito
+        $hasAtLeastOneParam = $name || $lastName || $email || $phone || $mobile || 
+                              $businessName || $taxIdCode || $vatNumber || $atecoCode || 
+                              $category || $address || $region || $province || $city || 
+                              $zip || $privacy !== null;
+
+        if (!$hasAtLeastOneParam) {
+            return response()->json([
+                'error' => 'Specificare almeno un parametro di ricerca',
+                'customers' => []
+            ], 400);
+        }
+
+        // Parametri paginazione
+        $page = $request->input('page', 1);
+        $itemsPerPage = $request->input('itemsPerPage', 10);
+
+        $customers = \App\Models\Customer::query();
+
+        // Applica tutti i filtri in AND (solo se il parametro è fornito)
+        
+        // LIKE parziale (case insensitive)
+        if ($name) {
+            $customers->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($name) . '%']);
+        }
+        
+        if ($lastName) {
+            $customers->whereRaw('LOWER(last_name) LIKE ?', ['%' . strtolower($lastName) . '%']);
+        }
+        
+        if ($phone) {
+            $customers->whereRaw('LOWER(phone) LIKE ?', ['%' . strtolower($phone) . '%']);
+        }
+        
+        if ($mobile) {
+            $customers->whereRaw('LOWER(mobile) LIKE ?', ['%' . strtolower($mobile) . '%']);
+        }
+        
+        if ($businessName) {
+            $customers->whereRaw('LOWER(business_name) LIKE ?', ['%' . strtolower($businessName) . '%']);
+        }
+        
+        if ($atecoCode) {
+            $customers->whereRaw('LOWER(ateco_code) LIKE ?', ['%' . strtolower($atecoCode) . '%']);
+        }
+        
+        if ($address) {
+            $customers->whereRaw('LOWER(address) LIKE ?', ['%' . strtolower($address) . '%']);
+        }
+        
+        if ($region) {
+            $customers->whereRaw('LOWER(region) LIKE ?', ['%' . strtolower($region) . '%']);
+        }
+        
+        if ($province) {
+            $customers->whereRaw('LOWER(province) LIKE ?', ['%' . strtolower($province) . '%']);
+        }
+        
+        if ($city) {
+            $customers->whereRaw('LOWER(city) LIKE ?', ['%' . strtolower($city) . '%']);
+        }
+        
+        if ($zip) {
+            $customers->whereRaw('LOWER(zip) LIKE ?', ['%' . strtolower($zip) . '%']);
+        }
+        
+        // Match esatto (case insensitive)
+        if ($email) {
+            $customers->whereRaw('LOWER(email) = ?', [strtolower($email)]);
+        }
+        
+        if ($taxIdCode) {
+            $customers->whereRaw('LOWER(tax_id_code) = ?', [strtolower($taxIdCode)]);
+        }
+        
+        if ($vatNumber) {
+            $customers->whereRaw('LOWER(vat_number) = ?', [strtolower($vatNumber)]);
+        }
+        
+        // Match esatto
+        if ($category) {
+            $customers->where('category', $category);
+        }
+        
+        if ($privacy !== null) {
+            $customers->where('privacy', $privacy);
+        }
+
+        // Paginazione
+        $results = $customers->paginate($itemsPerPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'customers' => $results->items(),
+            'totalPages' => $results->lastPage(),
+            'totalCustomers' => $results->total(),
+            'page' => $results->currentPage()
+        ]);
+    }
+
     public function show(Request $request, $id)
     {
         $customer = \App\Models\Customer::with(['addedByUser', 'confirmedByUser'])->whereId($id);
