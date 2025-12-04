@@ -1,4 +1,6 @@
 <script setup>
+import { useDebounceFn } from '@vueuse/core'
+
 const isUploading = ref(false)
 const extractedText = ref(null)
 const uploadedFile = ref(null)
@@ -67,6 +69,38 @@ const onProductSelect = (product) => {
   }
   uploadedFile.value.contract.product = product
 }
+
+const fetchPostalCode = useDebounceFn(async () => {
+  const customer = uploadedFile.value?.db_customer
+  if (!customer || !customer.city || !customer.address) return
+  
+  try {
+    const response = await $api('/geocoding/postal-code', {
+      params: { 
+        city: customer.city, 
+        street: customer.address 
+      }
+    })
+    
+    if (response && response.postal_code) {
+      customer.zip_code = response.postal_code
+    }
+  } catch (error) {
+    console.error('Error fetching postal code:', error)
+  }
+}, 800)
+
+watch(
+  [
+    () => uploadedFile.value?.db_customer?.city, 
+    () => uploadedFile.value?.db_customer?.address
+  ],
+  ([newCity, newAddress]) => {
+    if (newCity && newAddress) {
+      fetchPostalCode()
+    }
+  }
+)
 </script>
 
 <template>

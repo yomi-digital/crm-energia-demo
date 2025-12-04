@@ -94,6 +94,7 @@ let debounceTimer = null
 
 // Funzione per controllare la disponibilità del numero
 const checkAvailability = async (number) => {
+  return;
   if (!number || number.length < 6) {
     internalErrorMessage.value = ''
     emit('onCheckUpdate', { available: true, message: '' })
@@ -151,10 +152,6 @@ const checkAvailability = async (number) => {
 
 // Gestione cambio telefono
 const handlePhoneChange = (phone) => {
-  // Se il phone è vuoto e abbiamo già un valore, non aggiornare
-  if (!phone && phoneNumber.value) {
-    return
-  }
   
   // Aggiungi il + se non presente
   let formattedPhone = phone

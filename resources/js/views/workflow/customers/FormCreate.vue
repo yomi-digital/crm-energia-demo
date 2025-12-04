@@ -58,11 +58,7 @@ const checkDuplicateCustomer = useDebounceFn(async () => {
 
   const hasData = Object.keys(params).length > 0
   if (!hasData) return
-console.log(params)
-if(params.mobile) {
-  params.telefono = params.mobile
-  delete params.mobile
-}
+
   try {
     const response = await $api('/customers-search-by-phone-email-tax-iva', {
       method: 'GET',
@@ -95,16 +91,24 @@ if(params.mobile) {
             
             // Check phones with normalization
             const pVal = normalizePhone(phone.value)
+            const mVal = normalizePhone(mobile.value)
             const uPhone = normalizePhone(user.phone)
-            // Check if valid length to avoid matching short fragments
-            if (pVal && uPhone && pVal.length > 5 && uPhone.length > 5 && (uPhone.includes(pVal) || pVal.includes(uPhone))) {
-                 phoneError.value = 'Questo numero di telefono è già registrato'
+            const uMobile = normalizePhone(user.mobile)
+
+            // Check phone input against user phone AND user mobile
+            if (pVal && pVal.length > 5) {
+                 if ((uPhone && uPhone.length > 5 && (uPhone.includes(pVal) || pVal.includes(uPhone))) || 
+                     (uMobile && uMobile.length > 5 && (uMobile.includes(pVal) || pVal.includes(uMobile)))) {
+                      phoneError.value = 'Questo numero di telefono è già registrato'
+                 }
             }
             
-            const mVal = normalizePhone(mobile.value)
-            const uMobile = normalizePhone(user.mobile)
-            if (mVal && uMobile && mVal.length > 5 && uMobile.length > 5 && (uMobile.includes(mVal) || mVal.includes(uMobile))) {
-                 mobileError.value = 'Questo numero di cellulare è già registrato'
+            // Check mobile input against user phone AND user mobile
+            if (mVal && mVal.length > 5) {
+                 if ((uPhone && uPhone.length > 5 && (uPhone.includes(mVal) || mVal.includes(uPhone))) || 
+                     (uMobile && uMobile.length > 5 && (uMobile.includes(mVal) || mVal.includes(uMobile)))) {
+                      mobileError.value = 'Questo numero di cellulare è già registrato'
+                 }
             }
         }
     }
@@ -118,8 +122,32 @@ const openDuplicateModal = () => {
     isDuplicateModalVisible.value = true
 }
 
+const fetchPostalCode = useDebounceFn(async () => {
+  if (!city.value || !address.value) return
+  
+  try {
+    const response = await $api('/geocoding/postal-code', {
+      params: { 
+        city: city.value, 
+        street: address.value 
+      }
+    })
+    
+    if (response && response.postal_code) {
+      zip.value = response.postal_code
+    }
+  } catch (error) {
+    console.error('Error fetching postal code:', error)
+  }
+}, 800)
+
 
 // Watchers
+watch([city, address], () => {
+  if (city.value && address.value) {
+    fetchPostalCode()
+  }
+})
 watch(email, () => checkDuplicateCustomer())
 watch(vatNumber, () => checkDuplicateCustomer())
 watch(taxIdCode, () => checkDuplicateCustomer())

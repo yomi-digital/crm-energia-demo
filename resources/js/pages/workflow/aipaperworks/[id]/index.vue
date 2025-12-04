@@ -5,6 +5,7 @@ import BrandOverrideAlert from '@/components/BrandOverrideAlert.vue'
 import ProcessingAIStutteringBanner from '@/components/ProcessingAIStutteringBanner.vue'
 import TransferTable from '@/components/TransferTable.vue'
 import GeneralErrorDialog from '@/components/dialogs/GeneralErrorDialog.vue'
+import { useDebounceFn } from '@vueuse/core'
 import { onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -123,6 +124,10 @@ watch(() => aiPaperwork.value?.ai_extracted_customer, (newVal) => {
   if (newVal) {
     try {
       extractedCustomer.value = JSON.parse(newVal)
+      // Esegui il controllo duplicati all'inizializzazione
+      nextTick(() => {
+        checkDuplicateCustomer()
+      })
     } catch (e) {
       extractedCustomer.value = {}
     }
@@ -174,6 +179,35 @@ watch(() => aiPaperwork.value?.mandate_id, (mandateId) => {
     console.log('Watch mandate_id updated to:', mandateId)
   }
 }, { immediate: true })
+
+const fetchPostalCode = useDebounceFn(async () => {
+  const customer = extractedCustomer.value
+  if (!customer.city || !customer.address) return
+  
+  try {
+    const response = await $api('/geocoding/postal-code', {
+      params: { 
+        city: customer.city, 
+        street: customer.address 
+      }
+    })
+    
+    if (response && response.postal_code) {
+      extractedCustomer.value.zip_code = response.postal_code
+    }
+  } catch (error) {
+    console.error('Error fetching postal code:', error)
+  }
+}, 800)
+
+watch(
+  [() => extractedCustomer.value.city, () => extractedCustomer.value.address],
+  ([newCity, newAddress]) => {
+    if (newCity && newAddress) {
+      fetchPostalCode()
+    }
+  }
+)
 
 // Watch per compilare automaticamente la ragione sociale quando cambia P.IVA
 const isSearchingCustomer = ref(false)
@@ -392,6 +426,117 @@ const downloadFile = async () => {
 const isSaving = ref(false)
 const isUpdatingEmail = ref(false)
 
+const normalizePhone = (p) => p ? p.replace(/\D/g, '') : ''
+
+const emailError = ref('')
+const vatError = ref('')
+const taxIdError = ref('')
+const phoneError = ref('')
+const mobileError = ref('')
+const duplicateUsers = ref([])
+const isDuplicateModalVisible = ref(false)
+
+const checkDuplicateCustomer = useDebounceFn(async () => {
+  // Se lo stato è 5 (Confermato), non fare controlli
+  if (aiPaperwork.value?.status === 5) return
+
+  // Reset errors
+  emailError.value = ''
+  vatError.value = ''
+  taxIdError.value = ''
+  phoneError.value = ''
+  mobileError.value = ''
+  duplicateUsers.value = []
+
+  const customer = extractedCustomer.value
+  if (!customer) return
+
+  // Gather data
+  const params = {}
+  
+  let searchPhone = customer.mobile || customer.phone
+  if (searchPhone) params.telefono = searchPhone
+  
+  if (customer.email) params.email = customer.email
+  if (customer.vat_number) params.vat_number = customer.vat_number
+  if (customer.tax_id_code) params.tax_id_code = customer.tax_id_code
+
+  const hasData = Object.keys(params).length > 0
+  if (!hasData) return
+
+  try {
+    const response = await $api('/customers-search-by-phone-email-tax-iva', {
+      method: 'GET',
+      params: params
+    })
+
+    let foundUsers = []
+    if (response && response.users && Array.isArray(response.users)) {
+        foundUsers = response.users
+    } else if (Array.isArray(response)) {
+        foundUsers = response
+    } else if (response && response.data && Array.isArray(response.data)) {
+        foundUsers = response.data
+    } else if (response && response.customers && Array.isArray(response.customers)) {
+        foundUsers = response.customers
+    }
+
+    if (customer.id && foundUsers.length > 0) {
+        foundUsers = foundUsers.filter(u => u.id != customer.id)
+    }
+
+    if (foundUsers.length > 0) {
+        duplicateUsers.value = foundUsers
+        for (const user of foundUsers) {
+            if (customer.email && user.email && user.email.toLowerCase() === customer.email.toLowerCase()) {
+                emailError.value = 'Questa email è già registrata per un altro cliente'
+            }
+            if (customer.vat_number && user.vat_number && user.vat_number === customer.vat_number) {
+                vatError.value = 'Questa Partita IVA è già registrata per un altro cliente'
+            }
+            if (customer.tax_id_code && user.tax_id_code && user.tax_id_code.toUpperCase() === customer.tax_id_code.toUpperCase()) {
+                taxIdError.value = 'Questo Codice Fiscale è già registrato per un altro cliente'
+            }
+            
+            // Check phones with normalization
+            const pVal = normalizePhone(customer.phone)
+            const mVal = normalizePhone(customer.mobile)
+            const uPhone = normalizePhone(user.phone)
+            const uMobile = normalizePhone(user.mobile)
+
+            // Check phone input against user phone AND user mobile
+            if (pVal && pVal.length > 5) {
+                 if ((uPhone && uPhone.length > 5 && (uPhone.includes(pVal) || pVal.includes(uPhone))) || 
+                     (uMobile && uMobile.length > 5 && (uMobile.includes(pVal) || pVal.includes(uMobile)))) {
+                      phoneError.value = 'Questo numero di telefono è già registrato'
+                 }
+            }
+            
+            // Check mobile input against user phone AND user mobile
+            if (mVal && mVal.length > 5) {
+                 if ((uPhone && uPhone.length > 5 && (uPhone.includes(mVal) || mVal.includes(uPhone))) || 
+                     (uMobile && uMobile.length > 5 && (uMobile.includes(mVal) || mVal.includes(uMobile)))) {
+                      mobileError.value = 'Questo numero di cellulare è già registrato'
+                 }
+            }
+        }
+    }
+
+  } catch (error) {
+    console.error('Error checking duplicate customer:', error)
+  }
+}, 800)
+
+const openDuplicateModal = () => {
+    isDuplicateModalVisible.value = true
+}
+
+watch(() => extractedCustomer.value.email, () => checkDuplicateCustomer())
+watch(() => extractedCustomer.value.vat_number, () => checkDuplicateCustomer())
+watch(() => extractedCustomer.value.tax_id_code, () => checkDuplicateCustomer())
+watch(() => extractedCustomer.value.phone, () => checkDuplicateCustomer())
+watch(() => extractedCustomer.value.mobile, () => checkDuplicateCustomer())
+
 // Error dialog state
 const isErrorDialogVisible = ref(false)
 const errorTitle = ref('')
@@ -477,6 +622,11 @@ const saveModifications = async () => {
     showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo POD/PDR è obbligatorio per questo tipo di pratica' } })
     return
   }
+
+  if (extractedPaperwork.value.account_pod_pdr && extractedPaperwork.value.account_pod_pdr.length !== 14) {
+    showErrorDialog('Formato non valido', { data: { message: 'Il campo POD/PDR deve essere di 14 caratteri' } })
+    return
+  }
   
   if (extractedPaperwork.value.contract_type === 'Business' && (!extractedCustomer.value.business_name || extractedCustomer.value.business_name.trim() === '')) {
     showErrorDialog('Campo obbligatorio', { data: { message: 'La ragione sociale è obbligatoria per i contratti Business' } })
@@ -533,6 +683,11 @@ const confirmPaperwork = async () => {
   
   if (isPodRequired.value && (!extractedPaperwork.value.account_pod_pdr || extractedPaperwork.value.account_pod_pdr.trim() === '')) {
     showErrorDialog('Campo obbligatorio', { data: { message: 'Il campo POD/PDR è obbligatorio per questo tipo di pratica' } })
+    return
+  }
+
+  if (extractedPaperwork.value.account_pod_pdr && extractedPaperwork.value.account_pod_pdr.length !== 14) {
+    showErrorDialog('Formato non valido', { data: { message: 'Il campo POD/PDR deve essere di 14 caratteri' } })
     return
   }
   
@@ -823,6 +978,9 @@ onUnmounted(() => {
                       v-model="extractedCustomer.email"
                       label="Email"
                       :readonly="aiPaperwork?.status === 5"
+                      :custom-error="emailError"
+                      :show-error-details="!!emailError"
+                      @click:errorDetails="openDuplicateModal"
                     />
                   </VCol>
                 </VRow>
@@ -836,6 +994,9 @@ onUnmounted(() => {
                       placeholder="Telefono fisso"
                       :readonly="aiPaperwork?.status === 5"
                       :customer-id="extractedPaperwork.customer_id"
+                      :custom-error="phoneError"
+                      :show-error-details="!!phoneError"
+                      @click:errorDetails="openDuplicateModal"
                     />
                   </VCol>
                   <VCol cols="6">
@@ -846,6 +1007,9 @@ onUnmounted(() => {
                       placeholder="Cellulare"
                       :readonly="aiPaperwork?.status === 5"
                       :customer-id="extractedPaperwork.customer_id"
+                      :custom-error="mobileError"
+                      :show-error-details="!!mobileError"
+                      @click:errorDetails="openDuplicateModal"
                     />
                   </VCol>
                 </VRow>
@@ -900,6 +1064,9 @@ onUnmounted(() => {
                       v-model="extractedCustomer.tax_id_code"
                       label="Codice Fiscale"
                       :readonly="aiPaperwork?.status === 5"
+                      :custom-error="taxIdError"
+                      :show-error-details="!!taxIdError"
+                      @click:errorDetails="openDuplicateModal"
                     />
                   </VCol>
                   <VCol cols="6">
@@ -907,6 +1074,9 @@ onUnmounted(() => {
                       v-model="extractedCustomer.vat_number"
                       label="Partita IVA"
                       :readonly="aiPaperwork?.status === 5"
+                      :custom-error="vatError"
+                      :show-error-details="!!vatError"
+                      @click:errorDetails="openDuplicateModal"
                     />
                   </VCol>
                 </VRow>
@@ -1014,8 +1184,17 @@ onUnmounted(() => {
                       v-model="extractedPaperwork.account_pod_pdr"
                       :label="isPodRequired ? 'POD/PDR *' : 'POD/PDR'"
                       :readonly="aiPaperwork?.status === 5"
-                      :error="aiPaperwork?.status !== 5 && isPodRequired && (!extractedPaperwork.account_pod_pdr || extractedPaperwork.account_pod_pdr.trim() === '')"
-                      :error-messages="aiPaperwork?.status !== 5 && isPodRequired && (!extractedPaperwork.account_pod_pdr || extractedPaperwork.account_pod_pdr.trim() === '') ? 'Il campo POD/PDR è obbligatorio per questo tipo di pratica' : ''"
+                      :error="aiPaperwork?.status !== 5 && (
+                        (isPodRequired && (!extractedPaperwork.account_pod_pdr || extractedPaperwork.account_pod_pdr.trim() === '')) ||
+                        (extractedPaperwork.account_pod_pdr && extractedPaperwork.account_pod_pdr.length !== 14)
+                      )"
+                      :error-messages="aiPaperwork?.status !== 5 ? (
+                        (isPodRequired && (!extractedPaperwork.account_pod_pdr || extractedPaperwork.account_pod_pdr.trim() === '')) 
+                          ? 'Il campo POD/PDR è obbligatorio per questo tipo di pratica' 
+                          : (extractedPaperwork.account_pod_pdr && extractedPaperwork.account_pod_pdr.length !== 14)
+                            ? 'Il campo POD/PDR deve essere di 14 caratteri'
+                            : ''
+                      ) : ''"
                     />
                   </VCol>
                 </VRow>
@@ -1151,6 +1330,62 @@ onUnmounted(() => {
         </VRow>
       </VCardText>
     </VCard>
+
+    <VDialog
+      v-model="isDuplicateModalVisible"
+      max-width="800"
+    >
+      <VCard>
+        <VCardTitle class="pa-4 d-flex align-center justify-space-between">
+          <span class="text-h5">Clienti trovati</span>
+          <VBtn
+            icon
+            variant="text"
+            color="default"
+            @click="isDuplicateModalVisible = false"
+          >
+            <VIcon icon="tabler-x" />
+          </VBtn>
+        </VCardTitle>
+        
+        <VDivider />
+        
+        <VCardText class="pa-4">
+          <p class="mb-4">Sono stati trovati i seguenti clienti con dati simili:</p>
+          
+          <VTable>
+            <thead>
+              <tr>
+                <th class="text-left">Nominativo</th>
+                <th class="text-left">Email</th>
+                <th class="text-left">Telefono</th>
+                <th class="text-left">Cellulare</th>
+                <th class="text-left">CF / P.IVA</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in duplicateUsers" :key="user.id">
+                <td>{{ user.business_name || (user.name + ' ' + user.last_name) }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone }}</td>
+                <td>{{ user.mobile }}</td>
+                <td>{{ user.vat_number || user.tax_id_code }}</td>
+              </tr>
+            </tbody>
+          </VTable>
+        </VCardText>
+        
+        <VCardActions class="pa-4 justify-end">
+          <VBtn
+            variant="tonal"
+            color="secondary"
+            @click="isDuplicateModalVisible = false"
+          >
+            Chiudi
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
     <!-- Error Dialog -->
     <GeneralErrorDialog

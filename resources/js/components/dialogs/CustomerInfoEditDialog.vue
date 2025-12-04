@@ -1,4 +1,6 @@
 <script setup>
+import { useDebounceFn } from '@vueuse/core'
+
 const props = defineProps({
   customerData: {
     type: Object,
@@ -56,6 +58,34 @@ const onFormReset = () => {
 const dialogModelValueUpdate = val => {
   emit('update:isDialogVisible', val)
 }
+
+const fetchPostalCode = useDebounceFn(async () => {
+  if (!customerData.value.city || !customerData.value.address) return
+  
+  try {
+    const response = await $api('/geocoding/postal-code', {
+      params: { 
+        city: customerData.value.city, 
+        street: customerData.value.address 
+      }
+    })
+    
+    if (response && response.postal_code) {
+      customerData.value.zip = response.postal_code
+    }
+  } catch (error) {
+    console.error('Error fetching postal code:', error)
+  }
+}, 800)
+
+watch(
+  [() => customerData.value.city, () => customerData.value.address],
+  ([newCity, newAddress]) => {
+    if (newCity && newAddress) {
+      fetchPostalCode()
+    }
+  }
+)
 
 const categories = ref([
   { title: 'N/A', value: 'all' },
