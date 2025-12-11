@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use Validator;
 
@@ -206,5 +210,73 @@ class AuthController extends Controller
         }
 
         return $abilities;
+    }
+
+    /**
+     * Send password reset link
+     *
+     * @param  [string] email
+     * @return [json] message
+     */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return response()->json([
+                'message' => 'Link di reset password inviato con successo. Controlla la tua email.'
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'Impossibile inviare il link di reset password. Riprova più tardi.'
+        ], 400);
+    }
+
+    /**
+     * Reset password with token
+     *
+     * @param  [string] email
+     * @param  [string] token
+     * @param  [string] password
+     * @param  [string] password_confirmation
+     * @return [json] message
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'token' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'must_change_password' => false,
+                ])->save();
+                
+                // Invia email di conferma
+                $user->notify(new \App\Notifications\PasswordResetConfirmation());
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json([
+                'message' => 'Password reimpostata con successo.'
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'Token non valido o scaduto. Richiedi un nuovo link di reset.'
+        ], 400);
     }
 }
