@@ -762,19 +762,23 @@ const filteredProvinces = computed(() => {
             <thead>
               <tr>
                 <th class="text-left">Nominativo</th>
+                <th class="text-left">Tipologia</th>
                 <th class="text-left">Email</th>
                 <th class="text-left">Telefono</th>
                 <th class="text-left">Cellulare</th>
-                <th class="text-left">CF / P.IVA</th>
+                <th class="text-left">CF</th>
+                <th class="text-left">P.IVA</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="user in duplicateUsers" :key="user.id">
                 <td>{{ user.business_name || (user.name + ' ' + user.last_name) }}</td>
+                <td>{{ user.category }}</td>
                 <td>{{ user.email }}</td>
                 <td>{{ user.phone }}</td>
                 <td>{{ user.mobile }}</td>
-                <td>{{ user.vat_number || user.tax_id_code }}</td>
+                <td>{{ user.tax_id_code }}</td>
+                <td>{{ user.vat_number }}</td>
               </tr>
             </tbody>
           </VTable>
