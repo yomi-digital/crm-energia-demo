@@ -96,11 +96,22 @@ class PaperworksController extends Controller
             $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
             $paperworks = $paperworks->whereIn('user_id', $ids);
         } elseif ($request->user()->hasRole('backoffice')) {
+            // Filtro per brand (già esistente)
             $paperworks = $paperworks->whereHas('product', function ($query) use ($request) {
                 $query->whereHas('brand', function ($query) use ($request) {
                     $query->whereIn('id', $request->user()->brands->pluck('id'));
                 });
             });
+            
+            // Filtro per area: il backoffice vede pratiche create da utenti con la stessa area
+            // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
+            if ($request->user()->area) {
+                $paperworks = $paperworks->whereHas('user', function ($query) use ($request) {
+                    $query->where('area', $request->user()->area)
+                          ->orWhereNull('area')
+                          ->orWhere('area', '');
+                });
+            }
         }
 
         if ($request->get('sortBy')) {
@@ -134,6 +145,16 @@ class PaperworksController extends Controller
             $relationships = \App\Models\UserRelationship::where('user_id', $request->user()->id)->get(['related_id']);
             $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
             $paperwork = $paperwork->whereIn('user_id', $ids);
+        } elseif ($request->user()->hasRole('backoffice')) {
+            // Filtro per area: il backoffice vede pratiche create da utenti con la stessa area
+            // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
+            if ($request->user()->area) {
+                $paperwork = $paperwork->whereHas('user', function ($query) use ($request) {
+                    $query->where('area', $request->user()->area)
+                          ->orWhereNull('area')
+                          ->orWhere('area', '');
+                });
+            }
         }
 
         $paperwork = $paperwork->first();

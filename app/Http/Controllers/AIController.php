@@ -48,6 +48,16 @@ class AIController extends Controller
                 // Se il backoffice non ha brand assegnati, non vede nessuna AI paperwork
                 $aiPaperworks = $aiPaperworks->whereRaw('1 = 0');
             }
+            
+            // Filtro per area: il backoffice vede pratiche AI create da utenti con la stessa area
+            // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
+            if ($request->user()->area) {
+                $aiPaperworks = $aiPaperworks->whereHas('user', function ($query) use ($request) {
+                    $query->where('area', $request->user()->area)
+                          ->orWhereNull('area')
+                          ->orWhere('area', '');
+                });
+            }
         }
 
         if ($request->get('sortBy')) {
@@ -87,9 +97,36 @@ class AIController extends Controller
         }
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $aiPaperwork = AIPaperwork::with('user')->findOrFail($id);
+        $aiPaperwork = AIPaperwork::with('user')->whereId($id);
+        
+        // Filtro per backoffice: vedere solo AI paperworks con brand_id assegnati
+        if ($request->user()->hasRole('backoffice')) {
+            $userBrands = $request->user()->brands->pluck('id');
+            if ($userBrands->isNotEmpty()) {
+                $aiPaperwork = $aiPaperwork->whereIn('brand_id', $userBrands);
+            } else {
+                // Se il backoffice non ha brand assegnati, non vede nessuna AI paperwork
+                $aiPaperwork = $aiPaperwork->whereRaw('1 = 0');
+            }
+            
+            // Filtro per area: il backoffice vede pratiche AI create da utenti con la stessa area
+            // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
+            if ($request->user()->area) {
+                $aiPaperwork = $aiPaperwork->whereHas('user', function ($query) use ($request) {
+                    $query->where('area', $request->user()->area)
+                          ->orWhereNull('area')
+                          ->orWhere('area', '');
+                });
+            }
+        }
+        
+        $aiPaperwork = $aiPaperwork->first();
+        
+        if (!$aiPaperwork) {
+            return response()->json(['error' => 'AI Paperwork not found'], 404);
+        }
 
         return response()->json([
             'id' => $aiPaperwork->id,

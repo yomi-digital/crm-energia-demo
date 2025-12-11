@@ -26,6 +26,16 @@ class TicketsController extends Controller
             $tickets = $tickets->whereHas('paperwork.product.brand', function ($query) use ($brandIds) {
                 $query->whereIn('id', $brandIds);
             });
+            
+            // Filtro per area: il backoffice vede ticket associati a pratiche create da utenti con la stessa area
+            // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
+            if ($request->user()->area) {
+                $tickets = $tickets->whereHas('paperwork.user', function ($query) use ($request) {
+                    $query->where('area', $request->user()->area)
+                          ->orWhereNull('area')
+                          ->orWhere('area', '');
+                });
+            }
         }
 
         if ($request->get('q')) {
@@ -140,7 +150,28 @@ class TicketsController extends Controller
 
     public function show(Request $request, $id)
     {
-        $ticket = \App\Models\Ticket::with(['createdBy', 'comments', 'comments.user', 'paperwork', 'paperwork.product', 'paperwork.customer', 'attachments'])->withCount('attachments')->whereId($id)->first();
+        $ticket = \App\Models\Ticket::with(['createdBy', 'comments', 'comments.user', 'paperwork', 'paperwork.product', 'paperwork.customer', 'attachments'])->withCount('attachments')->whereId($id);
+        
+        // Filtro per backoffice: vedere solo ticket associati a pratiche visibili
+        if ($request->user()->hasRole('backoffice')) {
+            $brandIds = $request->user()->brands->pluck('id');
+            
+            $ticket = $ticket->whereHas('paperwork.product.brand', function ($query) use ($brandIds) {
+                $query->whereIn('id', $brandIds);
+            });
+            
+            // Filtro per area: il backoffice vede ticket associati a pratiche create da utenti con la stessa area
+            // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
+            if ($request->user()->area) {
+                $ticket = $ticket->whereHas('paperwork.user', function ($query) use ($request) {
+                    $query->where('area', $request->user()->area)
+                          ->orWhereNull('area')
+                          ->orWhere('area', '');
+                });
+            }
+        }
+        
+        $ticket = $ticket->first();
 
         if (!$ticket) {
             return response()->json(['error' => 'Ticket not found'], 404);
