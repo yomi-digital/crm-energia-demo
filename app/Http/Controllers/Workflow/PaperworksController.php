@@ -181,7 +181,8 @@ class PaperworksController extends Controller
                 'account_pod_pdr' => [
                     'nullable',
                     function ($attribute, $value, $fail) use ($request) {
-                        if ($request->category !== 'ALLACCIO' && $request->energy_type !== 'MOBILE') {
+                        // POD obbligatorio solo per ENERGIA, non per TELEFONIA
+                        if ($request->type === 'ENERGIA' && $request->category !== 'ALLACCIO' && $request->energy_type !== 'MOBILE') {
                             // Controlla se il valore è vuoto, null o solo spazi
                             if (empty($value) || trim($value) === '') {
                                 $fail('Account POD/PDR è obbligatorio per i contratti di energia che non siano ALLACCIO.');
@@ -225,7 +226,8 @@ class PaperworksController extends Controller
                 'account_pod_pdr' => [
                     'nullable',
                     function ($attribute, $value, $fail) use ($request) {
-                        if ($request->category !== 'ALLACCIO' && $request->energy_type !== 'MOBILE') {
+                        // POD obbligatorio solo per ENERGIA, non per TELEFONIA
+                        if ($request->type === 'ENERGIA' && $request->category !== 'ALLACCIO' && $request->energy_type !== 'MOBILE') {
                             // Controlla se il valore è vuoto, null o solo spazi
                             if (empty($value) || trim($value) === '') {
                                 $fail('Account POD/PDR è obbligatorio per i contratti di energia che non siano ALLACCIO.');
