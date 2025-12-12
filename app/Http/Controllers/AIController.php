@@ -51,13 +51,13 @@ class AIController extends Controller
             
             // Filtro per area: il backoffice vede pratiche AI create da utenti con la stessa area
             // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
-            if ($request->user()->area) {
+            /* if ($request->user()->area) {
                 $aiPaperworks = $aiPaperworks->whereHas('user', function ($query) use ($request) {
                     $query->where('area', $request->user()->area)
                           ->orWhereNull('area')
                           ->orWhere('area', '');
                 });
-            }
+            } */
         }
 
         if ($request->get('sortBy')) {
@@ -113,13 +113,13 @@ class AIController extends Controller
             
             // Filtro per area: il backoffice vede pratiche AI create da utenti con la stessa area
             // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
-            if ($request->user()->area) {
+            /* if ($request->user()->area) {
                 $aiPaperwork = $aiPaperwork->whereHas('user', function ($query) use ($request) {
                     $query->where('area', $request->user()->area)
                           ->orWhereNull('area')
                           ->orWhere('area', '');
                 });
-            }
+            } */
         }
         
         $aiPaperwork = $aiPaperwork->first();

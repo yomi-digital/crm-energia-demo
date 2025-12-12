@@ -65,13 +65,13 @@ class DashboardController extends Controller
             
             // Filtro per area: il backoffice vede pratiche create da utenti con la stessa area
             // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
-            if ($request->user()->area) {
+            /* if ($request->user()->area) {
                 $query->whereHas('user', function ($query) use ($request) {
                     $query->where('area', $request->user()->area)
                           ->orWhereNull('area')
                           ->orWhere('area', '');
                 });
-            }
+            } */
         }
 
         // Filtra pratiche che hanno ticket attivi OR stati specifici

@@ -105,13 +105,13 @@ class PaperworksController extends Controller
             
             // Filtro per area: il backoffice vede pratiche create da utenti con la stessa area
             // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
-            if ($request->user()->area) {
+            /* if ($request->user()->area) {
                 $paperworks = $paperworks->whereHas('user', function ($query) use ($request) {
                     $query->where('area', $request->user()->area)
                           ->orWhereNull('area')
                           ->orWhere('area', '');
                 });
-            }
+            } */
         }
 
         if ($request->get('sortBy')) {
@@ -148,13 +148,13 @@ class PaperworksController extends Controller
         } elseif ($request->user()->hasRole('backoffice')) {
             // Filtro per area: il backoffice vede pratiche create da utenti con la stessa area
             // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
-            if ($request->user()->area) {
+            /* if ($request->user()->area) {
                 $paperwork = $paperwork->whereHas('user', function ($query) use ($request) {
                     $query->where('area', $request->user()->area)
                           ->orWhereNull('area')
                           ->orWhere('area', '');
                 });
-            }
+            } */
         }
 
         $paperwork = $paperwork->first();
