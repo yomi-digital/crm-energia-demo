@@ -80,6 +80,7 @@ trait UserSeeder
                 $user['email'] = $parts[0] . '+' . $user['username'] . '@' . $parts[1];
             }
             try {
+                $normalizedArea = $this->normalizeArea($user['area']);
                 $newUser = User::create([
                     'legacy_id' => $user['id'],
                     'name' => $user['nome'],
@@ -91,7 +92,7 @@ trait UserSeeder
                     'manager_id' => $user['id_capoarea'],
                     // 'structure_id' => $user['id_struttura'],
                     'commercial_profile' => $user['profilo_commerciale'],
-                    'area' => $user['area'],
+                    'area' => $normalizedArea,
                     'team_leader' => $user['team_leader'] === 'SI' ? 1 : 0,
                     'extractor' => $user['estrattore'] === 'SI' ? 1 : 0,
                     'enabled' => $user['abilitato'] === 'SI' ? 1 : 0,
@@ -179,5 +180,26 @@ trait UserSeeder
 
             $user->save();
         }
+    }
+
+    /**
+     * Normalizza il valore area: solo "Catania" o "Lecce".
+     * Default a "Catania" se vuoto o non valido.
+     */
+    private function normalizeArea($area): string
+    {
+        // Gestione valori non stringa, null, undefined o stringhe vuote
+        if (! is_string($area) || trim($area) === '') {
+            return 'Catania';
+        }
+
+        $cleaned = ucfirst(strtolower(trim($area)));
+        $allowed = ['Catania', 'Lecce'];
+
+        if (! in_array($cleaned, $allowed, true)) {
+            return 'Catania';
+        }
+
+        return $cleaned;
     }
 }

@@ -20,6 +20,11 @@ trait BrandSeeder
             if (strpos(strtoupper($entry['brand']), 'A2A') !== false || strpos(strtoupper($entry['brand']), 'ENERGIA') !== false || strpos(strtoupper($entry['brand']), 'ENI') !== false || strpos(strtoupper($entry['brand']), 'ENEGAN') !== false || strpos(strtoupper($entry['brand']), 'GREEN') !== false || strpos(strtoupper($entry['brand']), 'SORGENIA') !== false || strpos(strtoupper($entry['brand']), 'EDISON') !== false || strpos(strtoupper($entry['brand']), 'ENEL') !== false || strpos(strtoupper($entry['brand']), 'ENGIE') !== false || strpos(strtoupper($entry['brand']), 'HERA') !== false || strpos(strtoupper($entry['brand']), 'DUFERCU') !== false) {
                 $category = 'Energia';
             }
+
+            // Normalizzazione formato: iniziale maiuscola, resto minuscolo
+            $type = ucfirst(strtolower($type));
+            $category = ucfirst(strtolower($category));
+
             try {
                 $newModel = \App\Models\Brand::create([
                     'legacy_id' => $entry['id'],

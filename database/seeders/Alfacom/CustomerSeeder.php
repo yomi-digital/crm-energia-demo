@@ -46,7 +46,7 @@ trait CustomerSeeder
                         'ateco_code' => $customer['codice_ateco'],
                         'pec' => $customer['pec'],
                         'unique_code' => $customer['codice_univoco'],
-                        'category' => $customer['tipologia'],
+                        'category' => null, // verrà calcolata in base a CF / P.IVA
                         'address' => $customer['indirizzo'],
                         'region' => strtoupper($customer['regione']),
                         'province' => $customer['provincia'],
@@ -59,6 +59,21 @@ trait CustomerSeeder
                         'deleted_at' => $customer['deleted_at'],
                         'deleted_by' => null,
                     ];
+
+                    // Calcolo category in base a codice fiscale / partita IVA
+                    $hasTaxId = !empty(trim((string) $customer['codice_fiscale']));
+                    $hasVat = !empty(trim((string) $customer['partita_iva']));
+
+                    if (($hasTaxId && !$hasVat) || (!$hasTaxId && !$hasVat)) {
+                        // Nessuno dei due o solo CF -> RESIDENZIALE
+                        $data['category'] = 'RESIDENZIALE';
+                    } elseif (!$hasTaxId && $hasVat) {
+                        // Solo P.IVA -> BUSINESS
+                        $data['category'] = 'BUSINESS';
+                    } else {
+                        // Entrambi presenti -> DITTA INDIVIDUALE: category null
+                        $data['category'] = null;
+                    }
 
                     if ($customer['inserito_da']) {
                         $user = \App\Models\User::where('legacy_id', $customer['inserito_da'])->first();
