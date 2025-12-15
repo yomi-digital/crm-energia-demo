@@ -94,6 +94,7 @@ declare module 'vue-router/auto/routes' {
     'reports-production': RouteRecordInfo<'reports-production', '/reports/production', Record<never, never>, Record<never, never>>,
     'reports-saved': RouteRecordInfo<'reports-saved', '/reports/saved', Record<never, never>, Record<never, never>>,
     'reports-saved-id': RouteRecordInfo<'reports-saved-id', '/reports/saved/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'reset-password': RouteRecordInfo<'reset-password', '/reset-password', Record<never, never>, Record<never, never>>,
     'solar-categorie': RouteRecordInfo<'solar-categorie', '/solar/categorie', Record<never, never>, Record<never, never>>,
     'solar-coefficienti-produzione': RouteRecordInfo<'solar-coefficienti-produzione', '/solar/coefficienti-produzione', Record<never, never>, Record<never, never>>,
     'solar-pagamenti': RouteRecordInfo<'solar-pagamenti', '/solar/pagamenti', Record<never, never>, Record<never, never>>,

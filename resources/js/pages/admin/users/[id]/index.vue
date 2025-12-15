@@ -16,6 +16,11 @@ const route = useRoute('admin-users-id')
 const router = useRouter()
 const userTab = ref(null)
 
+// Toast variables
+const isSnackbarVisible = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('success')
+
 let tabs = [
   {
     icon: 'tabler-users',
@@ -61,6 +66,21 @@ if (isMarketing) {
     },
   ]
 }
+
+// Check if user was just created and show success toast
+onMounted(() => {
+  if (route.query.created === 'true') {
+    snackbarMessage.value = 'Utente creato con successo'
+    snackbarColor.value = 'success'
+    isSnackbarVisible.value = true
+    
+    // Remove query parameter to avoid showing toast on refresh
+    router.replace({ 
+      name: 'admin-users-id', 
+      params: { id: route.params.id }
+    })
+  }
+})
 </script>
 
 <template>
@@ -126,4 +146,14 @@ if (isMarketing) {
       Account ID  {{ route.params.id }} non trovato!
     </VAlert>
   </div>
+
+  <!-- 👉 Toast Notification -->
+  <VSnackbar
+    v-model="isSnackbarVisible"
+    :color="snackbarColor"
+    location="top end"
+    variant="flat"
+  >
+    {{ snackbarMessage }}
+  </VSnackbar>
 </template>

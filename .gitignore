@@ -65,3 +65,5 @@ public/mockServiceWorker.js
 *.sql
 
 composer-setup.php
+
+node-compile-cache/*
