@@ -724,8 +724,37 @@ watch(chartFilters, () => {
   fetchTimeSeriesData()
 }, { deep: true })
 
+// Verifica validità del token all'avvio
+const verifyToken = async () => {
+  const accessToken = useCookie('accessToken').value
+  if (!accessToken) {
+    window.location.href = '/login'
+    return false
+  }
+  
+  try {
+    // Verifica se il token è ancora valido chiamando l'endpoint user
+    await $api('/auth/user')
+    return true
+  } catch (error) {
+    // Se il token non è valido (401), reindirizza al login
+    if (error?.status === 401 || error?.response?.status === 401) {
+      useCookie('accessToken').value = null
+      useCookie('userData').value = null
+      window.location.href = '/login'
+    }
+    return false
+  }
+}
+
 // Initial data fetch
 onMounted(async () => {
+  // Verifica il token prima di caricare i dati
+  const isValid = await verifyToken()
+  if (!isValid) {
+    return // Il redirect sarà gestito da useApi.js
+  }
+  
   await fetchPaperworks()
   await fetchAiPaperworks()
   await fetchTickets()

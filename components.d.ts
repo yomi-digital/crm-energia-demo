@@ -418,6 +418,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ScrollToTop: typeof import('./resources/js/@core/components/ScrollToTop.vue')['default']
+    SearchBrand: typeof import('./resources/js/components/SearchBrand.vue')['default']
     ShareProjectDialog: typeof import('./resources/js/components/dialogs/ShareProjectDialog.vue')['default']
     Shortcuts: typeof import('./resources/js/@core/components/Shortcuts.vue')['default']
     StatCard: typeof import('./resources/js/components/preventivi/StatCard.vue')['default']

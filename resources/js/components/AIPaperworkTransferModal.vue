@@ -39,9 +39,11 @@
         </div>
 
         <!-- Select per brand not-personal (ricercabile) -->
-        <AppAutocomplete
+        <SearchBrand
           v-model="selectedBrand"
           :items="brands"
+          item-title="name"
+          item-value="id"
           label="Seleziona Brand di Destinazione"
           placeholder="Scegli un brand..."
           :loading="isLoadingBrands"
@@ -151,10 +153,7 @@ const fetchNotPersonalBrands = async () => {
   isLoadingBrands.value = true
   try {
     const response = await $api('/brands/not-personal?itemsPerPage=999999&enabled=1')
-    brands.value = response.brands.map(brand => ({
-      title: brand.name,
-      value: brand.id,
-    }))
+    brands.value = response.brands
   } catch (error) {
     alert('Impossibile caricare i brand di trasferimento')
     console.error(error)
