@@ -145,17 +145,53 @@ import { getAvatar, resolveUserRoleVariant, resolveUserStatusVariant } from '@/u
 
 const isAddNewUserDrawerVisible = ref(false)
 
+// Toast variables
+const isSnackbarVisible = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('success')
+
 const addNewUser = async userData => {
-  const response = await $api('/users', {
-    method: 'POST',
-    body: userData,
-  })
+  try {
+    const response = await $api('/users', {
+      method: 'POST',
+      body: userData,
+    })
 
-  // Redirect to user profile
-  router.push({ name: 'admin-users-id', params: { id: response.id } })
+    // Redirect to user profile with success query parameter
+    router.push({ 
+      name: 'admin-users-id', 
+      params: { id: response.id },
+      query: { created: 'true' }
+    })
 
-  // refetch User
-  // fetchUsers()
+    // refetch User
+    // fetchUsers()
+  } catch (error) {
+    console.error(error)
+    
+    // Extract error message from API response
+    let errorMessage = 'Errore durante la creazione dell\'utente'
+    
+    if (error?.data) {
+      // Check for validation errors (422)
+      if (error.data.errors && typeof error.data.errors === 'object') {
+        const errorMessages = Object.values(error.data.errors).flat()
+        errorMessage = errorMessages.join(', ')
+      } 
+      // Check for error message
+      else if (error.data.message) {
+        errorMessage = error.data.message
+      }
+      // Check for error field
+      else if (error.data.error) {
+        errorMessage = error.data.error
+      }
+    }
+    
+    snackbarMessage.value = errorMessage
+    snackbarColor.value = 'error'
+    isSnackbarVisible.value = true
+  }
 }
 
 const deleteUser = async id => {
@@ -412,5 +448,15 @@ const deleteUser = async id => {
       :roles="roles.filter(r => r.value.length)"
       @user-data="addNewUser"
     />
+
+    <!-- 👉 Toast Notification (solo per errori) -->
+    <VSnackbar
+      v-model="isSnackbarVisible"
+      :color="snackbarColor"
+      location="top end"
+      variant="flat"
+    >
+      {{ snackbarMessage }}
+    </VSnackbar>
   </section>
 </template>

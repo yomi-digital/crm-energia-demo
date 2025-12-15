@@ -37,9 +37,58 @@ watch(props, () => {
   userData.value = structuredClone(toRaw(props.userData))
 })
 
-const onFormSubmit = () => {
-  emit('update:isDialogVisible', false)
-  emit('submit', userData.value)
+// Toast variables
+const isSnackbarVisible = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('success')
+const isLoading = ref(false)
+
+const onFormSubmit = async () => {
+  isLoading.value = true
+  try {
+    const response = await $api(`/users/${ props.userData.id }`, {
+      method: 'PUT',
+      body: userData.value,
+    })
+
+    snackbarMessage.value = 'Utente aggiornato con successo'
+    snackbarColor.value = 'success'
+    isSnackbarVisible.value = true
+
+    emit('submit', response)
+    
+    // Close dialog after a short delay to show the toast
+    setTimeout(() => {
+      emit('update:isDialogVisible', false)
+    }, 500)
+  } catch (error) {
+    console.error(error)
+    
+    // Extract error message from API response
+    let errorMessage = 'Errore durante l\'aggiornamento dell\'utente'
+    
+    if (error?.data) {
+      // Check for validation errors (422)
+      if (error.data.errors && typeof error.data.errors === 'object') {
+        const errorMessages = Object.values(error.data.errors).flat()
+        errorMessage = errorMessages.join(', ')
+      } 
+      // Check for error message
+      else if (error.data.message) {
+        errorMessage = error.data.message
+      }
+      // Check for error field
+      else if (error.data.error) {
+        errorMessage = error.data.error
+      }
+    }
+    
+    snackbarMessage.value = errorMessage
+    snackbarColor.value = 'error'
+    isSnackbarVisible.value = true
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const onFormReset = () => {
@@ -258,7 +307,10 @@ await fetchAgencies()
               cols="12"
               class="d-flex flex-wrap justify-center gap-4"
             >
-              <VBtn type="submit">
+              <VBtn 
+                type="submit"
+                :loading="isLoading"
+              >
                 Salva
               </VBtn>
 
@@ -266,6 +318,7 @@ await fetchAgencies()
                 color="secondary"
                 variant="tonal"
                 @click="onFormReset"
+                :disabled="isLoading"
               >
                 Annulla
               </VBtn>
@@ -274,5 +327,15 @@ await fetchAgencies()
         </VForm>
       </VCardText>
     </VCard>
+
+    <!-- 👉 Toast Notification -->
+    <VSnackbar
+      v-model="isSnackbarVisible"
+      :color="snackbarColor"
+      location="top end"
+      variant="flat"
+    >
+      {{ snackbarMessage }}
+    </VSnackbar>
   </VDialog>
 </template>
