@@ -17,7 +17,7 @@ class ResetPasswordNotification extends ResetPassword
     public function toMail($notifiable)
     {
         $frontendUrl = env('FRONTEND_URL', config('app.url'));
-        $resetUrl = rtrim($frontendUrl, '/') . '?token=' . $this->token . '&email=' . urlencode($notifiable->email);
+        $resetUrl = rtrim($frontendUrl, '/') . '/reset-password?token=' . $this->token . '&email=' . urlencode($notifiable->email);
         $expireMinutes = config('auth.passwords.users.expire', 60);
 
         return (new MailMessage)
