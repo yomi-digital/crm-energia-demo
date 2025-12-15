@@ -167,6 +167,8 @@ watch(selectedCustomer, (newVal, oldVal) => {
     return;
   }
   
+  console.log(newVal)
+
   const clientValue = typeof newVal === 'object' ? newVal.value : newVal;
   const clientCategory = typeof newVal === 'object' ? newVal.category : 'Residenziale';
   const clientData = typeof newVal === 'object' ? newVal.rawData : null;
