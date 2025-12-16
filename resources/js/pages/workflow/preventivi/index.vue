@@ -70,6 +70,7 @@ const formData = ref({
     generateBusinessPlan: false,
     fiscalDeductionType: 'nessuna',
     enableCer: false,
+    coefficientsMap: {},
 });
 
 const handleNext = () => {
