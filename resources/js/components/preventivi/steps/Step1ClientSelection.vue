@@ -122,7 +122,7 @@ const fetchCustomers = async (query, id = null) => {
     customers.value = response.customers.map(customer => ({
       title: getCustomerName(customer),
       value: customer.id,
-      category: customer.category || 'Residenziale', // Aggiungi la categoria
+      category: customer.category || 'Business', // Aggiungi la categoria
       rawData: customer, // Salva i dati completi
     }));
     
@@ -227,7 +227,7 @@ watch(selectedCustomer, (newVal, oldVal) => {
   console.log(newVal)
 
   const clientValue = typeof newVal === 'object' ? newVal.value : newVal;
-  const clientCategory = typeof newVal === 'object' ? newVal.category : 'Residenziale';
+  const clientCategory = typeof newVal === 'object' ? newVal.category : 'Business';
   const clientData = typeof newVal === 'object' ? newVal.rawData : null;
   
   console.log('Emetto update:formData con client:', clientValue, 'category:', clientCategory);

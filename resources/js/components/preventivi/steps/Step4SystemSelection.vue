@@ -667,7 +667,7 @@ const simulationResults = computed(() => {
 const isResidential = computed(() => {
   // Usa clientCategory se disponibile, altrimenti default a Residenziale
   console.log(props.formData)
-  const category = props.formData.clientCategory || 'Residenziale';
+  const category = props.formData.clientCategory || 'Business';
   return category.toLowerCase() === 'residenziale';
 });
 
