@@ -1874,12 +1874,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Righe fisse sempre presenti -->
+                        <!-- Righe dinamiche dai prodotti del preventivo -->
+                        @if($preventivo->dettagliProdotti && $preventivo->dettagliProdotti->count() > 0)
+                            @foreach($preventivo->dettagliProdotti as $dettaglioProdotto)
                         <tr style="background-color: #f9f9f9;">
-                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">23</td>
-                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Moduli fotovoltaici</td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">Moduli fotovoltaici: TRINA SOLAR, JA SOLAR, e o similari ed equivalente. Compresi di cavo e connettori, min da 500Wp</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{{ $dettaglioProdotto->quantita ?? 1 }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">{{ $dettaglioProdotto->nome_prodotto_salvato ?? 'Prodotto' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Modulo fotovoltaico: {{ $dettaglioProdotto->nome_prodotto_salvato ?? '' }}. Compreso di cavi e connettori.</td>
                         </tr>
+                            @endforeach
+                        @endif
                         <tr style="background-color: #f9f9f9;">
                             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
                             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Inverter</td>
@@ -2484,7 +2488,7 @@
                         <li style="line-height: 1.0;">Collaudo e certificazione L.81/10</li>
                         <li style="line-height: 1.0;">Attivazione sistema di monitoraggio</li>
                         <li style="line-height: 1.0;">Dichiarazione di conformità (D.M. 37/08)</li>
-                        <li style="line-height: 1.0;">Pratiche convenzione Scambio sul Posto GSE</li>
+                        <li style="line-height: 1.0;">Pratiche convenzione Ritiro Dedicato GSE</li>
                     </ul>
                 </div>
                 <!-- Cosa è escluso -->
@@ -2504,24 +2508,11 @@
             </div>
             <div style="width:100%; height: 75mm; position: relative;background-image: url('{{ public_path('images/pdf/rectangular-gradient-large.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
                 @php
-                    // Calcola potenza totale
-                    $potenza_totale_kwp_simulazione = 0;
-                    if ($preventivo->dettagliProdotti) {
-                        foreach ($preventivo->dettagliProdotti as $dettaglioProdotto) {
-                            if (isset($dettaglioProdotto->kWp_salvato) && $dettaglioProdotto->kWp_salvato > 0) {
-                                $potenza_totale_kwp_simulazione += $dettaglioProdotto->kWp_salvato;
-                            } elseif ($dettaglioProdotto->prodotto && isset($dettaglioProdotto->prodotto->potenza_kwp)) {
-                                $potenza_totale_kwp_simulazione += $dettaglioProdotto->quantita * $dettaglioProdotto->prodotto->potenza_kwp;
-                            }
-                        }
-                    }
-                    
-                    // Calcola capacità batteria totale
-                    $capacita_batteria_totale = 0;
-                    if ($preventivo->dettagliProdotti) {
-                        foreach ($preventivo->dettagliProdotti as $dettaglioProdotto) {
-                            $capacita_batteria_totale += $dettaglioProdotto->capacita_batteria_salvata ?? 0;
-                        }
+                    // Recupera il nome del prodotto selezionato
+                    $nome_prodotto_selezionato = '';
+                    if ($preventivo->dettagliProdotti && $preventivo->dettagliProdotti->count() > 0) {
+                        $primoProdotto = $preventivo->dettagliProdotti->first();
+                        $nome_prodotto_selezionato = $primoProdotto->nome_prodotto_salvato ?? '';
                     }
                     
                     // Decodifica dati bonifico
@@ -2591,31 +2582,22 @@
                 @endphp
                 
                 <!-- Titolo -->
-                <div style="position: absolute; top: 6mm; left: 18mm;">
+                <div style="position: absolute; top: 0.5mm; left: 18mm;">
                     <h2 style="font-size: 30px; font-weight: bold; color: white; margin: 0; font-family: sans-serif;">SIMULAZIONE COSTI</h2>
                 </div>
                 
                 <!-- Testo esplicativo -->
-                <div style="position: absolute; top: 8mm; right: 18mm; width: 80mm; line-height: 1.0mm;">
-                    <p style="font-size: 8px; color: white; margin: 0; line-height: 1.4;">Questa stima è stata sviluppata considerando i consumi del cliente e le condizioni ottimali di utilizzo per una valutazione realistica del beneficio.</p>
+                <div style="position: absolute; top: 3mm; right: 18mm; width: 80mm; line-height: 1.0mm;">
+                    <p style="font-size: 8px; color: white; margin: 0; line-height: 1.4;">I dati e i risultati riportati nella presente analisi e nel business plan allegato, seppure inerenti per quanto possibile ai consumi reali del cliente in oggetto, sono sviluppati nell'ambito di una simulazione di producibilità basate su medie tabellari e non su analisi specifiche sui luoghi di installazione e quindi sono da ritenersi puramente indicativi e in alcun modo vincolanti vicino al prezzo finale della simulazione.</p>
                 </div>
                 
-                <!-- Potenza Fotovoltaico - Titolo -->
+                <!-- Prodotto - Titolo -->
                 <div style="position: absolute; top: 25mm; left: 18mm; padding-left: 2mm;">
-                    <p style="font-size: 12px; color: white; font-weight: bold; margin: 0;">Potenza Fotovoltaico</p>
+                    <p style="font-size: 12px; color: white; font-weight: bold; margin: 0;">PRODOTTO</p>
                 </div>
-                <!-- Potenza Fotovoltaico - Box -->
-                <div style="position: absolute; top: 31mm; left: 18mm; width: 50mm; height: 10mm; background-color: white; border-radius: 16px; padding: 2mm; text-align: left;">
-                    <p style="font-size: 18px; font-weight: bold; color: black; margin: 0; line-height: 10mm; transform: translateY(-3mm);">{{ number_format($potenza_totale_kwp_simulazione, 2, ',', '.') }} <span style="font-weight: normal;">kWp</span></p>
-                </div>
-                
-                <!-- Capacità Batteria - Titolo -->
-                <div style="position: absolute; top: 25mm; left: 77mm; padding-left: 2mm;">
-                    <p style="font-size: 12px; color: white; font-weight: bold; margin: 0; ">Capacità Batteria</p>
-                </div>
-                <!-- Capacità Batteria - Box -->
-                <div style="position: absolute; top: 31mm; left: 77mm; width: 50mm; height: 10mm; background-color: white; border-radius: 16px; padding: 2mm; text-align: left;">
-                    <p style="font-size: 18px; font-weight: bold; color: black; margin: 0; line-height: 10mm; transform: translateY(-3mm);">{{ number_format($capacita_batteria_totale, 2, ',', '.') }} <span style="font-weight: normal;">kWh</span></p>
+                <!-- Prodotto - Box -->
+                <div style="position: absolute; top: 31mm; left: 18mm; width: 110mm; height: 10mm; background-color: white; border-radius: 16px; padding: 2mm; text-align: left;">
+                    <p style="font-size: 14px; font-weight: bold; color: black; margin: 0; line-height: 10mm; transform: translateY(-4mm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $nome_prodotto_selezionato }}</p>
                 </div>
                 
                 <!-- OFFERTA ECONOMICA - Titolo -->
@@ -2662,9 +2644,9 @@
                 @endif
             </div>
         </div>
-        <span style="font-size: 8px; margin-bottom: 8px; padding-left: 18mm; transform: translateY(-32mm);">
+        <!-- <span style="font-size: 8px; margin-bottom: 8px; padding-left: 18mm; transform: translateY(-32mm);">
             *In caso di KO tecnico e/o amministrativo o di non accettazione della finanziaria
-        </span>
+        </span> -->
         <!-- Footer Aziendale -->
         <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
             ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
@@ -2744,7 +2726,7 @@
         </div>
     </div>
     
-    <!-- Ottava Pagina - Informativa Privacy -->
+    <!-- Ottava Pagina - Informativa Privacy (Parte 1) -->
     <div class="page page-break" style="height: 297mm; width: 210mm;">
          <!-- Header -->
          <div style="width: 210mm; padding-top: 10mm; padding-bottom: 10mm; position: relative; height: 20mm;">
@@ -2765,13 +2747,76 @@
         </div>
 
         <!-- Contenuto principale -->
-        <div style="height: 250mm; width: 100%;">
-            <div style="width: 100%; height: 13mm; padding-left: 18mm; padding-top: 5mm;">
-                <div style="font-size: 18px; font-weight: bold; transform: translateY(-12mm);">INFORMATIVA SUL TRATTAMENTO DEI DATI PERSONALI</div>
-                <div style="font-size: 14px; transform: translateY(-12mm);">(Regolamento UE 2026/697, di seguito Regolamento)</div>
+        <div style="height: 250mm; width: 100%; padding: 0 18mm;">
+            <!-- Titolo -->
+            <div style="width: 100%; margin-bottom: 3mm;">
+                <div style="font-size: 14px; font-weight: bold; margin-bottom: 1mm;">INFORMATIVA SUL TRATTAMENTO DEI DATI PERSONALI</div>
+                <div style="font-size: 10px;">(Regolamento UE 2016/679, di seguito Regolamento)</div>
             </div>
-            <div style="width: 174mm; height: 220mm; background-image: url('{{ public_path('images/pdf/informativa.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; transform: translateX(18mm);">
-
+            
+            <!-- Box container principale -->
+            <div style="width: 178mm; height: 220mm; position: relative;">
+                
+                <!-- Colonna sinistra -->
+                <div style="position: absolute; top: 0; left: 0; width: 85mm; height: 220mm; font-size: 8.5px; line-height: 1.8mm; text-align: justify; padding-right: 2mm;">
+                    <p style="margin-bottom: 1.5mm;">Energia Italia S.p.A., con sede in C.da Grotta Affumata snc - 92024 Canicattì (AG), dedica particolare impegno alla tutela dei Suoi dati personali. Questo impegno si riflette nel valore e nella fiducia con le quali gestisce le relazioni che intercorrono con i propri Clienti, Dipendenti, Fornitori e Partner Commerciali.</p>
+                    <p style="margin-bottom: 1.5mm;">Con la presente informativa Energia Italia S.p.A. desidera offrire una visione chiara e trasparente di quali informazioni raccoglie e tratta nell'ambito dei rapporti pre-contrattuali o contrattuali con i nostri Clienti in ottemperanza al Regolamento Generale UE 2016/679 relativo alla protezione delle persone fisiche con riguardo al trattamento dei dati personali (di seguito Regolamento).</p>
+                    
+                    <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">1. TITOLARE DEL TRATTAMENTO</p>
+                    <p style="margin-bottom: 1.5mm;">Il Titolare del trattamento dei Suoi dati personali è Energia Italia S.p.A, C.da Grotta Affumata snc – 92024 Canicattì (AG) – Tel. +39 0922 858410, Fax +39 0922 737398, Email info@energiaitaliaspa.it, Pec energiaitaliaspa@pec.it.</p>
+                    
+                    <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">2. DEFINIZIONE DI DATO PERSONALE E CATEGORIE DI DATI PERSONALI TRATTATI</p>
+                    <p style="margin-bottom: 0.5mm;">Per "Dato Personale" si intende ogni informazione idonea a identificare, direttamente o indirettamente, una persona fisica, in questo caso Lei, nostro Cliente, che utilizza i Servizi e prodotti offerti da Energia Italia S.p.A.</p>
+                    <p style="margin-bottom: 0.5mm;">1 - In particolare, la Società tratta Dati Personali non biometrici:</p>
+                    <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• dati anagrafici (es. nome, cognome, indirizzo);</p>
+                    <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• dati di contatto (es. telefono, indirizzo mail);</p>
+                    <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• dati relativi alla Sua posizione lavorativa e previdenziale;</p>
+                    <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• informazioni finanziarie;</p>
+                    <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• dati urbanistici-catastali;</p>
+                    <p style="margin-bottom: 0.5mm;">in generale, ogni altro dato e informazione necessaria per la conclusione ed esecuzione del contratto (es. Codice Iban, Partita Iva).</p>
+                    <p style="margin-bottom: 0.5mm;">2 - Dati Personali Biometrici:</p>
+                    <p style="margin-bottom: 0.5mm;">Energia Italia S.p.A. intende altresì utilizzare – con lo specifico consenso dell'interessato, revocabile in qualsiasi momento – una innovativa tecnologia che consente di sottoscrivere la documentazione in formato elettronico tramite Firma Elettronica Avanzata (c.d. FEA), mediante l'utilizzo della firma "grafometrica". Il consenso e la sua revoca vengono raccolti da Energia Italia S.p.A. anche nell'interesse di eventuali soggetti terzi che offriranno al Cliente i propri servizi per il tramite di Energia Italia S.p.A. e che agiranno come autonomi Titolari del trattamento, nel rispetto del regolamento (UE) 2016/679 in materia di protezione dei dati personali.</p>
+                    <p style="margin-bottom: 0.5mm;">La suddetta soluzione FEA soddisfa i requisiti prevista dal Codice dell'Amministrazione Digitale (D.lgs. n. 82/2005) e dal DPCM 22 febbraio 2013, nonché le misure di sicurezza previste dal Regolamento (UE) 2016/679 in materia di protezione dei dati personali. Tale sistema garantisce una maggiore certezza giuridica nei rapporti intercorrenti con i clienti con riferimento alla rigorosa identificazione dell'Interessato firmatario e alla sua connessione univoca alla firma, nonché una maggiore sicurezza nel processo di gestione elettronica dei documenti informatici e contribuisce a prevenire e contrastare fenomeni fraudolenti, quali il furto d'identità e la contraffazione della firma.</p>
+                    <p style="margin-bottom: 0.5mm;">Per le suddette finalità il conferimento dei dati personali ivi inclusi quelli di tipo biometrico (o caratteristiche "grafometriche" della firma) è necessario. Tuttavia, qualora l'interessato non manifesti il proprio consenso al trattamento dei dati biometrici o lo revochi successivamente, egli stesso potrà, in qualsiasi momento, sottoscrivere i documenti in formato cartaceo, secondo le procedure tradizionali.</p>
+                    <p style="margin-bottom: 1.5mm;">I dati grafometrici non verranno analizzati, bensì verranno incorporati e registrati nel rispetto di idonee misure di sicurezza previste dalla legge e in modalità inintelligibile e indecifrabile, all'interno del singolo documento elettronico sottoscritto: questi dati non saranno, quindi, riproducibili e non saranno in alcun modo utilizzati da Energia Italia S.p.A. per altri fini.</p>
+                    
+                    <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">3. BASE GIURIDICA DEL TRATTAMENTO</p>
+                    <p style="margin-bottom: 1.5mm;">Il Trattamento è necessario all'esecuzione di un contratto di cui Lei, nostro Cliente, è parte o all'esecuzione di misure precontrattuali o post contrattuali adottate su Sua richiesta o su richiesta di Energia Italia S.p.A. ai sensi dell'art. 6.1, lett. b) del GDPR, ovvero per l'adempimento di un obbligo legale ai sensi dell'art. 6.1, lett. c) del GDPR.</p>
+                    
+                    <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">4. FINALITÀ DEL TRATTAMENTO</p>
+                    <p style="margin-bottom: 0.5mm;">Il Titolare raccoglie e tratta i Suoi dati personali nell'ambito della propria attività sulla base di:</p>
+                    <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• per finalità necessarie sia alle attività pre-contrattuali, sia alla gestione ed esecuzione del rapporto contrattuale con Lei instaurato (attività amministrative e contabili, assistenza al Cliente, gestione reclami) e all'erogazione dei servizi ad esso strettamente connessi e strumentali; tali dati, infatti, sono necessari per dare seguito all'acquisto dei Prodotti e/o ai Servizi da Lei richiesti;</p>
+                    <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• formulare richieste o evadere richieste pervenute;</p>
+                    <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• per trasmissioni e transazioni successive all'ordine di fornitura del servizio o del bene (fornito/acquistato);</p>
+                    <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• inoltrare comunicazioni con diversi mezzi di comunicazione (telefono, telefono cellulare, sms, email, fax, posta cartacea, ecc.)</p>
+                    <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• per adempiere agli obblighi previsti dalla legge (di natura contabile, fiscale, amministrativa) ai quali è soggetto il Titolare e chieste dalle Autorità;</p>
+                    <p style="margin-left: 2mm; margin-bottom: 1.5mm;">• per finalità di promozione commerciale e marketing</p>
+                </div>
+                
+                <!-- Colonna destra -->
+                <div style="position: absolute; top: 0; right: 0; width: 85mm; height: 220mm; font-size: 8.5px; text-align: justify; line-height: 1.8mm; padding-left: 2mm; padding-right: 1mm;">
+                    <p style="font-weight: bold; margin: 0 0 0.5mm 0;">5. MODALITÀ DEL TRATTAMENTO</p>
+                    <p style="margin-bottom: 1.5mm;">Energia Italia S.p.A., nella qualità di Titolare del trattamento, raccoglie i Suoi dati personali direttamente, nonché, in taluni casi, per mezzo di soggetti Terzi (Agenzie e Agenti commerciali) con i quali il Titolare ha sottoscritto apposito contratto. Il trattamento dei dati per le finalità esposte ha luogo sia su supporto elettronico e magnetico, sia su supporto cartaceo, nel rispetto delle regole di riservatezza e sicurezza previste dall'art. 32 del Regolamento.</p>
+                    
+                    <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">6. DESTINATARI DEI DATI</p>
+                    <p style="margin-bottom: 1.5mm;">I dati personali trattati dal Titolare non saranno diffusi, ovvero non ne verrà data conoscenza a soggetti indeterminati, in nessuna forma possibile, inclusa quella della loro messa a disposizione o semplice consultazione. Potranno, invece, essere comunicati ai lavoratori del Titolare e ad alcuni soggetti esterni che con essi collaborano, sempre nel rispetto delle finalità indicate. In particolare, si tratta di dipendenti/collaboratori che, sulla base dei ruoli e delle mansioni lavorative espletate, sono stati legittimati a trattare i dati personali, formati a farlo nei limiti delle loro competenze ed in conformità alle istruzioni ad essi impartite dal Titolare. Potranno, inoltre, essere comunicati, nei limiti strettamente necessari, ai soggetti che per finalità di emissione dei nostri ordini o richieste di informazioni e preventivi o formulazioni di offerte nostre prestazioni, debbano fornire/consegnare beni e/o eseguire/ricevere su nostro/vostro incarico prestazioni o servizi. Ai dati potrebbero accedere (per finalità di assistenza) nostri tecnici incaricati o consulenti esterni o incaricati di società che forniscono tale servizio. Ed ancora, i dati potranno essere comunicati agli Istituti di Credito, Imprese di assicurazioni ed autorità pubbliche (quale Agenzia delle Entrate). Infine, potranno essere comunicati ai soggetti legittimati ad accedervi in forza di disposizioni di legge, regolamenti, normative comunitarie.</p>
+                    
+                    <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">7. CONSERVAZIONE DEI DATI</p>
+                    <p style="margin-bottom: 1.5mm;">Energia Italia S.p.A. si impegna a mantenere aggiornati i dati dell'interessato, a conservarli secondo gli standard e le prassi del settore adottando misure di sicurezza ritenute appropriate per la protezione dei dati personali. I dati saranno conservati esclusivamente per il tempo necessario per perseguire finalità definite o come richiesto dal contratto o dalla legge. Energia Italia S.p.a ad eliminare dagli archivi i Suoi dati Personali quando non siano più necessari per le finalità stabilite o diventino obsoleti. Il tempo di conservazione, in linea generale, è di 10 anni a decorrere dalla cessazione del rapporto contrattuale di cui lei è parte; tuttavia, il tempo di conservazione potrebbe variare in base alla finalità e a specifiche situazioni.</p>
+                    
+                    <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">8. TRASFERIMENTO DATI</p>
+                    <p style="margin-bottom: 1.5mm;">I Dati Personali dell'Interessato saranno trattati all'interno dei confini dell'Unione Europea. Se necessario, il Titolare trasferirà i Dati Personali al di fuori dell'Unione Europea garantendo che il trasferimento degli stessi avvenga nel rispetto di misure tecniche ed organizzative conformi alla normativa applicabile ai fini del trasferimento dei Dati Personali ai sensi degli artt. 45 e 46 del Regolamento UE 2016/679.</p>
+                    
+                    <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">9. DIRITTI DELL'INTERESSATO</p>
+                    <p style="margin-bottom: 1.5mm;">L'Interessato, con riguardo ai suoi Dati Personali, può in ogni momento – tramite l'invio di una comunicazione agli indirizzi di cui al punto 2 – esercitare i propri diritti di cui al regolamento Privacy: (a) ottenere la conferma dell'esistenza o meno dei Dati Personali che lo riguardano ed averne comunicazione; (b) conoscere l'origine dei Dati Personali, le finalità del trattamento e le sue modalità, nonché la logica applicata al trattamento effettuato mediante strumenti elettronici; (c) chiedere l'aggiornamento, la rettifica o – se ne ha interesse – l'integrazione dei Dati Personali, (d) ottenere la cancellazione, la trasformazione in forma anonima o il blocco dei Dati eventualmente trattati in violazione della legge, nonché di opporsi, per motivi legittimi, al trattamento; (e) revocare, in qualsiasi momento, il consenso al trattamento dei Dati personali, senza che ciò pregiudichi in alcun modo la liceità del trattamento basata sul consenso prestato prima della revoca; (f) chiedere al Titolare la limitazione del trattamento dei Dati; (g) opporsi in qualsiasi momento al trattamento dei Suoi Dati; (h) chiedere la cancellazione dei Dati che lo riguardano senza ingiustificato ritardo e (i) ottenere la portabilità dei dati che lo riguardano.</p>
+                    
+                    <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">10. MODIFICA ED AGGIORNAMENTO INFORMATIVA SULLA PRIVACY</p>
+                    <p style="margin-bottom: 3mm;">Il Titolare del Trattamento si riserva il diritto di modificare e/o implementare la presente informativa, anche in ragione di modifiche legislative successive al rapporto pre-contrattuale o contrattuale con Lei instaurato, ovvero di raccomandazioni, autorizzazioni generali, linee guida, ulteriori misure di garanzia indicate dal Garante della Privacy italiana o europeo, ma sempre al fine di fornire una maggiore tutela per il trattamento dei Suoi dati personali.</p>
+                    
+                    <p style="margin-bottom: 5mm;">Luogo e data _______________________________</p>
+                    <p style="margin-bottom: 0;">Firma del Cliente _______________________________</p>
+                </div>
+                
             </div>
         </div>
 
@@ -2781,7 +2826,7 @@
         </div>
     </div>
 
-    <!-- Nona Pagina - Informativa Privacy -->
+    <!-- Nona Pagina - Pagina finale -->
     <div class="page page-break" style="height: 297mm; width: 210mm;">
       
             <div style="width:100%; height: 115mm; background-image: url('{{ public_path('images/pdf/House-min.webp') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">

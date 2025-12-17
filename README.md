@@ -29,7 +29,42 @@ This command:
 
 In production, this runs automatically every minute via the cron scheduler.
 
+## Database Seeding (Alfacom Import)
 
+### Comandi standard (RAM di default PHP, 128MB)
+
+```bash
+# Locale
+php artisan db:seed --class="Database\\Seeders\\AlfacomSeeder"
+
+# Docker
+docker-compose exec laravel.test php artisan db:seed --class="Database\\Seeders\\AlfacomSeeder"
+```
+
+### Comandi con RAM personalizzata (consigliato per import massivi)
+
+```bash
+# Locale con 3GB di RAM
+php -d memory_limit=3G artisan db:seed --class="Database\\Seeders\\AlfacomSeeder"
+
+# Locale con 1GB di RAM
+php -d memory_limit=1G artisan db:seed --class="Database\\Seeders\\AlfacomSeeder"
+
+# Locale senza limite di RAM (usa tutta la RAM disponibile)
+php -d memory_limit=-1 artisan db:seed --class="Database\\Seeders\\AlfacomSeeder"
+```
+
+### Fix post-import sui Customer
+
+```bash
+# Locale
+php artisan fix:imported_customer
+
+# Con RAM personalizzata
+php -d memory_limit=3G artisan fix:imported_customer
+```
+
+> **Nota**: Il file `dump.sql` deve essere posizionato in `storage/imports/dump.sql` prima di lanciare il seeder.
 
 # vue
 
