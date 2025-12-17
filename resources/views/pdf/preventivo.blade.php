@@ -2582,13 +2582,13 @@
                 @endphp
                 
                 <!-- Titolo -->
-                <div style="position: absolute; top: 0.5mm; left: 18mm;">
+                <div style="position: absolute; top: 4mm; left: 18mm;">
                     <h2 style="font-size: 30px; font-weight: bold; color: white; margin: 0; font-family: sans-serif;">SIMULAZIONE COSTI</h2>
                 </div>
                 
                 <!-- Testo esplicativo -->
-                <div style="position: absolute; top: 3mm; right: 18mm; width: 80mm; line-height: 1.0mm;">
-                    <p style="font-size: 8px; color: white; margin: 0; line-height: 1.4;">I dati e i risultati riportati nella presente analisi e nel business plan allegato, seppure inerenti per quanto possibile ai consumi reali del cliente in oggetto, sono sviluppati nell'ambito di una simulazione di producibilità basate su medie tabellari e non su analisi specifiche sui luoghi di installazione e quindi sono da ritenersi puramente indicativi e in alcun modo vincolanti vicino al prezzo finale della simulazione.</p>
+                <div style="position: absolute; top: 8mm; right: 18mm; width: 80mm; line-height: 0.5mm;">
+                    <p style="font-size: 8px; color: white; margin: 0; line-height: 0.8;">I dati e i risultati riportati nella presente analisi e nel business plan allegato, seppure inerenti per quanto possibile ai consumi reali del cliente in oggetto, sono sviluppati nell'ambito di una simulazione di producibilità basate su medie tabellari e non su analisi specifiche sui luoghi di installazione e quindi sono da ritenersi puramente indicativi e in alcun modo vincolanti vicino al prezzo finale della simulazione.</p>
                 </div>
                 
                 <!-- Prodotto - Titolo -->
