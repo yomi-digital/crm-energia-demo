@@ -25,13 +25,13 @@ export default [
     action: 'access',
     subject: 'solar-prodotti',
   },
-  {
+ /* {
     title: 'Pagamenti',
     icon: { icon: 'tabler-credit-card' },
     to: 'solar-pagamenti',
     action: 'access',
     subject: 'solar-pagamenti',
-  },
+  },*/
   {
     title: 'Voci Economiche',
     icon: { icon: 'tabler-cash' },
