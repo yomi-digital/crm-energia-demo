@@ -2363,7 +2363,7 @@
                 <div style="position: absolute; top: 0mm; right: 0;">
                     <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">DETRAZIONE FISCALE</span>
                     <div style="border:1px solid #e0e0e0; height: 18mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(206, 206, 206) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <p style="font-size: 18px; font-weight: bold; transform: translateY(4mm) translateX(5mm);">{{ number_format($preventivo->detrazione_fiscale_annua ?? 0, 2, ',', '.') }} <span style="color: #999;">€</span></p>
+                        <p style="font-size: 18px; font-weight: bold; transform: translateY(4mm) translateX(5mm);">{{ number_format($preventivo->detrazione_fiscale_annua ?? 0, 2, ',', '.') }} <span style="color: #999;">%</span></p>
                     </div>
                 </div>
 
