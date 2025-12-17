@@ -2334,40 +2334,49 @@
         <!-- Contenuto principale -->
         <div style="height: 250mm; width: 100%;">
         <div style="height: 65mm; padding-left: 18mm; padding-right: 18mm;">
-            <div style="width: 100%; height: 28mm; position: relative;">
+            <div style="width: 100%; height: 20mm; position: relative;">
                         
                 <div style="position: absolute; top: 0mm; left: 0;">
-                    <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">RISPARMIO DA AUTOCONSUMO</span>
-                    <div style="border:1px solid #e0e0e0; height: 18mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(116, 13, 13) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <p style="font-size: 18px; font-weight: bold; transform: translateY(4mm) translateX(5mm);">{{ number_format($preventivo->risparmio_autoconsumo_annuo ?? 0, 2, ',', '.') }} <span style="color: #999;">€</span></p>
+                    <span style="font-size: 10px; font-weight: bold; transform: translateX(5mm);">RISPARMIO DA AUTOCONSUMO</span>
+                    <div style="border:1px solid #e0e0e0; height: 9mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(116, 13, 13) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <p style="font-size: 12px; font-weight: bold; transform: translateY(1mm) translateX(5mm);">{{ number_format($preventivo->risparmio_autoconsumo_annuo ?? 0, 2, ',', '.') }} <span style="color: #999;">€</span></p>
                     </div>
                 </div>
 
                 <div style="position: absolute; top: 0mm; right: 0;">
-                    <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">VENDITA ECCEDENZE (RID)</span>
-                    <div style="border:1px solid #e0e0e0; height: 18mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(206, 206, 206) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <p style="font-size: 18px; font-weight: bold; transform: translateY(4mm) translateX(5mm);">{{ number_format($preventivo->vendita_eccedenze_rid_annua ?? 0, 2, ',', '.') }} <span style="color: #999;">€</span></p>
+                    <span style="font-size: 10px; font-weight: bold; transform: translateX(5mm);">VENDITA ECCEDENZE (RID)</span>
+                    <div style="border:1px solid #e0e0e0; height: 9mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(206, 206, 206) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <p style="font-size: 12px; font-weight: bold; transform: translateY(1mm) translateX(5mm);">{{ number_format($preventivo->vendita_eccedenze_rid_annua ?? 0, 2, ',', '.') }} <span style="color: #999;">€</span></p>
                     </div>
                 </div>
 
             </div>
-            <div style="width: 100%; height: 28mm; position: relative;">
+            <div style="width: 100%; height: 20mm; position: relative;">
                 
                 <div style="position: absolute; top: 0mm; left: 0;">
-                    <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">INCENTIVO CER</span>
-                    <div style="border:1px solid #e0e0e0; height: 18mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(116, 13, 13) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <p style="font-size: 18px; font-weight: bold; transform: translateY(4mm) translateX(5mm);">{{ number_format($preventivo->incentivo_cer_annuo ?? 0, 2, ',', '.') }} <span style="color: #999;">€</span></p>
+                    <span style="font-size: 10px; font-weight: bold; transform: translateX(5mm);">INCENTIVO CER</span>
+                    <div style="border:1px solid #e0e0e0; height: 9mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(116, 13, 13) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <p style="font-size: 12px; font-weight: bold; transform: translateY(1mm) translateX(5mm);">{{ number_format($preventivo->incentivo_cer_annuo ?? 0, 2, ',', '.') }} <span style="color: #999;">€</span></p>
                     </div>
                 </div>
 
                 <div style="position: absolute; top: 0mm; right: 0;">
-                    <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">DETRAZIONE FISCALE</span>
-                    <div style="border:1px solid #e0e0e0; height: 18mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(206, 206, 206) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <p style="font-size: 18px; font-weight: bold; transform: translateY(4mm) translateX(5mm);">{{ number_format($preventivo->detrazione_fiscale_annua ?? 0, 2, ',', '.') }} <span style="color: #999;">%</span></p>
+                    <span style="font-size: 10px; font-weight: bold; transform: translateX(5mm);">DETRAZIONE FISCALE</span>
+                    <div style="border:1px solid #e0e0e0; height: 9mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(206, 206, 206) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <p style="font-size: 12px; font-weight: bold; transform: translateY(1mm) translateX(5mm);">{{ number_format($preventivo->detrazione_fiscale_annua ?? 0, 2, ',', '.') }} <span style="color: #999;">%</span></p>
                     </div>
                 </div>
 
+            </div>
+            <div style="width: 100%; height: 20mm; position: relative;">
+                
+                <div style="position: absolute; top: 0mm; left: 0;">
+                    <span style="font-size: 10px; font-weight: bold; transform: translateX(5mm);">VANTAGGIO ANNUO TOTALE</span>
+                    <div style="border:1px solid #e0e0e0; height: 9mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(116, 13, 13) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <p style="font-size: 12px; font-weight: bold; transform: translateY(1mm) translateX(5mm);">{{ number_format(($preventivo->risparmio_autoconsumo_annuo ?? 0) + ($preventivo->vendita_eccedenze_rid_annua ?? 0) + ($preventivo->incentivo_cer_annuo ?? 0), 2, ',', '.') }} <span style="color: #999;">€</span></p>
+                    </div>
                 </div>
+            </div>
         </div>
 
         <!-- BUSINESS PLAN -->
