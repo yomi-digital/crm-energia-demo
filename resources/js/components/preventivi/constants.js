@@ -18,18 +18,14 @@ export const COEFFICIENTS = {
 };
 
 export const SAMPLE_INCENTIVES = [
-  { description: 'Bonus Ristrutturazione', amount: 5000 },
-  { description: 'Incentivo Regionale', amount: 1500 },
 ];
 
 export const SAMPLE_DISCOUNTS = [
-  { description: 'Sconto Fiera', amount: 1000 },
-  { description: 'Sconto Pronta Consegna', amount: 500 },
+
 ];
 
 export const SAMPLE_ADDITIONAL_COSTS = [
-  { description: 'Pratiche Comunali', amount: 300 },
-  { description: 'Smaltimento Amianto', amount: 2000 },
+
 ];
 
 export const PRODUCTS = [
