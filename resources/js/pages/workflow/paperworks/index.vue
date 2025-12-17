@@ -2,6 +2,7 @@
 import PaperworkNotesDialog from '@/components/dialogs/PaperworkNotesDialog.vue'
 import StatusChip from '@/components/StatusChip.vue'
 import { onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 
 definePage({
   meta: {
@@ -13,6 +14,7 @@ definePage({
 
 
 // 👉 Store
+const route = useRoute()
 const searchQuery = ref('')
 
 // Data table options
@@ -20,20 +22,20 @@ const itemsPerPage = ref(25)
 const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
-const selectedAgent = ref()
-const selectedCustomer = ref()
-const selectedCategory = ref()
-const dateFrom = ref('')
-const dateTo = ref('')
+const selectedAgent = ref(route.query.user_id ? Number(route.query.user_id) : null)
+const selectedCustomer = ref(route.query.customer_id ? Number(route.query.customer_id) : null)
+const selectedCategory = ref(route.query.category || '')
+const dateFrom = ref(route.query.date_from || '')
+const dateTo = ref(route.query.date_to || '')
 const selectedYear = ref('')
 const selectedMonth = ref('')
-const phoneSearch = ref('')
-const taxIdSearch = ref('')
-const emailSearch = ref('')
-const podPdrSearch = ref('')
-const selectedProduct = ref('')
-const selectedContractType = ref('')
-const selectedSupplyType = ref('')
+const phoneSearch = ref(route.query.phone || '')
+const taxIdSearch = ref(route.query.tax_id || '')
+const emailSearch = ref(route.query.email || '')
+const podPdrSearch = ref(route.query.pod_pdr || '')
+const selectedProduct = ref(route.query.product_id ? Number(route.query.product_id) : '')
+const selectedContractType = ref(route.query.contract_type || '')
+const selectedSupplyType = ref(route.query.type || '')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -178,7 +180,11 @@ const stopPolling = () => {
 }
 
 // Avvia il polling quando il componente viene montato
-onMounted(() => {
+onMounted(async () => {
+  // Se ci sono query parameters, forza il refresh dei dati
+  if (route.query.date_from || route.query.date_to || route.query.user_id || route.query.customer_id) {
+    await fetchPaperworks()
+  }
   startPolling()
 })
 
@@ -245,6 +251,13 @@ const fetchAgents = async () => {
       value: response.agents[i].id,
     })
   }
+  // Se c'è un valore dai query parameters, assicurati che sia impostato correttamente
+  if (route.query.user_id) {
+    const agentId = Number(route.query.user_id)
+    if (agents.value.find(a => a.value === agentId)) {
+      selectedAgent.value = agentId
+    }
+  }
 }
 if (useAbility().can('view', 'users')) {
   fetchAgents()
@@ -259,6 +272,13 @@ const fetchCustomers = async () => {
       title: getCustomerName(response.customers[i]),
       value: response.customers[i].id,
     })
+  }
+  // Se c'è un valore dai query parameters, assicurati che sia impostato correttamente
+  if (route.query.customer_id) {
+    const customerId = Number(route.query.customer_id)
+    if (customers.value.find(c => c.value === customerId)) {
+      selectedCustomer.value = customerId
+    }
   }
 }
 fetchCustomers()
@@ -499,6 +519,8 @@ const updateDateFromYearMonth = () => {
               label="Filtra per Agente"
               clearable
               :items="agents"
+              item-title="title"
+              item-value="value"
               placeholder="Seleziona un Agente"
             />
           </VCol>
@@ -509,6 +531,8 @@ const updateDateFromYearMonth = () => {
               label="Filtra per Cliente"
               clearable
               :items="customers"
+              item-title="title"
+              item-value="value"
               placeholder="Seleziona un Cliente"
             />
           </VCol>

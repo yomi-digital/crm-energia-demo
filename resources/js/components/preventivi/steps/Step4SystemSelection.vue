@@ -18,8 +18,8 @@
              </div>
              <div>
                 <label for="roof-exp" class="field-label">Esposizione tetto</label>
-                <select id="roof-exp" :value="formData.roofExposure" @change="updateFormData('roofExposure', $event.target.value)" class="field-select">
-                    <option value="">Seleziona esposizione</option>
+                <select id="roof-exp" :value="formData.roofExposure" @change="updateFormData('roofExposure', $event.target.value)" class="field-select" :disabled="loadingCoefficients">
+                    <option value="">{{ loadingCoefficients ? 'Caricamento in corso...' : 'Seleziona esposizione' }}</option>
                     <option v-for="exposure in Object.keys(coefficientsMap)" :key="exposure" :value="exposure">
                         {{ exposure.split(' ').map(word => word.charAt(0) + word.slice(1).toLowerCase()).join(' ') }}
                     </option>
@@ -294,15 +294,61 @@ const coefficientiProduzione = ref([]);
 const modalitaPagamento = ref([]);
 const coefficientsMap = ref({});
 const localSelectedProduct = ref('');
+const loadingCoefficients = ref(false);
 
 // Sincronizza il valore locale con il prop
 watch(() => props.formData.selectedProduct, (newVal) => {
   localSelectedProduct.value = newVal ? String(newVal) : '';
 }, { immediate: true });
 
+// Watch per aggiornare coefficientsMap quando cambia nel formData
+watch(() => props.formData.coefficientsMap, (newMap) => {
+  if (newMap && Object.keys(newMap).length > 0) {
+    coefficientsMap.value = newMap;
+    loadingCoefficients.value = false;
+  }
+}, { immediate: true });
+
 // Carica i dati all'avvio del componente
 onMounted(async () => {
   try {
+    // Usa i coefficienti già caricati dallo step 1 se disponibili
+    if (props.formData.coefficientsMap && Object.keys(props.formData.coefficientsMap).length > 0) {
+      coefficientsMap.value = props.formData.coefficientsMap;
+    } else {
+      // Altrimenti caricali qui (fallback)
+      loadingCoefficients.value = true;
+      try {
+        const coefficienti = await loadCoefficientiProduzione();
+        coefficientiProduzione.value = coefficienti;
+        
+        // Converti i coefficienti in un formato utilizzabile
+        if (coefficienti && coefficienti.length > 0) {
+          const map = {};
+          coefficienti.forEach(coeff => {
+            const esposizione = coeff.esposizione;
+            const area = coeff.area_geografica;
+            const valore = coeff.coefficiente_kwh_kwp;
+            
+            if (esposizione && area && valore !== undefined && valore !== null) {
+              if (!map[esposizione]) {
+                map[esposizione] = {};
+              }
+              map[esposizione][area] = valore;
+            }
+          });
+          coefficientsMap.value = Object.keys(map).length > 0 ? map : COEFFICIENTS;
+          
+          // Salva i coefficienti nel formData per uso futuro
+          updateFormData('coefficientsMap', coefficientsMap.value);
+        } else {
+          coefficientsMap.value = COEFFICIENTS;
+        }
+      } finally {
+        loadingCoefficients.value = false;
+      }
+    }
+    
     // Carica tipologie tetto
     const tipologie = await loadTipologieTetto();
     console.log(tipologie);
@@ -312,32 +358,6 @@ onMounted(async () => {
     // Carica prodotti fotovoltaico
     const prodotti = await loadProdottiFotovoltaico();
     prodottiFotovoltaico.value = prodotti;
-    
-    // Carica coefficienti produzione
-    const coefficienti = await loadCoefficientiProduzione();
-    coefficientiProduzione.value = coefficienti;
-    
-    // Converti i coefficienti in un formato utilizzabile
-    // Usa il campo coefficiente_kwh_kwp dall'API
-    if (coefficienti && coefficienti.length > 0) {
-      const map = {};
-      coefficienti.forEach(coeff => {
-        const esposizione = coeff.esposizione;
-        const area = coeff.area_geografica;
-        // Usa il campo coefficiente_kwh_kwp dall'API
-        const valore = coeff.coefficiente_kwh_kwp;
-        
-        if (esposizione && area && valore !== undefined && valore !== null) {
-          if (!map[esposizione]) {
-            map[esposizione] = {};
-          }
-          map[esposizione][area] = valore;
-        }
-      });
-      coefficientsMap.value = Object.keys(map).length > 0 ? map : COEFFICIENTS;
-    } else {
-      coefficientsMap.value = COEFFICIENTS;
-    }
     
     // Carica modalità pagamento
     const modalita = await loadModalitaPagamento();
@@ -364,6 +384,7 @@ onMounted(async () => {
     coefficientiProduzione.value = [];
     modalitaPagamento.value = [];
     coefficientsMap.value = COEFFICIENTS;
+    loadingCoefficients.value = false;
   }
 });
 
@@ -645,7 +666,8 @@ const simulationResults = computed(() => {
 
 const isResidential = computed(() => {
   // Usa clientCategory se disponibile, altrimenti default a Residenziale
-  const category = props.formData.clientCategory || 'Residenziale';
+  console.log(props.formData)
+  const category = props.formData.clientCategory || 'Business';
   return category.toLowerCase() === 'residenziale';
 });
 

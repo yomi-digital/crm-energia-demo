@@ -1167,7 +1167,7 @@ onUnmounted(() => {
 
                 <VRow>
                   <VCol cols="12">
-                    <AppAutocomplete
+                    <SearchBrand
                       v-model="extractedPaperwork.brand_id"
                       :items="brands"
                       item-title="name"

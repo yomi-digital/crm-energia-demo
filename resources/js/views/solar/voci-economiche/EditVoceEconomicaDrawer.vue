@@ -27,6 +27,7 @@ const tipoCliente = ref([])
 
 const tipoVoceOptions = [
   { title: 'Incentivo', value: 'incentivo' },
+  { title: 'Sconto', value: 'sconto' },
   { title: 'Costo', value: 'costo' },
 ]
 

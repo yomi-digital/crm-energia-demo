@@ -36,7 +36,7 @@ watch(props.ptype, () => {
 const brands = ref([])
 
 const fetchBrands = async (query) => {
-  const response = await $api(`/brands?itemsPerPage=999999&with=products&product_details=1&type=${props.ptype.user_type}&category=${props.ptype.type}&agent=${props.agent}`)
+  const response = await $api(`/brands/personal?itemsPerPage=999999&with=products&product_details=1&type=${props.ptype.user_type}&category=${props.ptype.type}&agent=${props.agent}`)
   brands.value = response.brands
 }
 await fetchBrands('')
@@ -70,7 +70,7 @@ watch(() => formData.value.product_id, () => {
         cols="12"
         sm="12"
       >
-        <AppAutocomplete
+        <SearchBrand
           v-model="formData.brand_id"
           label="Brand"
           :items="brands"

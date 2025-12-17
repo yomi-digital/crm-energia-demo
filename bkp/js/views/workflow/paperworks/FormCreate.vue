@@ -93,18 +93,14 @@ const fetchAgents = async () => {
 }
 
 const brands = ref([])
-const searchBrand = ref()
 const loadingBrands = ref(false)
-const fetchBrands = async (query) => {
-  const response = await $api('/brands?itemsPerPage=999999&select=1&q=' + query)
-  brands.value = response.brands.map(brand => ({
-    title: brand.name,
-    value: brand.id,
-  }))
+const fetchBrands = async () => {
+  loadingBrands.value = true
+  const response = await $api('/brands?itemsPerPage=999999&select=1')
+  brands.value = response.brands
+  loadingBrands.value = false
 }
-watch(searchBrand, query => {
-  query && query !== brand.value && fetchBrands(query)
-})
+await fetchBrands()
 
 const products = ref([])
 
@@ -198,13 +194,14 @@ const createUser = async () => {
         cols="12"
         md="6"
       >
-        <AppAutocomplete
+        <SearchBrand
           v-model="brand"
-          v-model:search="searchBrand"
           :loading="loadingBrands"
           label="Brand"
           :items="brands"
-          placeholder="Seleziona un brand"
+          placeholder="Seleziona un brand a"
+          item-title="name"
+          item-value="id"
         />
       </VCol>
 

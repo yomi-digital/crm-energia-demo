@@ -170,6 +170,7 @@ const statuses = [
 const tipoVoci = [
   { value: '', title: 'Tutti' },
   { value: 'incentivo', title: 'Incentivo' },
+  {value: 'sconto', title: 'Sconto'},
   { value: 'costo', title: 'Costo' },
 ]
 

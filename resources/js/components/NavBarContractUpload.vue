@@ -32,10 +32,7 @@ const fetchBrands = async (query = '') => {
   try {
     const searchParam = query ? `&q=${encodeURIComponent(query)}` : ''
     const response = await $api(`/brands/personal?itemsPerPage=999999&enabled=1${searchParam}`)
-    brands.value = (response.brands || []).map(brand => ({
-      title: brand.name,
-      value: brand.id,
-    }))
+    brands.value = response.brands
   } catch (error) {
     console.error('Failed to load brands:', error)
     alert.value = {
@@ -161,9 +158,11 @@ const uploadContract = async (files) => {
             Carica il contratto completo di documenti di identità e bollette precedenti.<br>L'AI analizzera' il file e caricherà i dati nel sistema.
           </p>
 
-          <AppAutocomplete
+          <SearchBrand
             v-model="selectedBrand"
             v-model:search="searchBrand"
+            item-title="name"
+            item-value="id"
             :items="brands"
             label="Seleziona Brand *"
             placeholder="Scegli il brand per questa pratica"

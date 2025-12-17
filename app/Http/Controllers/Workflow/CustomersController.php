@@ -83,7 +83,7 @@ class CustomersController extends Controller
         }
 
         if ($request->get('select') === '1') {
-            $customers = $customers->select('id', 'name', 'last_name', 'business_name', 'vat_number', 'tax_id_code');
+            $customers = $customers->select('id', 'name', 'last_name', 'business_name', 'vat_number', 'category', 'tax_id_code');
         }
 
         $customers = $customers->paginate($perPage);

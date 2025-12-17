@@ -62,8 +62,10 @@
 </template>
 
 <script setup lang="js">
+import { usePreventiviApi } from '@/composables/usePreventiviApi';
 import FormCreate from '@/views/workflow/customers/FormCreate.vue';
-import { defineEmits, defineProps, ref, watch } from 'vue';
+import { defineEmits, defineProps, onMounted, ref, watch } from 'vue';
+import { COEFFICIENTS } from '../constants';
 
 const props = defineProps({
   formData: Object,
@@ -75,6 +77,7 @@ const customers = ref([]);
 const search = ref('');
 const loading = ref(false);
 const selectedCustomer = ref(null);
+const { loadCoefficientiProduzione } = usePreventiviApi();
 
 const preventDefaultStopPropagation = (event) => {
   event.preventDefault();
@@ -108,7 +111,7 @@ const getCustomerName = (customer) => {
 const fetchCustomers = async (query, id = null) => {
   try {
     loading.value = true;
-    const response = await $api('/customers?skipControl=true&itemsPerPage=50&select=1&q=' + query + (id ? '&id=' + id : ''));
+    const response = await $api('/customers?skipControl=false&itemsPerPage=50&select=1&q=' + query + (id ? '&id=' + id : ''));
     
     if (!response || !response.customers || !Array.isArray(response.customers)) {
       console.error('Risposta API non valida:', response);
@@ -119,7 +122,7 @@ const fetchCustomers = async (query, id = null) => {
     customers.value = response.customers.map(customer => ({
       title: getCustomerName(customer),
       value: customer.id,
-      category: customer.category || 'Residenziale', // Aggiungi la categoria
+      category: customer.category || 'Business', // Aggiungi la categoria
       rawData: customer, // Salva i dati completi
     }));
     
@@ -135,11 +138,65 @@ const fetchCustomers = async (query, id = null) => {
   }
 };
 
-// Carica il cliente iniziale se presente
-if (props.formData.client) {
-  const numericId = typeof props.formData.client === 'object' ? props.formData.client.value : props.formData.client;
-  await fetchCustomers('', numericId);
-}
+// Carica i coefficienti produzione all'avvio dello step 1
+onMounted(async () => {
+  // Carica i coefficienti solo se non sono già stati caricati
+  if (!props.formData.coefficientsMap || Object.keys(props.formData.coefficientsMap || {}).length === 0) {
+    try {
+      const coefficienti = await loadCoefficientiProduzione();
+      
+      // Converti i coefficienti in un formato utilizzabile
+      if (coefficienti && coefficienti.length > 0) {
+        const map = {};
+        coefficienti.forEach(coeff => {
+          const esposizione = coeff.esposizione;
+          const area = coeff.area_geografica;
+          const valore = coeff.coefficiente_kwh_kwp;
+          
+          if (esposizione && area && valore !== undefined && valore !== null) {
+            if (!map[esposizione]) {
+              map[esposizione] = {};
+            }
+            map[esposizione][area] = valore;
+          }
+        });
+        
+        // Salva i coefficienti nel formData solo se abbiamo dati validi
+        if (Object.keys(map).length > 0) {
+          emit('update:formData', { 
+            ...props.formData, 
+            coefficientsMap: map 
+          });
+        } else {
+          // Fallback ai valori di default
+          emit('update:formData', { 
+            ...props.formData, 
+            coefficientsMap: COEFFICIENTS 
+          });
+        }
+      } else {
+        // Fallback ai valori di default
+        emit('update:formData', { 
+          ...props.formData, 
+          coefficientsMap: COEFFICIENTS 
+        });
+      }
+    } catch (error) {
+      console.error('Errore nel caricamento coefficienti:', error);
+      // Fallback ai valori di default
+      emit('update:formData', { 
+        ...props.formData, 
+        coefficientsMap: COEFFICIENTS 
+      });
+    }
+  }
+  
+  // Carica il cliente iniziale se presente
+  if (props.formData.client) {
+    const numericId = typeof props.formData.client === 'object' ? props.formData.client.value : props.formData.client;
+    await fetchCustomers('', numericId);
+  }
+});
 
 // Watch per la ricerca
 watch(search, (query) => {
@@ -167,8 +224,10 @@ watch(selectedCustomer, (newVal, oldVal) => {
     return;
   }
   
+  console.log(newVal)
+
   const clientValue = typeof newVal === 'object' ? newVal.value : newVal;
-  const clientCategory = typeof newVal === 'object' ? newVal.category : 'Residenziale';
+  const clientCategory = typeof newVal === 'object' ? newVal.category : 'Business';
   const clientData = typeof newVal === 'object' ? newVal.rawData : null;
   
   console.log('Emetto update:formData con client:', clientValue, 'category:', clientCategory);

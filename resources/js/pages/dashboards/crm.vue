@@ -124,7 +124,7 @@ const getDonutOptions = (title) => ({
   },
   labels: [],
   title: {
-    text: title,
+    text: '', // Rimuoviamo il titolo dal grafico, lo aggiungeremo nel template
     align: 'center',
     style: {
       fontSize: '16px'
@@ -203,7 +203,7 @@ const getAreaOptions = (title) => ({
     }
   },
   title: {
-    text: title,
+    text: '', // Rimuoviamo il titolo dal grafico, lo aggiungeremo nel template
     align: 'left',
     style: {
       fontSize: '16px'
@@ -229,25 +229,25 @@ const getAreaOptions = (title) => ({
 
 // Chart refs
 const todayDonutOptions = ref({
-  ...getDonutOptions('Pratiche di Oggi'),
+  ...getDonutOptions(''),
   series: [],
   labels: [],
 })
 
 const currentMonthDonutOptions = ref({
-  ...getDonutOptions('Pratiche del Mese'),
+  ...getDonutOptions(''),
   series: [],
   labels: [],
 })
 
 const lastMonthDonutOptions = ref({
-  ...getDonutOptions('Pratiche del Mese Precedente'),
+  ...getDonutOptions(''),
   series: [],
   labels: [],
 })
 
 const todayChartOptions = ref({
-  ...getAreaOptions('Pratiche di Oggi'),
+  ...getAreaOptions(''),
   chart: {
     ...getAreaOptions('').chart,
     id: 'today-chart',
@@ -263,7 +263,7 @@ const todayChartOptions = ref({
 })
 
 const monthChartOptions = ref({
-  ...getAreaOptions('Trend Mensile'),
+  ...getAreaOptions(''),
   chart: {
     ...getAreaOptions('').chart,
     id: 'month-chart',
@@ -279,7 +279,7 @@ const monthChartOptions = ref({
 })
 
 const lastMonthChartOptions = ref({
-  ...getAreaOptions('Trend Mese Precedente'),
+  ...getAreaOptions(''),
   chart: {
     ...getAreaOptions('').chart,
     id: 'last-month-chart',
@@ -453,23 +453,14 @@ const fetchStats = async () => {
     })
     
     // Update donut charts
-    todayDonutOptions.value = {
-      ...todayDonutOptions.value,
-      series: Object.values(data.today),
-      labels: Object.keys(data.today),
-    }
+    todayDonutOptions.value.series = Object.values(data.today)
+    todayDonutOptions.value.labels = Object.keys(data.today)
     
-    currentMonthDonutOptions.value = {
-      ...currentMonthDonutOptions.value,
-      series: Object.values(data.currentMonth),
-      labels: Object.keys(data.currentMonth),
-    }
+    currentMonthDonutOptions.value.series = Object.values(data.currentMonth)
+    currentMonthDonutOptions.value.labels = Object.keys(data.currentMonth)
     
-    lastMonthDonutOptions.value = {
-      ...lastMonthDonutOptions.value,
-      series: Object.values(data.previousMonth),
-      labels: Object.keys(data.previousMonth),
-    }
+    lastMonthDonutOptions.value.series = Object.values(data.previousMonth)
+    lastMonthDonutOptions.value.labels = Object.keys(data.previousMonth)
   } catch (error) {
     console.error('Error fetching stats:', error)
   }
@@ -529,10 +520,7 @@ const fetchTimeSeriesData = async () => {
     }
 
     // Update today's chart
-    todayChartOptions.value = {
-      ...todayChartOptions.value,
-      series: todaySeries
-    }
+    todayChartOptions.value.series = todaySeries
 
     // Process this month's data
     const now = new Date()
@@ -582,14 +570,8 @@ const fetchTimeSeriesData = async () => {
     }
 
     // Update this month's chart
-    monthChartOptions.value = {
-      ...monthChartOptions.value,
-      xaxis: {
-        ...monthChartOptions.value.xaxis,
-        categories: monthCategories
-      },
-      series: monthSeries
-    }
+    monthChartOptions.value.xaxis.categories = monthCategories
+    monthChartOptions.value.series = monthSeries
 
     // Process last month's data
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
@@ -637,14 +619,8 @@ const fetchTimeSeriesData = async () => {
     }
 
     // Update last month's chart
-    lastMonthChartOptions.value = {
-      ...lastMonthChartOptions.value,
-      xaxis: {
-        ...lastMonthChartOptions.value.xaxis,
-        categories: lastMonthCategories
-      },
-      series: lastMonthSeries
-    }
+    lastMonthChartOptions.value.xaxis.categories = lastMonthCategories
+    lastMonthChartOptions.value.series = lastMonthSeries
 
     console.log('Updated chart options:', {
       today: todayChartOptions.value,
@@ -724,8 +700,37 @@ watch(chartFilters, () => {
   fetchTimeSeriesData()
 }, { deep: true })
 
+// Verifica validità del token all'avvio
+const verifyToken = async () => {
+  const accessToken = useCookie('accessToken').value
+  if (!accessToken) {
+    window.location.href = '/login'
+    return false
+  }
+  
+  try {
+    // Verifica se il token è ancora valido chiamando l'endpoint user
+    await $api('/auth/user')
+    return true
+  } catch (error) {
+    // Se il token non è valido (401), reindirizza al login
+    if (error?.status === 401 || error?.response?.status === 401) {
+      useCookie('accessToken').value = null
+      useCookie('userData').value = null
+      window.location.href = '/login'
+    }
+    return false
+  }
+}
+
 // Initial data fetch
 onMounted(async () => {
+  // Verifica il token prima di caricare i dati
+  const isValid = await verifyToken()
+  if (!isValid) {
+    return // Il redirect sarà gestito da useApi.js
+  }
+  
   await fetchPaperworks()
   await fetchAiPaperworks()
   await fetchTickets()
@@ -760,6 +765,45 @@ const handleSearch = () => {
   router.push({
     path: '/workflow/paperworks',
     query: queryParams
+  })
+}
+
+// Funzioni per navigare alla pagina paperworks con filtri temporali
+const navigateToTodayPaperworks = () => {
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+  router.push({
+    path: '/workflow/paperworks',
+    query: {
+      date_from: todayStr,
+      date_to: todayStr
+    }
+  })
+}
+
+const navigateToCurrentMonthPaperworks = () => {
+  const now = new Date()
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  router.push({
+    path: '/workflow/paperworks',
+    query: {
+      date_from: firstDay.toISOString().split('T')[0],
+      date_to: lastDay.toISOString().split('T')[0]
+    }
+  })
+}
+
+const navigateToPreviousMonthPaperworks = () => {
+  const now = new Date()
+  const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const lastDay = new Date(now.getFullYear(), now.getMonth(), 0)
+  router.push({
+    path: '/workflow/paperworks',
+    query: {
+      date_from: firstDay.toISOString().split('T')[0],
+      date_to: lastDay.toISOString().split('T')[0]
+    }
   })
 }
 </script>
@@ -1209,6 +1253,17 @@ const handleSearch = () => {
           variant="outlined"
           class="pa-4 chart-card"
         >
+          <div 
+            class="chart-title-clickable mb-4"
+            @click="navigateToTodayPaperworks"
+          >
+            <span class="text-h6">Pratiche di Oggi</span>
+            <VIcon 
+              icon="tabler-external-link" 
+              size="20" 
+              class="ml-2"
+            />
+          </div>
           <VueApexCharts
             :options="todayDonutOptions"
             :series="todayDonutOptions.series"
@@ -1223,6 +1278,17 @@ const handleSearch = () => {
           variant="outlined"
           class="pa-4 chart-card"
         >
+          <div 
+            class="chart-title-clickable mb-4"
+            @click="navigateToCurrentMonthPaperworks"
+          >
+            <span class="text-h6">Pratiche del Mese</span>
+            <VIcon 
+              icon="tabler-external-link" 
+              size="20" 
+              class="ml-2"
+            />
+          </div>
           <VueApexCharts
             :options="currentMonthDonutOptions"
             :series="currentMonthDonutOptions.series"
@@ -1237,6 +1303,17 @@ const handleSearch = () => {
           variant="outlined"
           class="pa-4 chart-card"
         >
+          <div 
+            class="chart-title-clickable mb-4"
+            @click="navigateToPreviousMonthPaperworks"
+          >
+            <span class="text-h6">Pratiche del Mese Precedente</span>
+            <VIcon 
+              icon="tabler-external-link" 
+              size="20" 
+              class="ml-2"
+            />
+          </div>
           <VueApexCharts
             :options="lastMonthDonutOptions"
             :series="lastMonthDonutOptions.series"
@@ -1250,6 +1327,17 @@ const handleSearch = () => {
     <VRow class="mt-6">
       <VCol cols="12">
         <VCard variant="outlined" class="pa-4">
+          <div 
+            class="chart-title-clickable mb-4"
+            @click="navigateToTodayPaperworks"
+          >
+            <span class="text-h6">Pratiche di Oggi</span>
+            <VIcon 
+              icon="tabler-external-link" 
+              size="20" 
+              class="ml-2"
+            />
+          </div>
           <VueApexCharts
             type="area"
             height="350"
@@ -1264,6 +1352,17 @@ const handleSearch = () => {
     <VRow class="mt-6">
       <VCol cols="12">
         <VCard variant="outlined" class="pa-4">
+          <div 
+            class="chart-title-clickable mb-4"
+            @click="navigateToCurrentMonthPaperworks"
+          >
+            <span class="text-h6">Trend Mensile</span>
+            <VIcon 
+              icon="tabler-external-link" 
+              size="20" 
+              class="ml-2"
+            />
+          </div>
           <VueApexCharts
             type="area"
             height="350"
@@ -1278,6 +1377,17 @@ const handleSearch = () => {
     <VRow class="mt-6">
       <VCol cols="12">
         <VCard variant="outlined" class="pa-4">
+          <div 
+            class="chart-title-clickable mb-4"
+            @click="navigateToPreviousMonthPaperworks"
+          >
+            <span class="text-h6">Trend Mese Precedente</span>
+            <VIcon 
+              icon="tabler-external-link" 
+              size="20" 
+              class="ml-2"
+            />
+          </div>
           <VueApexCharts
             type="area"
             height="350"
@@ -1341,11 +1451,32 @@ const handleSearch = () => {
 .chart-card {
   min-height: 418px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 
   :deep(.apexcharts-canvas) {
     margin: 0 auto;
+  }
+}
+
+.chart-title-clickable {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  
+  &:hover {
+    color: rgb(var(--v-theme-primary));
+    
+    :deep(.v-icon) {
+      color: rgb(var(--v-theme-primary));
+    }
+  }
+  
+  :deep(.v-icon) {
+    transition: all 0.2s ease;
   }
 }
 </style>

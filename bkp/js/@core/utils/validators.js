@@ -82,7 +82,7 @@ export const lengthValidator = (value, length) => {
   if (isEmpty(value))
     return true
 
-  return String(value).length === length || `"The length of the Characters field must be ${length} characters."`
+  return String(value).length === length || `"Il campo deve contenere ${length} caratteri."`
 }
 
 // 👉 Alpha-dash Validator

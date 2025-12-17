@@ -13,9 +13,14 @@ const emit = defineEmits(['update:formData'])
 
 // Computed per determinare se il campo POD/PDR è obbligatorio
 const isPodRequired = computed(() => {
-  return formData.value.category !== 'ALLACCIO' && formData.value.energy_type !== 'MOBILE'
+  console.log(formData.value.category, formData.value.energy_type)
+  console.log(formData.value.type)
+  return formData.value.category !== 'ALLACCIO' && formData.value.energy_type !== 'MOBILE' && formData.value.type !== 'TELEFONIA'
 })
 
+const isMobileTypeRequired = computed(() => {
+  return formData.value.energy_type === 'MOBILE' || formData.value.type === 'FISSO_MOBILE'
+})
 // Errori campi obbligatori step "Tipo Pratica"
 const hasContractTypeError = computed(() => !formData.value.category)
 const hasUserTypeError = computed(() => !formData.value.user_type)
@@ -162,6 +167,10 @@ const contractTypesMobile = ref([
         <AppSelect
           v-model="formData.mobile_type"
           label="Tipologia Mobile"
+          :error="isMobileTypeRequired && (!formData.mobile_type || formData.mobile_type.trim() === '')"
+          :error-messages="isMobileTypeRequired && (!formData.mobile_type || formData.mobile_type.trim() === '') ? 'Il campo Tipologia Mobile è obbligatorio per questo tipo di pratica' : ''"
+          :rules="isMobileTypeRequired ? [v => !!v || 'Il campo Tipologia Mobile è obbligatorio per questo tipo di pratica'] : []"
+      
           :items="[{ title: 'MNP', value: 'MNP' }, { title: 'NIP', value: 'NIP' }]"
           placeholder="Seleziona un tipo"
         />

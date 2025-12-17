@@ -304,6 +304,7 @@ const createUser = async () => {
         <AppTextField
           v-model="taxIdCode"
           label="Codice Fiscale"
+          
           placeholder="ABCDEF12G34H567I"
           :rules="[requiredValidator]"
         />
