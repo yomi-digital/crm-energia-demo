@@ -159,8 +159,7 @@ const ticketStatusText = (status) => {
               class="font-weight-medium text-link"
             >
               {{
-                item.paperwork.customer.business_name
-                  || [item.paperwork.customer.name, item.paperwork.customer.last_name].filter(Boolean).join(' ')
+                (item.paperwork.customer.business_name ? item.paperwork.customer.business_name +" - " :'')+ [item.paperwork.customer.name, item.paperwork.customer.last_name].filter(Boolean).join(' ')
               }}
             </RouterLink>
             <div v-else class="text-high-emphasis text-body-1">
