@@ -26,7 +26,10 @@
                 <button @click="handleRemoveItem(index)" class="btn-icon danger" aria-label="Rimuovi">&times;</button>
             </div>
         </div>
-        <button @click="handleAddItem" class="btn btn-small btn-secondary" style="margin-top:8px;">+ Aggiungi {{ title }}</button>
+        <button :disabled="currentOptions.length <= 0" @click="handleAddItem" class="btn btn-small btn-secondary" style="margin-top:8px;">
+            <span v-if="currentOptions.length <= 0">Nessuna voce disponibile</span>
+            <span v-else>+ Aggiungi {{ title }}</span>
+        </button>
     </div>
 </template>
 

@@ -82,6 +82,18 @@ const {
 
 const pagamenti = computed(() => {
   const data = pagamentiData.value
+  if (!data) return []
+  
+  // Se i dati sono dentro modalita_pagamento
+  if (data.modalita_pagamento) {
+    const modalitaPagamento = data.modalita_pagamento
+    if (Array.isArray(modalitaPagamento)) {
+      return modalitaPagamento
+    }
+    return modalitaPagamento?.data || []
+  }
+  
+  // Fallback per compatibilità con strutture vecchie
   if (Array.isArray(data)) {
     return data
   }
@@ -89,6 +101,18 @@ const pagamenti = computed(() => {
 })
 const totalPagamenti = computed(() => {
   const data = pagamentiData.value
+  if (!data) return 0
+  
+  // Se i dati sono dentro modalita_pagamento
+  if (data.modalita_pagamento) {
+    const modalitaPagamento = data.modalita_pagamento
+    if (Array.isArray(modalitaPagamento)) {
+      return modalitaPagamento.length
+    }
+    return modalitaPagamento?.total || 0
+  }
+  
+  // Fallback per compatibilità con strutture vecchie
   if (Array.isArray(data)) {
     return data.length
   }
