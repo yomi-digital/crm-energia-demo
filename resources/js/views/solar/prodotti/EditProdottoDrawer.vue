@@ -25,6 +25,8 @@ const descrizione = ref()
 const potenzaKwp = ref()
 const capacitaKwh = ref()
 const prezzoBase = ref()
+const potenzaInverter = ref()
+const marca = ref()
 const linkSchedaProdottoTecnica = ref('')
 
 const categorie = ref([])
@@ -48,6 +50,8 @@ descrizione.value = props.prodotto.descrizione
 potenzaKwp.value = props.prodotto.potenza_kwp
 capacitaKwh.value = props.prodotto.capacita_kwh
 prezzoBase.value = props.prodotto.prezzo_base
+potenzaInverter.value = props.prodotto.potenza_inverter
+marca.value = props.prodotto.marca
 linkSchedaProdottoTecnica.value = props.prodotto.link_scheda_prodotto_tecnica || ''
 
 watch(() => props.isDrawerOpen, (val) => {
@@ -59,6 +63,8 @@ watch(() => props.isDrawerOpen, (val) => {
     potenzaKwp.value = props.prodotto.potenza_kwp
     capacitaKwh.value = props.prodotto.capacita_kwh
     prezzoBase.value = props.prodotto.prezzo_base
+    potenzaInverter.value = props.prodotto.potenza_inverter
+    marca.value = props.prodotto.marca
     linkSchedaProdottoTecnica.value = props.prodotto.link_scheda_prodotto_tecnica || ''
   }
 })
@@ -83,6 +89,8 @@ const onSubmit = () => {
         potenza_kwp: potenzaKwp.value,
         capacita_kwh: capacitaKwh.value,
         prezzo_base: prezzoBase.value,
+        potenza_inverter: potenzaInverter.value,
+        marca: marca.value,
       }
       
       if (linkSchedaProdottoTecnica.value) {
@@ -192,6 +200,27 @@ const handleDrawerModelValueUpdate = val => {
                   label="Prezzo Base"
                   placeholder="20000"
                   type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Potenza Inverter -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="potenzaInverter"
+                  :rules="[requiredValidator]"
+                  label="Potenza Inverter (kW)"
+                  placeholder="0"
+                  type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Marca -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="marca"
+                  :rules="[requiredValidator]"
+                  label="Marca"
+                  placeholder="Marca"
                 />
               </VCol>
 

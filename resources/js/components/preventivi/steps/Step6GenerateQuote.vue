@@ -399,7 +399,9 @@ const preparePayload = () => {
                 quantita: 1,
                 prezzo_unitario_salvato: prodotto.prezzo_base ? prodotto.prezzo_base : 0,
                 capacita_batteria_salvata: null,
-                potenza_impianto_consigliata: prodotto.potenza_kwp ? prodotto.potenza_kwp / 1000 : 0,
+                potenza_inverter_salvata: prodotto.potenza_inverter !== undefined ? prodotto.potenza_inverter : 0,
+                marca_salvata: prodotto.marca || 'Marca',
+                iva: props.formData.iva !== undefined ? props.formData.iva : 1,
             });
         }
     }

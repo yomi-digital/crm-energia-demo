@@ -29,7 +29,7 @@ const tipoVoceOptions = [
 
 const tipoValoreOptions = [
   { title: 'Percentuale (%)', value: '%' },
-  { title: 'Fisso (€)', value: '€' },
+  { title: 'Fisso (€)', value: '$' },
 ]
 
 const tipoClienteOptions = [

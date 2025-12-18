@@ -1884,11 +1884,17 @@
                         </tr>
                             @endforeach
                         @endif
+                            @php
+                                $primoProdotto = $preventivo->dettagliProdotti->first();
+                                $potenzaInverter = $primoProdotto->potenza_inverter_salvata ?? 0;
+                                $marcaInverter = $primoProdotto->marca_salvata ?? '';
+                            @endphp
                         <tr style="background-color: #f9f9f9;">
                             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
                             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Inverter</td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">Inverter trifase da 10kWp. Marca HUAWEI, ZCS</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">{{ $marcaInverter }} {{ $potenzaInverter > 0 ? number_format($potenzaInverter, 0, ',', '.') . 'kW' : '10kWp' }}</td>
                         </tr>
+                       
                         <tr style="background-color: #f9f9f9;">
                             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
                             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Quadro elettrico DC/AC</td>
@@ -2616,6 +2622,20 @@
                 <!-- OFFERTA ECONOMICA - Box -->
                 <div style="position: absolute; top: 31mm; right: 18mm; width: 50mm; height: 10mm; background-color: white; border-radius: 16px; padding: 2mm; text-align: left;">
                     <p style="font-size: 18px; font-weight: bold; color: black; margin: 0; line-height: 10mm; transform: translateY(-3mm);">{{ number_format($totale_offerta, 2, ',', '.') }} <span style="font-weight: normal;">€</span></p>
+                </div>
+                <div style="position: absolute; top: 45mm; right: 18mm; width: 55mm; padding-left: 2mm;">
+                    @php
+                        $primoProdotto = $preventivo->dettagliProdotti->first();
+                        $ivaApplicata = $primoProdotto->iva ?? 1;
+                    @endphp
+                    @if($ivaApplicata == 0)
+                        @php
+                            $totale_con_iva = $totale_offerta * 1.22;
+                        @endphp
+                        <p style="font-size: 10px;font-weight: bold; color: white; margin: 0; transform: translateX(4mm);">€ {{ number_format($totale_con_iva, 2, ',', '.') }} IVA inclusa</p>
+                    @else
+                        <p style="font-size: 10px;font-weight: bold; color: white; margin: 0; transform: translateX(4mm);">IVA inclusa</p>
+                    @endif
                 </div>
                 
                 @if($preventivo->finanziamento_data_json)

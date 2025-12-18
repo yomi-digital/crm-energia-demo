@@ -20,6 +20,8 @@ class ProdottoFotovoltaico extends Model
         'potenza_kwp',
         'capacita_kwh',
         'prezzo_base',
+        'potenza_inverter',
+        'marca',
         'finanziamento_rate_standard',
         'link_scheda_prodotto_tecnica',
         'is_active',
@@ -29,6 +31,7 @@ class ProdottoFotovoltaico extends Model
         'potenza_kwp' => 'float',
         'capacita_kwh' => 'float',
         'prezzo_base' => 'float',
+        'potenza_inverter' => 'float',
         'is_active' => 'boolean',
     ];
 

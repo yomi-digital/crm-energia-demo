@@ -64,6 +64,7 @@ const formData = ref({
     installments: 120,
     maintenance: { enabled: false, cost: 0 },
     insurance: { enabled: false, cost: 0 },
+    iva: 1,
     incentives: [],
     discounts: [],
     additionalCosts: [],

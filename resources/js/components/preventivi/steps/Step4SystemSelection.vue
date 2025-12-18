@@ -91,17 +91,90 @@
 
             <div>
                 <label for="product" class="section-subtitle">Selezione Prodotto/Offerta</label>
-                 <select 
-                    id="product" 
-                    v-model="localSelectedProduct"
-                    @change="handleProductChange($event.target.value)" 
-                    class="field-select"
-                >
-                    <option value="">Scegli un prodotto</option>
-                    <option v-for="product in prodottiFotovoltaico" :key="product.id_prodotto" :value="String(product.id_prodotto)">
-                      {{ product.codice_prodotto }} ({{ product.prezzo_base }} €)
-                    </option>
-                </select>
+                <div style="position: relative;">
+                    <div 
+                        ref="productSelectTrigger"
+                        @click="toggleProductDropdown"
+                        tabindex="0"
+                        class="field-select"
+                        style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 30px; min-height: 38px;"
+                    >
+                        <span v-if="!localSelectedProduct" style="color: #9ca3af;">Scegli un prodotto</span>
+                        <span v-else style="display: flex; flex-direction: column; gap: 2px;">
+                            <span>{{ selectedProductDisplayText }}</span>
+                            <span v-if="selectedProductDescription && selectedProductDescription.length > 1" style="font-size: 11px; color: #6b7280;">{{ selectedProductDescription }}</span>
+                        </span>
+                        <svg 
+                            width="12" 
+                            height="12" 
+                            viewBox="0 0 12 12" 
+                            fill="none" 
+                            xmlns="http://www.w3.org/2000/svg"
+                            :style="{ transform: isProductDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }"
+                        >
+                            <path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <Teleport to="body">
+                        <div 
+                            v-if="isProductDropdownOpen"
+                            data-product-dropdown
+                            @mousedown.prevent
+                            :style="{
+                                position: 'fixed',
+                                top: dropdownPosition.top + 'px',
+                                left: dropdownPosition.left + 'px',
+                                width: dropdownPosition.width + 'px',
+                                background: 'white',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '4px',
+                                marginTop: '4px',
+                                maxHeight: '300px',
+                                overflowY: 'auto',
+                                zIndex: 9999,
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                            }"
+                        >
+                        <div 
+                            @click="handleProductChange('')"
+                            :style="{ 
+                                padding: '10px 12px', 
+                                cursor: 'pointer', 
+                                backgroundColor: !localSelectedProduct ? '#f3f4f6' : 'transparent',
+                                borderBottom: '1px solid #e5e7eb'
+                            }"
+                            @mouseenter="$event.target.style.backgroundColor = '#f9fafb'"
+                            @mouseleave="$event.target.style.backgroundColor = !localSelectedProduct ? '#f3f4f6' : 'transparent'"
+                        >
+                            <span>Scegli un prodotto</span>
+                        </div>
+                        <div 
+                            v-for="product in prodottiFotovoltaico" 
+                            :key="product.id_prodotto"
+                            @click="handleProductChange(String(product.id_prodotto))"
+                            :style="{ 
+                                padding: '10px 12px', 
+                                cursor: 'pointer',
+                                backgroundColor: localSelectedProduct === String(product.id_prodotto) ? '#f3f4f6' : 'transparent',
+                                borderBottom: '1px solid #e5e7eb'
+                            }"
+                            @mouseenter="$event.target.style.backgroundColor = '#f9fafb'"
+                            @mouseleave="$event.target.style.backgroundColor = localSelectedProduct === String(product.id_prodotto) ? '#f3f4f6' : 'transparent'"
+                        >
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span style="font-weight: 500;">{{ product.codice_prodotto }} ({{ product.prezzo_base }} €)</span>
+                                <span v-if="product.descrizione && product.descrizione.length > 1" style="font-size: 12px; color: #6b7280; line-height: 1.4;">{{ product.descrizione }}</span>
+                            </div>
+                        </div>
+                        </div>
+                    </Teleport>
+                </div>
+                <div class="pill" style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
+                    <label for="iva-check" style="font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;">
+                     <input type="checkbox" id="iva-check" :checked="formData.iva === 1" @change="updateFormData('iva', $event.target.checked ? 1 : 0)" style="margin-right:8px;"/>
+                        IVA inclusa
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -271,7 +344,7 @@
 
 <script setup lang="js">
 import { usePreventiviApi } from '@/composables/usePreventiviApi';
-import { computed, defineEmits, defineProps, onMounted, ref, watch } from 'vue';
+import { computed, defineEmits, defineProps, onMounted, onUnmounted, ref, watch } from 'vue';
 import AdjustmentList from '../AdjustmentList.vue';
 import { BATTERY_OPTIONS_KWH, COEFFICIENTS, POWER_OPTIONS_KW, PRICE_RITIRO_DEDICATO, PRODUCTS } from '../constants';
 import EarningsInfoCard from '../EarningsInfoCard.vue';
@@ -295,11 +368,91 @@ const modalitaPagamento = ref([]);
 const coefficientsMap = ref({});
 const localSelectedProduct = ref('');
 const loadingCoefficients = ref(false);
+const isProductDropdownOpen = ref(false);
+const productSelectTrigger = ref(null);
+const dropdownPosition = ref({ top: 0, left: 0, width: 0 });
 
 // Sincronizza il valore locale con il prop
 watch(() => props.formData.selectedProduct, (newVal) => {
   localSelectedProduct.value = newVal ? String(newVal) : '';
 }, { immediate: true });
+
+// Computed per il testo di visualizzazione del prodotto selezionato
+const selectedProductDisplayText = computed(() => {
+  if (!localSelectedProduct.value) return '';
+  const product = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(localSelectedProduct.value));
+  if (!product) return '';
+  return `${product.codice_prodotto} (${product.prezzo_base} €)`;
+});
+
+// Computed per la descrizione del prodotto selezionato
+const selectedProductDescription = computed(() => {
+  if (!localSelectedProduct.value) return '';
+  const product = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(localSelectedProduct.value));
+  return product?.descrizione || '';
+});
+
+// Funzione per aggiornare la posizione del dropdown
+const updateDropdownPosition = () => {
+  if (!productSelectTrigger.value || !isProductDropdownOpen.value) {
+    return;
+  }
+  const rect = productSelectTrigger.value.getBoundingClientRect();
+  dropdownPosition.value = {
+    top: rect.bottom + 4,
+    left: rect.left,
+    width: rect.width
+  };
+};
+
+// Funzione per aprire/chiudere il dropdown
+const toggleProductDropdown = () => {
+  isProductDropdownOpen.value = !isProductDropdownOpen.value;
+  if (isProductDropdownOpen.value) {
+    // Aggiorna la posizione quando si apre
+    setTimeout(() => updateDropdownPosition(), 0);
+  }
+};
+
+// Gestione click fuori dal dropdown
+const handleClickOutside = (event) => {
+  if (isProductDropdownOpen.value && productSelectTrigger.value && !productSelectTrigger.value.contains(event.target)) {
+    // Controlla se il click è sul dropdown stesso
+    const dropdown = document.querySelector('[data-product-dropdown]');
+    if (!dropdown || !dropdown.contains(event.target)) {
+      isProductDropdownOpen.value = false;
+    }
+  }
+};
+
+// Gestione scroll e resize per aggiornare la posizione
+const handleScrollOrResize = () => {
+  if (isProductDropdownOpen.value) {
+    updateDropdownPosition();
+  }
+};
+
+// Aggiungi listener quando il dropdown è aperto
+watch(isProductDropdownOpen, (isOpen) => {
+  if (isOpen) {
+    updateDropdownPosition();
+    document.addEventListener('click', handleClickOutside);
+    // Usa capture: true per intercettare tutti gli eventi di scroll, anche quelli sui container
+    document.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleScrollOrResize);
+  } else {
+    document.removeEventListener('click', handleClickOutside);
+    document.removeEventListener('scroll', handleScrollOrResize, true);
+    window.removeEventListener('resize', handleScrollOrResize);
+  }
+});
+
+// Rimuovi listener al dismount
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+  document.removeEventListener('scroll', handleScrollOrResize, true);
+  window.removeEventListener('resize', handleScrollOrResize);
+});
 
 // Watch per aggiornare coefficientsMap quando cambia nel formData
 watch(() => props.formData.coefficientsMap, (newMap) => {
@@ -536,6 +689,9 @@ const handleRoofTypeChange = (value) => {
 };
 
 const handleProductChange = (value) => {
+  // Chiudi il dropdown
+  isProductDropdownOpen.value = false;
+  
   // Aggiorna il valore locale immediatamente per feedback visivo
   localSelectedProduct.value = value;
   
