@@ -226,10 +226,23 @@ class PreventivoController extends Controller
         if ($request->user() && $request->user()->hasRole('agente')) {
             $preventivi->where('fk_agente', $request->user()->id);
         } elseif ($request->user() && $request->user()->hasRole('struttura')) {
-            // Se è una struttura, filtra per i preventivi della struttura e dei suoi agenti
+            // Se è una struttura, recupera gli agenti associati
             $relationships = UserRelationship::where('user_id', $request->user()->id)->pluck('related_id');
-            $agentIds = $relationships->merge([$request->user()->id])->unique()->values()->all();
-            $preventivi->whereIn('fk_agente', $agentIds);
+            $allowedAgentIds = $relationships->merge([$request->user()->id])->unique()->values()->all();
+            
+            // Se la struttura passa agentId, filtra solo per quell'agente (se è tra quelli associati)
+            if ($request->filled('agentId')) {
+                $requestedAgentId = (int) $request->get('agentId');
+                if (in_array($requestedAgentId, $allowedAgentIds, true)) {
+                    $preventivi->where('fk_agente', $requestedAgentId);
+                } else {
+                    // Se l'agente richiesto non è associato, ignora il filtro e mostra tutti i preventivi
+                    $preventivi->whereIn('fk_agente', $allowedAgentIds);
+                }
+            } else {
+                // Se non passa agentId, mostra tutti i preventivi della struttura e dei suoi agenti
+                $preventivi->whereIn('fk_agente', $allowedAgentIds);
+            }
         } elseif ($request->filled('agentId')) {
             // Solo se non è un agente o struttura, permette di filtrare per agentId
             $preventivi->where('fk_agente', $request->get('agentId'));
