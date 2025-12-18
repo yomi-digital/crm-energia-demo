@@ -1884,11 +1884,17 @@
                         </tr>
                             @endforeach
                         @endif
+                            @php
+                                $primoProdotto = $preventivo->dettagliProdotti->first();
+                                $potenzaInverter = $primoProdotto->potenza_inverter_salvata ?? 0;
+                                $marcaInverter = $primoProdotto->marca_salvata ?? '';
+                            @endphp
                         <tr style="background-color: #f9f9f9;">
                             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
                             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Inverter</td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">Inverter trifase da 10kWp. Marca HUAWEI, ZCS</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">{{ $marcaInverter }} {{ $potenzaInverter > 0 ? number_format($potenzaInverter, 0, ',', '.') . 'kW' : '10kWp' }}</td>
                         </tr>
+                       
                         <tr style="background-color: #f9f9f9;">
                             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
                             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Quadro elettrico DC/AC</td>
