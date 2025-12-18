@@ -23,6 +23,7 @@ use App\Models\ConsumoPreventivo;
 use App\Models\DettaglioProdottoPreventivo;
 use App\Models\PreventivoVoceEconomica;
 use App\Models\DettaglioBusinessPlan;
+use App\Models\UserRelationship;
 use App\Services\PreventivoPdfService;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -221,16 +222,25 @@ class PreventivoController extends Controller
 
         $preventivi = Preventivo::query()->with(['cliente', 'agente']);
 
+        // Se l'utente autenticato è un agente, filtra automaticamente per i suoi preventivi
+        if ($request->user() && $request->user()->hasRole('agente')) {
+            $preventivi->where('fk_agente', $request->user()->id);
+        } elseif ($request->user() && $request->user()->hasRole('struttura')) {
+            // Se è una struttura, filtra per i preventivi della struttura e dei suoi agenti
+            $relationships = UserRelationship::where('user_id', $request->user()->id)->pluck('related_id');
+            $agentIds = $relationships->merge([$request->user()->id])->unique()->values()->all();
+            $preventivi->whereIn('fk_agente', $agentIds);
+        } elseif ($request->filled('agentId')) {
+            // Solo se non è un agente o struttura, permette di filtrare per agentId
+            $preventivi->where('fk_agente', $request->get('agentId'));
+        }
+
         if ($request->filled('stato')) {
             $preventivi->where('stato', $request->get('stato'));
         }
 
         if ($request->filled('customerId')) {
             $preventivi->where('fk_cliente', $request->get('customerId'));
-        }
-
-        if ($request->filled('agentId')) {
-            $preventivi->where('fk_agente', $request->get('agentId'));
         }
 
         if ($request->filled('dataFrom')) {
