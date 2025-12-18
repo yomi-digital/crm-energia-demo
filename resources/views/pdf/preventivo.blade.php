@@ -2623,6 +2623,20 @@
                 <div style="position: absolute; top: 31mm; right: 18mm; width: 50mm; height: 10mm; background-color: white; border-radius: 16px; padding: 2mm; text-align: left;">
                     <p style="font-size: 18px; font-weight: bold; color: black; margin: 0; line-height: 10mm; transform: translateY(-3mm);">{{ number_format($totale_offerta, 2, ',', '.') }} <span style="font-weight: normal;">€</span></p>
                 </div>
+                <div style="position: absolute; top: 45mm; right: 18mm; width: 55mm; padding-left: 2mm;">
+                    @php
+                        $primoProdotto = $preventivo->dettagliProdotti->first();
+                        $ivaApplicata = $primoProdotto->iva ?? 1;
+                    @endphp
+                    @if($ivaApplicata == 0)
+                        @php
+                            $totale_con_iva = $totale_offerta * 1.22;
+                        @endphp
+                        <p style="font-size: 10px;font-weight: bold; color: white; margin: 0; transform: translateX(4mm);">€ {{ number_format($totale_con_iva, 2, ',', '.') }} IVA inclusa</p>
+                    @else
+                        <p style="font-size: 10px;font-weight: bold; color: white; margin: 0; transform: translateX(4mm);">IVA inclusa</p>
+                    @endif
+                </div>
                 
                 @if($preventivo->finanziamento_data_json)
                 <!-- Importo FINANZIAMENTO - Titolo -->
