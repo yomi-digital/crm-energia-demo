@@ -169,6 +169,12 @@
                         </div>
                     </Teleport>
                 </div>
+                <div class="pill" style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
+                    <label for="iva-check" style="font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;">
+                     <input type="checkbox" id="iva-check" :checked="formData.iva === 1" @change="updateFormData('iva', $event.target.checked ? 1 : 0)" style="margin-right:8px;"/>
+                        IVA inclusa
+                    </label>
+                </div>
             </div>
         </div>
 

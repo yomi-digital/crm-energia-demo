@@ -21,6 +21,8 @@ const descrizione = ref('')
 const potenzaKwp = ref('')
 const capacitaKwh = ref('')
 const prezzoBase = ref('')
+const potenzaInverter = ref('')
+const marca = ref('')
 const linkSchedaProdottoTecnica = ref('')
 
 const categorie = ref([])
@@ -63,6 +65,8 @@ const onSubmit = () => {
         potenza_kwp: potenzaKwp.value,
         capacita_kwh: capacitaKwh.value,
         prezzo_base: prezzoBase.value,
+        potenza_inverter: potenzaInverter.value,
+        marca: marca.value,
       }
       
       if (linkSchedaProdottoTecnica.value) {
@@ -80,6 +84,8 @@ const onSubmit = () => {
         potenzaKwp.value = ''
         capacitaKwh.value = ''
         prezzoBase.value = ''
+        potenzaInverter.value = ''
+        marca.value = ''
         linkSchedaProdottoTecnica.value = ''
       })
     }
@@ -179,6 +185,27 @@ const handleDrawerModelValueUpdate = val => {
                   label="Prezzo Base"
                   placeholder="20000"
                   type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Potenza Inverter -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="potenzaInverter"
+                  :rules="[requiredValidator]"
+                  label="Potenza Inverter (kW)"
+                  placeholder="0"
+                  type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Marca -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="marca"
+                  :rules="[requiredValidator]"
+                  label="Marca"
+                  placeholder="Marca"
                 />
               </VCol>
 

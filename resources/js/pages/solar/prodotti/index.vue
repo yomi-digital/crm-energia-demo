@@ -53,6 +53,14 @@ const headers = [
     key: 'prezzo_base',
   },
   {
+    title: 'Potenza Inverter',
+    key: 'potenza_inverter',
+  },
+  {
+    title: 'Marca',
+    key: 'marca',
+  },
+  {
     title: 'Stato',
     key: 'is_active',
   },
@@ -106,30 +114,132 @@ const isAddNewProdottoDrawerVisible = ref(false)
 const isEditProdottoDrawerVisible = ref(false)
 const isRemoveDialogVisible = ref(false)
 
-const addNewProdotto = async prodottoData => {
-  await $api('/prodotti-fotovoltaico', {
-    method: 'POST',
-    body: prodottoData,
-  })
+// Toast variables
+const isSnackbarVisible = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('success')
 
-  fetchProdotti()
+const addNewProdotto = async prodottoData => {
+  try {
+    await $api('/prodotti-fotovoltaico', {
+      method: 'POST',
+      body: prodottoData,
+    })
+
+    snackbarMessage.value = 'Prodotto creato con successo!'
+    snackbarColor.value = 'success'
+    isSnackbarVisible.value = true
+
+    fetchProdotti()
+  } catch (error) {
+    console.error(error)
+    
+    // Extract error message from API response
+    let errorMessage = 'Errore durante la creazione del prodotto'
+    
+    if (error?.data) {
+      // Check for validation errors (422)
+      if (error.data.errors && typeof error.data.errors === 'object') {
+        const errorMessages = Object.values(error.data.errors).flat()
+        errorMessage = errorMessages.join(', ')
+      } 
+      // Check for error message
+      else if (error.data.message) {
+        errorMessage = error.data.message
+      }
+      // Check for error field
+      else if (error.data.error) {
+        errorMessage = error.data.error
+      }
+    }
+    
+    snackbarMessage.value = errorMessage
+    snackbarColor.value = 'error'
+    isSnackbarVisible.value = true
+  }
 }
 
 const deleteProdotto = async id => {
-  const prodottoId = typeof id === 'object' ? (id.id_prodotto || id.id) : id
-  await $api(`/prodotti-fotovoltaico/${ prodottoId }`, { method: 'DELETE' })
-  isRemoveDialogVisible.value = false
+  try {
+    const prodottoId = typeof id === 'object' ? (id.id_prodotto || id.id) : id
+    await $api(`/prodotti-fotovoltaico/${ prodottoId }`, { method: 'DELETE' })
+    
+    isRemoveDialogVisible.value = false
 
-  fetchProdotti()
+    snackbarMessage.value = 'Prodotto eliminato con successo!'
+    snackbarColor.value = 'success'
+    isSnackbarVisible.value = true
+
+    fetchProdotti()
+  } catch (error) {
+    console.error(error)
+    
+    // Extract error message from API response
+    let errorMessage = 'Errore durante l\'eliminazione del prodotto'
+    
+    if (error?.data) {
+      // Check for validation errors (422)
+      if (error.data.errors && typeof error.data.errors === 'object') {
+        const errorMessages = Object.values(error.data.errors).flat()
+        errorMessage = errorMessages.join(', ')
+      } 
+      // Check for error message
+      else if (error.data.message) {
+        errorMessage = error.data.message
+      }
+      // Check for error field
+      else if (error.data.error) {
+        errorMessage = error.data.error
+      }
+    }
+    
+    snackbarMessage.value = errorMessage
+    snackbarColor.value = 'error'
+    isSnackbarVisible.value = true
+    
+    // Chiudi il dialog anche in caso di errore
+    isRemoveDialogVisible.value = false
+  }
 }
 
 const updateProdotto = async prodottoData => {
-  await $api(`/prodotti-fotovoltaico/${ prodottoData.id_prodotto || prodottoData.id }`, {
-    method: 'PUT',
-    body: prodottoData,
-  })
+  try {
+    await $api(`/prodotti-fotovoltaico/${ prodottoData.id_prodotto || prodottoData.id }`, {
+      method: 'PUT',
+      body: prodottoData,
+    })
 
-  fetchProdotti()
+    snackbarMessage.value = 'Prodotto modificato con successo!'
+    snackbarColor.value = 'success'
+    isSnackbarVisible.value = true
+
+    fetchProdotti()
+  } catch (error) {
+    console.error(error)
+    
+    // Extract error message from API response
+    let errorMessage = 'Errore durante la modifica del prodotto'
+    
+    if (error?.data) {
+      // Check for validation errors (422)
+      if (error.data.errors && typeof error.data.errors === 'object') {
+        const errorMessages = Object.values(error.data.errors).flat()
+        errorMessage = errorMessages.join(', ')
+      } 
+      // Check for error message
+      else if (error.data.message) {
+        errorMessage = error.data.message
+      }
+      // Check for error field
+      else if (error.data.error) {
+        errorMessage = error.data.error
+      }
+    }
+    
+    snackbarMessage.value = errorMessage
+    snackbarColor.value = 'error'
+    isSnackbarVisible.value = true
+  }
 }
 
 const toggleProdottoStatus = async (item) => {
@@ -293,6 +403,24 @@ const statuses = [
           </div>
         </template>
 
+        <!-- Potenza Inverter -->
+        <template #item.potenza_inverter="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.potenza_inverter }} kW
+            </div>
+          </div>
+        </template>
+
+        <!-- Marca -->
+        <template #item.marca="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.marca }}
+            </div>
+          </div>
+        </template>
+
         <!-- 👉 Enabled -->
         <template #item.is_active="{ item }">
           <VSwitch
@@ -358,6 +486,16 @@ const statuses = [
         </VCardText>
       </VCard>
     </VDialog>
+
+    <!-- 👉 Toast Notification -->
+    <VSnackbar
+      v-model="isSnackbarVisible"
+      :color="snackbarColor"
+      location="top end"
+      variant="flat"
+    >
+      {{ snackbarMessage }}
+    </VSnackbar>
   </section>
 </template>
 
