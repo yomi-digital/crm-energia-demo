@@ -36,6 +36,15 @@ class AIController extends Controller
             $aiPaperworks = $aiPaperworks->where('status', $request->get('status'));
         }
 
+        // Filtro per intervallo di date (created_at)
+        if ($request->filled('date_from')) {
+            $aiPaperworks = $aiPaperworks->whereDate('created_at', '>=', $request->get('date_from'));
+        }
+
+        if ($request->filled('date_to')) {
+            $aiPaperworks = $aiPaperworks->whereDate('created_at', '<=', $request->get('date_to'));
+        }
+
         // Filtro per escludere le pratiche confermate (status = 5)
         $aiPaperworks = $aiPaperworks->where('status', '!=', 5);
 
