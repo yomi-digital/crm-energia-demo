@@ -46,4 +46,11 @@ export default [
     action: 'access',
     subject: 'preventivi',
   },
+  {
+    title: 'Archivio Preventivi',
+    icon: { icon: 'tabler-archive' },
+    to: 'workflow-archivio-preventivi',
+    action: 'access',
+    subject: 'preventivi',
+  },
 ]

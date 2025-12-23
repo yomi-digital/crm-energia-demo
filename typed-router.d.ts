@@ -103,6 +103,7 @@ declare module 'vue-router/auto/routes' {
     'solar-voci-economiche': RouteRecordInfo<'solar-voci-economiche', '/solar/voci-economiche', Record<never, never>, Record<never, never>>,
     'workflow-aipaperworks': RouteRecordInfo<'workflow-aipaperworks', '/workflow/aipaperworks', Record<never, never>, Record<never, never>>,
     'workflow-aipaperworks-id': RouteRecordInfo<'workflow-aipaperworks-id', '/workflow/aipaperworks/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'workflow-archivio-preventivi': RouteRecordInfo<'workflow-archivio-preventivi', '/workflow/archivio-preventivi', Record<never, never>, Record<never, never>>,
     'workflow-communications': RouteRecordInfo<'workflow-communications', '/workflow/communications', Record<never, never>, Record<never, never>>,
     'workflow-communications-id': RouteRecordInfo<'workflow-communications-id', '/workflow/communications/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'workflow-communications-create': RouteRecordInfo<'workflow-communications-create', '/workflow/communications/create', Record<never, never>, Record<never, never>>,
