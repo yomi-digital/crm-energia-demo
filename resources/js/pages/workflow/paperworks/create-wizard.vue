@@ -113,7 +113,7 @@ const validatePaperworkType = () => {
 
   // Validazione dinamica POD/PDR
   // Campo obbligatorio se category != 'ALLACCIO' e energy_type != 'MOBILE'
-  const isPodRequired = paperworkType.category !== 'ALLACCIO' && paperworkType.energy_type !== 'MOBILE'
+  const isPodRequired = paperworkType.category !== 'ALLACCIO' && paperworkType.energy_type !== 'MOBILE' && paperworkType.type !== 'TELEFONIA'
   
   if (isPodRequired && (!paperworkType.account_pod_pdr || paperworkType.account_pod_pdr.trim() === '')) {
     isCurrentStepValid.value = false
