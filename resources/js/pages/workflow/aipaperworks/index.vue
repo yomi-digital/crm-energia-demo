@@ -17,6 +17,8 @@ const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
 const selectedAgent = ref()
+const dateFrom = ref('')
+const dateTo = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key || null
@@ -67,6 +69,8 @@ const {
   query: {
     itemsPerPage,
     user_id: selectedAgent,
+    date_from: dateFrom,
+    date_to: dateTo,
     page,
     sortBy,
     orderBy,
@@ -185,7 +189,29 @@ const processDocument = async (item) => {
 
       <VCardText>
         <VRow>
-          <VCol cols="4" v-if="$can('view', 'users')">
+          <!-- Filtri per data -->
+          <VCol cols="12" md="6">
+            <AppTextField
+              v-model="dateFrom"
+              label="Da"
+              type="date"
+              clearable
+              placeholder="Seleziona data inizio"
+            />
+          </VCol>
+
+          <VCol cols="12" md="6">
+            <AppTextField
+              v-model="dateTo"
+              label="A"
+              type="date"
+              clearable
+              placeholder="Seleziona data fine"
+            />
+          </VCol>
+
+          <!-- Filtro per agente -->
+          <VCol cols="12" md="6" v-if="$can('view', 'users')">
             <AppAutocomplete
               v-model="selectedAgent"
               label="Filtra per Agente"
