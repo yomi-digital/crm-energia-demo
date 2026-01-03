@@ -3,6 +3,7 @@
 namespace Database\Seeders\Alfacom;
 
 use App\Models\Paperwork;
+use Carbon\Carbon;
 
 trait PaperworkSeeder
 {
@@ -31,6 +32,22 @@ trait PaperworkSeeder
                 dump('Processing paperwork ' . $countI . ' of ' . $totPaperworks);
 
                 try {
+                    // Prepara la data di creazione originale dal database legacy
+                    $createdAt = null;
+                    $updatedAt = null;
+                    
+                    if (isset($entry['data_inserimento']) && $entry['data_inserimento'] !== '0000-00-00' && $entry['data_inserimento'] !== null && $entry['data_inserimento'] !== '') {
+                        try {
+                            // Converte la data dal formato legacy a Carbon timestamp
+                            $createdAt = \Carbon\Carbon::parse($entry['data_inserimento']);
+                            $updatedAt = $createdAt; // Inizialmente updated_at = created_at
+                        } catch (\Exception $e) {
+                            // Se non riesce a parsare, usa null e Laravel imposterà la data corrente
+                            $createdAt = null;
+                            $updatedAt = null;
+                        }
+                    }
+
                     $data = [
                         'legacy_id' => $entry['id'],
                         'user_id' => null,
@@ -61,6 +78,12 @@ trait PaperworkSeeder
                         'energy_type' => $entry['tipo_energia'],
                         // 'pdf_url' => $entry['url_pdf'],
                     ];
+
+                    // Imposta created_at e updated_at se disponibili, altrimenti Laravel userà la data corrente
+                    if ($createdAt) {
+                        $data['created_at'] = $createdAt;
+                        $data['updated_at'] = $updatedAt;
+                    }
 
                     if ($entry['id_agente']) {
                         $user = \App\Models\User::where('legacy_id', $entry['id_agente'])->first();
