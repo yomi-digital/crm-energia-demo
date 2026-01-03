@@ -3,6 +3,7 @@
 namespace Database\Seeders\Alfacom;
 
 use App\Models\User;
+use Carbon\Carbon;
 
 trait ProductSeeder
 {
@@ -16,6 +17,21 @@ trait ProductSeeder
             $countI++;
             dump('Processing product ' . $countI . ' of ' . $totProducts);
             try {
+                // Prepara la data di creazione originale dal database legacy
+                $createdAt = null;
+                $updatedAt = null;
+                
+                $dateField = $entry['data_inserimento'] ?? $entry['created_at'] ?? null;
+                if (isset($dateField) && $dateField !== '0000-00-00' && $dateField !== null && $dateField !== '') {
+                    try {
+                        $createdAt = Carbon::parse($dateField);
+                        $updatedAt = $createdAt;
+                    } catch (\Exception $e) {
+                        $createdAt = null;
+                        $updatedAt = null;
+                    }
+                }
+
                 $newModel = [
                     'legacy_id' => $entry['id'],
                     'name' => $entry['nome_prodotto'],
@@ -25,6 +41,12 @@ trait ProductSeeder
                     'enabled' => $entry['attivo'],
                     'deleted_by' => null,
                 ];
+
+                // Imposta created_at e updated_at se disponibili
+                if ($createdAt) {
+                    $newModel['created_at'] = $createdAt;
+                    $newModel['updated_at'] = $updatedAt;
+                }
 
                 if ($entry['id_brand']) {
                     $brand = \App\Models\Brand::where('legacy_id', $entry['id_brand'])->first();

@@ -3,6 +3,7 @@
 namespace Database\Seeders\Alfacom;
 
 use App\Models\User;
+use Carbon\Carbon;
 
 trait BrandSeeder
 {
@@ -25,8 +26,23 @@ trait BrandSeeder
             $type = ucfirst(strtolower($type));
             $category = ucfirst(strtolower($category));
 
+            // Prepara la data di creazione originale dal database legacy
+            $createdAt = null;
+            $updatedAt = null;
+            
+            $dateField = $entry['data_inserimento'] ?? $entry['created_at'] ?? null;
+            if (isset($dateField) && $dateField !== '0000-00-00' && $dateField !== null && $dateField !== '') {
+                try {
+                    $createdAt = Carbon::parse($dateField);
+                    $updatedAt = $createdAt;
+                } catch (\Exception $e) {
+                    $createdAt = null;
+                    $updatedAt = null;
+                }
+            }
+
             try {
-                $newModel = \App\Models\Brand::create([
+                $data = [
                     'legacy_id' => $entry['id'],
                     'name' => $entry['brand'],
                     'notes' => $entry['note'],
@@ -34,7 +50,15 @@ trait BrandSeeder
                     'enabled' => $entry['attivo'] === 'SI' ? 1 : 0,
                     'category' => $category,
                     'type' => $type,
-                ]);
+                ];
+
+                // Imposta created_at e updated_at se disponibili
+                if ($createdAt) {
+                    $data['created_at'] = $createdAt;
+                    $data['updated_at'] = $updatedAt;
+                }
+
+                $newModel = \App\Models\Brand::create($data);
             } catch (\Exception $e) {
                 dump('Cannot create brand ' . $entry['id'] . ' Error: ' . substr($e->getMessage(), 0, 120) . '...');
             }

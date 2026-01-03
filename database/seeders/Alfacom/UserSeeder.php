@@ -3,6 +3,7 @@
 namespace Database\Seeders\Alfacom;
 
 use App\Models\User;
+use Carbon\Carbon;
 
 trait UserSeeder
 {
@@ -80,8 +81,23 @@ trait UserSeeder
                 $user['email'] = $parts[0] . '+' . $user['username'] . '@' . $parts[1];
             }
             try {
+                // Prepara la data di creazione originale dal database legacy
+                $createdAt = null;
+                $updatedAt = null;
+                
+                $dateField = $user['data_inserimento'] ?? $user['created_at'] ?? null;
+                if (isset($dateField) && $dateField !== '0000-00-00' && $dateField !== null && $dateField !== '') {
+                    try {
+                        $createdAt = Carbon::parse($dateField);
+                        $updatedAt = $createdAt;
+                    } catch (\Exception $e) {
+                        $createdAt = null;
+                        $updatedAt = null;
+                    }
+                }
+
                 $normalizedArea = $this->normalizeArea($user['area']);
-                $newUser = User::create([
+                $data = [
                     'legacy_id' => $user['id'],
                     'name' => $user['nome'],
                     'last_name' => $user['cognome'],
@@ -98,7 +114,15 @@ trait UserSeeder
                     'enabled' => $user['abilitato'] === 'SI' ? 1 : 0,
                     // 'last_login_at' => $user[],
                     // 'last_logout_at' => $user[],
-                ]);
+                ];
+
+                // Imposta created_at e updated_at se disponibili
+                if ($createdAt) {
+                    $data['created_at'] = $createdAt;
+                    $data['updated_at'] = $updatedAt;
+                }
+
+                $newUser = User::create($data);
                 mysqli_query($mysqli, "UPDATE datatype_accounts SET new_id = {$newUser->id} WHERE id = {$user['id']}");
                 if ($user['livello'] === 'NULL') {
                     dump('Cannot attach role to legacy_id ' . $user['id']);

@@ -3,6 +3,7 @@
 namespace Database\Seeders\Alfacom;
 
 use App\Models\User;
+use Carbon\Carbon;
 
 trait CalendarSeeder
 {
@@ -16,6 +17,21 @@ trait CalendarSeeder
             $countI++;
             dump('Processing calendar ' . $countI . ' of ' . $totCalendar);
             try {
+                // Prepara la data di creazione originale dal database legacy
+                $createdAt = null;
+                $updatedAt = null;
+                
+                $dateField = $entry['data_inserimento'] ?? $entry['created_at'] ?? null;
+                if (isset($dateField) && $dateField !== '0000-00-00' && $dateField !== null && $dateField !== '') {
+                    try {
+                        $createdAt = Carbon::parse($dateField);
+                        $updatedAt = $createdAt;
+                    } catch (\Exception $e) {
+                        $createdAt = null;
+                        $updatedAt = null;
+                    }
+                }
+
                 $agent = \App\Models\User::where('legacy_id', $entry['id_account'])->first();
                 $user = \App\Models\User::where('legacy_id', $entry['inserito_da'])->first();
                 if ($entry['nome_evento']) {
@@ -29,7 +45,7 @@ trait CalendarSeeder
                 if ($agent) {
 
                 }
-                $newModel = \App\Models\Calendar::create([
+                $data = [
                     'agent_id' => $agent ? $agent->id : null,
                     'title' => $eventTitle,
                     'notes_call_center' => $entry['note_call_center'],
@@ -50,7 +66,15 @@ trait CalendarSeeder
                     'start' => $entry['data_inizio'],
                     'end' => $entry['data_fine'],
                     'all_day' => false,
-                ]);
+                ];
+
+                // Imposta created_at e updated_at se disponibili
+                if ($createdAt) {
+                    $data['created_at'] = $createdAt;
+                    $data['updated_at'] = $updatedAt;
+                }
+
+                $newModel = \App\Models\Calendar::create($data);
             } catch (\Exception $e) {
                 dump('Cannot create calendar ' . $entry['id'] . ' Error: ' . substr($e->getMessage(), 0, 120) . '...');
             }
