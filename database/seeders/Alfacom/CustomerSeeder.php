@@ -3,6 +3,7 @@
 namespace Database\Seeders\Alfacom;
 
 use App\Models\Customer;
+use Carbon\Carbon;
 
 trait CustomerSeeder
 {
@@ -33,6 +34,22 @@ trait CustomerSeeder
                     dump('Processing customer ' . $countI . ' of ' . $totCustomers);
                 }
                 try {
+                    // Prepara la data di creazione originale dal database legacy
+                    $createdAt = null;
+                    $updatedAt = null;
+                    
+                    if (isset($customer['data_inserimento']) && $customer['data_inserimento'] !== '0000-00-00' && $customer['data_inserimento'] !== null && $customer['data_inserimento'] !== '') {
+                        try {
+                            // Converte la data dal formato legacy a Carbon timestamp
+                            $createdAt = Carbon::parse($customer['data_inserimento']);
+                            $updatedAt = $createdAt; // Inizialmente updated_at = created_at
+                        } catch (\Exception $e) {
+                            // Se non riesce a parsare, usa null e Laravel imposterà la data corrente
+                            $createdAt = null;
+                            $updatedAt = null;
+                        }
+                    }
+
                     $data = [
                         'legacy_id' => $customer['id'],
                         'name' => $customer['nome'],
@@ -59,6 +76,12 @@ trait CustomerSeeder
                         'deleted_at' => $customer['deleted_at'],
                         'deleted_by' => null,
                     ];
+
+                    // Imposta created_at e updated_at se disponibili, altrimenti Laravel userà la data corrente
+                    if ($createdAt) {
+                        $data['created_at'] = $createdAt;
+                        $data['updated_at'] = $updatedAt;
+                    }
 
                     // Calcolo category in base a codice fiscale / partita IVA
                     $hasTaxId = !empty(trim((string) $customer['codice_fiscale']));
@@ -123,8 +146,12 @@ trait CustomerSeeder
                         dump("    Cliente esistente ID: {$existingCustomer->id} | Nome: {$existingCustomer->name} {$existingCustomer->last_name} | Business: {$existingCustomer->business_name}");
                         dump("    Aggiornando e impostando legacy_id = {$legacyId}");
                         
+                        // Rimuovi created_at e updated_at dall'array per non sovrascrivere le date originali del customer esistente
+                        $updateData = $data;
+                        unset($updateData['created_at'], $updateData['updated_at']);
+                        
                         $existingCustomer->legacy_id = $legacyId;
-                        $existingCustomer->update($data);
+                        $existingCustomer->update($updateData);
                         $newCustomer = $existingCustomer;
                     } else {
                         // Cliente non esiste: crea normalmente con legacy_id
