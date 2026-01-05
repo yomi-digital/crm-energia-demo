@@ -35,7 +35,7 @@ class PasswordResetConfirmation extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Password Reimpostata con Successo - EasyWork CRM')
+            ->subject('Password Reimpostata con Successo - Alfacom CRM')
             ->view('emails.password-reset-confirmation');
     }
 }

@@ -21,7 +21,7 @@ class ResetPasswordNotification extends ResetPassword
         $expireMinutes = config('auth.passwords.users.expire', 60);
 
         return (new MailMessage)
-            ->subject('Reset Password - EasyWork CRM')
+            ->subject('Reset Password - Alfacom CRM')
             ->view('emails.reset-password', [
                 'resetUrl' => $resetUrl,
                 'expireMinutes' => $expireMinutes,

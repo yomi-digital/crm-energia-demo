@@ -85,13 +85,13 @@
     <div class="email-container">
         <div class="header">
             <h1>🔒 Reset Password</h1>
-            <p style="margin: 10px 0 0 0; opacity: 0.9;">EasyWork CRM</p>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Alfacom CRM</p>
         </div>
 
         <div class="content">
             <p>Ciao,</p>
             
-            <p>Abbiamo ricevuto una richiesta di reset password per il tuo account EasyWork CRM.</p>
+            <p>Abbiamo ricevuto una richiesta di reset password per il tuo account Alfacom CRM.</p>
             
             <p>Se sei stato tu a richiederla, clicca sul pulsante qui sotto per reimpostare la tua password:</p>
 
@@ -117,11 +117,11 @@
 
             <p>Se hai domande o problemi, contatta il supporto tecnico.</p>
 
-            <p>Saluti,<br><strong>Team EasyWork CRM</strong></p>
+            <p>Saluti,<br><strong>Team Alfacom CRM</strong></p>
         </div>
 
         <div class="footer">
-            <p>Questo messaggio è stato inviato automaticamente da EasyWork CRM.</p>
+            <p>Questo messaggio è stato inviato automaticamente da Alfacom CRM.</p>
             <p>Per favore non rispondere a questa email.</p>
         </div>
     </div>
