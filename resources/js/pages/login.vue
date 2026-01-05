@@ -38,6 +38,7 @@ const rememberMe = ref(false)
 const showForcePasswordDialog = ref(false)
 
 const login = async () => {
+  console.log("Stiamo per fare il login")
   errors.value.email = false
   errors.value.password = false
   errors.value.message = undefined
@@ -52,6 +53,7 @@ const login = async () => {
         if (response.status === 401) {
           // errors.value.email = true
           // errors.value.password = true
+          console.log("Ci sono stati errori")
           errors.value.message = 'Credenziali non valide'
           return
         }
@@ -64,6 +66,9 @@ const login = async () => {
     ability.update(userAbilityRules)
     useCookie('userData').value = userData
     useCookie('accessToken').value = accessToken
+
+    console.log("userData", userData)
+    console.log("accessToken", accessToken)
 
     await nextTick(() => {
       // Controlla se l'utente deve cambiare la password
