@@ -781,6 +781,7 @@ const updateDateFromYearMonth = () => {
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
               <RouterLink
+                v-if="item.customer?.id"
                 :to="{ name: 'workflow-customers-id', params: { id: item.customer.id } }"
                 class="font-weight-medium text-link"
                 :title="getCustomerName(item.customer)"
@@ -788,6 +789,13 @@ const updateDateFromYearMonth = () => {
               >
                 {{ getCustomerName(item.customer) }}
               </RouterLink>
+              <span
+                v-else
+                class="font-weight-medium"
+                :title="getCustomerName(item.customer)"
+              >
+                {{ getCustomerName(item.customer) }}
+              </span>
             </div>
           </div>
         </template>
@@ -898,9 +906,9 @@ const updateDateFromYearMonth = () => {
               size="small"
               color="primary"
               variant="tonal"
-              :loading="isDuplicating[item.id]"
-              @click.stop="showConfirmDuplicate(item.id)"
-              :title="`Duplica pratica ${item.id}`"
+              :loading="isDuplicating[item?.id]"
+              @click.stop="showConfirmDuplicate(item?.id)"
+              :title="`Duplica pratica ${item?.id}`"
             >
               Duplica
             </VBtn>
@@ -911,7 +919,7 @@ const updateDateFromYearMonth = () => {
               color="info"
               variant="tonal"
               @click.stop="showNotesDialog(item)"
-              :title="`Visualizza note della pratica ${item.id}`"
+              :title="`Visualizza note della pratica ${item?.id}`"
             >
               Note
             </VBtn>
