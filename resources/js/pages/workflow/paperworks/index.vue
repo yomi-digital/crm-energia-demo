@@ -813,7 +813,7 @@ const updateDateFromYearMonth = () => {
         <template #item.partner_sent_at="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ item.partner_sent_at }}
+              {{ item.partner_sent_at ? new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(item.partner_sent_at)) : 'N/A' }}
             </div>
           </div>
         </template>
@@ -872,7 +872,7 @@ const updateDateFromYearMonth = () => {
         <template #item.partner_outcome_at="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ item.partner_outcome_at }}
+              {{ item.partner_outcome_at ? new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(item.partner_outcome_at)) : 'N/A' }}
             </div>
           </div>
         </template>

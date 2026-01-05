@@ -329,13 +329,13 @@ const downloadDocument = async doc => {
                   <span class="font-weight-medium">Sottostato Ordine:</span> {{ paperworkData.order_substatus || 'N/A' }}
                 </div>
                 <div class="text-body-1 mb-2">
-                  <span class="font-weight-medium">Data Invio:</span> {{ paperworkData.partner_sent_at || 'N/A' }}
+                  <span class="font-weight-medium">Data Invio:</span> {{ paperworkData.partner_sent_at ? new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(paperworkData.partner_sent_at)) : 'N/A' }}
                 </div>
                 <div class="text-body-1 mb-2">
                   <span class="font-weight-medium">Esito Partner:</span> {{ paperworkData.partner_outcome || 'N/A' }}
                 </div>
                 <div class="text-body-1">
-                  <span class="font-weight-medium">Data Esito Partner:</span> {{ paperworkData.partner_outcome_at || 'N/A' }}
+                  <span class="font-weight-medium">Data Esito Partner:</span> {{ paperworkData.partner_outcome_at ? new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(paperworkData.partner_outcome_at)) : 'N/A' }}
                 </div>
               </VCardText>
             </VCol>
