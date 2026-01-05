@@ -21,8 +21,9 @@ const logout = async () => {
   // Remove "accessToken" from cookie
   useCookie('accessToken').value = null
 
-  // Remove "userData" from cookie
+  // Remove "userData" from cookie and localStorage
   userData.value = null
+  useLocalStorage('userData').value = null
 
   // Redirect to login page
   await router.push('/login')
@@ -31,6 +32,7 @@ const logout = async () => {
 
   // Remove "userAbilities" from cookie
   useLocalStorage('userAbilityRules').value = null
+
 
   // Reset ability to initial ability
   ability.update([])
