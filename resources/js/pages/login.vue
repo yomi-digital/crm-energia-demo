@@ -70,9 +70,6 @@ const login = async () => {
     useCookie('userData').value = userData
     useCookie('accessToken').value = accessToken
 
-    console.log("userData", userData)
-    console.log("accessToken", accessToken)
-
     await nextTick(() => {
       // Controlla se l'utente deve cambiare la password
       if (userData.must_change_password) {
