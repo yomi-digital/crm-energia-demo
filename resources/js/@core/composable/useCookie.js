@@ -12,9 +12,37 @@ const CookieDefaults = {
 export const useCookie = (name, _opts) => {
   const opts = { ...CookieDefaults, ..._opts || {} }
   const cookies = parse(document.cookie, opts)
-  const cookie = ref(cookies[name] ?? opts.default?.())
+  
+  // Per userData, se non esiste nel cookie, prova nel localStorage
+  let initialValue = cookies[name]
+  if (!initialValue && name === 'userData') {
+    try {
+      const stored = localStorage.getItem('userData')
+      if (stored) {
+        initialValue = JSON.parse(stored)
+        console.log(`[useCookie] "${name}" recuperato da localStorage`)
+      }
+    } catch (e) {
+      console.warn(`[useCookie] Errore nel recupero di "${name}" da localStorage:`, e)
+    }
+  }
+  
+  const cookie = ref(initialValue ?? opts.default?.())
 
   watch(cookie, () => {
+    // Per userData, salva sempre in localStorage invece che nel cookie (per evitare limite 4KB)
+    if (name === 'userData') {
+      try {
+        localStorage.setItem('userData', JSON.stringify(cookie.value))
+        console.log(`[useCookie] "${name}" salvato in localStorage`)
+      } catch (e) {
+        console.error(`[useCookie] Errore nel salvataggio di "${name}" in localStorage:`, e)
+      }
+      // Non salvare userData nel cookie, è troppo grande
+      return
+    }
+    
+    // Per gli altri cookie, usa il comportamento normale
     const cookieString = serializeCookie(name, cookie.value, opts)
     console.log(`[useCookie] Tentativo di impostare cookie "${name}":`, {
       cookieString,
