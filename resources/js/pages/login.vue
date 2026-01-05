@@ -64,7 +64,12 @@ const login = async () => {
 
     useLocalStorage('userAbilityRules').value = JSON.stringify(userAbilityRules)
     ability.update(userAbilityRules)
-    useCookie('userData').value = userData
+    
+    // Rimuovi commercial_profile dal cookie per rispettare il limite di 4KB
+    const userDataForCookie = { ...userData }
+    delete userDataForCookie.commercial_profile
+    
+    useCookie('userData').value = userDataForCookie
     useCookie('accessToken').value = accessToken
 
     console.log("userData", userData)
