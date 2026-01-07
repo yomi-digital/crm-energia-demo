@@ -25,18 +25,28 @@ const folderName = ref('')
 const isCreateFolderDialogVisible = ref(false)
 const isCreateBrandFolderDialogVisible = ref(false)
 const isUploadDialogVisible = ref(false)
+const isCreatingFolder = ref(false)
+const isDeletingDocument = ref(false)
 
 const createFolder = async function () {
-  await $api('/documents/new-folder', {
-    method: 'POST',
-    body: {
-      name: folderName.value,
-      path: currentPath.value,
-    }
-  })
-  isCreateFolderDialogVisible.value = false
-  folderName.value = ''
-  refetchDocuments()
+  isCreatingFolder.value = true
+  try {
+    await $api('/documents/new-folder', {
+      method: 'POST',
+      body: {
+        name: folderName.value,
+        path: currentPath.value,
+      }
+    })
+    isCreateFolderDialogVisible.value = false
+    isCreateBrandFolderDialogVisible.value = false
+    folderName.value = ''
+    await refetchDocuments()
+  } catch (error) {
+    console.error('Errore durante la creazione della cartella:', error)
+  } finally {
+    isCreatingFolder.value = false
+  }
 }
 
 const fileData = ref([])
@@ -111,10 +121,16 @@ const documents = computed(() => {
 const isRemoveDialogVisible = ref(false)
 
 const deleteDocument = async id => {
-  await $api(`/documents/remove`, { method: 'DELETE', body: { path: selectedDocumentRemove.value.path, type: selectedDocumentRemove.value.type } })
-  isRemoveDialogVisible.value = false
-
-  refetchDocuments()
+  isDeletingDocument.value = true
+  try {
+    await $api(`/documents/remove`, { method: 'DELETE', body: { path: selectedDocumentRemove.value.path, type: selectedDocumentRemove.value.type } })
+    isRemoveDialogVisible.value = false
+    await refetchDocuments()
+  } catch (error) {
+    console.error('Errore durante l\'eliminazione:', error)
+  } finally {
+    isDeletingDocument.value = false
+  }
 }
 
 const selectDocumentForRemove = document => {
@@ -369,9 +385,13 @@ const navigateBreadcrumbs = item => {
     <VDialog
       v-model="isCreateBrandFolderDialogVisible"
       width="500"
+      :persistent="isCreatingFolder"
     >
       <!-- Dialog close btn -->
-      <DialogCloseBtn @click="isCreateBrandFolderDialogVisible = !isCreateBrandFolderDialogVisible" />
+      <DialogCloseBtn 
+        :disabled="isCreatingFolder"
+        @click="isCreateBrandFolderDialogVisible = !isCreateBrandFolderDialogVisible" 
+      />
 
       <!-- Dialog Content -->
       <VCard title="Crea Cartella Brand">
@@ -383,11 +403,17 @@ const navigateBreadcrumbs = item => {
             placeholder="Seleziona un brand"
             item-title="name"
             item-value="name"
+            :disabled="isCreatingFolder"
           />
         </VCardText>
 
         <VCardText class="d-flex justify-end">
-          <VBtn color="primary" @click="createFolder">
+          <VBtn 
+            color="primary" 
+            :loading="isCreatingFolder"
+            :disabled="isCreatingFolder"
+            @click="createFolder"
+          >
             Crea
           </VBtn>
         </VCardText>
@@ -398,9 +424,13 @@ const navigateBreadcrumbs = item => {
     <VDialog
       v-model="isCreateFolderDialogVisible"
       width="500"
+      :persistent="isCreatingFolder"
     >
       <!-- Dialog close btn -->
-      <DialogCloseBtn @click="isCreateFolderDialogVisible = !isCreateFolderDialogVisible" />
+      <DialogCloseBtn 
+        :disabled="isCreatingFolder"
+        @click="isCreateFolderDialogVisible = !isCreateFolderDialogVisible" 
+      />
 
       <!-- Dialog Content -->
       <VCard title="Crea Cartella">
@@ -411,11 +441,17 @@ const navigateBreadcrumbs = item => {
             :rules="[requiredValidator]"
             label="Nome Cartella"
             placeholder="Documenti informativi"
+            :disabled="isCreatingFolder"
           />
         </VCardText>
 
         <VCardText class="d-flex justify-end">
-          <VBtn color="primary" @click="createFolder">
+          <VBtn 
+            color="primary" 
+            :loading="isCreatingFolder"
+            :disabled="isCreatingFolder"
+            @click="createFolder"
+          >
             Crea
           </VBtn>
         </VCardText>
@@ -442,10 +478,14 @@ const navigateBreadcrumbs = item => {
     <VDialog
       v-model="isRemoveDialogVisible"
       width="500"
+      :persistent="isDeletingDocument"
       v-if="selectedDocumentRemove && $can('delete', 'documents')"
     >
       <!-- Dialog close btn -->
-      <DialogCloseBtn @click="isRemoveDialogVisible = !isRemoveDialogVisible" />
+      <DialogCloseBtn 
+        :disabled="isDeletingDocument"
+        @click="isRemoveDialogVisible = !isRemoveDialogVisible" 
+      />
 
       <!-- Dialog Content -->
       <VCard title="Elimina">
@@ -459,7 +499,12 @@ const navigateBreadcrumbs = item => {
         </VCardText>
 
         <VCardText class="d-flex justify-end">
-          <VBtn color="error" @click="deleteDocument(selectedDocumentRemove)">
+          <VBtn 
+            color="error" 
+            :loading="isDeletingDocument"
+            :disabled="isDeletingDocument"
+            @click="deleteDocument(selectedDocumentRemove)"
+          >
             Elimina
           </VBtn>
         </VCardText>
