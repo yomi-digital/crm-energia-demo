@@ -26,6 +26,9 @@ const selectedStatus = ref('')
 const selectedCategory = ref('')
 const selectedHasAppointment = ref('')
 
+const loggedInUser = useCookie('userData').value
+const isAgent = loggedInUser?.roles?.some(role => role.name === 'agente')
+
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
   orderBy.value = options.sortBy[0]?.order
@@ -408,7 +411,10 @@ fetchAgencies()
             />
           </VCol>
 
-          <VCol cols="3">
+          <VCol
+            v-if="!isAgent"
+            cols="3"
+          >
             <AppAutocomplete
               v-model="selectedArea"
               label="Filtra per Area"
