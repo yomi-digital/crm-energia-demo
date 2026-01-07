@@ -1,12 +1,14 @@
 <script setup>
 import { $api } from '@/utils/api';
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar';
+import { useBrandCheck } from '@/composables/useBrandCheck'
 
 const router = useRouter()
 const ability = useAbility()
 
 // TODO: Get type from backend
 const userData = useCookie('userData')
+const { resetCache: resetBrandCache } = useBrandCheck()
 
 const logout = async () => {
   try {
@@ -24,6 +26,9 @@ const logout = async () => {
   // Remove "userData" from cookie and localStorage
   userData.value = null
   useLocalStorage('userData').value = null
+
+  // Reset brand cache
+  resetBrandCache()
 
   // Redirect to login page
   await router.push('/login')
