@@ -1,5 +1,5 @@
 <script setup>
-import AppSelect from '@/@core/components/app-form-elements/AppSelect.vue';
+import SearchBrand from '@/components/SearchBrand.vue';
 
 definePage({
   meta: {
@@ -71,6 +71,32 @@ const refetchDocuments = async function () {
 
 const brandsWithoutFolder = computed(() => {
   return documentsData.value.brands_without_folder
+})
+
+// Brand completi (nome, categoria, tipo) per raggruppamento in SearchBrand
+const allBrands = ref([])
+
+const loadBrands = async () => {
+  const response = await $api('/brands', {
+    query: {
+      itemsPerPage: 999999,
+      select: 1,
+    },
+  })
+
+  allBrands.value = response.brands || []
+}
+
+loadBrands()
+
+// Solo i brand che non hanno ancora una cartella in Documenti
+const brandsWithoutFolderDetailed = computed(() => {
+  if (!allBrands.value.length)
+    return []
+
+  const names = new Set(brandsWithoutFolder.value)
+
+  return allBrands.value.filter(brand => names.has(brand.name))
 })
 
 const documents = computed(() => {
@@ -350,12 +376,14 @@ const navigateBreadcrumbs = item => {
       <!-- Dialog Content -->
       <VCard title="Crea Cartella Brand">
         <VCardText>
-          <AppSelect
+          <SearchBrand
             v-model="folderName"
-            :items="brandsWithoutFolder"
+            :items="brandsWithoutFolderDetailed"
             label="Seleziona Brand"
             placeholder="Seleziona un brand"
-            />
+            item-title="name"
+            item-value="name"
+          />
         </VCardText>
 
         <VCardText class="d-flex justify-end">
