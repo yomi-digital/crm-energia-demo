@@ -78,13 +78,24 @@ class PaperworksController extends Controller
         if ($request->get('q')) {
             $search = $request->get('q');
             $paperworks = $paperworks->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('business_name', 'like', "%{$search}%")
-                    ->orWhere('tax_id_code', 'like', "%{$search}%")
-                    ->orWhere('vat_number', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('area', 'like', "%{$search}%");
+                // Cerca nei campi della pratica
+                $query->where('order_code', 'like', "%{$search}%")
+                    ->orWhere('account_pod_pdr', 'like', "%{$search}%")
+                    // Cerca nei campi del cliente
+                    ->orWhereHas('customer', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('business_name', 'like', "%{$search}%")
+                            ->orWhere('tax_id_code', 'like', "%{$search}%")
+                            ->orWhere('vat_number', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    })
+                    // Cerca nel nome dell'agente
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
             });
         }
 
