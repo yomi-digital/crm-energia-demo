@@ -49,6 +49,11 @@ const headers = [
     sortable: false,
   },
   {
+    title: 'Cliente',
+    key: 'customer',
+    sortable: false,
+  },
+  {
     title: 'Brand',
     key: 'brand',
     sortable: false,
@@ -572,6 +577,25 @@ fetchAgencies()
                   {{ item.agent || 'N/A' }}
                 </span>
               </h6>
+            </div>
+          </div>
+        </template>
+
+        <!-- Cliente -->
+        <template #item.customer="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              <RouterLink
+                v-if="item.customer_id"
+                :to="{ name: 'workflow-customers-id', params: { id: item.customer_id } }"
+                class="font-weight-medium text-link"
+                :title="item.customer"
+              >
+                {{ item.customer }}
+              </RouterLink>
+              <span v-else>
+                {{ item.customer || 'N/A' }}
+              </span>
             </div>
           </div>
         </template>

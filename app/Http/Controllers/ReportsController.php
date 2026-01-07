@@ -268,7 +268,7 @@ class ReportsController extends Controller
             ], 400);
         }
 
-        $paperworks = \App\Models\Paperwork::with(['user', 'product', 'product.brand', 'mandate'])
+        $paperworks = \App\Models\Paperwork::with(['user', 'product', 'product.brand', 'mandate', 'customer'])
             ->whereBetween('partner_sent_at', [
                 $request->get('from') . ' 00:00:00',
                 $request->get('to') . ' 23:59:59'
@@ -440,6 +440,8 @@ class ReportsController extends Controller
             'agent' => implode(' ', array_filter([$paperwork->user->name, $paperwork->user->last_name])),
             'agency_id' => $paperwork->mandate_id,
             'agency' => $paperwork->mandate ? $paperwork->mandate->name : null,
+            'customer_id' => $paperwork->customer_id,
+            'customer' => $paperwork->customer ? implode(' ', array_filter([$paperwork->customer->name, $paperwork->customer->business_name])) : null,
             'brand_id' => $paperwork->product->brand_id,
             'brand' => $paperwork->product->brand->name,
             'product_id' => $paperwork->product_id,
