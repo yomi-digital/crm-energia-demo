@@ -80,7 +80,7 @@ const updateUserInfo = async (data) => {
               <VListItemTitle>
                 <h6 class="text-h6">
                   Ruolo:
-                  <div class="d-inline-block text-body-1">
+                  <div class="d-inline-block text-body-1 text-capitalize">
                     {{ props.userData.role.name }}
                   </div>
                 </h6>

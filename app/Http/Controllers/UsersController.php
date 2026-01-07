@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 
 class UsersController extends Controller
 {
@@ -182,11 +183,31 @@ class UsersController extends Controller
 
         $user->fill($request->all());
 
+        // Aggiorna ruolo se presente nel payload
+        if ($request->filled('role')) {
+            $roleInput = $request->input('role');
+            $roleModel = null;
+
+            if (is_array($roleInput) && isset($roleInput['id'])) {
+                $roleModel = Role::find($roleInput['id']);
+            } elseif (is_string($roleInput)) {
+                $roleModel = Role::where('name', $roleInput)->first();
+            }
+
+            if ($roleModel) {
+                $user->syncRoles([$roleModel->name]);
+            }
+        }
+
         if ($request->filled('password')) {
             $user->password = bcrypt($request->get('password'));
         }
 
         $user->save();
+
+        // Ritorna anche il ruolo aggiornato per il frontend
+        $user->load(['roles', 'manager', 'agency']);
+        $user->role = $user->roles->first();
 
         return response()->json($user);
     }
