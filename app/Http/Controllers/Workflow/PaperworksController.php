@@ -78,8 +78,13 @@ class PaperworksController extends Controller
         if ($request->get('q')) {
             $search = $request->get('q');
             $paperworks = $paperworks->where(function ($query) use ($search) {
+                // Se la ricerca è numerica, cerca anche per ID esatto
+                if (is_numeric($search)) {
+                    $query->where('id', $search);
+                }
+                
                 // Cerca nei campi della pratica
-                $query->where('order_code', 'like', "%{$search}%")
+                $query->orWhere('order_code', 'like', "%{$search}%")
                     ->orWhere('account_pod_pdr', 'like', "%{$search}%")
                     // Cerca nei campi del cliente
                     ->orWhereHas('customer', function ($q) use ($search) {
