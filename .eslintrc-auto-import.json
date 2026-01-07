@@ -365,6 +365,7 @@
     "resolveUserStatusVariant": true,
     "usePreventiviApi": true,
     "getAllComuni": true,
-    "AREAS": true
+    "AREAS": true,
+    "useBrandCheck": true
   }
 }

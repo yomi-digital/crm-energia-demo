@@ -25,18 +25,28 @@ const folderName = ref('')
 const isCreateFolderDialogVisible = ref(false)
 const isCreateBrandFolderDialogVisible = ref(false)
 const isUploadDialogVisible = ref(false)
+const isCreatingFolder = ref(false)
+const isDeletingDocument = ref(false)
 
 const createFolder = async function () {
-  await $api('/documents/new-folder', {
-    method: 'POST',
-    body: {
-      name: folderName.value,
-      path: currentPath.value,
-    }
-  })
-  isCreateFolderDialogVisible.value = false
-  folderName.value = ''
-  refetchDocuments()
+  isCreatingFolder.value = true
+  try {
+    await $api('/documents/new-folder', {
+      method: 'POST',
+      body: {
+        name: folderName.value,
+        path: currentPath.value,
+      }
+    })
+    isCreateFolderDialogVisible.value = false
+    isCreateBrandFolderDialogVisible.value = false
+    folderName.value = ''
+    await refetchDocuments()
+  } catch (error) {
+    console.error('Errore durante la creazione della cartella:', error)
+  } finally {
+    isCreatingFolder.value = false
+  }
 }
 
 const fileData = ref([])
@@ -111,10 +121,16 @@ const documents = computed(() => {
 const isRemoveDialogVisible = ref(false)
 
 const deleteDocument = async id => {
-  await $api(`/documents/remove`, { method: 'DELETE', body: { path: selectedDocumentRemove.value.path, type: selectedDocumentRemove.value.type } })
-  isRemoveDialogVisible.value = false
-
-  refetchDocuments()
+  isDeletingDocument.value = true
+  try {
+    await $api(`/documents/remove`, { method: 'DELETE', body: { path: selectedDocumentRemove.value.path, type: selectedDocumentRemove.value.type } })
+    isRemoveDialogVisible.value = false
+    await refetchDocuments()
+  } catch (error) {
+    console.error('Errore durante l\'eliminazione:', error)
+  } finally {
+    isDeletingDocument.value = false
+  }
 }
 
 const selectDocumentForRemove = document => {
@@ -198,27 +214,150 @@ const breadcrumbs = ref([
   { title: 'Documenti', active: true, path: '' },
 ])
 
-const navigateFm = item => {
-  if (item.type !== 'dir') {
-    return
-  }
-  breadcrumbs.value = item.breadcrumbs
-  // Set active the last on the list
+// Stack per tracciare la cronologia delle cartelle
+const folderHistory = ref([{ path: '', breadcrumbs: [{ title: 'Documenti', active: true, path: '' }] }])
+const currentHistoryIndex = ref(0)
+
+// Funzione per navigare a una cartella specifica senza aggiungere alla cronologia
+const navigateToFolder = (path, breadcrumbsList) => {
+  currentPath.value = path
+  breadcrumbs.value = breadcrumbsList.map(b => ({ ...b }))
   breadcrumbs.value[breadcrumbs.value.length - 1].active = true
-  currentPath.value = item.path
   searchQuery.value = ''
   refetchDocuments()
 }
 
+const navigateFm = item => {
+  if (item.type !== 'dir') {
+    return
+  }
+  
+  // Rimuovi tutte le voci successive nella cronologia se siamo tornati indietro
+  if (currentHistoryIndex.value < folderHistory.value.length - 1) {
+    folderHistory.value = folderHistory.value.slice(0, currentHistoryIndex.value + 1)
+  }
+  
+  // Aggiungi la nuova cartella alla cronologia
+  const newBreadcrumbs = item.breadcrumbs.map(b => ({ ...b }))
+  folderHistory.value.push({
+    path: item.path,
+    breadcrumbs: newBreadcrumbs
+  })
+  currentHistoryIndex.value = folderHistory.value.length - 1
+  
+  // Aggiungi entry alla cronologia del browser
+  window.history.pushState(
+    { folderPath: item.path, historyIndex: currentHistoryIndex.value },
+    '',
+    window.location.href
+  )
+  
+  navigateToFolder(item.path, item.breadcrumbs)
+}
+
 const navigateBreadcrumbs = item => {
-  // remove this from breadcrumbs
-  const index = breadcrumbs.value.indexOf(item)
-  breadcrumbs.value = breadcrumbs.value.slice(0, index +1)
-  // Set active the last on the list
-  breadcrumbs.value[breadcrumbs.value.length - 1].active = true
-  currentPath.value = item.path
-  searchQuery.value = ''
-  refetchDocuments()
+  // Trova l'indice nella cronologia corrispondente a questo breadcrumb
+  const targetIndex = folderHistory.value.findIndex(f => f.path === item.path)
+  
+  if (targetIndex !== -1) {
+    // Se trovato nella cronologia, usa quello
+    currentHistoryIndex.value = targetIndex
+    const targetFolder = folderHistory.value[targetIndex]
+    
+    // Rimuovi tutte le voci successive
+    folderHistory.value = folderHistory.value.slice(0, targetIndex + 1)
+    
+    // Aggiungi entry alla cronologia del browser
+    window.history.pushState(
+      { folderPath: item.path, historyIndex: targetIndex },
+      '',
+      window.location.href
+    )
+    
+    navigateToFolder(item.path, targetFolder.breadcrumbs)
+  } else {
+    // Se non trovato, crea una nuova entry
+    const index = breadcrumbs.value.indexOf(item)
+    const newBreadcrumbs = breadcrumbs.value.slice(0, index + 1).map(b => ({ ...b }))
+    
+    // Rimuovi tutte le voci successive nella cronologia
+    if (currentHistoryIndex.value < folderHistory.value.length - 1) {
+      folderHistory.value = folderHistory.value.slice(0, currentHistoryIndex.value + 1)
+    }
+    
+    folderHistory.value.push({
+      path: item.path,
+      breadcrumbs: newBreadcrumbs
+    })
+    currentHistoryIndex.value = folderHistory.value.length - 1
+    
+    // Aggiungi entry alla cronologia del browser
+    window.history.pushState(
+      { folderPath: item.path, historyIndex: currentHistoryIndex.value },
+      '',
+      window.location.href
+    )
+    
+    navigateToFolder(item.path, newBreadcrumbs)
+  }
+}
+
+// Gestione del tasto indietro del browser
+onMounted(() => {
+  // Aggiungi stato iniziale alla cronologia del browser
+  window.history.replaceState(
+    { folderPath: '', historyIndex: 0 },
+    '',
+    window.location.href
+  )
+  
+  // Listener per il tasto indietro
+  window.addEventListener('popstate', handlePopState)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('popstate', handlePopState)
+})
+
+const handlePopState = (event) => {
+  // Verifica che siamo ancora nella pagina documenti
+  if (!window.location.pathname.includes('/documents')) {
+    return
+  }
+  
+  // Se c'è uno stato salvato nella cronologia del browser
+  if (event.state && event.state.historyIndex !== undefined) {
+    const targetIndex = event.state.historyIndex
+    
+    // Verifica che l'indice sia valido
+    if (targetIndex >= 0 && targetIndex < folderHistory.value.length) {
+      currentHistoryIndex.value = targetIndex
+      const targetFolder = folderHistory.value[targetIndex]
+      navigateToFolder(targetFolder.path, targetFolder.breadcrumbs)
+      return
+    }
+  }
+  
+  // Se non c'è uno stato valido, controlla se possiamo tornare indietro nella cronologia
+  // Se siamo alla root (indice 0), lascia che il browser gestisca normalmente
+  if (currentHistoryIndex.value === 0) {
+    // Siamo alla root, il browser gestirà la navigazione normalmente
+    return
+  }
+  
+  // Altrimenti, torna alla cartella precedente nella cronologia
+  if (currentHistoryIndex.value > 0) {
+    currentHistoryIndex.value--
+    const targetFolder = folderHistory.value[currentHistoryIndex.value]
+    navigateToFolder(targetFolder.path, targetFolder.breadcrumbs)
+    
+    // Sincronizza lo stato del browser con la cronologia
+    window.history.replaceState(
+      { folderPath: targetFolder.path, historyIndex: currentHistoryIndex.value },
+      '',
+      window.location.href
+    )
+  }
 }
 
 
@@ -369,9 +508,13 @@ const navigateBreadcrumbs = item => {
     <VDialog
       v-model="isCreateBrandFolderDialogVisible"
       width="500"
+      :persistent="isCreatingFolder"
     >
       <!-- Dialog close btn -->
-      <DialogCloseBtn @click="isCreateBrandFolderDialogVisible = !isCreateBrandFolderDialogVisible" />
+      <DialogCloseBtn 
+        :disabled="isCreatingFolder"
+        @click="isCreateBrandFolderDialogVisible = !isCreateBrandFolderDialogVisible" 
+      />
 
       <!-- Dialog Content -->
       <VCard title="Crea Cartella Brand">
@@ -383,11 +526,17 @@ const navigateBreadcrumbs = item => {
             placeholder="Seleziona un brand"
             item-title="name"
             item-value="name"
+            :disabled="isCreatingFolder"
           />
         </VCardText>
 
         <VCardText class="d-flex justify-end">
-          <VBtn color="primary" @click="createFolder">
+          <VBtn 
+            color="primary" 
+            :loading="isCreatingFolder"
+            :disabled="isCreatingFolder"
+            @click="createFolder"
+          >
             Crea
           </VBtn>
         </VCardText>
@@ -398,9 +547,13 @@ const navigateBreadcrumbs = item => {
     <VDialog
       v-model="isCreateFolderDialogVisible"
       width="500"
+      :persistent="isCreatingFolder"
     >
       <!-- Dialog close btn -->
-      <DialogCloseBtn @click="isCreateFolderDialogVisible = !isCreateFolderDialogVisible" />
+      <DialogCloseBtn 
+        :disabled="isCreatingFolder"
+        @click="isCreateFolderDialogVisible = !isCreateFolderDialogVisible" 
+      />
 
       <!-- Dialog Content -->
       <VCard title="Crea Cartella">
@@ -411,11 +564,17 @@ const navigateBreadcrumbs = item => {
             :rules="[requiredValidator]"
             label="Nome Cartella"
             placeholder="Documenti informativi"
+            :disabled="isCreatingFolder"
           />
         </VCardText>
 
         <VCardText class="d-flex justify-end">
-          <VBtn color="primary" @click="createFolder">
+          <VBtn 
+            color="primary" 
+            :loading="isCreatingFolder"
+            :disabled="isCreatingFolder"
+            @click="createFolder"
+          >
             Crea
           </VBtn>
         </VCardText>
@@ -442,10 +601,14 @@ const navigateBreadcrumbs = item => {
     <VDialog
       v-model="isRemoveDialogVisible"
       width="500"
+      :persistent="isDeletingDocument"
       v-if="selectedDocumentRemove && $can('delete', 'documents')"
     >
       <!-- Dialog close btn -->
-      <DialogCloseBtn @click="isRemoveDialogVisible = !isRemoveDialogVisible" />
+      <DialogCloseBtn 
+        :disabled="isDeletingDocument"
+        @click="isRemoveDialogVisible = !isRemoveDialogVisible" 
+      />
 
       <!-- Dialog Content -->
       <VCard title="Elimina">
@@ -459,7 +622,12 @@ const navigateBreadcrumbs = item => {
         </VCardText>
 
         <VCardText class="d-flex justify-end">
-          <VBtn color="error" @click="deleteDocument(selectedDocumentRemove)">
+          <VBtn 
+            color="error" 
+            :loading="isDeletingDocument"
+            :disabled="isDeletingDocument"
+            @click="deleteDocument(selectedDocumentRemove)"
+          >
             Elimina
           </VBtn>
         </VCardText>

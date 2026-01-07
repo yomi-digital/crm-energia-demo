@@ -6,6 +6,10 @@ definePage({
   },
 })
 
+// Controlla se l'utente è un agente
+const loggedInUser = useCookie('userData').value
+const isAgent = loggedInUser?.roles?.some(role => role.name === 'agente')
+
 // 👉 Store
 const searchQuery = ref('')
 
@@ -332,7 +336,7 @@ const exportPreventivi = async () => {
         <VRow>
           <!-- Agente -->
           <VCol
-            v-if="$can('view', 'users')"
+            v-if="$can('view', 'users') && !isAgent"
             cols="12"
             sm="6"
             md="3"
@@ -351,8 +355,8 @@ const exportPreventivi = async () => {
           <!-- Cliente -->
           <VCol
             cols="12"
-            sm="6"
-            md="3"
+            :sm="isAgent ? '12' : '6'"
+            :md="isAgent ? '12' : '3'"
           >
             <AppAutocomplete
               v-model="selectedCustomer"
@@ -367,6 +371,7 @@ const exportPreventivi = async () => {
 
           <!-- Tetto -->
           <VCol
+            v-if="!isAgent"
             cols="12"
             sm="6"
             md="3"
@@ -382,6 +387,7 @@ const exportPreventivi = async () => {
 
           <!-- Esposizione -->
           <VCol
+            v-if="!isAgent"
             cols="12"
             sm="6"
             md="3"
@@ -397,6 +403,7 @@ const exportPreventivi = async () => {
 
           <!-- Area Geografica -->
           <VCol
+            v-if="!isAgent"
             cols="12"
             sm="6"
             md="3"
@@ -412,6 +419,7 @@ const exportPreventivi = async () => {
 
           <!-- Modalità Pagamento -->
           <VCol
+            v-if="!isAgent"
             cols="12"
             sm="6"
             md="3"
@@ -429,6 +437,7 @@ const exportPreventivi = async () => {
 
           <!-- Opzione Manutenzione -->
           <VCol
+            v-if="!isAgent"
             cols="12"
             sm="6"
             md="3"
@@ -444,6 +453,7 @@ const exportPreventivi = async () => {
 
           <!-- Opzione Assicurazione -->
           <VCol
+            v-if="!isAgent"
             cols="12"
             sm="6"
             md="3"
@@ -459,7 +469,7 @@ const exportPreventivi = async () => {
         </VRow>
 
         <!-- Range di costi e valori -->
-        <VRow class="mt-2">
+        <VRow v-if="!isAgent" class="mt-2">
           <!-- Costo Manutenzione -->
           <VCol
             cols="12"
