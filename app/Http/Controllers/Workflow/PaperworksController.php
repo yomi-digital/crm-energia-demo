@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Workflow;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Traits\PaperworkTrait;
+use Illuminate\Support\Facades\DB;
 
 class PaperworksController extends Controller
 {
@@ -76,7 +77,7 @@ class PaperworksController extends Controller
         }
 
         if ($request->get('q')) {
-            $search = $request->get('q');
+            $search = trim($request->get('q'));
             $paperworks = $paperworks->where(function ($query) use ($search) {
                 // Se la ricerca è numerica, cerca anche per ID esatto
                 if (is_numeric($search)) {
@@ -85,22 +86,35 @@ class PaperworksController extends Controller
                 
                 // Cerca nei campi della pratica
                 $query->orWhere('order_code', 'like', "%{$search}%")
-                    ->orWhere('account_pod_pdr', 'like', "%{$search}%")
-                    // Cerca nei campi del cliente
-                    ->orWhereHas('customer', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%")
-                            ->orWhere('business_name', 'like', "%{$search}%")
-                            ->orWhere('tax_id_code', 'like', "%{$search}%")
-                            ->orWhere('vat_number', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                    })
-                    // Cerca nel nome dell'agente
-                    ->orWhereHas('user', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                    });
+                    ->orWhere('account_pod_pdr', 'like', "%{$search}%");
+                
+                // Ottimizzazione: usa whereExists invece di whereHas per migliorare le performance
+                // Cerca nei campi del cliente tramite subquery
+                $query->orWhereExists(function ($q) use ($search) {
+                    $q->select(DB::raw(1))
+                        ->from('customers')
+                        ->whereColumn('customers.id', 'paperworks.customer_id')
+                        ->where(function ($subQuery) use ($search) {
+                            $subQuery->where('customers.name', 'like', "%{$search}%")
+                                ->orWhere('customers.last_name', 'like', "%{$search}%")
+                                ->orWhere('customers.business_name', 'like', "%{$search}%")
+                                ->orWhere('customers.tax_id_code', 'like', "%{$search}%")
+                                ->orWhere('customers.vat_number', 'like', "%{$search}%")
+                                ->orWhere('customers.email', 'like', "%{$search}%");
+                        });
+                });
+                
+                // Cerca nel nome dell'agente tramite subquery
+                $query->orWhereExists(function ($q) use ($search) {
+                    $q->select(DB::raw(1))
+                        ->from('users')
+                        ->whereColumn('users.id', 'paperworks.user_id')
+                        ->where(function ($subQuery) use ($search) {
+                            $subQuery->where('users.name', 'like', "%{$search}%")
+                                ->orWhere('users.last_name', 'like', "%{$search}%")
+                                ->orWhere('users.email', 'like', "%{$search}%");
+                        });
+                });
             });
         }
 
@@ -108,9 +122,13 @@ class PaperworksController extends Controller
         if ($request->user()->hasRole('agente')) {
             $paperworks = $paperworks->where('user_id', $request->user()->id);
         } elseif ($request->user()->hasRole('struttura')) {
-            $relationships = \App\Models\UserRelationship::where('user_id', $request->user()->id)->get(['related_id']);
-            $ids = $relationships->pluck('related_id')->merge([$request->user()->id]);
-            $paperworks = $paperworks->whereIn('user_id', $ids);
+            // Ottimizzazione: usa subquery invece di get() per migliorare le performance
+            $userIds = \App\Models\UserRelationship::where('user_id', $request->user()->id)
+                ->pluck('related_id')
+                ->push($request->user()->id)
+                ->unique()
+                ->values();
+            $paperworks = $paperworks->whereIn('user_id', $userIds);
         } elseif ($request->user()->hasRole('backoffice')) {
             // Filtro per brand (già esistente)
             $paperworks = $paperworks->whereHas('product', function ($query) use ($request) {
