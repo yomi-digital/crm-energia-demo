@@ -41,6 +41,10 @@ const headers = [
     key: 'name',
   },
   {
+    title: 'Area',
+    key: 'area',
+  },
+  {
     title: 'Ruolo',
     key: 'role',
     sortable: false,
@@ -57,10 +61,6 @@ const headers = [
     title: 'Agenzia',
     key: 'agency',
     sortable: false,
-  },
-  {
-    title: 'Area',
-    key: 'area',
   },
   {
     title: 'Team Leader',
@@ -150,6 +150,9 @@ const isSnackbarVisible = ref(false)
 const snackbarMessage = ref('')
 const snackbarColor = ref('success')
 
+const areaOptions = ['Catania', 'Lecce']
+const areaLoadingUserId = ref(null)
+
 const addNewUser = async userData => {
   try {
     const response = await $api('/users', {
@@ -199,6 +202,31 @@ const deleteUser = async id => {
 
   // refetch User
   fetchUsers()
+}
+
+const updateUserArea = async (user, area) => {
+  try {
+    areaLoadingUserId.value = user.id
+
+    await $api(`/users/${ user.id }`, {
+      method: 'PUT',
+      body: { area },
+    })
+
+    user.area = area
+
+    snackbarMessage.value = 'Area aggiornata con successo'
+    snackbarColor.value = 'success'
+    isSnackbarVisible.value = true
+  } catch (error) {
+    console.error(error)
+
+    snackbarMessage.value = 'Errore durante l\'aggiornamento dell\'area'
+    snackbarColor.value = 'error'
+    isSnackbarVisible.value = true
+  } finally {
+    areaLoadingUserId.value = null
+  }
 }
 
 
@@ -342,6 +370,42 @@ const deleteUser = async id => {
               </div>
             </div>
           </div>
+        </template>
+
+        <!-- Area -->
+        <template #item.area="{ item }">
+          <VMenu>
+            <template #activator="{ props }">
+              <VChip
+                v-bind="props"
+                color="primary"
+                size="small"
+                label
+                class="text-uppercase cursor-pointer"
+              >
+                <VProgressCircular
+                  v-if="areaLoadingUserId === item.id"
+                  indeterminate
+                  size="16"
+                  width="2"
+                  color="white"
+                />
+                <span v-else>
+                  {{ item.area || 'Seleziona' }}
+                </span>
+              </VChip>
+            </template>
+
+            <VList>
+              <VListItem
+                v-for="option in areaOptions"
+                :key="option"
+                @click="updateUserArea(item, option)"
+              >
+                <VListItemTitle>{{ option }}</VListItemTitle>
+              </VListItem>
+            </VList>
+          </VMenu>
         </template>
 
         <!-- 👉 Role -->
