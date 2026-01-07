@@ -419,16 +419,20 @@ class UsersController extends Controller
                 $transformed->subtitle = $notification->data['status'] . ' - ' . $notification->data['title'] . ' il ' . $notification->data['start'];
                 $transformed->icon = 'tabler-calendar';
                 $transformed->color = 'primary';
+                $transformed->link = '/general/calendar?appointment=' . $notification->data['calendar_id'];
             } elseif ($transformed->type === 'calendar-updated') {
                 $transformed->title = 'Appuntamento modificato';
                 $transformed->subtitle = $notification->data['status'] . ' - ' . $notification->data['title'] . ' del ' . $notification->data['start'];
                 $transformed->icon = 'tabler-calendar';
                 $transformed->color = 'warning';
+                $transformed->link = '/general/calendar?appointment=' . $notification->data['calendar_id'];
             } elseif ($transformed->type === 'calendar-deleted') {
                 $transformed->title = 'Appuntamento eliminato';
                 $transformed->subtitle = $notification->data['title'] . ' del ' . $notification->data['start'];
                 $transformed->icon = 'tabler-calendar';
                 $transformed->color = 'error';
+                // Per gli appuntamenti eliminati non ha senso linkare, ma lo mettiamo comunque al calendario
+                $transformed->link = '/general/calendar';
             } elseif ($transformed->type === 'paperwork-created') {
                 $transformed->title = 'Nuova pratica';
                 $transformed->subtitle = $notification->data['brand'] . ' | ' . $notification->data['product'];
