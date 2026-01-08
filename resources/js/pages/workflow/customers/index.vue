@@ -1,4 +1,5 @@
 <script setup>
+import { nextTick, onUnmounted } from 'vue'
 
 definePage({
   meta: {
@@ -10,6 +11,8 @@ definePage({
 
 // 👉 Store
 const searchQuery = ref('')
+const debouncedSearchQuery = ref('')
+const isSearchLoading = ref(false)
 const selectedBrand = ref()
 const selectedCity = ref()
 
@@ -18,6 +21,47 @@ const itemsPerPage = ref(25)
 const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
+
+// Debounce per la ricerca (500ms)
+let searchTimeout = null
+watch(searchQuery, (newValue) => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  searchTimeout = setTimeout(() => {
+    debouncedSearchQuery.value = newValue
+  }, 500)
+}, { immediate: true })
+
+// Watch per tracciare quando la ricerca debounced cambia e avviare il caricamento
+watch(debouncedSearchQuery, async (newValue, oldValue) => {
+  // Se il valore è cambiato e c'è una ricerca attiva, imposta il loading
+  if (newValue !== oldValue && newValue !== '') {
+    isSearchLoading.value = true
+    // Attendi che la query venga eseguita
+    await nextTick()
+    // Il loading verrà resettato quando la query è completata (tramite watch su isFetchingCustomers)
+  } else if (newValue === '') {
+    isSearchLoading.value = false
+  }
+})
+
+// Watch per nascondere il loader quando la chiamata API è completata
+watch(() => isFetchingCustomers?.value, (isLoading) => {
+  if (isLoading === false) {
+    // La chiamata è completata, nascondi il loader dopo un breve delay
+    setTimeout(() => {
+      isSearchLoading.value = false
+    }, 100)
+  }
+})
+
+// Cleanup del timeout quando il componente viene smontato
+onUnmounted(() => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+})
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -84,9 +128,10 @@ const headers = [
 const {
   data: customersData,
   execute: fetchCustomers,
+  pending: isFetchingCustomers,
 } = await useApi(createUrl('/customers', {
   query: {
-    q: searchQuery,
+    q: debouncedSearchQuery,
     brand: selectedBrand,
     city: selectedCity,
     itemsPerPage,
@@ -98,6 +143,14 @@ const {
 
 const customers = computed(() => customersData.value.customers)
 const totalCustomers = computed(() => customersData.value.totalCustomers)
+
+// Computed per mostrare il loader quando si sta cercando o caricando
+const showSearchLoader = computed(() => {
+  // Mostra il loader se:
+  // 1. L'utente ha digitato qualcosa che non è ancora stato applicato alla ricerca (debounce)
+  // 2. Oppure se sta caricando i risultati dalla chiamata API
+  return searchQuery.value !== debouncedSearchQuery.value || isSearchLoading.value || (isFetchingCustomers?.value === true)
+})
 
 const truncate = (text, length = 30) => {
   if (text.length > length) {
@@ -158,7 +211,7 @@ const exportCustomers = async () => {
         sortBy: sortBy.value,
         orderBy: orderBy.value,
         export: 'csv',
-        q: searchQuery.value,
+        q: debouncedSearchQuery.value,
         brand: selectedBrand.value,
         city: selectedCity.value,
       },
@@ -374,7 +427,16 @@ const widgetData = ref([
             <AppTextField
               v-model="searchQuery"
               placeholder="Cerca"
-            />
+            >
+              <template #append-inner>
+                <VIcon
+                  v-if="showSearchLoader"
+                  icon="tabler-loader-2"
+                  class="tabler-loader-2"
+                  size="20"
+                />
+              </template>
+            </AppTextField>
           </div>
 
           <!-- 👉 Export button -->
