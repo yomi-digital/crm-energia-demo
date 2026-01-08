@@ -1,7 +1,7 @@
 <script setup>
 import PaperworkNotesDialog from '@/components/dialogs/PaperworkNotesDialog.vue'
 import StatusChip from '@/components/StatusChip.vue'
-import { onMounted, onUnmounted } from 'vue'
+import { nextTick, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 definePage({
@@ -16,6 +16,8 @@ definePage({
 // 👉 Store
 const route = useRoute()
 const searchQuery = ref('')
+const debouncedSearchQuery = ref('')
+const isSearchLoading = ref(false)
 
 // Data table options
 const itemsPerPage = ref(25)
@@ -36,6 +38,35 @@ const podPdrSearch = ref(route.query.pod_pdr || '')
 const selectedProduct = ref(route.query.product_id ? Number(route.query.product_id) : '')
 const selectedContractType = ref(route.query.contract_type || '')
 const selectedSupplyType = ref(route.query.type || '')
+
+// Debounce per la ricerca (500ms)
+let searchTimeout = null
+watch(searchQuery, (newValue) => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  searchTimeout = setTimeout(() => {
+    debouncedSearchQuery.value = newValue
+  }, 500)
+}, { immediate: true })
+
+// Watch per tracciare quando la ricerca debounced cambia e avviare il caricamento
+watch(debouncedSearchQuery, async (newValue, oldValue) => {
+  // Se il valore è cambiato e c'è una ricerca attiva, imposta il loading
+  if (newValue !== oldValue && newValue !== '') {
+    isSearchLoading.value = true
+    await nextTick()
+  } else if (newValue === '') {
+    isSearchLoading.value = false
+  }
+})
+
+// Cleanup del timeout quando il componente viene smontato
+onUnmounted(() => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+})
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -138,8 +169,8 @@ const queryParams = computed(() => {
   }
   
   // Aggiungi solo i parametri che hanno un valore
-  if (searchQuery.value && searchQuery.value.trim() !== '') {
-    params.q = searchQuery.value
+  if (debouncedSearchQuery.value && debouncedSearchQuery.value.trim() !== '') {
+    params.q = debouncedSearchQuery.value
   }
   if (selectedAgent.value !== null && selectedAgent.value !== '') {
     params.user_id = selectedAgent.value
@@ -190,12 +221,31 @@ const queryParams = computed(() => {
 const {
   data: paperworksData,
   execute: fetchPaperworks,
+  pending: isFetchingPaperworks,
 } = await useApi(createUrl('/paperworks', {
   query: queryParams,
 }))
 
 const paperworks = computed(() => paperworksData.value.paperworks)
 const totalPaperworks = computed(() => paperworksData.value.totalPaperworks)
+
+// Computed per mostrare il loader quando si sta cercando o caricando
+const showSearchLoader = computed(() => {
+  // Mostra il loader se:
+  // 1. L'utente ha digitato qualcosa che non è ancora stato applicato alla ricerca (debounce)
+  // 2. Oppure se sta caricando i risultati dalla chiamata API
+  return searchQuery.value !== debouncedSearchQuery.value || isSearchLoading.value || (isFetchingPaperworks?.value === true)
+})
+
+// Watch per nascondere il loader quando la chiamata API è completata
+watch(() => isFetchingPaperworks?.value, (isLoading) => {
+  if (isLoading === false) {
+    // La chiamata è completata, nascondi il loader dopo un breve delay
+    setTimeout(() => {
+      isSearchLoading.value = false
+    }, 100)
+  }
+})
 
 // Polling automatico ogni 10 secondi per aggiornare le pratiche
 let pollingInterval = null
@@ -207,6 +257,13 @@ const startPolling = () => {
   }
   
   pollingInterval = setInterval(async () => {
+    // Non eseguire il polling se:
+    // 1. C'è già una chiamata in corso
+    // 2. L'utente sta digitando nella ricerca (debounce attivo)
+    if (isFetchingPaperworks?.value === true || searchQuery.value !== debouncedSearchQuery.value) {
+      return
+    }
+    
     await fetchPaperworks()
   }, 10000) // 10 secondi
 }
@@ -721,7 +778,16 @@ const updateDateFromYearMonth = () => {
             <AppTextField
               v-model="searchQuery"
               placeholder="Cerca"
-            />
+            >
+              <template #append-inner>
+                <VIcon
+                  v-if="showSearchLoader"
+                  icon="tabler-loader-2"
+                  class="tabler-loader-2"
+                  size="20"
+                />
+              </template>
+            </AppTextField>
           </div>
 
           <!-- 👉 Export button -->
@@ -1009,3 +1075,24 @@ const updateDateFromYearMonth = () => {
     />
   </section>
 </template>
+
+<style>
+.tabler-loader,
+.tabler-fidget-spinner,
+.tabler-loader-3,
+.tabler-loader-quarter,
+.tabler-refresh-dot,
+.tabler-reload,
+.tabler-loader-2 {
+  animation: spin-animation .8s infinite;
+}
+
+@keyframes spin-animation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(359deg);
+  }
+}
+</style>
