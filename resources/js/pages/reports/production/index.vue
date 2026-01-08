@@ -28,6 +28,10 @@ const selectedHasAppointment = ref('')
 
 const loggedInUser = useCookie('userData').value
 const isAgent = loggedInUser?.roles?.some(role => role.name === 'agente')
+const isAdminOrBackoffice = computed(() => {
+  if (!loggedInUser?.roles) return false
+  return loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice')
+})
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -97,6 +101,14 @@ const headers = [
     sortable: false,
   },
 ]
+
+// Filtra gli headers in base ai permessi dell'utente
+const filteredHeaders = computed(() => {
+  if (isAdminOrBackoffice.value) {
+    return headers
+  }
+  return headers.filter(header => header.key !== 'parent' && header.key !== 'agency')
+})
 
 // Default to last 30 days
 const fromDate = ref(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
@@ -506,7 +518,7 @@ fetchAgencies()
           </VCol>
         </VRow>
 
-        <VRow>
+        <VRow v-if="isAdminOrBackoffice">
           <VCol cols="3">
             <AppAutocomplete
               v-model="selectedAgency"
@@ -561,7 +573,7 @@ fetchAgencies()
         v-model:page="page"
         :items="entries"
         :items-length="totalEntries"
-        :headers="headers"
+        :headers="filteredHeaders"
         class="text-no-wrap"
         show-select
         @update:options="updateOptions"

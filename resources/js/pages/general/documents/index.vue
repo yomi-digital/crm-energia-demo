@@ -91,6 +91,7 @@ const loadBrands = async () => {
     query: {
       itemsPerPage: 999999,
       select: 1,
+      enabled: 1,
     },
   })
 

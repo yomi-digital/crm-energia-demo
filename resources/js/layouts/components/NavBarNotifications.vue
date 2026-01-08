@@ -1,9 +1,11 @@
 <script setup>
+import { onMounted, onUnmounted } from 'vue'
 
 const router = useRouter()
 const notifications = ref([])
 const selectedNotificationType = ref('')
 let pollingInterval = null
+const isPollingActive = ref(false)
 
 const notificationTypes = [
   { title: 'Tutte', value: '' },
@@ -24,13 +26,31 @@ const fetchNotifications = async () => {
   notifications.value = response.data
 }
 
-// Caricamento iniziale
-fetchNotifications();
+const startPolling = () => {
+  // Previeni polling multipli
+  if (isPollingActive.value || pollingInterval) {
+    return
+  }
+  
+  isPollingActive.value = true
+  pollingInterval = setInterval(() => {
+    fetchNotifications()
+  }, 20000)
+}
 
-// Polling ogni 5 secondi per aggiornare le notifiche
-pollingInterval = setInterval(() => {
-  fetchNotifications()
-}, 5000)
+const stopPolling = () => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
+    pollingInterval = null
+    isPollingActive.value = false
+  }
+}
+
+// Caricamento iniziale e avvio polling quando il componente viene montato
+onMounted(async () => {
+  await fetchNotifications()
+  startPolling()
+})
 
 // Watch per ricaricare le notifiche quando cambia il filtro
 watch(selectedNotificationType, () => {
@@ -39,9 +59,7 @@ watch(selectedNotificationType, () => {
 
 // Cleanup del timer quando il componente viene smontato
 onUnmounted(() => {
-  if (pollingInterval) {
-    clearInterval(pollingInterval)
-  }
+  stopPolling()
 })
 
 const removeNotification = notificationId => {
@@ -68,7 +86,7 @@ const markUnRead = async notificationId => {
 
 const handleNotificationClick = notification => {
   if (!notification.isSeen) {
-    markRead([notification.id])
+    markRead(notification.id)
   }
 
   if (notification.link) {

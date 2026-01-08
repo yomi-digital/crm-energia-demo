@@ -130,29 +130,68 @@ if (! canViewPayout) {
   headers = headers.filter(header => header.key !== 'pay')
 }
 
+// Computed per pulire i parametri vuoti dalla query
+const queryParams = computed(() => {
+  const params = {
+    itemsPerPage: itemsPerPage.value,
+    page: page.value,
+  }
+  
+  // Aggiungi solo i parametri che hanno un valore
+  if (searchQuery.value && searchQuery.value.trim() !== '') {
+    params.q = searchQuery.value
+  }
+  if (selectedAgent.value !== null && selectedAgent.value !== '') {
+    params.user_id = selectedAgent.value
+  }
+  if (selectedCustomer.value !== null && selectedCustomer.value !== '') {
+    params.customer_id = selectedCustomer.value
+  }
+  if (selectedCategory.value && selectedCategory.value !== '') {
+    params.category = selectedCategory.value
+  }
+  if (dateFrom.value && dateFrom.value !== '') {
+    params.date_from = dateFrom.value
+  }
+  if (dateTo.value && dateTo.value !== '') {
+    params.date_to = dateTo.value
+  }
+  if (phoneSearch.value && phoneSearch.value.trim() !== '') {
+    params.phone = phoneSearch.value
+  }
+  if (taxIdSearch.value && taxIdSearch.value.trim() !== '') {
+    params.tax_id = taxIdSearch.value
+  }
+  if (emailSearch.value && emailSearch.value.trim() !== '') {
+    params.email = emailSearch.value
+  }
+  if (podPdrSearch.value && podPdrSearch.value.trim() !== '') {
+    params.pod_pdr = podPdrSearch.value
+  }
+  if (selectedProduct.value !== null && selectedProduct.value !== '') {
+    params.product_id = selectedProduct.value
+  }
+  if (selectedContractType.value && selectedContractType.value !== '') {
+    params.contract_type = selectedContractType.value
+  }
+  if (selectedSupplyType.value && selectedSupplyType.value !== '') {
+    params.type = selectedSupplyType.value
+  }
+  if (sortBy.value) {
+    params.sortBy = sortBy.value
+  }
+  if (orderBy.value) {
+    params.orderBy = orderBy.value
+  }
+  
+  return params
+})
+
 const {
   data: paperworksData,
   execute: fetchPaperworks,
 } = await useApi(createUrl('/paperworks', {
-  query: {
-    q: searchQuery,
-    itemsPerPage,
-    user_id: selectedAgent,
-    customer_id: selectedCustomer,
-    category: selectedCategory,
-    date_from: dateFrom,
-    date_to: dateTo,
-    phone: phoneSearch,
-    tax_id: taxIdSearch,
-    email: emailSearch,
-    pod_pdr: podPdrSearch,
-    product_id: selectedProduct,
-    contract_type: selectedContractType,
-    type: selectedSupplyType,
-    page,
-    sortBy,
-    orderBy,
-  },
+  query: queryParams,
 }))
 
 const paperworks = computed(() => paperworksData.value.paperworks)
