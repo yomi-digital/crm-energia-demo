@@ -237,7 +237,10 @@ class PaperworksController extends Controller
     {
         $paperwork = new \App\Models\Paperwork;
 
-        if ($request->user()->hasRole('agent')) {
+        // Se skipControl è presente, salta la validazione (utile per duplicazione di pratiche incomplete)
+        $skipValidation = $request->has('skipControl') && $request->get('skipControl') == true;
+
+        if (!$skipValidation && $request->user()->hasRole('agent')) {
             $request->validate([
                 'customer_id' => 'required|exists:customers,id',
                 'appointment_id' => 'exists:calendar,id|nullable',
@@ -281,7 +284,9 @@ class PaperworksController extends Controller
                 'previous_provider',
                 'notes',
             ]);
-        } else {
+        }
+        
+        if (!$skipValidation && !$request->user()->hasRole('agent')) {
             $request->validate([
                 'user_id' => 'required|exists:users,id',
                 'customer_id' => 'required|exists:customers,id',
@@ -310,8 +315,31 @@ class PaperworksController extends Controller
                 'previous_provider' => 'nullable',
                 'notes' => 'nullable',
             ]);
+        }
+        
+        if ($request->user()->hasRole('agent')) {
+            $fields = $request->only([
+                'customer_id',
+                'appointment_id',
+                'product_id',
+                'mandate_id',
+                'account_pod_pdr',
+                'annual_consumption',
+                'contract_type',
+                'category',
+                'type',
+                'energy_type',
+                'mobile_type',
+                'coverage',
+                'previous_provider',
+                'notes',
+            ]);
+        } else {
             $fields = $request->all();
         }
+
+        // Rimuovi skipControl dai campi da salvare (non è un campo del modello)
+        unset($fields['skipControl']);
 
         $paperwork->fill($fields);
         // $paperwork->order_status = 'CARICATO';
@@ -435,6 +463,9 @@ class PaperworksController extends Controller
 
 
                 // Riutilizza la logica del metodo store
+                // Aggiungi skipControl per saltare la validazione (permette di duplicare pratiche incomplete)
+                $storeCompatibleData['skipControl'] = true;
+                
                 $duplicateRequest = new Request($storeCompatibleData);
                 $duplicateRequest->setMethod('POST'); // Ensure it's a POST request
                 $duplicateRequest->headers->set('Content-Type', 'application/json');
