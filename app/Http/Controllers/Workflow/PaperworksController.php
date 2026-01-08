@@ -14,8 +14,15 @@ class PaperworksController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->get('itemsPerPage', 10);
-
-        $paperworks = \App\Models\Paperwork::with(['customer', 'user', 'mandate', 'product', 'product.brand']);
+        
+        // FASE 1 - Ottimizzazione: Lazy Loading Condizionale
+        // Flag per tracciare quali JOIN sono necessari
+        $needsCustomersJoin = false;
+        $needsUsersJoin = false;
+        $hasSearch = $request->filled('q');
+        
+        // Inizializza query base
+        $paperworks = \App\Models\Paperwork::query();
 
         if ($request->filled('customer_id')) {
             $paperworks = $paperworks->where('customer_id', $request->get('customer_id'));
@@ -37,26 +44,35 @@ class PaperworksController extends Controller
             $paperworks = $paperworks->whereDate('created_at', '<=', $request->get('date_to'));
         }
 
+        // FASE 1 - Ottimizzazione: JOIN invece di whereHas per filtri customer
         if ($request->filled('phone')) {
             $phone = $request->get('phone');
-            $paperworks = $paperworks->whereHas('customer', function ($query) use ($phone) {
-                $query->where('phone', 'like', "%{$phone}%")
-                    ->orWhere('mobile', 'like', "%{$phone}%");
+            if (!$needsCustomersJoin) {
+                $paperworks = $paperworks->leftJoin('customers', 'paperworks.customer_id', '=', 'customers.id');
+                $needsCustomersJoin = true;
+            }
+            $paperworks = $paperworks->where(function ($query) use ($phone) {
+                $query->where('customers.phone', 'like', "%{$phone}%")
+                    ->orWhere('customers.mobile', 'like', "%{$phone}%");
             });
         }
 
         if ($request->filled('tax_id')) {
             $taxId = $request->get('tax_id');
-            $paperworks = $paperworks->whereHas('customer', function ($query) use ($taxId) {
-                $query->where('tax_id_code', 'like', "%{$taxId}%");
-            });
+            if (!$needsCustomersJoin) {
+                $paperworks = $paperworks->leftJoin('customers', 'paperworks.customer_id', '=', 'customers.id');
+                $needsCustomersJoin = true;
+            }
+            $paperworks = $paperworks->where('customers.tax_id_code', 'like', "%{$taxId}%");
         }
 
         if ($request->filled('email')) {
             $email = $request->get('email');
-            $paperworks = $paperworks->whereHas('customer', function ($query) use ($email) {
-                $query->where('email', 'like', "%{$email}%");
-            });
+            if (!$needsCustomersJoin) {
+                $paperworks = $paperworks->leftJoin('customers', 'paperworks.customer_id', '=', 'customers.id');
+                $needsCustomersJoin = true;
+            }
+            $paperworks = $paperworks->where('customers.email', 'like', "%{$email}%");
         }
 
         if ($request->filled('pod_pdr')) {
@@ -76,51 +92,51 @@ class PaperworksController extends Controller
             $paperworks = $paperworks->where('type', $request->get('type'));
         }
 
+        // FASE 1 - Ottimizzazione: JOIN invece di Subquery per la ricerca
         if ($request->get('q')) {
             $search = trim($request->get('q'));
-            $paperworks = $paperworks->where(function ($query) use ($search) {
-                // Se la ricerca è numerica, cerca anche per ID esatto
-                if (is_numeric($search)) {
-                    $query->where('id', $search);
+            
+            // Se la ricerca è numerica, cerca solo per ID (più veloce)
+            if (is_numeric($search)) {
+                $paperworks = $paperworks->where('id', $search);
+            } else {
+                // FASE 1 - Ottimizzazione: JOIN invece di whereExists
+                // Aggiungi JOIN per customers se necessario
+                if (!$needsCustomersJoin) {
+                    $paperworks = $paperworks->leftJoin('customers', 'paperworks.customer_id', '=', 'customers.id');
+                    $needsCustomersJoin = true;
+                }
+                // Aggiungi JOIN per users se necessario
+                if (!$needsUsersJoin) {
+                    $paperworks = $paperworks->leftJoin('users', 'paperworks.user_id', '=', 'users.id');
+                    $needsUsersJoin = true;
                 }
                 
-                // Cerca nei campi della pratica
-                $query->orWhere('order_code', 'like', "%{$search}%")
-                    ->orWhere('account_pod_pdr', 'like', "%{$search}%");
-                
-                // Ottimizzazione: usa whereExists invece di whereHas per migliorare le performance
-                // Cerca nei campi del cliente tramite subquery
-                $query->orWhereExists(function ($q) use ($search) {
-                    $q->select(DB::raw(1))
-                        ->from('customers')
-                        ->whereColumn('customers.id', 'paperworks.customer_id')
-                        ->where(function ($subQuery) use ($search) {
-                            $subQuery->where('customers.name', 'like', "%{$search}%")
-                                ->orWhere('customers.last_name', 'like', "%{$search}%")
-                                ->orWhere('customers.business_name', 'like', "%{$search}%")
-                                ->orWhere('customers.tax_id_code', 'like', "%{$search}%")
-                                ->orWhere('customers.vat_number', 'like', "%{$search}%")
-                                ->orWhere('customers.email', 'like', "%{$search}%");
-                        });
+                $paperworks = $paperworks->where(function ($query) use ($search) {
+                    // Cerca nei campi della pratica
+                    $query->where('paperworks.order_code', 'like', "%{$search}%")
+                        ->orWhere('paperworks.account_pod_pdr', 'like', "%{$search}%")
+                        // Cerca nei campi del cliente tramite JOIN
+                        ->orWhere('customers.name', 'like', "%{$search}%")
+                        ->orWhere('customers.last_name', 'like', "%{$search}%")
+                        ->orWhere('customers.business_name', 'like', "%{$search}%")
+                        // Cerca nel nome dell'agente tramite JOIN
+                        ->orWhere('users.name', 'like', "%{$search}%")
+                        ->orWhere('users.last_name', 'like', "%{$search}%");
                 });
-                
-                // Cerca nel nome dell'agente tramite subquery
-                $query->orWhereExists(function ($q) use ($search) {
-                    $q->select(DB::raw(1))
-                        ->from('users')
-                        ->whereColumn('users.id', 'paperworks.user_id')
-                        ->where(function ($subQuery) use ($search) {
-                            $subQuery->where('users.name', 'like', "%{$search}%")
-                                ->orWhere('users.last_name', 'like', "%{$search}%")
-                                ->orWhere('users.email', 'like', "%{$search}%");
-                        });
-                });
-            });
+            }
+        }
+
+        // Se abbiamo fatto JOIN, dobbiamo selezionare solo le colonne di paperworks e usare distinct
+        if ($needsCustomersJoin || $needsUsersJoin) {
+            $paperworks = $paperworks->select('paperworks.*')->distinct();
         }
 
         // If the looged in user has role 'agente', filter for only his paperworks
+        $tablePrefix = ($needsCustomersJoin || $needsUsersJoin) ? 'paperworks.' : '';
+        
         if ($request->user()->hasRole('agente')) {
-            $paperworks = $paperworks->where('user_id', $request->user()->id);
+            $paperworks = $paperworks->where($tablePrefix . 'user_id', $request->user()->id);
         } elseif ($request->user()->hasRole('struttura')) {
             // Ottimizzazione: usa subquery invece di get() per migliorare le performance
             $userIds = \App\Models\UserRelationship::where('user_id', $request->user()->id)
@@ -128,7 +144,7 @@ class PaperworksController extends Controller
                 ->push($request->user()->id)
                 ->unique()
                 ->values();
-            $paperworks = $paperworks->whereIn('user_id', $userIds);
+            $paperworks = $paperworks->whereIn($tablePrefix . 'user_id', $userIds);
         } elseif ($request->user()->hasRole('backoffice')) {
             // Filtro per brand (già esistente)
             $paperworks = $paperworks->whereHas('product', function ($query) use ($request) {
@@ -149,12 +165,27 @@ class PaperworksController extends Controller
         }
 
         if ($request->get('sortBy')) {
-            $paperworks = $paperworks->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
+            $sortBy = $request->get('sortBy');
+            // Se abbiamo JOIN, assicuriamoci che il campo di ordinamento sia qualificato
+            if (($needsCustomersJoin || $needsUsersJoin) && !str_contains($sortBy, '.')) {
+                $sortBy = 'paperworks.' . $sortBy;
+            }
+            $paperworks = $paperworks->orderBy($sortBy, $request->get('orderBy', 'desc'));
         } else {
-            $paperworks = $paperworks->orderBy('created_at', 'desc');
+            $orderBy = ($needsCustomersJoin || $needsUsersJoin) ? 'paperworks.created_at' : 'created_at';
+            $paperworks = $paperworks->orderBy($orderBy, 'desc');
         }
 
         $paperworks = $paperworks->paginate($perPage);
+        
+        // FASE 1 - Ottimizzazione: Carica le relazioni solo dopo la paginazione
+        // Questo riduce drasticamente il carico durante la ricerca
+        if ($needsCustomersJoin || $needsUsersJoin || $hasSearch) {
+            $paperworks->getCollection()->load(['customer', 'user', 'mandate', 'product', 'product.brand']);
+        } else {
+            // Se non abbiamo fatto JOIN, possiamo usare eager loading normale
+            $paperworks->load(['customer', 'user', 'mandate', 'product', 'product.brand']);
+        }
 
         return response()->json([
             'paperworks' => $paperworks->getCollection(),
