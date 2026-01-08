@@ -43,7 +43,7 @@ class PaperworkCreated extends Notification
     {
         return (new MailMessage)
                     ->subject('Nuovo Paperwork Creato - ' . $this->paperwork->product->name)
-                    ->line('È stato creato un nuovo paperwork nel sistema.')
+                    ->line('È stato creato una nuova pratica nel sistema.')
                     ->line('**Prodotto:** ' . $this->paperwork->product->name)
                     ->line('**Brand:** ' . $this->paperwork->product->brand->name)
                     ->line('**ID Paperwork:** ' . $this->paperwork->id)
