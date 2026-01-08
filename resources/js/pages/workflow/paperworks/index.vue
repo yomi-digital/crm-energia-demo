@@ -54,7 +54,7 @@ watch(searchQuery, (newValue) => {
 watch(debouncedSearchQuery, async (newValue, oldValue) => {
   // Se il valore è cambiato e c'è una ricerca attiva, imposta il loading
   if (newValue !== oldValue && newValue !== '') {
-    isSearchLoading.value = true
+    isSearchLoading.value = false
     await nextTick()
   } else if (newValue === '') {
     isSearchLoading.value = false
