@@ -439,6 +439,12 @@ class UsersController extends Controller
                 $transformed->icon = 'tabler-file-text';
                 $transformed->color = 'success';
                 $transformed->link = '/workflow/paperworks/' . $notification->data['paperwork_id'];
+            } elseif ($transformed->type === 'paperwork-status-updated') {
+                $transformed->title = 'Stato pratica aggiornato';
+                $transformed->subtitle = 'Pratica #' . $notification->data['paperwork_id'] . ' - ' . ($notification->data['order_status'] ?? 'N/A');
+                $transformed->icon = 'tabler-file-text';
+                $transformed->color = 'warning';
+                $transformed->link = '/workflow/paperworks/' . $notification->data['paperwork_id'];
             } elseif ($transformed->type === 'ticket-created') {
                 $transformed->title = 'Nuovo ticket per la pratica #' . $notification->data['paperwork_id'];
                 $transformed->subtitle = $notification->data['ticket_title'] . ' da ' . $notification->data['created_by_name'];

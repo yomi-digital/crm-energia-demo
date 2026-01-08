@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Traits\PaperworkTrait;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\PaperworkStatusUpdated;
 
 class PaperworksController extends Controller
 {
@@ -578,6 +579,14 @@ class PaperworksController extends Controller
         }
 
         $paperwork->save();
+
+        // Se è stato richiesto di notificare l'agente, invia l'email all'utente assegnato alla pratica (user_id)
+        if ($request->get('notify_agent') && $paperwork->user_id) {
+            $agent = \App\Models\User::find($paperwork->user_id);
+            if ($agent) {
+                $agent->notify(new PaperworkStatusUpdated($paperwork));
+            }
+        }
 
         return response()->json($paperwork);
     }

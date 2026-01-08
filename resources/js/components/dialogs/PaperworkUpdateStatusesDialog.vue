@@ -47,6 +47,7 @@ const onFormSubmit = async () => {
       partner_outcome_at: partnerOutcomeAt.value,
       partner_sent_at: partnerSentAt.value,
       send_notification: sendNotification.value,
+      notify_agent: notifyAgent.value,
       notes: notes.value,
       owner_notes: ownerNotes.value,
     },
@@ -78,6 +79,7 @@ const partnerOutcome = ref(props.paperworkData.partner_outcome)
 const partnerOutcomeAt = ref(formatDate(props.paperworkData.partner_outcome_at))
 const partnerSentAt = ref(formatDate(props.paperworkData.partner_sent_at))
 const sendNotification = ref(false)
+const notifyAgent = ref(false)
 const notes = ref(props.paperworkData.notes || '')
 const ownerNotes = ref(props.paperworkData.owner_notes || '')
 
@@ -291,6 +293,17 @@ const onFormReset = () => {
               <VCheckbox
                 v-model="sendNotification"
                 label="Notifica agente cambio sottostato?"
+                color="primary"
+              />
+            </VCol>
+
+            <VCol
+              cols="12"
+              sm="12"
+            >
+              <VCheckbox
+                v-model="notifyAgent"
+                label="Avvisa l'agente dei cambiamenti"
                 color="primary"
               />
             </VCol>
