@@ -81,6 +81,11 @@ class PaperworksController extends Controller
             $paperworks = $paperworks->where('account_pod_pdr', 'like', "%{$podPdr}%");
         }
 
+        if ($request->filled('order_code')) {
+            $orderCode = $request->get('order_code');
+            $paperworks = $paperworks->where('order_code', 'like', "%{$orderCode}%");
+        }
+
         if ($request->filled('product_id')) {
             $paperworks = $paperworks->where('product_id', $request->get('product_id'));
         }
@@ -97,35 +102,37 @@ class PaperworksController extends Controller
         if ($request->get('q')) {
             $search = trim($request->get('q'));
             
-            // Se la ricerca è numerica, cerca solo per ID (più veloce)
-            if (is_numeric($search)) {
-                $paperworks = $paperworks->where('id', $search);
-            } else {
-                // FASE 1 - Ottimizzazione: JOIN invece di whereExists
-                // Aggiungi JOIN per customers se necessario
-                if (!$needsCustomersJoin) {
-                    $paperworks = $paperworks->leftJoin('customers', 'paperworks.customer_id', '=', 'customers.id');
-                    $needsCustomersJoin = true;
-                }
-                // Aggiungi JOIN per users se necessario
-                if (!$needsUsersJoin) {
-                    $paperworks = $paperworks->leftJoin('users', 'paperworks.user_id', '=', 'users.id');
-                    $needsUsersJoin = true;
-                }
-                
-                $paperworks = $paperworks->where(function ($query) use ($search) {
+            // FASE 1 - Ottimizzazione: JOIN invece di whereExists
+            // Aggiungi JOIN per customers se necessario
+            if (!$needsCustomersJoin) {
+                $paperworks = $paperworks->leftJoin('customers', 'paperworks.customer_id', '=', 'customers.id');
+                $needsCustomersJoin = true;
+            }
+            // Aggiungi JOIN per users se necessario
+            if (!$needsUsersJoin) {
+                $paperworks = $paperworks->leftJoin('users', 'paperworks.user_id', '=', 'users.id');
+                $needsUsersJoin = true;
+            }
+            
+            $paperworks = $paperworks->where(function ($query) use ($search) {
+                // Se la ricerca è numerica, cerca per ID o order_code
+                if (is_numeric($search)) {
+                    $query->where('paperworks.id', $search)
+                        ->orWhere('paperworks.order_code', 'like', "%{$search}%");
+                } else {
                     // Cerca nei campi della pratica
                     $query->where('paperworks.order_code', 'like', "%{$search}%")
-                        ->orWhere('paperworks.account_pod_pdr', 'like', "%{$search}%")
-                        // Cerca nei campi del cliente tramite JOIN
-                        ->orWhere('customers.name', 'like', "%{$search}%")
-                        ->orWhere('customers.last_name', 'like', "%{$search}%")
-                        ->orWhere('customers.business_name', 'like', "%{$search}%")
-                        // Cerca nel nome dell'agente tramite JOIN
-                        ->orWhere('users.name', 'like', "%{$search}%")
-                        ->orWhere('users.last_name', 'like', "%{$search}%");
-                });
-            }
+                        ->orWhere('paperworks.account_pod_pdr', 'like', "%{$search}%");
+                }
+                
+                // Cerca nei campi del cliente tramite JOIN
+                $query->orWhere('customers.name', 'like', "%{$search}%")
+                    ->orWhere('customers.last_name', 'like', "%{$search}%")
+                    ->orWhere('customers.business_name', 'like', "%{$search}%")
+                    // Cerca nel nome dell'agente tramite JOIN
+                    ->orWhere('users.name', 'like', "%{$search}%")
+                    ->orWhere('users.last_name', 'like', "%{$search}%");
+            });
         }
 
         // Se abbiamo fatto JOIN, dobbiamo selezionare solo le colonne di paperworks e usare distinct
