@@ -154,12 +154,12 @@ class PaperworksController extends Controller
                 ->values();
             $paperworks = $paperworks->whereIn($tablePrefix . 'user_id', $userIds);
         } elseif ($request->user()->hasRole('backoffice')) {
-            // Filtro per brand (già esistente)
-            $paperworks = $paperworks->whereHas('product', function ($query) use ($request) {
+            // Filtro per brand (commentato)
+            /* $paperworks = $paperworks->whereHas('product', function ($query) use ($request) {
                 $query->whereHas('brand', function ($query) use ($request) {
                     $query->whereIn('id', $request->user()->brands->pluck('id'));
                 });
-            });
+            }); */
             
             // Filtro per area: il backoffice vede pratiche create da utenti con la stessa area
             // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
