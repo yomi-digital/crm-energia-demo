@@ -6,6 +6,10 @@ definePage({
   },
 })
 
+// Verifica se l'utente è backoffice
+const loggedInUser = useCookie('userData').value
+const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
+
 // 👉 Store
 const searchQuery = ref('')
 
@@ -180,7 +184,7 @@ const selectProductForRemove = product => {
           <!-- 👉 Add Product button -->
           <VBtn
             :to="{ name: 'configuration-products-create' }"
-            v-if="$can('create', 'products')"
+            v-if="$can('create', 'products') && !isBackoffice"
             prepend-icon="tabler-plus"
           >
             Aggiungi Prodotto
@@ -252,7 +256,7 @@ const selectProductForRemove = product => {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="selectProductForRemove(item)">
+          <IconBtn @click="selectProductForRemove(item)" v-if="!isBackoffice">
             <VIcon color="error" icon="tabler-trash" />
           </IconBtn>
         </template>
@@ -272,7 +276,7 @@ const selectProductForRemove = product => {
     <VDialog
       v-model="isRemoveDialogVisible"
       width="500"
-      v-if="selectedProductRemove"
+      v-if="selectedProductRemove && !isBackoffice"
     >
       <!-- Dialog close btn -->
       <DialogCloseBtn @click="isRemoveDialogVisible = !isRemoveDialogVisible" />
