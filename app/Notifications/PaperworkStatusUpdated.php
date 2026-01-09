@@ -41,15 +41,51 @@ class PaperworkStatusUpdated extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
+        // Carica le relazioni necessarie se non già caricate
+        $this->paperwork->loadMissing(['customer', 'product']);
+        
+        // Formatta la data inserimento
+        $dataInserimento = 'N/A';
+        if ($this->paperwork->partner_sent_at) {
+            $dataInserimento = $this->paperwork->partner_sent_at->format('d/m/Y');
+        } elseif ($this->paperwork->created_at) {
+            $dataInserimento = $this->paperwork->created_at->format('d/m/Y');
+        }
+        
+        // Formatta il cliente: business_name (se presente) + codice fiscale o p.iva
+        $clienteInfo = 'N/A';
+        if ($this->paperwork->customer) {
+            $customer = $this->paperwork->customer;
+            $parts = [];
+            
+            // Aggiungi business_name se presente
+            if (!empty($customer->business_name)) {
+                $parts[] = $customer->business_name;
+            }
+            
+            // Aggiungi codice fiscale o p.iva
+            if (!empty($customer->tax_id_code)) {
+                $parts[] = 'CF: ' . $customer->tax_id_code;
+            } elseif (!empty($customer->vat_number)) {
+                $parts[] = 'P.IVA: ' . $customer->vat_number;
+            }
+            
+            $clienteInfo = !empty($parts) ? implode(' - ', $parts) : 'N/A';
+        }
+        
+        // Formatta le note pratica
+        $notePratica = $this->paperwork->notes ?? 'N/A';
+        
         return (new MailMessage)
                     ->subject('Stato Pratica Aggiornato - Pratica #' . $this->paperwork->id)
                     ->greeting(null)
                     ->line('Lo stato della pratica è stato aggiornato.')
-                    ->line('**ID Pratica:** ' . $this->paperwork->id)
-                    ->line('**Prodotto:** ' . $this->paperwork->product->name)
-                    ->line('**Brand:** ' . $this->paperwork->product->brand->name)
-                    ->line('**Stato Ordine:** ' . ($this->paperwork->order_status ?? 'N/A'))
-                    ->line('**Sottostato Ordine:** ' . ($this->paperwork->order_substatus ?? 'N/A'))
+                    ->line('**Data Inserimento:** ' . $dataInserimento)
+                    ->line('**Cliente:** ' . $clienteInfo)
+                    ->line('**Prodotto:** ' . ($this->paperwork->product ? $this->paperwork->product->name : 'N/A'))
+                    ->line('**Note Pratica:** ' . $notePratica)
+                    ->line('**Stato Pratica:** ' . ($this->paperwork->order_status ?? 'N/A'))
+                    ->line('**Sotto Stato:** ' . ($this->paperwork->order_substatus ?? 'N/A'))
                     ->action('Visualizza Pratica', url('/workflow/paperworks/' . $this->paperwork->id))
                     ->line('Grazie per aver utilizzato EasyWork CRM!');
     }
