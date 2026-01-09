@@ -46,16 +46,6 @@ watch(debouncedSearchQuery, async (newValue, oldValue) => {
   }
 })
 
-// Watch per nascondere il loader quando la chiamata API è completata
-watch(() => isFetchingCustomers?.value, (isLoading) => {
-  if (isLoading === false) {
-    // La chiamata è completata, nascondi il loader dopo un breve delay
-    setTimeout(() => {
-      isSearchLoading.value = false
-    }, 100)
-  }
-})
-
 // Cleanup del timeout quando il componente viene smontato
 onUnmounted(() => {
   if (searchTimeout) {
@@ -143,6 +133,17 @@ const {
 
 const customers = computed(() => customersData.value.customers)
 const totalCustomers = computed(() => customersData.value.totalCustomers)
+
+// Watch per nascondere il loader quando la chiamata API è completata
+// Deve essere dopo la definizione di isFetchingCustomers
+watch(() => isFetchingCustomers?.value, (isLoading) => {
+  if (isLoading === false) {
+    // La chiamata è completata, nascondi il loader dopo un breve delay
+    setTimeout(() => {
+      isSearchLoading.value = false
+    }, 100)
+  }
+})
 
 // Computed per mostrare il loader quando si sta cercando o caricando
 const showSearchLoader = computed(() => {
