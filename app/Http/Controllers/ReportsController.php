@@ -398,15 +398,28 @@ class ReportsController extends Controller
             }
         }
 
+        //Fix del nome e cognome del cliente
+        $customerName = "N/A";
+        if (!empty($paperwork->customer->business_name)) {
+            $customerName = $paperwork->customer->business_name;
+        } else if (!empty($paperwork->customer->name) && !empty($paperwork->customer->last_name)) {
+            $customerName = implode(' ', array_filter([$paperwork->customer->name, $paperwork->customer->last_name]));
+        } else if (!empty($paperwork->customer->name)) {
+            $customerName = $paperwork->customer->name;
+        } else if (!empty($paperwork->customer->last_name)) {
+            $customerName = $paperwork->customer->last_name;
+        }
+
+        // Determina il nome del cliente
         return [
             'parent_id' => $parent ? $parent->id : null,
             'parent' => $parent ? implode(' ', array_filter([$parent->name, $parent->last_name])) : null,
             'agent_id' => $paperwork->user_id,
             'agent' => implode(' ', array_filter([$paperwork->user->name, $paperwork->user->last_name])),
             'customer_id' => $paperwork->customer_id,
-            'customer' => $paperwork->customer->name ?: $paperwork->customer->business_name,
-            'tax_id_code' => $paperwork->customer->tax_id_code,
-            'vat_number' => $paperwork->customer->vat_number,
+            'customer' => $customerName,
+            'tax_id_code' => $paperwork->customer->tax_id_code ?? 'N/A',
+            'vat_number' => $paperwork->customer->vat_number ?? 'N/A',
             'brand_id' => $paperwork->product->brand_id,
             'brand' => $paperwork->product->brand->name,
             'product_id' => $paperwork->product_id,
