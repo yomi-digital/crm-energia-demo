@@ -79,7 +79,7 @@ class DashboardController extends Controller
             $q->whereHas('tickets', function($ticketQuery) {
                 $ticketQuery->where('status', '!=', 3);
             })
-            ->orWhereIn('order_status', ['DA LAVORARE', 'SOSPESO', 'INVIATO OTP']);
+            ->orWhereIn('order_status', ['DA LAVORARE', 'SOSPESO']);
         });
 
         // Esclude pratiche con esito partner (NULL, stringa vuota, undefined)

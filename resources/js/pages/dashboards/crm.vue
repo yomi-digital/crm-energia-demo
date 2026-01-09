@@ -1003,7 +1003,7 @@ const navigateToPreviousMonthPaperworks = () => {
       <VCol cols="12">
         <VCard variant="outlined" class="pa-4">
           <VCardTitle class="text-h5 mb-4">
-            Le mie pratiche
+            Pratiche sospese
           </VCardTitle>
           <VDataTableServer
             v-model:items-per-page="itemsPerPage"
@@ -1064,7 +1064,9 @@ const navigateToPreviousMonthPaperworks = () => {
 
             <!-- State -->
             <template #item.state="{ item }">
-              {{ item.state }}
+              <span :style="(item.state === 'SOSPESO' || item.state === 'SOSPESI') ? { color: '#FFC107' } : {}">
+                {{ item.state }}
+              </span>
             </template>
 
             <!-- Has Ticket -->
