@@ -15,7 +15,7 @@ class PaperworksController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->get('itemsPerPage', 10);
-        
+
         // FASE 1 - Ottimizzazione: Lazy Loading Condizionale
         // Flag per tracciare quali JOIN sono necessari
         $needsCustomersJoin = false;
@@ -573,16 +573,6 @@ class PaperworksController extends Controller
             $paperwork->confirmed_at = now()->format('Y-m-d H:i:s');
             $paperwork->confirmed_by = $request->user()->id;
             $paperwork->partner_sent_at = now()->format('Y-m-d H:i:s');
-        }
-
-        if ($request->get('send_notification')) {
-            $ticket = new \App\Models\Ticket;
-            $ticket->title = 'Cambio sottostato pratica: ' . $request->get('order_substatus');
-            $ticket->description = 'La pratica è stata aggiornata con il seguente sottostato: ' . $request->get('order_substatus');
-            $ticket->paperwork_id = $paperwork->id;
-            $ticket->created_by = $request->user()->id;
-            $ticket->status = 1;
-            $ticket->save();
         }
 
         $paperwork->save();

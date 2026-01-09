@@ -1,4 +1,5 @@
 <script setup>
+import { watch } from 'vue'
 
 const props = defineProps({
   paperworkData: {
@@ -46,8 +47,7 @@ const onFormSubmit = async () => {
       partner_outcome: partnerOutcome.value,
       partner_outcome_at: partnerOutcomeAt.value,
       partner_sent_at: partnerSentAt.value,
-      send_notification: sendNotification.value,
-      notify_agent: notifyAgent.value,
+      notify_agent: sendNotification.value,
       notes: notes.value,
       owner_notes: ownerNotes.value,
     },
@@ -79,9 +79,47 @@ const partnerOutcome = ref(props.paperworkData.partner_outcome)
 const partnerOutcomeAt = ref(formatDate(props.paperworkData.partner_outcome_at))
 const partnerSentAt = ref(formatDate(props.paperworkData.partner_sent_at))
 const sendNotification = ref(false)
-const notifyAgent = ref(false)
 const notes = ref(props.paperworkData.notes || '')
 const ownerNotes = ref(props.paperworkData.owner_notes || '')
+
+// Valori iniziali per confrontare i cambiamenti
+const initialOrderStatus = ref(props.paperworkData.order_status)
+const initialOrderSubStatus = ref(props.paperworkData.order_substatus)
+
+// Computed per verificare se lo stato o il sottostato sono stati modificati
+const isStatusChanged = computed(() => {
+  return orderStatus.value !== initialOrderStatus.value || 
+         orderSubStatus.value !== initialOrderSubStatus.value
+})
+
+// Watch per resettare il checkbox quando non ci sono più cambiamenti
+watch(isStatusChanged, (hasChanged) => {
+  if (!hasChanged) {
+    sendNotification.value = false
+  }
+})
+
+// Watch per resettare i valori quando il popup si apre
+watch(() => props.isDialogVisible, (isVisible) => {
+  if (isVisible) {
+    // Reset dei valori quando il popup si apre
+    orderCode.value = props.paperworkData.order_code
+    orderStatus.value = props.paperworkData.order_status
+    orderSubStatus.value = props.paperworkData.order_substatus
+    partnerOutcome.value = props.paperworkData.partner_outcome
+    partnerOutcomeAt.value = formatDate(props.paperworkData.partner_outcome_at)
+    partnerSentAt.value = formatDate(props.paperworkData.partner_sent_at)
+    notes.value = props.paperworkData.notes || ''
+    ownerNotes.value = props.paperworkData.owner_notes || ''
+    
+    // Reset dei valori iniziali
+    initialOrderStatus.value = props.paperworkData.order_status
+    initialOrderSubStatus.value = props.paperworkData.order_substatus
+    
+    // Reset del checkbox
+    sendNotification.value = false
+  }
+})
 
 const startDateTimePickerConfig = computed(() => {
   const config = {
@@ -230,6 +268,7 @@ const onFormReset = () => {
                 v-model="orderStatus"
                 label="Stato Ordine"
                 :items="statuses"
+                clearable
               />
             </VCol>
 
@@ -294,17 +333,7 @@ const onFormReset = () => {
                 v-model="sendNotification"
                 label="Notifica agente cambio sottostato?"
                 color="primary"
-              />
-            </VCol>
-
-            <VCol
-              cols="12"
-              sm="12"
-            >
-              <VCheckbox
-                v-model="notifyAgent"
-                label="Avvisa l'agente dei cambiamenti"
-                color="primary"
+                :disabled="!isStatusChanged"
               />
             </VCol>
 

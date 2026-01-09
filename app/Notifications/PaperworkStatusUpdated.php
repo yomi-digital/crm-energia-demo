@@ -41,15 +41,6 @@ class PaperworkStatusUpdated extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        // Formatta le date
-        $partnerSentAt = $this->paperwork->partner_sent_at 
-            ? \Carbon\Carbon::parse($this->paperwork->partner_sent_at)->format('d/m/Y')
-            : 'N/A';
-        
-        $partnerOutcomeAt = $this->paperwork->partner_outcome_at 
-            ? \Carbon\Carbon::parse($this->paperwork->partner_outcome_at)->format('d/m/Y')
-            : 'N/A';
-
         return (new MailMessage)
                     ->subject('Stato Pratica Aggiornato - Pratica #' . $this->paperwork->id)
                     ->greeting(null)
@@ -59,11 +50,6 @@ class PaperworkStatusUpdated extends Notification
                     ->line('**Brand:** ' . $this->paperwork->product->brand->name)
                     ->line('**Stato Ordine:** ' . ($this->paperwork->order_status ?? 'N/A'))
                     ->line('**Sottostato Ordine:** ' . ($this->paperwork->order_substatus ?? 'N/A'))
-                    ->line('**Data Inserimento:** ' . $partnerSentAt)
-                    ->line('**Data Esito Partner:** ' . $partnerOutcomeAt)
-                    ->line('**Esito Partner:** ' . ($this->paperwork->partner_outcome ?? 'N/A'))
-                    ->line('**Note:** ' . ($this->paperwork->notes ?? 'N/A'))
-                    ->line('**Note Alfacom:** ' . ($this->paperwork->owner_notes ?? 'N/A'))
                     ->action('Visualizza Pratica', url('/workflow/paperworks/' . $this->paperwork->id))
                     ->line('Grazie per aver utilizzato EasyWork CRM!');
     }

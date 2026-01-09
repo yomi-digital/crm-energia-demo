@@ -20,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(prepend: [
             \App\Http\Middleware\RedirectLegacyDomain::class,
         ]);
-
+        
         // Escludere le rotte degli incentivi dalla verifica CSRF
         $middleware->validateCsrfTokens(except: [
             'api/incentivi/*'
