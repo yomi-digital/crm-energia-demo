@@ -9,6 +9,10 @@ definePage({
 import AddNewBrandDrawer from '@/views/configuration/brands/AddNewBrandDrawer.vue';
 import EditBrandDrawer from '@/views/configuration/brands/EditBrandDrawer.vue';
 
+// Verifica se l'utente è backoffice
+const loggedInUser = useCookie('userData').value
+const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
+
 // 👉 Store
 const searchQuery = ref('')
 
@@ -209,7 +213,7 @@ const statuses = [
 
           <!-- 👉 Add brand button -->
           <VBtn
-            v-if="$can('create', 'brands')"
+            v-if="$can('create', 'brands') && !isBackoffice"
             prepend-icon="tabler-plus"
             @click="isAddNewBrandDrawerVisible = true"
           >
@@ -289,10 +293,10 @@ const statuses = [
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="editBrand(item)" v-if="$can('edit', 'brands')">
+          <IconBtn @click="editBrand(item)" v-if="$can('edit', 'brands') && !isBackoffice">
             <VIcon icon="tabler-pencil" />
           </IconBtn>
-          <IconBtn @click="selectBrandForRemove(item)" v-if="$can('delete', 'brands')">
+          <IconBtn @click="selectBrandForRemove(item)" v-if="$can('delete', 'brands') && !isBackoffice">
             <VIcon color="error" icon="tabler-trash" />
           </IconBtn>
         </template>
@@ -310,12 +314,12 @@ const statuses = [
     </VCard>
     <!-- 👉 Add New Brand -->
     <AddNewBrandDrawer
-      v-if="$can('create', 'brands')"
+      v-if="$can('create', 'brands') && !isBackoffice"
       v-model:isDrawerOpen="isAddNewBrandDrawerVisible"
       @brand-data="fetchBrands"
     />
     <!-- 👉 Edit Brand -->
-    <EditBrandDrawer v-if="selectedBrand && $can('edit', 'brands')"
+    <EditBrandDrawer v-if="selectedBrand && $can('edit', 'brands') && !isBackoffice"
       v-model:isDrawerOpen="isEditBrandDrawerVisible"
       @brand-data="fetchBrands"
       :brand="selectedBrand"
@@ -323,7 +327,7 @@ const statuses = [
     <VDialog
       v-model="isRemoveDialogVisible"
       width="500"
-      v-if="selectedBrandRemove && $can('delete', 'brands')"
+      v-if="selectedBrandRemove && $can('delete', 'brands') && !isBackoffice"
     >
       <!-- Dialog close btn -->
       <DialogCloseBtn @click="isRemoveDialogVisible = !isRemoveDialogVisible" />

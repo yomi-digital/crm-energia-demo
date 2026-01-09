@@ -9,6 +9,10 @@ definePage({
 import AddNewMandateDrawer from '@/views/configuration/mandates/AddNewMandateDrawer.vue';
 import EditMandateDrawer from '@/views/configuration/mandates/EditMandateDrawer.vue';
 
+// Verifica se l'utente è backoffice
+const loggedInUser = useCookie('userData').value
+const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
+
 // 👉 Store
 const searchQuery = ref('')
 
@@ -133,7 +137,7 @@ const editMandate = mandate => {
 
           <!-- 👉 Add mandate button -->
           <VBtn
-            v-if="$can('create', 'mandates')"
+            v-if="$can('create', 'mandates') && !isBackoffice"
             prepend-icon="tabler-plus"
             @click="isAddNewMandateDrawerVisible = true"
           >
@@ -186,10 +190,10 @@ const editMandate = mandate => {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="editMandate(item)" v-if="$can('edit', 'mandates')">
+          <IconBtn @click="editMandate(item)" v-if="$can('edit', 'mandates') && !isBackoffice">
             <VIcon icon="tabler-pencil" />
           </IconBtn>
-          <IconBtn @click="selectMandateForRemove(item)" v-if="$can('delete', 'mandates')">
+          <IconBtn @click="selectMandateForRemove(item)" v-if="$can('delete', 'mandates') && !isBackoffice">
             <VIcon color="error" icon="tabler-trash" />
           </IconBtn>
         </template>
@@ -207,12 +211,12 @@ const editMandate = mandate => {
     </VCard>
     <!-- 👉 Add New Mandate -->
     <AddNewMandateDrawer
-      v-if="$can('create', 'mandates')"
+      v-if="$can('create', 'mandates') && !isBackoffice"
       v-model:isDrawerOpen="isAddNewMandateDrawerVisible"
       @mandate-data="addNewMandate"
     />
     <!-- 👉 Edit Mandate -->
-    <EditMandateDrawer v-if="selectedMandate && $can('edit', 'mandates')"
+    <EditMandateDrawer v-if="selectedMandate && $can('edit', 'mandates') && !isBackoffice"
       v-model:isDrawerOpen="isEditMandateDrawerVisible"
       @mandate-data="updateMandate"
       :mandate="selectedMandate"
@@ -220,7 +224,7 @@ const editMandate = mandate => {
     <VDialog
       v-model="isRemoveDialogVisible"
       width="500"
-      v-if="selectedMandateRemove && $can('delete', 'mandates')"
+      v-if="selectedMandateRemove && $can('delete', 'mandates') && !isBackoffice"
     >
       <!-- Dialog close btn -->
       <DialogCloseBtn @click="isRemoveDialogVisible = !isRemoveDialogVisible" />
