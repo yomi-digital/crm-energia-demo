@@ -11,21 +11,40 @@ const loggedInUser = useCookie('userData').value
 const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
 
 // 👉 Store
-const searchQuery = ref('')
+const route = useRoute()
+const router = useRouter()
+
+const searchQuery = ref(route.query.q || '')
 
 // Data table options
-const itemsPerPage = ref(25)
-const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const itemsPerPage = ref(Number(route.query.itemsPerPage) || 25)
+const page = ref(Number(route.query.page) || 1)
+const sortBy = ref(route.query.sortBy)
+const orderBy = ref(route.query.orderBy)
 const selectedProductRemove = ref()
-const selectedBrand = ref()
-const selectedStatus = ref('')
+const selectedBrand = ref(route.query.brand ? Number(route.query.brand) : undefined)
+const selectedStatus = ref(route.query.enabled || '')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
   orderBy.value = options.sortBy[0]?.order
 }
+
+// Update URL on filter change
+watch([searchQuery, itemsPerPage, page, sortBy, orderBy, selectedBrand, selectedStatus], () => {
+  router.replace({
+    query: {
+      ...route.query,
+      q: searchQuery.value,
+      itemsPerPage: itemsPerPage.value,
+      page: page.value,
+      sortBy: sortBy.value,
+      orderBy: orderBy.value,
+      brand: selectedBrand.value,
+      enabled: selectedStatus.value,
+    }
+  })
+})
 
 // Headers
 const headers = [

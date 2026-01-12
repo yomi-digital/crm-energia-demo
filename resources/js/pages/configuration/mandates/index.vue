@@ -14,13 +14,15 @@ const loggedInUser = useCookie('userData').value
 const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
 
 // 👉 Store
-const searchQuery = ref('')
+const route = useRoute()
+const router = useRouter()
+const searchQuery = ref(route.query.q || '')
 
 // Data table options
-const itemsPerPage = ref(25)
-const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const itemsPerPage = ref(Number(route.query.itemsPerPage) || 25)
+const page = ref(Number(route.query.page) || 1)
+const sortBy = ref(route.query.sortBy)
+const orderBy = ref(route.query.orderBy)
 const selectedMandate = ref()
 const selectedMandateRemove = ref()
 
@@ -28,6 +30,20 @@ const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
   orderBy.value = options.sortBy[0]?.order
 }
+
+// Update URL on filter change
+watch([searchQuery, itemsPerPage, page, sortBy, orderBy], () => {
+  router.replace({
+    query: {
+      ...route.query,
+      q: searchQuery.value,
+      itemsPerPage: itemsPerPage.value,
+      page: page.value,
+      sortBy: sortBy.value,
+      orderBy: orderBy.value,
+    }
+  })
+})
 
 // Headers
 const headers = [

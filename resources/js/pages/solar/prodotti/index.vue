@@ -10,21 +10,38 @@ import AddNewProdottoDrawer from '@/views/solar/prodotti/AddNewProdottoDrawer.vu
 import EditProdottoDrawer from '@/views/solar/prodotti/EditProdottoDrawer.vue'
 
 // 👉 Store
-const searchQuery = ref('')
+const route = useRoute()
+const router = useRouter()
+const searchQuery = ref(route.query.q || '')
 
 // Data table options
-const itemsPerPage = ref(25)
-const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const itemsPerPage = ref(Number(route.query.itemsPerPage) || 25)
+const page = ref(Number(route.query.page) || 1)
+const sortBy = ref(route.query.sortBy)
+const orderBy = ref(route.query.orderBy)
 const selectedProdotto = ref()
 const selectedProdottoRemove = ref()
-const selectedStatus = ref('true')
+const selectedStatus = ref(route.query.is_active || 'true')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
   orderBy.value = options.sortBy[0]?.order
 }
+
+// Update URL on filter change
+watch([searchQuery, itemsPerPage, page, sortBy, orderBy, selectedStatus], () => {
+  router.replace({
+    query: {
+      ...route.query,
+      q: searchQuery.value,
+      itemsPerPage: itemsPerPage.value,
+      page: page.value,
+      sortBy: sortBy.value,
+      orderBy: orderBy.value,
+      is_active: selectedStatus.value,
+    }
+  })
+})
 
 // Headers
 const headers = [

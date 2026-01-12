@@ -15,15 +15,15 @@ definePage({
 
 // 👉 Store
 const route = useRoute()
-const searchQuery = ref('')
-const debouncedSearchQuery = ref('')
+const searchQuery = ref(route.query.q || '')
+const debouncedSearchQuery = ref(route.query.q || '')
 const isSearchLoading = ref(false)
 
 // Data table options
-const itemsPerPage = ref(25)
-const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const itemsPerPage = ref(Number(route.query.itemsPerPage) || 25)
+const page = ref(Number(route.query.page) || 1)
+const sortBy = ref(route.query.sortBy)
+const orderBy = ref(route.query.orderBy)
 const selectedAgent = ref(route.query.user_id ? Number(route.query.user_id) : null)
 const selectedCustomer = ref(route.query.customer_id ? Number(route.query.customer_id) : null)
 const selectedCategory = ref(route.query.category || '')
@@ -49,6 +49,50 @@ watch(searchQuery, (newValue) => {
     debouncedSearchQuery.value = newValue
   }, 500)
 }, { immediate: true })
+
+// Update URL on filter change
+watch([
+  searchQuery, 
+  itemsPerPage, 
+  page, 
+  sortBy, 
+  orderBy, 
+  selectedAgent, 
+  selectedCustomer, 
+  selectedCategory, 
+  dateFrom, 
+  dateTo, 
+  phoneSearch, 
+  taxIdSearch, 
+  emailSearch, 
+  podPdrSearch, 
+  selectedProduct, 
+  selectedContractType, 
+  selectedSupplyType
+], () => {
+  router.replace({
+    query: {
+      ...route.query,
+      q: searchQuery.value,
+      itemsPerPage: itemsPerPage.value,
+      page: page.value,
+      sortBy: sortBy.value,
+      orderBy: orderBy.value,
+      user_id: selectedAgent.value,
+      customer_id: selectedCustomer.value,
+      category: selectedCategory.value,
+      date_from: dateFrom.value,
+      date_to: dateTo.value,
+      phone: phoneSearch.value,
+      tax_id: taxIdSearch.value,
+      email: emailSearch.value,
+      pod_pdr: podPdrSearch.value,
+      product_id: selectedProduct.value,
+      contract_type: selectedContractType.value,
+      type: selectedSupplyType.value,
+    }
+  })
+})
 
 // Watch per tracciare quando la ricerca debounced cambia e avviare il caricamento
 watch(debouncedSearchQuery, async (newValue, oldValue) => {

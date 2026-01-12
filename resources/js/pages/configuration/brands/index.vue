@@ -14,13 +14,15 @@ const loggedInUser = useCookie('userData').value
 const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
 
 // 👉 Store
-const searchQuery = ref('')
+const route = useRoute()
+const router = useRouter()
+const searchQuery = ref(route.query.q || '')
 
 // Data table options
-const itemsPerPage = ref(25)
-const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const itemsPerPage = ref(Number(route.query.itemsPerPage) || 25)
+const page = ref(Number(route.query.page) || 1)
+const sortBy = ref(route.query.sortBy)
+const orderBy = ref(route.query.orderBy)
 const selectedBrand = ref()
 const selectedBrandRemove = ref()
 
@@ -29,7 +31,6 @@ const updateOptions = options => {
   orderBy.value = options.sortBy[0]?.order
 }
 
-// Headers
 const headers = [
   {
     title: 'Brand',
@@ -66,9 +67,26 @@ const headers = [
   },
 ]
 
-const selectedType = ref('')
-const selectedCategory = ref('')
-const selectedStatus = ref('1')
+const selectedType = ref(route.query.type || '')
+const selectedCategory = ref(route.query.category || '')
+const selectedStatus = ref(route.query.enabled || '1')
+
+// Update URL on filter change
+watch([searchQuery, itemsPerPage, page, sortBy, orderBy, selectedType, selectedCategory, selectedStatus], () => {
+  router.replace({
+    query: {
+      ...route.query,
+      q: searchQuery.value,
+      itemsPerPage: itemsPerPage.value,
+      page: page.value,
+      sortBy: sortBy.value,
+      orderBy: orderBy.value,
+      type: selectedType.value,
+      category: selectedCategory.value,
+      enabled: selectedStatus.value,
+    }
+  })
+})
 
 const {
   data: brandsData,

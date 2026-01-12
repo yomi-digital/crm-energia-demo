@@ -12,16 +12,17 @@ const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role
 import AddNewUserDrawer from '@/views/admin/users/AddNewUserDrawer.vue';
 
 // 👉 Store
-const searchQuery = ref('')
-const selectedRole = ref()
-const selectedTeamLeader = ref()
-const selectedStatus = ref()
+const route = useRoute()
+const searchQuery = ref(route.query.q || '')
+const selectedRole = ref(route.query.role)
+const selectedTeamLeader = ref(route.query.isTeamLeader)
+const selectedStatus = ref(route.query.enabled)
 
 // Data table options
-const itemsPerPage = ref(25)
-const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const itemsPerPage = ref(Number(route.query.itemsPerPage) || 25)
+const page = ref(Number(route.query.page) || 1)
+const sortBy = ref(route.query.sortBy)
+const orderBy = ref(route.query.orderBy)
 
 const router = useRouter()
 
@@ -29,6 +30,23 @@ const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
   orderBy.value = options.sortBy[0]?.order
 }
+
+// Update URL on filter change
+watch([searchQuery, selectedRole, selectedTeamLeader, selectedStatus, itemsPerPage, page, sortBy, orderBy], () => {
+  router.replace({
+    query: {
+      ...route.query,
+      q: searchQuery.value,
+      role: selectedRole.value,
+      isTeamLeader: selectedTeamLeader.value,
+      enabled: selectedStatus.value,
+      itemsPerPage: itemsPerPage.value,
+      page: page.value,
+      sortBy: sortBy.value,
+      orderBy: orderBy.value,
+    }
+  })
+})
 
 function ucfirst(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
