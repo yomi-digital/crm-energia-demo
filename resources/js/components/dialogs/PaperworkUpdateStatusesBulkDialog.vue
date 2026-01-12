@@ -41,6 +41,21 @@ const orderSubStatus = ref('--- MANTIENI ---')
 const partnerOutcome = ref('--- MANTIENI ---')
 const partnerOutcomeAt = ref(null)
 const partnerSentAt = ref(null)
+
+// Funzione per formattare le date ISO dal DB in DD/MM/YYYY
+const formatDate = (dateString) => {
+  if (!dateString) return null
+  
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return date
+  
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  
+  return `${day}/${month}/${year}`
+}
+
 const statuses = ref([
 {
     title: '--- MANTIENI ---',
@@ -169,7 +184,12 @@ const partnerOutcomes = ref([
 const startDateTimePickerConfig = computed(() => {
   const config = {
     dateFormat: `d/m/Y`,
-    position: 'auto'
+    position: 'auto',
+    enableTime: false,
+    allowInput: true,
+    monthSelectorType: 'dropdown', // Abilita dropdown per mese e anno
+    static: false, // Fondamentale per i modal: evita il blocco dei clic
+    disable: [],
   }
 
   return config

@@ -60,16 +60,24 @@ const dialogModelStatusValueUpdate = (val) => {
   // emit('update:isDialogVisible', val)
 }
 
-// Convert from YYYY-MM-DD to DD/MM/YYYY
-const formatDate = (date) => {
-  if (! date) {
-    return date
+// Funzione per formattare le date (ISO dal DB -> DD/MM/YYYY)
+const formatDate = (dateString) => {
+  if (!dateString) return null
+  
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) {
+    // Se non è una data ISO, prova il vecchio metodo per compatibilità
+    if (typeof dateString === 'string' && dateString.includes('-')) {
+      return dateString.split('-').reverse().join('/')
+    }
+    return dateString
   }
-  // Should only be applied if the date is with format YYYY-MM-DD
-  if (date.includes('-')) {
-    return date.split('-').reverse().join('/')
-  }
-  return date
+  
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  
+  return `${day}/${month}/${year}`
 }
 
 const orderCode = ref(props.paperworkData.order_code)
@@ -124,6 +132,12 @@ watch(() => props.isDialogVisible, (isVisible) => {
 const startDateTimePickerConfig = computed(() => {
   const config = {
     dateFormat: `d/m/Y`,
+    position: 'auto',
+    enableTime: false,
+    allowInput: true,
+    monthSelectorType: 'dropdown', // Abilita dropdown per mese e anno
+    static: false, // Fondamentale per i modal
+    disable: [],
   }
 
   return config
