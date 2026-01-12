@@ -243,14 +243,26 @@ const updateProdotto = async prodottoData => {
 }
 
 const toggleProdottoStatus = async (item) => {
-  const newStatus = !item.is_active
-  await $api(`/prodotti-fotovoltaico/${ item.id_prodotto || item.id }`, {
-    method: 'PUT',
-    body: {
-      is_active: newStatus,
-    },
-  })
-  fetchProdotti()
+  try {
+    const newStatus = !item.is_active
+    await $api(`/prodotti-fotovoltaico/${ item.id_prodotto || item.id }`, {
+      method: 'PUT',
+      body: {
+        is_active: newStatus,
+      },
+    })
+    
+    snackbarMessage.value = `Prodotto ${newStatus ? 'abilitato' : 'disabilitato'} con successo`
+    snackbarColor.value = 'success'
+    isSnackbarVisible.value = true
+
+    fetchProdotti()
+  } catch (error) {
+    console.error(error)
+    snackbarMessage.value = 'Errore durante l\'aggiornamento dello stato'
+    snackbarColor.value = 'error'
+    isSnackbarVisible.value = true
+  }
 }
 
 const selectProdottoForRemove = prodotto => {
@@ -433,11 +445,34 @@ const statuses = [
 
         <!-- Actions -->
         <template #item.actions="{ item }">
+          <IconBtn @click="toggleProdottoStatus(item)" v-if="$can('edit', 'solar-prodotti')">
+            <VIcon :color="item.is_active ? 'warning' : 'success'" :icon="item.is_active ? 'tabler-square-x' : 'tabler-square-check'" />
+            <VTooltip
+              activator="parent"
+              location="top"
+            >
+              {{ item.is_active ? 'Disabilita' : 'Abilita' }}
+            </VTooltip>
+          </IconBtn>
+
           <IconBtn @click="editProdotto(item)" v-if="$can('edit', 'solar-prodotti')">
             <VIcon icon="tabler-pencil" />
+            <VTooltip
+              activator="parent"
+              location="top"
+            >
+              Modifica
+            </VTooltip>
           </IconBtn>
+
           <IconBtn @click="selectProdottoForRemove(item)" v-if="$can('delete', 'solar-prodotti')">
             <VIcon color="error" icon="tabler-trash" />
+            <VTooltip
+              activator="parent"
+              location="top"
+            >
+              Elimina
+            </VTooltip>
           </IconBtn>
         </template>
 

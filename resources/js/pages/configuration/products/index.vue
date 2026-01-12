@@ -76,6 +76,32 @@ const totalProducts = computed(() => productsData.value.totalProducts)
 
 const isRemoveDialogVisible = ref(false)
 
+const isSnackbarVisible = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('success')
+
+const toggleProductStatus = async item => {
+  try {
+    const newStatus = !item.enabled
+
+    await $api(`/products/${ item.id }`, {
+      method: 'PUT',
+      body: { enabled: newStatus },
+    })
+
+    snackbarMessage.value = `Prodotto ${newStatus ? 'abilitato' : 'disabilitato'} con successo`
+    snackbarColor.value = 'success'
+    isSnackbarVisible.value = true
+    
+    fetchProducts()
+  } catch (error) {
+    console.error(error)
+    snackbarMessage.value = 'Errore durante l\'aggiornamento dello stato'
+    snackbarColor.value = 'error'
+    isSnackbarVisible.value = true
+  }
+}
+
 const deleteProduct = async id => {
   await $api(`/products/${ id }`, { method: 'DELETE' })
   isRemoveDialogVisible.value = false
@@ -237,9 +263,17 @@ const selectProductForRemove = product => {
           </div>
         </template>
 
-        <!-- Enabled / chip gree if enabled, red if not-->
+        <!-- Enabled / switch -->
         <template #item.enabled="{ item }">
+          <VSwitch
+            :model-value="!!item.enabled"
+            @update:model-value="toggleProductStatus(item)"
+            color="success"
+            hide-details
+            v-if="!isBackoffice"
+          />
           <VChip
+            v-else
             :color="item.enabled ? 'success' : 'error'"
             :text="item.enabled ? 'Abilitato' : 'Disabilitato'"
           />
@@ -256,8 +290,24 @@ const selectProductForRemove = product => {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
+          <IconBtn @click="toggleProductStatus(item)" v-if="!isBackoffice">
+            <VIcon :color="item.enabled ? 'warning' : 'success'" :icon="item.enabled ? 'tabler-square-x' : 'tabler-square-check'" />
+            <VTooltip
+              activator="parent"
+              location="top"
+            >
+              {{ item.enabled ? 'Disabilita' : 'Abilita' }}
+            </VTooltip>
+          </IconBtn>
+
           <IconBtn @click="selectProductForRemove(item)" v-if="!isBackoffice">
             <VIcon color="error" icon="tabler-trash" />
+            <VTooltip
+              activator="parent"
+              location="top"
+            >
+              Elimina
+            </VTooltip>
           </IconBtn>
         </template>
 
@@ -294,5 +344,15 @@ const selectProductForRemove = product => {
         </VCardText>
       </VCard>
     </VDialog>
+
+    <!-- 👉 Toast Notification -->
+    <VSnackbar
+      v-model="isSnackbarVisible"
+      :color="snackbarColor"
+      location="top end"
+      variant="flat"
+    >
+      {{ snackbarMessage }}
+    </VSnackbar>
   </section>
 </template>
