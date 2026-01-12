@@ -1,1 +1,4 @@
 // Write your overrides
+.flatpickr-current-month .flatpickr-monthDropdown-months span, .flatpickr-current-month .numInputWrapper span{
+    display: inline-block !important;
+}
