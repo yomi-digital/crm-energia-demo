@@ -924,14 +924,13 @@ const updateDateFromYearMonth = () => {
 
         <!-- 👉 Agent / Customer -->
         <template #item.user_id="{ item }">
-          <div class="d-flex flex-column gap-y-1">
+          <div class="d-flex flex-column ">
             <!-- Agente -->
-            <div class="d-flex align-center gap-x-1" style="font-size: 0.75rem;">
+            <div class="d-flex align-center " style="font-size: 0.75rem;">
               <VIcon
-                icon="tabler-user"
-                size="14"
+                icon="tabler-user-circle"
+                size="18"
                 color="primary"
-                style="opacity: 0.8;"
               />
               <span class="text-high-emphasis text-body-1 text-capitalize">
                 <RouterLink
@@ -948,18 +947,19 @@ const updateDateFromYearMonth = () => {
               </span>
             </div>
             <!-- Cliente -->
-            <div class="d-flex align-center gap-x-1" style="font-size: 0.7rem; opacity: 0.8;">
+            <div class="d-flex align-center " style="font-size: 0.875rem;">
               <VIcon
-                icon="tabler-user-circle"
-                size="12"
-                color="secondary"
-                style="opacity: 0.8;"
+                icon="tabler-user"
+                size="18"
+                color="primary"
+                style="margin-right: 3px;"
               />
-              <span class="text-high-emphasis text-body-1 text-capitalize">
+              <span class="text-capitalize" style="color: rgb(var(--v-theme-on-surface)); font-weight: 500;">
                 <RouterLink
                   v-if="item.customer?.id"
                   :to="{ name: 'workflow-customers-id', params: { id: item.customer.id } }"
-                  class="font-weight-medium text-link"
+                  class="text-link"
+                  style="color: rgb(var(--v-theme-on-surface)); font-weight: 400;"
                   :title="getCustomerName(item.customer)"
                   @click.stop
                 >
@@ -967,7 +967,7 @@ const updateDateFromYearMonth = () => {
                 </RouterLink>
                 <span
                   v-else
-                  class="font-weight-medium"
+                  style="color: rgb(var(--v-theme-on-surface)); font-weight: 400;"
                   :title="getCustomerName(item.customer)"
                 >
                   {{ getCustomerName(item.customer) }}
@@ -1010,9 +1010,11 @@ const updateDateFromYearMonth = () => {
 
         <!-- 👉 Prodotto -->
         <template #item.product_id="{ item }">
-          <div class="d-flex flex-column gap-y-1">
-            <div class="text-high-emphasis text-body-1" style="font-size: 0.75rem;">
-              {{ item.product?.name }}
+          <div class="d-flex flex-column">
+            <div class="text-high-emphasis text-body-1" style="font-size: 0.75rem; text-wrap: wrap; width: 200px; padding: 0 !important;">
+              <span style="white-space: normal; max-width: 200px; min-width: 200px;">
+                {{ item.product?.name }}
+              </span>
             </div>
             <VChip
               v-if="item.category"
@@ -1041,13 +1043,14 @@ const updateDateFromYearMonth = () => {
           <div class="d-flex flex-column gap-y-1">
             <div class="d-flex align-center gap-x-2">
               <StatusChip 
-                :status="item.partner_outcome" 
+              v-if="item.partner_outcome"
+              :status="item.partner_outcome" 
                 size="small"
                 fallback-style="text"
                 class="compact-chip"
               />
             </div>
-            <div class="d-flex align-center gap-x-1" style="font-size: 0.7rem;">
+            <div class="d-flex" style="font-size: 0.7rem;">
               <VIcon 
                 v-if="item.partner_outcome_at"
                 icon="tabler-calendar"
@@ -1055,7 +1058,7 @@ const updateDateFromYearMonth = () => {
                 color="error"
                 style="opacity: 0.8;"
               />
-              <span class="text-high-emphasis text-body-1" style="margin-top: 2px;">
+              <span class="text-high-emphasis text-body-1">
                 {{ item.partner_outcome_at ? new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(item.partner_outcome_at)) : 'N/A' }}
               </span>
             </div>
@@ -1181,113 +1184,5 @@ const updateDateFromYearMonth = () => {
 </template>
 
 <style>
-.tabler-loader,
-.tabler-fidget-spinner,
-.tabler-loader-3,
-.tabler-loader-quarter,
-.tabler-refresh-dot,
-.tabler-reload,
-.tabler-loader-2 {
-  animation: spin-animation .8s infinite;
-}
 
-@keyframes spin-animation {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(359deg);
-  }
-}
-
-/* Stili per compattare la tabella pratiche */
-.compact-table :deep(.v-data-table__thead th) {
-  font-size: 0.75rem !important;
-  padding: 8px 12px !important;
-  line-height: 1.2 !important;
-}
-
-.compact-table :deep(.v-data-table__tbody td) {
-  font-size: 0.75rem !important;
-  padding: 6px 12px !important;
-  line-height: 1.2 !important;
-}
-
-.compact-table :deep(.v-data-table__tbody .text-body-1),
-.compact-table :deep(.v-data-table__tbody .text-high-emphasis) {
-  font-size: 0.75rem !important;
-  line-height: 1.2 !important;
-}
-
-.compact-table :deep(.v-chip),
-.compact-table :deep(.compact-chip) {
-  font-size: 0.7rem !important;
-  height: 20px !important;
-  min-width: auto !important;
-  padding: 0 6px !important;
-}
-
-.compact-table :deep(.compact-chip .v-chip__content) {
-  font-size: 0.7rem !important;
-  line-height: 1.2 !important;
-}
-
-.compact-table :deep(.v-btn.compact-btn) {
-  font-size: 0.7rem !important;
-  min-width: auto !important;
-  padding: 4px 8px !important;
-  height: 24px !important;
-}
-
-.compact-table :deep(.v-btn.compact-btn .v-btn__content) {
-  font-size: 0.7rem !important;
-  line-height: 1.2 !important;
-}
-
-.compact-table :deep(.v-btn .v-icon),
-.compact-table :deep(.v-btn.compact-btn .v-icon) {
-  font-size: 14px !important;
-  width: 14px !important;
-  height: 14px !important;
-}
-.compact-table .text-high-emphasis.text-body-1,.compact-table .v-data-table-header__content{
-  font-size: 12.5px !important;
-  text-transform: capitalize !important;
-}
-.compact-table .v-btn--size-small{
-  height: 22px !important;
-  padding: 0 5px !important;
-  font-size: 11px !important;
-}
-.compact-table > .v-table__wrapper > table > tbody > tr > td, 
-.compact-table > .v-table__wrapper > table > thead > tr > td,
- .compact-table > .v-table__wrapper > table > tfoot > tr > td,
- .compact-table > .v-table__wrapper > table > tbody > tr > th,
- .compact-table > .v-table__wrapper > table > thead > tr > th,
- .compact-table > .v-table__wrapper > table > tfoot > tr > th
- {
-height: 24px !important;
-padding: 4px !important;
-font-size: 13px !important;
-}
-
-/* Riduci dimensione checkbox per compact-table */
-.compact-table :deep(.v-checkbox-btn),
-.compact-table :deep(.v-selection-control-group) {
-  width: 18px !important;
-  height: 18px !important;
-}
-
-.compact-table :deep(.v-checkbox-btn .v-icon),
-.compact-table :deep(.v-selection-control-group .v-icon) {
-  font-size: 16px !important;
-  width: 16px !important;
-  height: 16px !important;
-}
-
-.compact-table :deep(.v-checkbox-btn__overlay),
-.compact-table :deep(.v-selection-control-group__input) {
-  width: 16px !important;
-  height: 16px !important;
-}
 </style>

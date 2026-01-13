@@ -51,11 +51,11 @@ const updateOptions = options => {
 // Headers
 const headers = [
   {
-    title: 'Numero Preventivo',
+    title: 'Preventivo',
     key: 'id_preventivo',
   },
   {
-    title: 'Data Preventivo',
+    title: 'Data',
     key: 'created_at',
   },
   {
@@ -77,19 +77,15 @@ const headers = [
     key: 'tetto_salvato',
   },
   {
-    title: 'Esposizione',
+    title: 'Esposizione/Area',
     key: 'esposizione_salvata',
   },
   {
-    title: 'Area Geografica',
-    key: 'area_geografica_salvata',
-  },
-  {
-    title: 'Modalità Pagamento',
+    title: 'Pagamento',
     key: 'modalita_pagamento_salvata',
   },
   {
-    title: 'Produzione Stimata',
+    title: 'Produzione',
     key: 'produzione_annua_stimata',
   },
   {
@@ -732,10 +728,10 @@ const exportPreventivi = async () => {
         </template>
 
         <!-- Data Preventivo -->
-        <template #item.data_preventivo="{ item }">
+        <template #item.created_at="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ item.data_preventivo ? new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(item.data_preventivo)) : 'N/A' }}
+              {{ item.created_at ? new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(item.created_at)) : 'N/A' }}
             </div>
           </div>
         </template>
@@ -781,20 +777,25 @@ const exportPreventivi = async () => {
           </div>
         </template>
 
-        <!-- Esposizione -->
+        <!-- Esposizione/Area -->
         <template #item.esposizione_salvata="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.esposizione_salvata || 'N/A' }}
+          <div class="d-flex flex-column gap-y-1">
+            <!-- Esposizione -->
+            <div v-if="item.esposizione_salvata" class="text-high-emphasis text-body-1" style="font-size: 0.875rem;">
+              {{ item.esposizione_salvata }}
             </div>
-          </div>
-        </template>
-
-        <!-- Area Geografica -->
-        <template #item.area_geografica_salvata="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.area_geografica_salvata || 'N/A' }}
+            <!-- Area Geografica -->
+            <div v-if="item.area_geografica_salvata" class="d-flex align-center gap-x-1" style="font-size: 0.75rem; opacity: 0.8;">
+              <VIcon
+                icon="tabler-map"
+                size="12"
+                color="secondary"
+                style="opacity: 0.7;"
+              />
+              <span>{{ item.area_geografica_salvata }}</span>
+            </div>
+            <div v-if="!item.esposizione_salvata && !item.area_geografica_salvata" class="text-high-emphasis text-body-1">
+              N/A
             </div>
           </div>
         </template>
@@ -831,7 +832,7 @@ const exportPreventivi = async () => {
             >
               <VIcon
                 size="22"
-                icon="tabler-file-pdf"
+                icon="tabler-file"
               />
               <VTooltip
                 activator="parent"

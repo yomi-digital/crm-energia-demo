@@ -17,7 +17,7 @@ const selectedBrand = ref()
 const selectedCity = ref()
 
 // Data table options
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
@@ -77,24 +77,8 @@ const headers = [
     key: 'vat_number',
   },
   {
-    title: 'Città',
-    key: 'city',
-  },
-  {
     title: 'Indirizzo',
     key: 'address',
-  },
-  {
-    title: 'Regione',
-    key: 'region',
-  },
-  {
-    title: 'Provincia',
-    key: 'province',
-  },
-  {
-    title: 'CAP',
-    key: 'zip',
   },
   // {
   //   title: 'Telefono',
@@ -105,7 +89,7 @@ const headers = [
   //   key: 'mobile',
   // },
   {
-    title: 'Data Inserimento',
+    title: 'Inserimento',
     key: 'added_at',
   },
   {
@@ -536,47 +520,45 @@ const widgetData = ref([
           </div>
         </template>
 
-        <!-- 👉 City -->
-        <template #item.city="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.city }}
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Address -->
+        <!-- 👉 Address (completo) -->
         <template #item.address="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.address }}
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Region -->
-        <template #item.region="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.region }}
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 Province -->
-        <template #item.province="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.province }}
-            </div>
-          </div>
-        </template>
-
-        <!-- 👉 ZIP -->
-        <template #item.zip="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              {{ item.zip }}
+          <div class="d-flex align-start gap-x-2">
+            <VIcon
+              icon="tabler-map-pin"
+              size="18"
+              color="primary"
+              style="opacity: 0.8; margin-top: 2px;"
+            />
+            <div class="d-flex flex-column gap-y-1" style="flex: 1;">
+              <!-- Indirizzo -->
+              <div v-if="item.address" class="text-high-emphasis text-body-1" style="font-size: 0.875rem; font-weight: 500;">
+                {{ item.address }}
+              </div>
+              <!-- Città, CAP, Provincia -->
+              <div class="d-flex align-center gap-x-1 flex-wrap" style="font-size: 0.75rem; opacity: 0.8;">
+                <VIcon
+                  v-if="item.city || item.zip || item.province"
+                  icon="tabler-building"
+                  size="12"
+                  color="secondary"
+                  style="opacity: 0.7;"
+                />
+                <span v-if="item.city">{{ item.city }}</span>
+                <span v-if="item.zip && item.city">,</span>
+                <span v-if="item.zip">{{ item.zip }}</span>
+                <span v-if="item.province && (item.city || item.zip)">-</span>
+                <span v-if="item.province">{{ item.province }}</span>
+              </div>
+              <!-- Regione -->
+              <div v-if="item.region" class="d-flex align-center gap-x-1" style="font-size: 0.7rem; opacity: 0.7;">
+                <VIcon
+                  icon="tabler-map"
+                  size="10"
+                  color="secondary"
+                  style="opacity: 0.6;"
+                />
+                <span>{{ item.region }}</span>
+              </div>
             </div>
           </div>
         </template>
