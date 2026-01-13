@@ -37,9 +37,9 @@ class TestEmailCommand extends Command
         
         try {
             // Test email semplice
-            Mail::raw('Ciao! Questa è una email di test da EasyWork CRM usando Resend! 🎉', function ($message) use ($email) {
+            Mail::raw('Ciao! Questa è una email di test da Alfacom CRM usando Resend! 🎉', function ($message) use ($email) {
                 $message->to($email)
-                        ->subject('Test Email - EasyWork CRM');
+                        ->subject('Test Email - Alfacom CRM');
             });
             
             $this->info("✅ Email di test inviata con successo!");

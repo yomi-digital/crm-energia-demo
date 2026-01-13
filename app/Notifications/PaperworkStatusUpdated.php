@@ -87,7 +87,7 @@ class PaperworkStatusUpdated extends Notification
                     ->line('**Stato Pratica:** ' . ($this->paperwork->order_status ?? 'N/A'))
                     ->line('**Sotto Stato:** ' . ($this->paperwork->order_substatus ?? 'N/A'))
                     ->action('Visualizza Pratica', url('/workflow/paperworks/' . $this->paperwork->id))
-                    ->line('Grazie per aver utilizzato EasyWork CRM!');
+                    ->line('Grazie per aver utilizzato Alfacom CRM!');
     }
 
     /**

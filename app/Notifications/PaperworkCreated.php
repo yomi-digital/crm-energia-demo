@@ -48,7 +48,7 @@ class PaperworkCreated extends Notification
                     ->line('**Brand:** ' . $this->paperwork->product->brand->name)
                     ->line('**ID Paperwork:** ' . $this->paperwork->id)
                     ->action('Visualizza Paperwork', url('/paperworks/' . $this->paperwork->id))
-                    ->line('Grazie per aver utilizzato EasyWork CRM!');
+                    ->line('Grazie per aver utilizzato Alfacom CRM!');
     }
 
     /**

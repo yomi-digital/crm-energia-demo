@@ -48,7 +48,7 @@ class TicketCreated extends Notification
                     ->line('**Titolo:** ' . $this->ticket->title)
                     ->line('**ID Ticket:** ' . $this->ticket->id)
                     ->action('Visualizza Ticket', url('/tickets/' . $this->ticket->id))
-                    ->line('Grazie per aver utilizzato EasyWork CRM!');
+                    ->line('Grazie per aver utilizzato Alfacom CRM!');
     }
 
     /**
