@@ -534,7 +534,19 @@ const showNotesDialog = (paperwork) => {
   isNotesDialogVisible.value = true
 }
 
+// Modal states per modifica agente
+const isEditAgentDialogVisible = ref(false)
+const selectedPaperworkForAgentEdit = ref(null)
 
+const showEditAgentDialog = (paperwork) => {
+  selectedPaperworkForAgentEdit.value = paperwork
+  isEditAgentDialogVisible.value = true
+}
+
+const handleAgentUpdated = () => {
+  // Ricarica i dati della tabella
+  fetchPaperworks()
+}
 
 const categories = ref([
   { title: 'ALLACCIO', value: 'ALLACCIO' },
@@ -1081,6 +1093,18 @@ const updateDateFromYearMonth = () => {
             >
               Note
             </VBtn>
+            
+            <VBtn
+              v-if="isAdmin"
+              size="small"
+              color="warning"
+              variant="tonal"
+              class="compact-btn"
+              @click.stop="showEditAgentDialog(item)"
+              :title="`Modifica agente della pratica ${item?.id}`"
+            >
+              <VIcon icon="tabler-user-edit" size="16" />
+            </VBtn>
           </div>
         </template>
 
@@ -1125,6 +1149,15 @@ const updateDateFromYearMonth = () => {
       :isDialogVisible="isNotesDialogVisible"
       :paperworkData="selectedPaperworkForNotes"
       @update:isDialogVisible="isNotesDialogVisible = $event"
+    />
+
+    <!-- 👉 Edit Agent Dialog -->
+    <PaperworkEditAgentDialog
+      v-if="selectedPaperworkForAgentEdit"
+      :isDialogVisible="isEditAgentDialogVisible"
+      :paperworkData="selectedPaperworkForAgentEdit"
+      @update:isDialogVisible="isEditAgentDialogVisible = $event"
+      @agent-updated="handleAgentUpdated"
     />
   </section>
 </template>

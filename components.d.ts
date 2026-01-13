@@ -401,6 +401,7 @@ declare module 'vue' {
     NotificationFilter: typeof import('./resources/js/@core/components/NotificationFilter.vue')['default']
     Notifications: typeof import('./resources/js/@core/components/Notifications.vue')['default']
     PaperworkConfirmInsertDialog: typeof import('./resources/js/components/dialogs/PaperworkConfirmInsertDialog.vue')['default']
+    PaperworkEditAgentDialog: typeof import('./resources/js/components/dialogs/PaperworkEditAgentDialog.vue')['default']
     PaperworkEditDialog: typeof import('./resources/js/components/dialogs/PaperworkEditDialog.vue')['default']
     PaperworkNotesDialog: typeof import('./resources/js/components/dialogs/PaperworkNotesDialog.vue')['default']
     PaperworkUndoPartnerSentDialog: typeof import('./resources/js/components/dialogs/PaperworkUndoPartnerSentDialog.vue')['default']
