@@ -53,16 +53,16 @@ const headers = [
     key: 'name',
   },
   {
+    title: 'Prezzo',
+    key: 'price',
+  },
+  {
     title: 'Brand',
     key: 'brand_id',
   },
   {
     title: 'Categoria Brand',
     key: 'category',
-  },
-  {
-    title: 'Stato',
-    key: 'enabled',
   },
   {
     title: 'Note',
@@ -273,6 +273,15 @@ const selectProductForRemove = product => {
           </div>
         </template>
 
+        <!-- Price -->
+        <template #item.price="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.price ? `€${item.price.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A' }}
+            </div>
+          </div>
+        </template>
+
         <!-- Category -->
         <template #item.category="{ item }">
           <div class="d-flex align-center gap-x-2">
@@ -280,22 +289,6 @@ const selectProductForRemove = product => {
               {{ item.brand.category }}
             </div>
           </div>
-        </template>
-
-        <!-- Enabled / switch -->
-        <template #item.enabled="{ item }">
-          <VSwitch
-            :model-value="!!item.enabled"
-            @update:model-value="toggleProductStatus(item)"
-            color="success"
-            hide-details
-            v-if="!isBackoffice"
-          />
-          <VChip
-            v-else
-            :color="item.enabled ? 'success' : 'error'"
-            :text="item.enabled ? 'Abilitato' : 'Disabilitato'"
-          />
         </template>
 
         <!-- 👉 Notes -->
