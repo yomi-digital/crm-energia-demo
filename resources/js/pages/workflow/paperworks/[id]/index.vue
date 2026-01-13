@@ -275,6 +275,9 @@ const downloadDocument = async doc => {
                 class="font-weight-medium text-link"
                 :title="paperworkData.product.name"
               >{{ paperworkData.product.name || 'N/A' }}</RouterLink>
+              <span v-if="paperworkData.product.price" class="ml-2">
+                ({{ `€${paperworkData.product.price.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }})
+              </span>
             </div>
           </VCardText>
 
