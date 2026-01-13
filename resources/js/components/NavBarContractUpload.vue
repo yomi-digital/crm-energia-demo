@@ -23,6 +23,11 @@ const alert = ref({
 const loggedInUser = useCookie('userData').value
 const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
 
+// Controlla se l'utente può selezionare l'agente (gestione, struttura, backoffice)
+const canSelectAgent = loggedInUser?.roles?.some(role => 
+  ['gestione', 'struttura', 'backoffice'].includes(role.name)
+)
+
 // Controlla se l'utente è agente (per mostrare il popup di notifica)
 const isAgente = loggedInUser?.roles?.some(role => role.name === 'agente')
 
@@ -96,13 +101,15 @@ const closeDialog = () => {
   fetchBrands()
 }
 
-// Quando cambia il brand, resetta l'agente e ricarica gli agenti per quel brand
+// Quando cambia il brand, resetta l'agente e ricarica gli agenti per quel brand (solo se può selezionare l'agente)
 watch(selectedBrand, brandId => {
-  selectedAgentId.value = null
-  if (brandId) {
-    fetchAgents(brandId)
-  } else {
-    agents.value = []
+  if (canSelectAgent) {
+    selectedAgentId.value = null
+    if (brandId) {
+      fetchAgents(brandId)
+    } else {
+      agents.value = []
+    }
   }
 })
 
@@ -119,8 +126,8 @@ const uploadContract = async (files) => {
     return
   }
 
-  // Validazione agente obbligatorio (dopo aver selezionato il brand)
-  if (!selectedAgentId.value) {
+  // Validazione agente obbligatorio solo per gestione, struttura e backoffice
+  if (canSelectAgent && !selectedAgentId.value) {
     alert.value = {
       show: true,
       type: 'warning',
@@ -135,7 +142,10 @@ const uploadContract = async (files) => {
   const formData = new FormData()
   formData.append('contract', files[0])
   formData.append('brand_id', selectedBrand.value)
-  formData.append('user_id', selectedAgentId.value)
+  // Invia user_id solo se l'utente può selezionare l'agente e ha selezionato un agente, altrimenti il backend usa auth()->id()
+  if (canSelectAgent && selectedAgentId.value) {
+    formData.append('user_id', selectedAgentId.value)
+  }
   
   try {
     const response = await $api('/upload-contract', {
@@ -222,7 +232,9 @@ const uploadContract = async (files) => {
             required
           />
 
+          <!-- Selettore Agente - visibile solo per gestione, struttura e backoffice -->
           <AppAutocomplete
+            v-if="canSelectAgent"
             v-model="selectedAgentId"
             label="Agente *"
             :items="agents"
@@ -240,7 +252,7 @@ const uploadContract = async (files) => {
           <DropZoneContracts
             @dropped="uploadContract"
             @error="(msg) => alert = { show: true, type: 'warning', message: msg }"
-            :disabled="isUploading || !selectedBrand || !selectedAgentId"
+            :disabled="isUploading || !selectedBrand || (canSelectAgent && !selectedAgentId)"
             accept=".pdf"
             single-file
             ref="dropZoneRef"

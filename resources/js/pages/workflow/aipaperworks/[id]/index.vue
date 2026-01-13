@@ -20,6 +20,12 @@ const route = useRoute()
 const router = useRouter()
 const id = route.params.id
 
+// Controlla se l'utente può selezionare l'agente (gestione, struttura, backoffice)
+const loggedInUser = useCookie('userData').value
+const canSelectAgent = loggedInUser?.roles?.some(role => 
+  ['gestione', 'struttura', 'backoffice'].includes(role.name)
+)
+
 const isProcessing = ref(false)
 let pollingInterval = null
 
@@ -914,9 +920,9 @@ onUnmounted(() => {
           </VChip>
         </div>
         
-        <!-- Selettore Agente - visibile solo quando l'elaborazione è completata (status 2) -->
+        <!-- Selettore Agente - visibile solo quando l'elaborazione è completata (status 2) e solo per gestione, struttura e backoffice -->
         <div 
-          v-if="aiPaperwork?.status === 2" 
+          v-if="aiPaperwork?.status === 2 && canSelectAgent" 
           class="mt-4 mb-4" 
           style="max-width: 400px;"
         >
