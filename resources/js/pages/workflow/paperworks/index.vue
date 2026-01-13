@@ -1050,13 +1050,12 @@ const updateDateFromYearMonth = () => {
                 class="compact-chip"
               />
             </div>
-            <div class="d-flex" style="font-size: 0.7rem;">
+            <div class="d-flex align-center" style="font-size: 0.7rem;">
               <VIcon 
                 v-if="item.partner_outcome_at"
                 icon="tabler-calendar"
                 size="18"
                 color="error"
-                style="opacity: 0.8;"
               />
               <span class="text-high-emphasis text-body-1">
                 {{ item.partner_outcome_at ? new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(item.partner_outcome_at)) : 'N/A' }}

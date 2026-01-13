@@ -1,5 +1,6 @@
 <script setup>
 import { AREAS } from '@/utils/constants'
+import { useRoute, useRouter } from 'vue-router'
 
 definePage({
   meta: {
@@ -8,23 +9,38 @@ definePage({
   },
 })
 
+// 👉 Router
+const route = useRoute()
+const router = useRouter()
+
 // 👉 Store
-const searchQuery = ref('')
+const searchQuery = ref(route.query.q || '')
 
 // Data table options
-const itemsPerPage = ref(100)
-const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const itemsPerPage = ref(Number(route.query.itemsPerPage) || 100)
+const page = ref(Number(route.query.page) || 1)
+const sortBy = ref(route.query.sortBy || '')
+const orderBy = ref(route.query.orderBy || '')
 
-const selectedArea = ref('')
-const selectedBrand = ref([])
-const selectedProduct = ref('')
-const selectedAgent = ref('')
-const selectedAgency = ref('')
-const selectedStatus = ref('')
-const selectedCategory = ref('')
-const selectedHasAppointment = ref('')
+// Inizializza selectedBrand dall'URL (può essere una stringa separata da virgole o trattini)
+const parseBrandFromUrl = () => {
+  const brandParam = route.query.brand_id
+  if (!brandParam) return []
+  if (typeof brandParam === 'string') {
+    // Supporta sia '-' che ',' come separatori
+    return brandParam.split(/[-,\s]+/).filter(Boolean).map(Number).filter(n => !isNaN(n))
+  }
+  return []
+}
+
+const selectedArea = ref(route.query.area || '')
+const selectedBrand = ref(parseBrandFromUrl())
+const selectedProduct = ref(route.query.product_id || '')
+const selectedAgent = ref(route.query.agent_id || '')
+const selectedAgency = ref(route.query.agency_id || '')
+const selectedStatus = ref(route.query.status || '')
+const selectedCategory = ref(route.query.category || '')
+const selectedHasAppointment = ref(route.query.has_appointment || '')
 
 const loggedInUser = useCookie('userData').value
 const isAgent = loggedInUser?.roles?.some(role => role.name === 'agente')
@@ -119,9 +135,11 @@ const filteredHeaders = computed(() => {
   return headers.filter(header => header.key !== 'parent' && header.key !== 'agency')
 })
 
-// Default to last 30 days
-const fromDate = ref(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
-const toDate = ref(new Date().toISOString().split('T')[0])
+// Default to last 30 days o dall'URL
+const defaultFromDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+const defaultToDate = new Date().toISOString().split('T')[0]
+const fromDate = ref(route.query.from || defaultFromDate)
+const toDate = ref(route.query.to || defaultToDate)
 const dateRange = ref([fromDate.value, toDate.value])
 
 // Add this watch function
@@ -142,6 +160,85 @@ const brandIdsParam = computed(() => {
     ? selectedBrand.value.join('-') 
     : ''
 })
+
+// Flag per evitare loop infiniti quando aggiorniamo l'URL
+let isUpdatingFromUrl = false
+
+// Update URL on filter change
+watch([
+  searchQuery, 
+  itemsPerPage, 
+  page, 
+  sortBy, 
+  orderBy, 
+  fromDate, 
+  toDate,
+  selectedArea, 
+  selectedBrand, 
+  selectedProduct, 
+  selectedAgent, 
+  selectedAgency, 
+  selectedStatus, 
+  selectedCategory, 
+  selectedHasAppointment
+], () => {
+  if (isUpdatingFromUrl) return
+  
+  const query = {}
+  
+  if (searchQuery.value) query.q = searchQuery.value
+  if (itemsPerPage.value) query.itemsPerPage = itemsPerPage.value
+  if (page.value) query.page = page.value
+  if (sortBy.value) query.sortBy = sortBy.value
+  if (orderBy.value) query.orderBy = orderBy.value
+  if (fromDate.value) query.from = fromDate.value
+  if (toDate.value) query.to = toDate.value
+  if (selectedArea.value) query.area = selectedArea.value
+  if (Array.isArray(selectedBrand.value) && selectedBrand.value.length > 0) {
+    query.brand_id = selectedBrand.value.join('-')
+  }
+  if (selectedProduct.value) query.product_id = selectedProduct.value
+  if (selectedAgent.value) query.agent_id = selectedAgent.value
+  if (selectedAgency.value) query.agency_id = selectedAgency.value
+  if (selectedStatus.value) query.status = selectedStatus.value
+  if (selectedCategory.value) query.category = selectedCategory.value
+  if (selectedHasAppointment.value) query.has_appointment = selectedHasAppointment.value
+  
+  router.replace({ query })
+}, { deep: true })
+
+// Watch route.query per reagire ai cambiamenti dell'URL (browser back/forward)
+watch(() => route.query, (newQuery) => {
+  isUpdatingFromUrl = true
+  
+  if (newQuery.q !== undefined) searchQuery.value = newQuery.q || ''
+  if (newQuery.itemsPerPage !== undefined) itemsPerPage.value = Number(newQuery.itemsPerPage) || 100
+  if (newQuery.page !== undefined) page.value = Number(newQuery.page) || 1
+  if (newQuery.sortBy !== undefined) sortBy.value = newQuery.sortBy || ''
+  if (newQuery.orderBy !== undefined) orderBy.value = newQuery.orderBy || ''
+  if (newQuery.from !== undefined) fromDate.value = newQuery.from || defaultFromDate
+  if (newQuery.to !== undefined) toDate.value = newQuery.to || defaultToDate
+  if (newQuery.area !== undefined) selectedArea.value = newQuery.area || ''
+  if (newQuery.brand_id !== undefined) {
+    const brandParam = newQuery.brand_id
+    if (brandParam && typeof brandParam === 'string') {
+      selectedBrand.value = brandParam.split(/[-,\s]+/).filter(Boolean).map(Number).filter(n => !isNaN(n))
+    } else {
+      selectedBrand.value = []
+    }
+  }
+  if (newQuery.product_id !== undefined) selectedProduct.value = newQuery.product_id || ''
+  if (newQuery.agent_id !== undefined) selectedAgent.value = newQuery.agent_id || ''
+  if (newQuery.agency_id !== undefined) selectedAgency.value = newQuery.agency_id || ''
+  if (newQuery.status !== undefined) selectedStatus.value = newQuery.status || ''
+  if (newQuery.category !== undefined) selectedCategory.value = newQuery.category || ''
+  if (newQuery.has_appointment !== undefined) selectedHasAppointment.value = newQuery.has_appointment || ''
+  
+  // Aggiorna dateRange
+  dateRange.value = [fromDate.value, toDate.value]
+  
+  isUpdatingFromUrl = false
+}, { deep: true })
 
 const {
   data: reportData,
