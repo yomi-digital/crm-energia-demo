@@ -928,10 +928,9 @@ const updateDateFromYearMonth = () => {
             <!-- Agente -->
             <div class="d-flex align-center " style="font-size: 0.75rem;">
               <VIcon
-                icon="tabler-user"
-                size="14"
+                icon="tabler-user-circle"
+                size="18"
                 color="primary"
-                style="opacity: 0.8;"
               />
               <span class="text-high-emphasis text-body-1 text-capitalize">
                 <RouterLink
@@ -948,18 +947,19 @@ const updateDateFromYearMonth = () => {
               </span>
             </div>
             <!-- Cliente -->
-            <div class="d-flex align-center " style="font-size: 0.7rem; opacity: 0.8;">
+            <div class="d-flex align-center " style="font-size: 0.875rem;">
               <VIcon
-                icon="tabler-user-circle"
-                size="12"
-                color="secondary"
-                style="opacity: 0.8;"
+                icon="tabler-user"
+                size="18"
+                color="primary"
+                style="margin-right: 3px;"
               />
-              <span class="text-high-emphasis text-body-1 text-capitalize">
+              <span class="text-capitalize" style="color: rgb(var(--v-theme-on-surface)); font-weight: 500;">
                 <RouterLink
                   v-if="item.customer?.id"
                   :to="{ name: 'workflow-customers-id', params: { id: item.customer.id } }"
-                  class="font-weight-medium text-link"
+                  class="text-link"
+                  style="color: rgb(var(--v-theme-on-surface)); font-weight: 400;"
                   :title="getCustomerName(item.customer)"
                   @click.stop
                 >
@@ -967,7 +967,7 @@ const updateDateFromYearMonth = () => {
                 </RouterLink>
                 <span
                   v-else
-                  class="font-weight-medium"
+                  style="color: rgb(var(--v-theme-on-surface)); font-weight: 400;"
                   :title="getCustomerName(item.customer)"
                 >
                   {{ getCustomerName(item.customer) }}
