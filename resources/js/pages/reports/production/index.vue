@@ -32,6 +32,14 @@ const isAdminOrBackoffice = computed(() => {
   if (!loggedInUser?.roles) return false
   return loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice')
 })
+const canEditProduct = computed(() => {
+  if (!loggedInUser?.roles) return false
+  return loggedInUser.roles.some(role => 
+    role.name === 'amministrazione' || 
+    role.name === 'backoffice' || 
+    role.name === 'gestione'
+  )
+})
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -86,7 +94,7 @@ const headers = [
     sortable: false,
   },
   {
-    title: 'Data Inserimento',
+    title: 'Inserimento',
     key: 'inserted_at',
     sortable: false,
   },
@@ -96,8 +104,8 @@ const headers = [
     sortable: false,
   },
   {
-    title: 'Note',
-    key: 'notes',
+    title: 'Azioni',
+    key: 'actions',
     sortable: false,
   },
 ]
@@ -406,6 +414,71 @@ const handleAgenciesSearch = useDebounceFn(value => {
 
 fetchAgencies()
 
+// Dialog per mostrare le note
+const isNotesDialogVisible = ref(false)
+const selectedNotes = ref('')
+const selectedItemInfo = ref(null)
+
+const showNotesDialog = (item) => {
+  selectedNotes.value = item.notes || 'Nessuna nota disponibile'
+  selectedItemInfo.value = {
+    customer: item.customer,
+    orderCode: item.order_code,
+    paperworkId: item.paperwork_id,
+  }
+  isNotesDialogVisible.value = true
+}
+
+const closeNotesDialog = () => {
+  isNotesDialogVisible.value = false
+  selectedNotes.value = ''
+  selectedItemInfo.value = null
+}
+
+// Dialog per modificare il prodotto
+const isEditProductDialogVisible = ref(false)
+const selectedItemForProductEdit = ref(null)
+const selectedProductId = ref(null)
+const isSavingProduct = ref(false)
+
+const showEditProductDialog = (item) => {
+  selectedItemForProductEdit.value = item
+  selectedProductId.value = item.product_id || null
+  isEditProductDialogVisible.value = true
+}
+
+const closeEditProductDialog = () => {
+  isEditProductDialogVisible.value = false
+  selectedItemForProductEdit.value = null
+  selectedProductId.value = null
+}
+
+const saveProduct = async () => {
+  if (!selectedItemForProductEdit.value?.paperwork_id) {
+    return
+  }
+
+  isSavingProduct.value = true
+  
+  try {
+    await $api(`/paperworks/${selectedItemForProductEdit.value.paperwork_id}`, {
+      method: 'PUT',
+      body: {
+        product_id: selectedProductId.value,
+      },
+    })
+    
+    // Ricarica il report
+    await fetchReport()
+    closeEditProductDialog()
+  } catch (error) {
+    console.error('Errore durante l\'aggiornamento del prodotto:', error)
+    alert('Errore durante l\'aggiornamento del prodotto')
+  } finally {
+    isSavingProduct.value = false
+  }
+}
+
 </script>
 
 <template>
@@ -703,12 +776,27 @@ fetchAgencies()
           </div>
         </template>
 
-        <!-- Notes -->
-        <template #item.notes="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1" :title="item.notes || 'N/A'">
-              {{ item.notes || 'N/A' }}
-            </div>
+        <!-- Actions -->
+        <template #item.actions="{ item }">
+          <div class="d-flex flex-column gap-y-1">
+            <VBtn
+              v-if="item.notes"
+              size="small"
+              color="info"
+              variant="tonal"
+              @click="showNotesDialog(item)"
+            >
+              Mostra Note
+            </VBtn>
+            <VBtn
+              v-if="item.paperwork_id && canEditProduct"
+              size="small"
+              color="warning"
+              variant="tonal"
+              @click="showEditProductDialog(item)"
+            >
+              Modifica Prodotto
+            </VBtn>
           </div>
         </template>
 
@@ -723,5 +811,123 @@ fetchAgencies()
       </VDataTableServer>
       <!-- SECTION -->
     </VCard>
+
+    <!-- Notes Dialog -->
+    <VDialog
+      v-model="isNotesDialogVisible"
+      max-width="600"
+    >
+      <VCard>
+        <VCardTitle class="d-flex align-center justify-space-between">
+          <span class="text-h5">Note</span>
+          <VBtn
+            icon
+            variant="text"
+            size="small"
+            @click="closeNotesDialog"
+          >
+            <VIcon icon="tabler-x" />
+          </VBtn>
+        </VCardTitle>
+        
+        <VDivider />
+        
+        <VCardText class="pt-6">
+          <div v-if="selectedItemInfo" class="mb-4">
+            <div class="text-body-2 text-medium-emphasis mb-1">Cliente:</div>
+            <div class="text-body-1 font-weight-medium mb-3">{{ selectedItemInfo.customer }}</div>
+            <div v-if="selectedItemInfo.orderCode" class="text-body-2 text-medium-emphasis mb-1">Codice Ordine:</div>
+            <div v-if="selectedItemInfo.orderCode" class="text-body-1 font-weight-medium mb-3">{{ selectedItemInfo.orderCode }}</div>
+          </div>
+          
+          <div>
+            <div class="text-body-2 text-medium-emphasis mb-2">Note:</div>
+            <VCard variant="outlined" class="pa-4">
+              <div class="text-body-1" style="white-space: pre-wrap;">
+                {{ selectedNotes }}
+              </div>
+            </VCard>
+          </div>
+        </VCardText>
+        
+        <VDivider />
+        
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            color="primary"
+            @click="closeNotesDialog"
+          >
+            Chiudi
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Edit Product Dialog -->
+    <VDialog
+      v-model="isEditProductDialogVisible"
+      max-width="500"
+    >
+      <VCard>
+        <VCardTitle class="d-flex align-center justify-space-between">
+          <span class="text-h5">Modifica Prodotto</span>
+          <VBtn
+            icon
+            variant="text"
+            size="small"
+            @click="closeEditProductDialog"
+          >
+            <VIcon icon="tabler-x" />
+          </VBtn>
+        </VCardTitle>
+        
+        <VDivider />
+        
+        <VCardText class="pt-6">
+          <div v-if="selectedItemForProductEdit" class="mb-4">
+            <div class="text-body-2 text-medium-emphasis mb-1">Cliente:</div>
+            <div class="text-body-1 font-weight-medium mb-3">{{ selectedItemForProductEdit.customer }}</div>
+            <div v-if="selectedItemForProductEdit.order_code" class="text-body-2 text-medium-emphasis mb-1">Codice Ordine:</div>
+            <div v-if="selectedItemForProductEdit.order_code" class="text-body-1 font-weight-medium mb-3">{{ selectedItemForProductEdit.order_code }}</div>
+            <div class="text-body-2 text-medium-emphasis mb-1">Prodotto Attuale:</div>
+            <div class="text-body-1 font-weight-medium mb-4">{{ selectedItemForProductEdit.product || 'N/A' }}</div>
+          </div>
+          
+          <div>
+            <AppAutocomplete
+              v-model="selectedProductId"
+              label="Seleziona Prodotto"
+              :items="products.filter(p => p.value !== '')"
+              item-title="title"
+              item-value="value"
+              placeholder="Seleziona un prodotto"
+              clearable
+            />
+          </div>
+        </VCardText>
+        
+        <VDivider />
+        
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            variant="tonal"
+            color="secondary"
+            @click="closeEditProductDialog"
+            :disabled="isSavingProduct"
+          >
+            Annulla
+          </VBtn>
+          <VBtn
+            color="primary"
+            @click="saveProduct"
+            :loading="isSavingProduct"
+          >
+            Salva
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </section>
 </template>
