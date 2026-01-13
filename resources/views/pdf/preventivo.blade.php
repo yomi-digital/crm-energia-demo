@@ -1886,6 +1886,9 @@
                                 @else
                                     Modulo fotovoltaico: {{ $dettaglioProdotto->nome_prodotto_salvato ?? '' }}. Compreso di cavi e connettori.
                                 @endif
+                                @if($dettaglioProdotto->link_prodotto_salvato && trim($dettaglioProdotto->link_prodotto_salvato) !== '')
+                                    <br><a href="{{ $dettaglioProdotto->link_prodotto_salvato }}" style="color: #4BAE66; text-decoration: underline;">LINK SCHEDA TECNICA</a>
+                                @endif
                             </td>
                         </tr>
                             @endforeach

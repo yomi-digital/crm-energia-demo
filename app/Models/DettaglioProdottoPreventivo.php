@@ -26,6 +26,7 @@ class DettaglioProdottoPreventivo extends Model
         'marca_salvata',
         'iva',
         'descrizione_prodotto_salvata',
+        'link_prodotto_salvato',
     ];
 
     protected $casts = [

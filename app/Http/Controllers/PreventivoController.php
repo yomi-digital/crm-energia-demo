@@ -555,6 +555,7 @@ class PreventivoController extends Controller
             'DETTAGLI_PRODOTTO_PREVENTIVO.*.marca_salvata' => 'required|string|max:255',
             'DETTAGLI_PRODOTTO_PREVENTIVO.*.iva' => 'required|integer|in:0,1',
             'DETTAGLI_PRODOTTO_PREVENTIVO.*.descrizione_prodotto_salvata' => 'nullable|string',
+            'DETTAGLI_PRODOTTO_PREVENTIVO.*.link_prodotto_salvato' => 'nullable|string|url',
 
             'PREVENTIVI_VOCE_ECONOMICHE' => 'nullable|array',
             'PREVENTIVI_VOCE_ECONOMICHE.*.nome_voce_salvato' => 'required|string|max:255',

@@ -403,6 +403,7 @@ const preparePayload = () => {
                 marca_salvata: prodotto.marca || 'Marca',
                 iva: props.formData.iva !== undefined ? props.formData.iva : 1,
                 descrizione_prodotto_salvata: prodotto.descrizione || null,
+                link_prodotto_salvato: prodotto.link_scheda_prodotto_tecnica || null,
             });
         }
     }
