@@ -402,6 +402,7 @@ const preparePayload = () => {
                 potenza_inverter_salvata: prodotto.potenza_inverter !== undefined ? prodotto.potenza_inverter : 0,
                 marca_salvata: prodotto.marca || 'Marca',
                 iva: props.formData.iva !== undefined ? props.formData.iva : 1,
+                descrizione_prodotto_salvata: prodotto.descrizione || null,
             });
         }
     }

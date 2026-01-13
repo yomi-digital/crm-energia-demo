@@ -554,6 +554,7 @@ class PreventivoController extends Controller
             'DETTAGLI_PRODOTTO_PREVENTIVO.*.potenza_inverter_salvata' => ['required', new StrictNonNegativeRule('DETTAGLI_PRODOTTO_PREVENTIVO.*.potenza_inverter_salvata')],
             'DETTAGLI_PRODOTTO_PREVENTIVO.*.marca_salvata' => 'required|string|max:255',
             'DETTAGLI_PRODOTTO_PREVENTIVO.*.iva' => 'required|integer|in:0,1',
+            'DETTAGLI_PRODOTTO_PREVENTIVO.*.descrizione_prodotto_salvata' => 'nullable|string',
 
             'PREVENTIVI_VOCE_ECONOMICHE' => 'nullable|array',
             'PREVENTIVI_VOCE_ECONOMICHE.*.nome_voce_salvato' => 'required|string|max:255',

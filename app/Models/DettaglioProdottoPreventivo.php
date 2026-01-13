@@ -25,6 +25,7 @@ class DettaglioProdottoPreventivo extends Model
         'potenza_inverter_salvata',
         'marca_salvata',
         'iva',
+        'descrizione_prodotto_salvata',
     ];
 
     protected $casts = [

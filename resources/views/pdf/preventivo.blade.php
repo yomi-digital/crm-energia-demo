@@ -1880,7 +1880,13 @@
                         <tr style="background-color: #f9f9f9;">
                             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{{ $dettaglioProdotto->quantita ?? 1 }}</td>
                             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">{{ $dettaglioProdotto->nome_prodotto_salvato ?? 'Prodotto' }}</td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">Modulo fotovoltaico: {{ $dettaglioProdotto->nome_prodotto_salvato ?? '' }}. Compreso di cavi e connettori.</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">
+                                @if($dettaglioProdotto->descrizione_prodotto_salvata && trim($dettaglioProdotto->descrizione_prodotto_salvata) !== '')
+                                    {{ $dettaglioProdotto->descrizione_prodotto_salvata }}. Compreso di cavi e connettori.
+                                @else
+                                    Modulo fotovoltaico: {{ $dettaglioProdotto->nome_prodotto_salvato ?? '' }}. Compreso di cavi e connettori.
+                                @endif
+                            </td>
                         </tr>
                             @endforeach
                         @endif

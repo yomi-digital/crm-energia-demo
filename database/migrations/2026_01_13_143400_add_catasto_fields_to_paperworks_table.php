@@ -12,11 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('paperworks', function (Blueprint $table) {
-            $table->string('catasto')->nullable();
-            $table->string('foglio')->nullable();
-            $table->string('particella')->nullable();
-            $table->string('sub')->nullable();
-            $table->text('indirizzo_installazione')->nullable();
+            if (!Schema::hasColumn('paperworks', 'catasto')) {
+                $table->string('catasto')->nullable();
+            }
+            if (!Schema::hasColumn('paperworks', 'foglio')) {
+                $table->string('foglio')->nullable();
+            }
+            if (!Schema::hasColumn('paperworks', 'particella')) {
+                $table->string('particella')->nullable();
+            }
+            if (!Schema::hasColumn('paperworks', 'sub')) {
+                $table->string('sub')->nullable();
+            }
+            if (!Schema::hasColumn('paperworks', 'indirizzo_installazione')) {
+                $table->text('indirizzo_installazione')->nullable();
+            }
         });
     }
 
@@ -26,13 +36,27 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('paperworks', function (Blueprint $table) {
-            $table->dropColumn([
-                'catasto',
-                'foglio',
-                'particella',
-                'sub',
-                'indirizzo_installazione',
-            ]);
+            $columnsToDrop = [];
+            
+            if (Schema::hasColumn('paperworks', 'catasto')) {
+                $columnsToDrop[] = 'catasto';
+            }
+            if (Schema::hasColumn('paperworks', 'foglio')) {
+                $columnsToDrop[] = 'foglio';
+            }
+            if (Schema::hasColumn('paperworks', 'particella')) {
+                $columnsToDrop[] = 'particella';
+            }
+            if (Schema::hasColumn('paperworks', 'sub')) {
+                $columnsToDrop[] = 'sub';
+            }
+            if (Schema::hasColumn('paperworks', 'indirizzo_installazione')) {
+                $columnsToDrop[] = 'indirizzo_installazione';
+            }
+            
+            if (!empty($columnsToDrop)) {
+                $table->dropColumn($columnsToDrop);
+            }
         });
     }
 };
