@@ -77,6 +77,7 @@ const headers = [
     title: 'Prodotto',
     key: 'product',
     sortable: false,
+    width: '200px',
   },
   {
     title: 'Tipologia',
@@ -730,16 +731,26 @@ const saveProduct = async () => {
 
         <!-- Product -->
         <template #item.product="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <div class="text-capitalize text-high-emphasis text-body-1">
+          <div class="d-flex flex-column" style="max-width: 200px;width: 200px; white-space: normal;">
+            <div class="text-capitalize text-high-emphasis text-body-1" style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
               <RouterLink
                 :to="{ name: 'configuration-products-id', params: { id: item.product_id } }"
                 class="font-weight-medium text-link"
                 :title="item.product"
+                style="white-space: normal; word-break: break-word;"
               >
                 {{ item.product }}
               </RouterLink>
             </div>
+            <VChip
+              v-if="item.category"
+              size="small"
+              color="primary"
+              variant="tonal"
+              class="align-self-start"
+            >
+              {{ item.category }}
+            </VChip>
           </div>
         </template>
 

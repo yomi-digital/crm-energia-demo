@@ -924,16 +924,16 @@ const updateDateFromYearMonth = () => {
 
         <!-- 👉 Agent / Customer -->
         <template #item.user_id="{ item }">
-          <div class="d-flex flex-column gap-y-1">
+          <div class="d-flex flex-column ">
             <!-- Agente -->
-            <div class="d-flex align-center gap-x-1" style="font-size: 0.75rem;">
+            <div class="d-flex align-center " style="font-size: 0.75rem;">
               <VIcon
                 icon="tabler-user"
                 size="14"
                 color="primary"
                 style="opacity: 0.8;"
               />
-              <span class="text-high-emphasis text-body-1 text-capitalize" style="margin-top:-4px">
+              <span class="text-high-emphasis text-body-1 text-capitalize">
                 <RouterLink
                   v-if="item.user && $can('view', 'users')"
                   :to="{ name: 'admin-users-id', params: { id: item.user.id } }"
@@ -948,14 +948,14 @@ const updateDateFromYearMonth = () => {
               </span>
             </div>
             <!-- Cliente -->
-            <div class="d-flex align-center gap-x-1" style="font-size: 0.7rem; opacity: 0.8;">
+            <div class="d-flex align-center " style="font-size: 0.7rem; opacity: 0.8;">
               <VIcon
                 icon="tabler-user-circle"
                 size="12"
                 color="secondary"
                 style="opacity: 0.8;"
               />
-              <span class="text-high-emphasis text-body-1 text-capitalize" style="margin-top: -4px;">
+              <span class="text-high-emphasis text-body-1 text-capitalize">
                 <RouterLink
                   v-if="item.customer?.id"
                   :to="{ name: 'workflow-customers-id', params: { id: item.customer.id } }"
@@ -1010,9 +1010,11 @@ const updateDateFromYearMonth = () => {
 
         <!-- 👉 Prodotto -->
         <template #item.product_id="{ item }">
-          <div class="d-flex flex-column gap-y-1">
-            <div class="text-high-emphasis text-body-1" style="font-size: 0.75rem;">
-              {{ item.product?.name }}
+          <div class="d-flex flex-column">
+            <div class="text-high-emphasis text-body-1" style="font-size: 0.75rem; text-wrap: wrap; width: 200px; padding: 0 !important;">
+              <span style="white-space: normal; max-width: 200px; min-width: 200px;">
+                {{ item.product?.name }}
+              </span>
             </div>
             <VChip
               v-if="item.category"
@@ -1041,13 +1043,14 @@ const updateDateFromYearMonth = () => {
           <div class="d-flex flex-column gap-y-1">
             <div class="d-flex align-center gap-x-2">
               <StatusChip 
-                :status="item.partner_outcome" 
+              v-if="item.partner_outcome"
+              :status="item.partner_outcome" 
                 size="small"
                 fallback-style="text"
                 class="compact-chip"
               />
             </div>
-            <div class="d-flex align-center gap-x-1" style="font-size: 0.7rem;">
+            <div class="d-flex" style="font-size: 0.7rem;">
               <VIcon 
                 v-if="item.partner_outcome_at"
                 icon="tabler-calendar"
@@ -1055,7 +1058,7 @@ const updateDateFromYearMonth = () => {
                 color="error"
                 style="opacity: 0.8;"
               />
-              <span class="text-high-emphasis text-body-1" style="margin-top: -2px;">
+              <span class="text-high-emphasis text-body-1">
                 {{ item.partner_outcome_at ? new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(item.partner_outcome_at)) : 'N/A' }}
               </span>
             </div>

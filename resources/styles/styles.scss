@@ -91,6 +91,7 @@
  .v-table .text-body-1
  {
 height: 24px !important;
+min-height: fit-content !important;
 padding: 4px !important;
 font-size: 13px !important;
 }
@@ -113,4 +114,9 @@ font-size: 13px !important;
 .v-table:deep(.v-selection-control-group__input) {
   width: 16px !important;
   height: 16px !important;
+}
+
+
+.v-data-table table thead tr th:first-child:has(.v-checkbox-btn), .v-data-table table thead tr td:first-child:has(.v-checkbox-btn), .v-data-table table tbody tr th:first-child:has(.v-checkbox-btn), .v-data-table table tbody tr td:first-child:has(.v-checkbox-btn), .v-table table thead tr th:first-child:has(.v-checkbox-btn), .v-table table thead tr td:first-child:has(.v-checkbox-btn), .v-table table tbody tr th:first-child:has(.v-checkbox-btn), .v-table table tbody tr td:first-child:has(.v-checkbox-btn){
+  padding-left:4px!important;
 }
