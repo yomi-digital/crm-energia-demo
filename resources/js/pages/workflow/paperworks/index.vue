@@ -1251,7 +1251,7 @@ const updateDateFromYearMonth = () => {
   height: 14px !important;
 }
 .compact-table .text-high-emphasis.text-body-1,.compact-table .v-data-table-header__content{
-  font-size: 13px !important;
+  font-size: 12.5px !important;
   text-transform: capitalize !important;
 }
 .compact-table .v-btn--size-small{
