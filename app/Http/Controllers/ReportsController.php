@@ -177,6 +177,10 @@ class ReportsController extends Controller
             $paperworks = $paperworks->where('product_id', $request->get('product_id'));
         }
 
+        if ($request->filled('agency_id')) {
+            $paperworks = $paperworks->where('mandate_id', $request->get('agency_id'));
+        }
+
         if ($request->filled('status')) {
             $paperworks = $paperworks->where('partner_outcome', $request->get('status'));
         }
