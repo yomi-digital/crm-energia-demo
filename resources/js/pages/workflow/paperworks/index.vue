@@ -312,6 +312,10 @@ onMounted(async () => {
   if (route.query.date_from || route.query.date_to || route.query.user_id || route.query.customer_id) {
     await fetchPaperworks()
   }
+  // Carica gli agenti per il dialog di modifica se l'utente è admin
+  if (isAdmin) {
+    await fetchAgentsForEdit()
+  }
   startPolling()
 })
 
@@ -388,6 +392,19 @@ const fetchAgents = async () => {
 }
 if (useAbility().can('view', 'users')) {
   fetchAgents()
+}
+
+// Agenti per il dialog di modifica (include structures, gestione, backoffice)
+const agentsForEdit = ref([])
+const fetchAgentsForEdit = async () => {
+  agentsForEdit.value = []
+  const response = await $api('/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1&backoffice=1')
+  for (let i = 0; i < response.agents.length; i++) {
+    agentsForEdit.value.push({
+      title: [response.agents[i].name, response.agents[i].last_name].join(' '),
+      value: response.agents[i].id,
+    })
+  }
 }
 
 const customers = ref([])
@@ -1068,7 +1085,7 @@ const updateDateFromYearMonth = () => {
 
         <!-- 👉 Actions -->
         <template #item.actions="{ item }">
-          <div class="d-flex align-center gap-x-2">
+          <div class="d-flex flex-column gap-y-1">
             <VBtn
               v-if="!isAgent"
               size="small"
@@ -1156,6 +1173,7 @@ const updateDateFromYearMonth = () => {
       v-if="selectedPaperworkForAgentEdit"
       :isDialogVisible="isEditAgentDialogVisible"
       :paperworkData="selectedPaperworkForAgentEdit"
+      :agents="agentsForEdit"
       @update:isDialogVisible="isEditAgentDialogVisible = $event"
       @agent-updated="handleAgentUpdated"
     />
@@ -1249,7 +1267,7 @@ const updateDateFromYearMonth = () => {
  .compact-table > .v-table__wrapper > table > tfoot > tr > th
  {
 height: 24px !important;
-padding: 8px !important;
+padding: 4px !important;
 font-size: 13px !important;
 }
 

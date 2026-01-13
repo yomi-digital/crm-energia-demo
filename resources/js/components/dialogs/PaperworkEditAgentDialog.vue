@@ -8,6 +8,10 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  agents: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emit = defineEmits([
@@ -17,35 +21,12 @@ const emit = defineEmits([
 
 const selectedAgent = ref(props.paperworkData?.user_id || null)
 const isSaving = ref(false)
-const agents = ref([])
-const isLoadingAgents = ref(false)
 
 watch(() => props.paperworkData, (newData) => {
   if (newData) {
     selectedAgent.value = newData.user_id || null
   }
 }, { immediate: true })
-
-watch(() => props.isDialogVisible, async (isVisible) => {
-  if (isVisible && agents.value.length === 0) {
-    await fetchAgents()
-  }
-})
-
-const fetchAgents = async () => {
-  isLoadingAgents.value = true
-  try {
-    const response = await $api('/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1&backoffice=1')
-    agents.value = response.agents.map(agent => ({
-      title: [agent.name, agent.last_name].join(' '),
-      value: agent.id,
-    }))
-  } catch (error) {
-    console.error('Errore durante il caricamento degli agenti:', error)
-  } finally {
-    isLoadingAgents.value = false
-  }
-}
 
 const closeDialog = () => {
   emit('update:isDialogVisible', false)
@@ -106,7 +87,6 @@ const saveAgent = async () => {
             item-value="value"
             placeholder="Seleziona un agente"
             clearable
-            :loading="isLoadingAgents"
           />
         </div>
 
