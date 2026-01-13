@@ -111,6 +111,11 @@ class UsersController extends Controller
             $scopeRoles[] = 'gestione';
         }
 
+        // Se backoffice=1 includiamo anche il ruolo "backoffice" tra i risultati
+        if ($request->get('backoffice') === '1') {
+            $scopeRoles[] = 'backoffice';
+        }
+
         $agents = \App\Models\User::where('enabled', 1)
             ->role($scopeRoles)
             ->orderBy('name', 'asc');
