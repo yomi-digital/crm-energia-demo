@@ -225,7 +225,7 @@
                             </div>
                             <div>
                                 <label class="field-label" for="installmentsMisto">Numero di rate finanziamento</label>
-                                <input type="number" id="installmentsMisto" :value="formData.paymentMisto?.installments || 120" @input="handlePagamentoMistoChange('installments', $event.target.value)" class="field-input" min="1"/>
+                                <input type="number" step="12" id="installmentsMisto" :value="formData.paymentMisto?.installments || 120" @input="handlePagamentoMistoChange('installments', $event.target.value)" class="field-input" min="12"/>
                             </div>
                         </div>
                         <p v-if="formData.paymentMisto?.primaRata + formData.paymentMisto?.secondaRata !== 80" class="error-text" style="margin-top:8px;">La somma delle prime due rate bonifico deve essere uguale a 80%.</p>
@@ -239,7 +239,7 @@
                         </div>
                         <div>
                             <label class="field-label" for="installments">Numero di rate</label>
-                            <input type="number" id="installments" :value="formData.installments" @input="handleFinanziamentoChange('installments', $event.target.value)" class="field-input" min="1"/>
+                            <input type="number" step="12"  id="installments" :value="formData.installments" @input="handleFinanziamentoChange('installments', $event.target.value)" class="field-input" min="12"/>
                         </div>
                     </div>
                      <div v-if="formData.paymentMethod && (formData.paymentMethod.toLowerCase().includes('bonifico') || formData.paymentMethod === 'Bonifico')" style="margin-top:12px;padding-top:12px;border-top:1px solid #e5e7eb;">

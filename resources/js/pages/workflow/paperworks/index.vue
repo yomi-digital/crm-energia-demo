@@ -154,7 +154,7 @@ let headers = [
     key: 'partner_sent_at',
   },
   {
-    title: 'Stato Ordine',
+    title: 'Stato',
     key: 'order_status',
   },
   {
