@@ -237,6 +237,11 @@ class AIController extends Controller
             $aiPaperwork->transfers_history = $transfersHistory;
         }
 
+        // Aggiorna l'agente (user_id) se fornito
+        if ($request->has('user_id') && $request->user_id) {
+            $aiPaperwork->user_id = $request->user_id;
+        }
+
         $aiPaperwork->save();
 
         return response()->json($aiPaperwork);
@@ -336,6 +341,11 @@ class AIController extends Controller
                 }
                 
                 $aiPaperwork->ai_extracted_paperwork = json_encode($paperworkData);
+            }
+            
+            // Aggiorna l'agente (user_id) se fornito nella request
+            if ($request->has('user_id') && $request->user_id) {
+                $aiPaperwork->user_id = $request->user_id;
             }
             
             // Salva l'AI paperwork aggiornato

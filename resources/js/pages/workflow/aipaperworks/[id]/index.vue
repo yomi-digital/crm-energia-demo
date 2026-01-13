@@ -93,6 +93,57 @@ const fetchMandates = async () => {
 // Fetch mandates on component mount
 await fetchMandates()
 
+// Agenti disponibili per cambiare l'agente della pratica AI
+const agents = ref([])
+const isLoadingAgents = ref(false)
+const selectedAgentId = ref(null)
+
+const fetchAgents = async (brandId = null) => {
+  isLoadingAgents.value = true
+  agents.value = []
+  try {
+    let url = '/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1&backoffice=1'
+    if (brandId) {
+      url += `&brand_id=${brandId}`
+    }
+    
+    const response = await $api(url)
+    agents.value = response.agents.map(agent => ({
+      title: [agent.name, agent.last_name].filter(Boolean).join(' '),
+      value: agent.id,
+    }))
+    
+    // Imposta l'agente corrente come selezionato
+    if (aiPaperwork.value?.user_id) {
+      selectedAgentId.value = aiPaperwork.value.user_id
+    }
+  } catch (error) {
+    console.error('Failed to load agents:', error)
+    agents.value = []
+  } finally {
+    isLoadingAgents.value = false
+  }
+}
+
+// Carica gli agenti solo quando l'elaborazione è completata (status 2) e quando cambia il brand
+watch(() => [aiPaperwork.value?.status, aiPaperwork.value?.brand_id], ([status, brandId]) => {
+  // Carica gli agenti solo se l'elaborazione è completata (status 2)
+  if (status === 2) {
+    if (brandId) {
+      fetchAgents(brandId)
+    } else {
+      fetchAgents()
+    }
+  }
+}, { immediate: true })
+
+// Watch per aggiornare l'agente selezionato quando cambia l'AI paperwork
+watch(() => aiPaperwork.value?.user_id, (userId) => {
+  if (userId) {
+    selectedAgentId.value = userId
+  }
+})
+
 const fetchAppointments = async (query) => {
   isLoadingAppointments.value = true
   try {
@@ -644,6 +695,7 @@ const saveModifications = async () => {
         ai_extracted_paperwork: extractedPaperwork.value,
         brand_id: extractedPaperwork.value.brand_id,
         mandate_id: extractedPaperwork.value.mandate_id,
+        user_id: selectedAgentId.value,
       }
     })
     // Show success message with reload on close
@@ -709,6 +761,7 @@ const confirmPaperwork = async () => {
         status: 5,
         mandate_id: extractedPaperwork.value.mandate_id,
         override_customer: overrideDuplicates.value || false,
+        user_id: selectedAgentId.value,
       }
     })
     // Update local status
@@ -840,7 +893,7 @@ onUnmounted(() => {
             <h2 class="text-h5 font-weight-medium">
               Dettaglio Pratica AI #{{ aiPaperwork?.id }}
               <template v-if="aiPaperwork?.user">
-                <span class="text-medium-emphasis">- Caricato da 
+                <span class="text-medium-emphasis">- Caricato a 
                   <RouterLink 
                     :to="`/users/${aiPaperwork.user.id}`"
                     class="text-decoration-none"
@@ -859,6 +912,24 @@ onUnmounted(() => {
           >
             {{ getStatusText(aiPaperwork?.status) }}
           </VChip>
+        </div>
+        
+        <!-- Selettore Agente - visibile solo quando l'elaborazione è completata (status 2) -->
+        <div 
+          v-if="aiPaperwork?.status === 2" 
+          class="mt-4 mb-4" 
+          style="max-width: 400px;"
+        >
+          <AppAutocomplete
+            v-model="selectedAgentId"
+            label="Agente"
+            :items="agents"
+            item-title="title"
+            item-value="value"
+            placeholder="Seleziona un agente"
+            :loading="isLoadingAgents"
+            :disabled="isSaving"
+          />
         </div>
         
         <!-- Transfer component per pratiche AI -->

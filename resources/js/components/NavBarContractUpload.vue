@@ -8,8 +8,11 @@ const isUploading = ref(false)
 const dropZoneRef = ref()
 const brands = ref([])
 const selectedBrand = ref(null)
+const agents = ref([])
+const selectedAgentId = ref(null)
 const searchBrand = ref()
 const isLoadingBrands = ref(false)
+const isLoadingAgents = ref(false)
 const alert = ref({
   show: false,
   type: 'success',
@@ -45,6 +48,29 @@ const fetchBrands = async (query = '') => {
   }
 }
 
+// Fetch agents filtrati per brand e ruoli (agente, struttura, gestione, backoffice)
+const fetchAgents = async (brandId = null) => {
+  isLoadingAgents.value = true
+  agents.value = []
+  try {
+    let url = '/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1&backoffice=1'
+    if (brandId) {
+      url += `&brand_id=${brandId}`
+    }
+
+    const response = await $api(url)
+    agents.value = response.agents.map(agent => ({
+      title: [agent.name, agent.last_name].filter(Boolean).join(' '),
+      value: agent.id,
+    }))
+  } catch (error) {
+    console.error('Failed to load agents:', error)
+    agents.value = []
+  } finally {
+    isLoadingAgents.value = false
+  }
+}
+
 // Watch for search input changes
 watch(searchBrand, (query) => {
   if (query && query !== selectedBrand.value) {
@@ -64,10 +90,21 @@ const closeDialog = () => {
   dialog.value = false
   alert.value.show = false
   selectedBrand.value = null
+  selectedAgentId.value = null
   searchBrand.value = ''
   // Ricarica tutti i brands quando si chiude il dialog
   fetchBrands()
 }
+
+// Quando cambia il brand, resetta l'agente e ricarica gli agenti per quel brand
+watch(selectedBrand, brandId => {
+  selectedAgentId.value = null
+  if (brandId) {
+    fetchAgents(brandId)
+  } else {
+    agents.value = []
+  }
+})
 
 const uploadContract = async (files) => {
   if (!files.length) return
@@ -81,6 +118,16 @@ const uploadContract = async (files) => {
     }
     return
   }
+
+  // Validazione agente obbligatorio (dopo aver selezionato il brand)
+  if (!selectedAgentId.value) {
+    alert.value = {
+      show: true,
+      type: 'warning',
+      message: 'Seleziona un agente prima di caricare il contratto',
+    }
+    return
+  }
   
   isUploading.value = true
   alert.value.show = false
@@ -88,6 +135,7 @@ const uploadContract = async (files) => {
   const formData = new FormData()
   formData.append('contract', files[0])
   formData.append('brand_id', selectedBrand.value)
+  formData.append('user_id', selectedAgentId.value)
   
   try {
     const response = await $api('/upload-contract', {
@@ -174,10 +222,25 @@ const uploadContract = async (files) => {
             required
           />
 
+          <AppAutocomplete
+            v-model="selectedAgentId"
+            label="Agente *"
+            :items="agents"
+            item-title="title"
+            item-value="value"
+            placeholder="Seleziona un agente"
+            :loading="isLoadingAgents"
+            :disabled="isUploading || !selectedBrand"
+            :error="!selectedAgentId && alert.show && alert.type === 'warning'"
+            class="mb-4"
+            clearable
+            required
+          />
+
           <DropZoneContracts
             @dropped="uploadContract"
             @error="(msg) => alert = { show: true, type: 'warning', message: msg }"
-            :disabled="isUploading"
+            :disabled="isUploading || !selectedBrand || !selectedAgentId"
             accept=".pdf"
             single-file
             ref="dropZoneRef"

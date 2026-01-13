@@ -13,6 +13,7 @@ class ContractUploadsController extends Controller
         $request->validate([
             'contract' => 'required|file|mimes:pdf|max:20480', // 20MB max
             'brand_id' => 'required|exists:brands,id',
+            'user_id' => 'nullable|exists:users,id',
         ]);
 
         try {
@@ -26,8 +27,9 @@ class ContractUploadsController extends Controller
             );
 
             // Create new AI Paperwork record
+            // Usa l'agente selezionato nel form, altrimenti fallback all'utente corrente
             $aiPaperwork = AIPaperwork::create([
-                'user_id' => auth()->id(),
+                'user_id' => $request->user_id ?? auth()->id(),
                 'brand_id' => $request->brand_id,
                 'filepath' => $path,
                 'original_filename' => basename($path),
