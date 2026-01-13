@@ -137,7 +137,7 @@ let headers = [
     key: 'order_code',
   },
   {
-    title: 'Account/POD/PDR',
+    title: 'POD/PDR',
     key: 'account_pod_pdr',
   },
   {
@@ -146,11 +146,11 @@ let headers = [
     sortable: false,
   },
   {
-    title: 'Data Creazione',
+    title: 'Creazione',
     key: 'created_at',
   },
   {
-    title: 'Data Invio',
+    title: 'Invio',
     key: 'partner_sent_at',
   },
   {
