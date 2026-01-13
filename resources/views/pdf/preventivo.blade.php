@@ -2747,9 +2747,30 @@
                         </p>
                         <ul style="font-size: 12px; margin: 0; padding-left: 20px;">
                             <li style="line-height: 1.0;"><strong>100%</strong> del contributo per l'iscrizione alla CER è dovuto alla firma dell'accordo.</li>
-                            <li style="line-height: 1.0;"><strong>30%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto all'ottenimento e accettazione del preventivo di connessione di E-Distribuzione.</li>
-                            <li style="line-height: 1.0;"><strong>50%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto all'ordine del materiale, prima della consegna del materiale in cantiere.</li>
-                            <li style="line-height: 1.0;"><strong>20%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto al completamento dell'installazione, al collaudo finale e prima del collegamento a ENEL.</li>
+                            @if(!empty($bonificoData) && !empty($finanziamentoData))
+                                {{-- Caso: Bonifico + Finanziamento --}}
+                                <li style="line-height: 1.0;"><strong>{{ number_format($bonificoData['first_rate'] ?? 30, 0) }}%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto all'ottenimento e accettazione del preventivo di connessione di E-Distribuzione.</li>
+                                <li style="line-height: 1.0;"><strong>{{ number_format($bonificoData['second_rate'] ?? 50, 0) }}%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto all'ordine del materiale, prima della consegna del materiale in cantiere.</li>
+                                <li style="line-height: 1.0;"><strong>{{ number_format($bonificoData['third_rate'] ?? 20, 0) }}%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto al completamento dell'installazione, al collaudo finale e prima del collegamento a ENEL.</li>
+                                @if(isset($finanziamentoData['rate_import']) && isset($finanziamentoData['number_of_rate']))
+                                    <li style="line-height: 1.0;">Finanziamento di <strong>{{ number_format($finanziamentoData['number_of_rate'], 0) }} rate</strong> da importo di <strong>€ {{ number_format($finanziamentoData['rate_import'], 2, ',', '.') }}</strong>.</li>
+                                @endif
+                            @elseif(!empty($bonificoData))
+                                {{-- Caso: Solo Bonifico --}}
+                                <li style="line-height: 1.0;"><strong>{{ number_format($bonificoData['first_rate'] ?? 30, 0) }}%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto all'ottenimento e accettazione del preventivo di connessione di E-Distribuzione.</li>
+                                <li style="line-height: 1.0;"><strong>{{ number_format($bonificoData['second_rate'] ?? 50, 0) }}%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto all'ordine del materiale, prima della consegna del materiale in cantiere.</li>
+                                <li style="line-height: 1.0;"><strong>{{ number_format($bonificoData['third_rate'] ?? 20, 0) }}%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto al completamento dell'installazione, al collaudo finale e prima del collegamento a ENEL.</li>
+                            @elseif(!empty($finanziamentoData))
+                                {{-- Caso: Solo Finanziamento --}}
+                                @if(isset($finanziamentoData['rate_import']) && isset($finanziamentoData['number_of_rate']))
+                                    <li style="line-height: 1.0;">Finanziamento di <strong>{{ number_format($finanziamentoData['number_of_rate'], 0) }} rate</strong> da importo di <strong>€ {{ number_format($finanziamentoData['rate_import'], 2, ',', '.') }}</strong>.</li>
+                                @endif
+                            @else
+                                {{-- Fallback: valori di default se non ci sono dati --}}
+                                <li style="line-height: 1.0;"><strong>30%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto all'ottenimento e accettazione del preventivo di connessione di E-Distribuzione.</li>
+                                <li style="line-height: 1.0;"><strong>50%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto all'ordine del materiale, prima della consegna del materiale in cantiere.</li>
+                                <li style="line-height: 1.0;"><strong>20%</strong> dell'importo totale dell'impianto fotovoltaico è dovuto al completamento dell'installazione, al collaudo finale e prima del collegamento a ENEL.</li>
+                            @endif
                         </ul>
                     </div>
                 </div>
