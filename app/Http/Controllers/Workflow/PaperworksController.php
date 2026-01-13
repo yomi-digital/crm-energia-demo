@@ -257,7 +257,7 @@ class PaperworksController extends Controller
                 'account_pod_pdr' => [
                     'nullable',
                     function ($attribute, $value, $fail) use ($request) {
-                        // POD obbligatorio solo per ENERGIA, non per TELEFONIA
+                        // POD obbligatorio solo per ENERGIA, non per TELEFONIA o Fotovoltaico
                         if ($request->type === 'ENERGIA' && $request->category !== 'ALLACCIO' && $request->energy_type !== 'MOBILE') {
                             // Controlla se il valore è vuoto, null o solo spazi
                             if (empty($value) || trim($value) === '') {
@@ -268,13 +268,18 @@ class PaperworksController extends Controller
                 ],
                 'annual_consumption' => 'nullable',
                 'contract_type' => 'required',
-                'category' => 'required',
+                'category' => 'required_if:type,ENERGIA,TELEFONIA',
                 'type' => 'required',
-                'energy_type' => 'required',
+                'energy_type' => 'required_if:type,ENERGIA,TELEFONIA',
                 'mobile_type' => 'required_if:energy_type,MOBILE|nullable',
                 'coverage' => 'nullable',
                 'previous_provider' => 'nullable',
                 'notes' => 'nullable',
+                'catasto' => 'nullable|string',
+                'foglio' => 'nullable|string',
+                'particella' => 'nullable|string',
+                'sub' => 'nullable|string',
+                'indirizzo_installazione' => 'nullable|string',
             ]);
             $fields = $request->only([
                 'customer_id',
@@ -291,6 +296,11 @@ class PaperworksController extends Controller
                 'coverage',
                 'previous_provider',
                 'notes',
+                'catasto',
+                'foglio',
+                'particella',
+                'sub',
+                'indirizzo_installazione',
             ]);
         }
         
@@ -304,7 +314,7 @@ class PaperworksController extends Controller
                 'account_pod_pdr' => [
                     'nullable',
                     function ($attribute, $value, $fail) use ($request) {
-                        // POD obbligatorio solo per ENERGIA, non per TELEFONIA
+                        // POD obbligatorio solo per ENERGIA, non per TELEFONIA o Fotovoltaico
                         if ($request->type === 'ENERGIA' && $request->category !== 'ALLACCIO' && $request->energy_type !== 'MOBILE') {
                             // Controlla se il valore è vuoto, null o solo spazi
                             if (empty($value) || trim($value) === '') {
@@ -315,13 +325,18 @@ class PaperworksController extends Controller
                 ],
                 'annual_consumption' => 'nullable',
                 'contract_type' => 'required',
-                'category' => 'required',
+                'category' => 'required_if:type,ENERGIA,TELEFONIA',
                 'type' => 'required',
-                'energy_type' => 'required',
+                'energy_type' => 'required_if:type,ENERGIA,TELEFONIA',
                 'mobile_type' => 'required_if:energy_type,MOBILE|nullable',
                 'coverage' => 'nullable',
                 'previous_provider' => 'nullable',
                 'notes' => 'nullable',
+                'catasto' => 'nullable|string',
+                'foglio' => 'nullable|string',
+                'particella' => 'nullable|string',
+                'sub' => 'nullable|string',
+                'indirizzo_installazione' => 'nullable|string',
             ]);
         }
         
@@ -421,7 +436,12 @@ class PaperworksController extends Controller
                     'coverage',
                     'previous_provider',
                     'notes',
-                    'owner_notes'
+                    'owner_notes',
+                    'catasto',
+                    'foglio',
+                    'particella',
+                    'sub',
+                    'indirizzo_installazione',
                 ];
                 
                 $dataToDuplicate = [];
@@ -453,6 +473,11 @@ class PaperworksController extends Controller
                         'coverage',
                         'previous_provider',
                         'notes',
+                        'catasto',
+                        'foglio',
+                        'particella',
+                        'sub',
+                        'indirizzo_installazione',
                     ];
                     
                     foreach ($agentFields as $field) {

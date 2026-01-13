@@ -40,6 +40,11 @@ class Paperwork extends Model
         'confirmed_at',
         'confirmed_by',
         'created_by',
+        'catasto',
+        'foglio',
+        'particella',
+        'sub',
+        'indirizzo_installazione',
     ];
 
     protected $casts = [

@@ -344,6 +344,43 @@ const downloadDocument = async doc => {
             </VCol>
           </VRow>
 
+          <!-- Sezione Dati Catastali per Fotovoltaico -->
+          <template v-if="paperworkData.type === 'Fotovoltaico'">
+            <VDivider />
+            <VCardText>
+              <h6 class="text-h6 mb-4">
+                Dati Catastali
+              </h6>
+              <VRow>
+                <VCol
+                  cols="12"
+                  md="6"
+                >
+                  <div class="text-body-1 mb-2">
+                    <span class="font-weight-medium">Catasto:</span> {{ paperworkData.catasto || 'N/A' }}
+                  </div>
+                  <div class="text-body-1 mb-2">
+                    <span class="font-weight-medium">Foglio:</span> {{ paperworkData.foglio || 'N/A' }}
+                  </div>
+                  <div class="text-body-1 mb-2">
+                    <span class="font-weight-medium">Particella:</span> {{ paperworkData.particella || 'N/A' }}
+                  </div>
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="6"
+                >
+                  <div class="text-body-1 mb-2">
+                    <span class="font-weight-medium">Sub:</span> {{ paperworkData.sub || 'N/A' }}
+                  </div>
+                  <div class="text-body-1 mb-2">
+                    <span class="font-weight-medium">Indirizzo di installazione:</span> {{ paperworkData.indirizzo_installazione || 'N/A' }}
+                  </div>
+                </VCol>
+              </VRow>
+            </VCardText>
+          </template>
+
           <VDivider />
 
           <VRow>

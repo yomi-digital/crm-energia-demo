@@ -103,7 +103,17 @@ const validateCustomerSelected = () => {
 const validatePaperworkType = () => {
   const paperworkType = createPaperworkData.value.paperworkType
   
-  // Validazione campi base
+  // Validazione per Fotovoltaico
+  if (paperworkType.type === 'Fotovoltaico') {
+    if (!paperworkType.user_type) {
+      isCurrentStepValid.value = false
+      return
+    }
+    isCurrentStepValid.value = true
+    return
+  }
+
+  // Validazione campi base per Energia e Telefonia
   if (!paperworkType.category ||
       !paperworkType.energy_type ||
       !paperworkType.type) {
@@ -190,6 +200,11 @@ const createPaperworkData = ref({
     previous_provider: null,
     account_pod_pdr: null,
     annual_consumption: null,
+    catasto: null,
+    foglio: null,
+    particella: null,
+    sub: null,
+    indirizzo_installazione: null,
   },
   product: {
     brand_id: null,
@@ -322,25 +337,40 @@ const onSubmit = async () => {
       }
     }
 
+    const requestBody = {
+      user_id: createPaperworkData.value.agent.id,
+      customer_id: createPaperworkData.value.customer.id.value,
+      appointment_id: createPaperworkData.value.customer.appointment_id,
+      product_id: createPaperworkData.value.product.product_id,
+      mandate_id: createPaperworkData.value.mandate.mandate_id,
+      notes: createPaperworkData.value.paperworkReviewComplete.notes,
+      contract_type: createPaperworkData.value.paperworkType.user_type,
+      category: createPaperworkData.value.paperworkType.category,
+      type: createPaperworkData.value.paperworkType.type,
+      energy_type: createPaperworkData.value.paperworkType.energy_type,
+      mobile_type: createPaperworkData.value.paperworkType.mobile_type,
+      previous_provider: createPaperworkData.value.paperworkType.previous_provider,
+      documents: uploadedDocuments,
+    }
+
+    // Aggiungi campi specifici per Energia/Telefonia
+    if (createPaperworkData.value.paperworkType.type !== 'Fotovoltaico') {
+      requestBody.account_pod_pdr = createPaperworkData.value.paperworkType.account_pod_pdr
+      requestBody.annual_consumption = createPaperworkData.value.paperworkType.annual_consumption
+    }
+
+    // Aggiungi campi specifici per Fotovoltaico
+    if (createPaperworkData.value.paperworkType.type === 'Fotovoltaico') {
+      requestBody.catasto = createPaperworkData.value.paperworkType.catasto
+      requestBody.foglio = createPaperworkData.value.paperworkType.foglio
+      requestBody.particella = createPaperworkData.value.paperworkType.particella
+      requestBody.sub = createPaperworkData.value.paperworkType.sub
+      requestBody.indirizzo_installazione = createPaperworkData.value.paperworkType.indirizzo_installazione
+    }
+
     const response = await $api('/paperworks', {
       method: 'POST',
-      body: {
-        user_id: createPaperworkData.value.agent.id,
-        customer_id: createPaperworkData.value.customer.id.value,
-        appointment_id: createPaperworkData.value.customer.appointment_id,
-        product_id: createPaperworkData.value.product.product_id,
-        mandate_id: createPaperworkData.value.mandate.mandate_id,
-        account_pod_pdr: createPaperworkData.value.paperworkType.account_pod_pdr,
-        annual_consumption: createPaperworkData.value.paperworkType.annual_consumption,
-        notes: createPaperworkData.value.paperworkReviewComplete.notes,
-        contract_type: createPaperworkData.value.paperworkType.user_type,
-        category: createPaperworkData.value.paperworkType.category,
-        type: createPaperworkData.value.paperworkType.type,
-        energy_type: createPaperworkData.value.paperworkType.energy_type,
-        mobile_type: createPaperworkData.value.paperworkType.mobile_type,
-        previous_provider: createPaperworkData.value.paperworkType.previous_provider,
-        documents: uploadedDocuments,
-      }
+      body: requestBody,
     })
 
     isPaperworkCreated.value = true
