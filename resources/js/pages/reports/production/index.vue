@@ -384,7 +384,7 @@ const fetchAgencies = async (query = '') => {
 
     const response = await $api('/agencies', {
       query: {
-        itemsPerPage: 100,
+        itemsPerPage: 10,
         q: query,
       },
     })
