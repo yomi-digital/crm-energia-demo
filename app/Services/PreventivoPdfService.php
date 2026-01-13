@@ -232,6 +232,7 @@ class PreventivoPdfService
         $pdf->setOption('isRemoteEnabled', true);
         $pdf->setOption('isHtml5ParserEnabled', true);
         $pdf->setOption('isFontSubsettingEnabled', true);
+        $pdf->setOption('image-dpi', 150); // DPI specifico per le immagini (migliora la qualità senza influenzare layout)
 
         // Genera il contenuto PDF
         $pdfContent = $pdf->output();
@@ -272,6 +273,7 @@ class PreventivoPdfService
         $pdf->setOption('isRemoteEnabled', true);
         $pdf->setOption('isHtml5ParserEnabled', true);
         $pdf->setOption('isFontSubsettingEnabled', true);
+        $pdf->setOption('image-dpi', 150); // DPI specifico per le immagini (migliora la qualità senza influenzare layout)
 
         // Pulisci i file temporanei dopo la generazione del PDF
         // Nota: questo viene chiamato dopo che il PDF è stato generato dall'utente

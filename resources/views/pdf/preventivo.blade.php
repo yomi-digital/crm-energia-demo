@@ -2493,8 +2493,8 @@
                 <div style="width:70mm; height:80mm; position: absolute; top: 10mm; left: 55mm; background-image: url('{{ public_path('images/pdf/Contatore-min.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
 
                 </div>
-                <div style="width:65mm; height:60mm; position: absolute; top: 10mm; right: 50mm; background-image: url('{{ public_path('images/pdf/Sopralluogo_gratuito.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
-
+                <div style="width:65mm; height:60mm; position: absolute; top: 10mm; right: 50mm; display: flex; align-items: center; justify-content: center;">
+                    <img src="{{ public_path('images/pdf/Sopralluogo_gratuito.png') }}" style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain;" alt="Sopralluogo gratuito">
                 </div>
 
             </div>
