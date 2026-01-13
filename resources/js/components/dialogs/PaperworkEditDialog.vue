@@ -94,6 +94,26 @@ const statuses = ref([
   { title: 'INVIATO', value: 'INVIATO' },
 ])
 
+// Agenti disponibili per riassegnare la pratica
+const agents = ref([])
+
+const fetchAgents = async () => {
+  agents.value = []
+  try {
+    // Stesso endpoint del wizard: include agenti, strutture, gestione e backoffice
+    const response = await $api('/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1&backoffice=1')
+    agents.value = response.agents.map(agent => ({
+      title: [agent.name, agent.last_name].filter(Boolean).join(' '),
+      value: agent.id,
+    }))
+  } catch (error) {
+    console.error('Failed to load agents:', error)
+    agents.value = []
+  }
+}
+
+await fetchAgents()
+
 const mandates = ref([]);
 const { data: mandatesData, execute: fetchMandates } = await useApi('/mandates');
 mandates.value = mandatesData.value.mandates.map(mandate => ({
@@ -164,6 +184,21 @@ watch(() => paperworkDataClone.value.type, () => {
           @submit.prevent="onFormSubmit"
         >
           <VRow>
+            <!-- Selettore Agente -->
+            <VCol
+              cols="12"
+              sm="6"
+            >
+              <AppAutocomplete
+                v-model="paperworkDataClone.user_id"
+                label="Agente"
+                :items="agents"
+                item-title="title"
+                item-value="value"
+                placeholder="Seleziona un agente"
+              />
+            </VCol>
+
             <VCol
               cols="12"
               sm="12"
