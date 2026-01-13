@@ -10,9 +10,9 @@ definePage({
 
 const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
-const canCreateBrandFolder = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
-const canDeleteFolders = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
-const canCreateFolders = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione')
+const canCreateBrandFolder = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione' || role.name === 'backoffice')
+const canDeleteFolders = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione' || role.name === 'backoffice')
+const canCreateFolders = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'amministrazione' || role.name === 'backoffice')
 
 // 👉 Store
 const searchQuery = ref('')

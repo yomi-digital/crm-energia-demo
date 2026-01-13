@@ -76,6 +76,9 @@ const typeOptions = [
   {
     name: 'ENERGIA',
   },
+  {
+    name: 'EFFICIENZA ENERGETICA',
+  },
 ]
 
 const agents = ref([])
