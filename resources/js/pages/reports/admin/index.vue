@@ -20,6 +20,7 @@ const selectedBrand = ref('')
 const selectedProduct = ref('')
 const selectedStatus = ref('')
 const selectedCategory = ref('')
+const selectedAgency = ref('')
 // const selectedMandate = ref('')
 
 const router = useRouter()
@@ -44,6 +45,11 @@ const headers = [
   {
     title: 'Struttura',
     key: 'parent',
+    sortable: false,
+  },
+  {
+    title: 'Agenzia',
+    key: 'agency',
     sortable: false,
   },
   {
@@ -132,6 +138,7 @@ const {
     product_id: selectedProduct,
     status: selectedStatus,
     category: selectedCategory,
+    agency_id: selectedAgency,
   },
 }))
 
@@ -153,6 +160,7 @@ const exportReport = async () => {
         product_id: selectedProduct.value,
         status: selectedStatus.value,
         category: selectedCategory.value,
+        agency_id: selectedAgency.value,
       },
       responseType: 'blob'
     })
@@ -192,6 +200,13 @@ const products = ref([
 ])
 
 const brands = ref([
+  {
+    title: 'Tutti',
+    value: '',
+  },
+])
+
+const agencies = ref([
   {
     title: 'Tutti',
     value: '',
@@ -286,6 +301,17 @@ const fetchProducts = async (query) => {
 }
 fetchProducts()
 
+const fetchAgencies = async (query) => {
+  const response = await $api('/agencies?itemsPerPage=999999&select=1')
+  for (const agency of response.agencies) {
+    agencies.value.push({
+      title: agency.name,
+      value: agency.id,
+    })
+  }
+}
+fetchAgencies()
+
 
 const saveReport = async () => {
   const data = await $api(`/reports/admin`, {
@@ -302,6 +328,7 @@ const saveReport = async () => {
       user_id: selectedUser.value,
       brand_id: selectedBrand.value,
       product_id: selectedProduct.value,
+      agency_id: selectedAgency.value,
     },
   })
   // Redirect to the saved report
@@ -352,6 +379,16 @@ const saveReport = async () => {
               clearable
               :items="products"
               placeholder="Seleziona un Prodotto"
+            />
+          </VCol>
+
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedAgency"
+              label="Filtra per Agenzia"
+              clearable
+              :items="agencies"
+              placeholder="Seleziona un'Agenzia"
             />
           </VCol>
 
@@ -519,6 +556,15 @@ const saveReport = async () => {
               <span v-else>
                 {{ item.parent || 'N/A' }}
               </span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Agenzia -->
+        <template #item.agency="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              {{ item.agency || 'N/A' }}
             </div>
           </div>
         </template>
