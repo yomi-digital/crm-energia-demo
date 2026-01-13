@@ -142,7 +142,7 @@ const statuses = [
   { title: 'Disabilitato', value: '0' },
 ]
 const fetchBrands = async (query) => {
-  const response = await $api('/brands?itemsPerPage=999999&select=1')
+  const response = await $api('/brands?itemsPerPage=999999&select=1&enabled=1')
   for (const brand of response.brands) {
     brands.push({
       title: brand.name,
