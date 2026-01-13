@@ -36,7 +36,7 @@ watch(props.ptype, () => {
 const brands = ref([])
 
 const fetchBrands = async (query) => {
-  const response = await $api(`/brands/personal?itemsPerPage=999999&with=products&product_details=1&type=${props.ptype.user_type}&category=${props.ptype.type}&agent=${props.agent}`)
+  const response = await $api(`/brands/personal?itemsPerPage=999999&with=products&product_details=1&type=${props.ptype.user_type}&category=${props.ptype.type}&agent=${props.agent}&enabled=1`)
   brands.value = response.brands
 }
 await fetchBrands('')
