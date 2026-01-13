@@ -2,3 +2,115 @@
 .flatpickr-current-month .flatpickr-monthDropdown-months span, .flatpickr-current-month .numInputWrapper span{
     display: inline-block !important;
 }
+
+
+.tabler-loader,
+.tabler-fidget-spinner,
+.tabler-loader-3,
+.tabler-loader-quarter,
+.tabler-refresh-dot,
+.tabler-reload,
+.tabler-loader-2 {
+  animation: spin-animation .8s infinite;
+}
+
+@keyframes spin-animation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(359deg);
+  }
+}
+
+/* Stili per compattare la tabella pratiche */
+.v-table:deep(.v-data-table__thead th) {
+  font-size: 0.75rem !important;
+  padding: 8px 12px !important;
+  line-height: 1.2 !important;
+}
+
+.v-table:deep(.v-data-table__tbody td) {
+  font-size: 0.75rem !important;
+  padding: 6px 12px !important;
+  line-height: 1.2 !important;
+}
+
+.v-table:deep(.v-data-table__tbody .text-body-1),
+.v-table:deep(.v-data-table__tbody .text-high-emphasis) {
+  font-size: 0.75rem !important;
+  line-height: 1.2 !important;
+}
+
+.v-table:deep(.v-chip),
+.v-table:deep(.compact-chip) {
+  font-size: 0.7rem !important;
+  height: 20px !important;
+  min-width: auto !important;
+  padding: 0 6px !important;
+}
+
+.v-table:deep(.compact-chip .v-chip__content) {
+  font-size: 0.7rem !important;
+  line-height: 1.2 !important;
+}
+
+.v-table:deep(.v-btn.compact-btn) {
+  font-size: 0.7rem !important;
+  min-width: auto !important;
+  padding: 4px 8px !important;
+  height: 24px !important;
+}
+
+.v-table:deep(.v-btn.compact-btn .v-btn__content) {
+  font-size: 0.7rem !important;
+  line-height: 1.2 !important;
+}
+
+.v-table:deep(.v-btn .v-icon),
+.v-table:deep(.v-btn.compact-btn .v-icon) {
+  font-size: 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+}
+.v-table.text-high-emphasis.text-body-1,.v-table.v-data-table-header__content{
+  font-size: 12.5px !important;
+  text-transform: capitalize !important;
+}
+.v-table.v-btn--size-small{
+  height: 22px !important;
+  padding: 0 5px !important;
+  font-size: 11px !important;
+}
+.v-table> .v-table__wrapper > table > tbody > tr > td, 
+.v-table> .v-table__wrapper > table > thead > tr > td,
+ .v-table> .v-table__wrapper > table > tfoot > tr > td,
+ .v-table> .v-table__wrapper > table > tbody > tr > th,
+ .v-table> .v-table__wrapper > table > thead > tr > th,
+ .v-table> .v-table__wrapper > table > tfoot > tr > th,
+ .v-table .text-body-1
+ {
+height: 24px !important;
+padding: 4px !important;
+font-size: 13px !important;
+}
+
+/* Riduci dimensione checkbox per v-table*/
+.v-table:deep(.v-checkbox-btn),
+.v-table:deep(.v-selection-control-group) {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.v-table:deep(.v-checkbox-btn .v-icon),
+.v-table:deep(.v-selection-control-group .v-icon) {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.v-table:deep(.v-checkbox-btn__overlay),
+.v-table:deep(.v-selection-control-group__input) {
+  width: 16px !important;
+  height: 16px !important;
+}
