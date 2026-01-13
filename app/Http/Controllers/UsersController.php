@@ -137,6 +137,23 @@ class UsersController extends Controller
             $agents = $agents->whereIn('id', $ids);
         }
 
+        // Filtro per brand: mostra solo agenti che hanno quel brand assegnato
+        // ECCEZIONE: i gestione (e altri ruoli admin) hanno accesso a tutti i brand,
+        // quindi vengono sempre inclusi anche se non hanno il brand nella pivot brands_users
+        if ($request->filled('brand_id')) {
+            $brandId = $request->get('brand_id');
+            $agents = $agents->where(function ($query) use ($brandId) {
+                // Include agenti che hanno il brand assegnato nella pivot
+                $query->whereHas('brands', function ($q) use ($brandId) {
+                    $q->where('brands.id', $brandId);
+                })
+                // OPPURE include gestione/amministrazione che hanno accesso a tutti i brand
+                ->orWhereHas('roles', function ($q) {
+                    $q->whereIn('name', ['gestione', 'amministrazione']);
+                });
+            });
+        }
+
         return response()->json(['agents' => $agents->get()]);
     }
 

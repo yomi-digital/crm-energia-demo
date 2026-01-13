@@ -96,12 +96,19 @@ const statuses = ref([
 
 // Agenti disponibili per riassegnare la pratica
 const agents = ref([])
+const isLoadingAgents = ref(false)
 
-const fetchAgents = async () => {
+const fetchAgents = async (brandId = null) => {
+  isLoadingAgents.value = true
   agents.value = []
   try {
-    // Stesso endpoint del wizard: include agenti, strutture, gestione e backoffice
-    const response = await $api('/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1&backoffice=1')
+    // Costruisci l'URL con il filtro brand_id se disponibile
+    let url = '/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1&backoffice=1'
+    if (brandId) {
+      url += `&brand_id=${brandId}`
+    }
+    
+    const response = await $api(url)
     agents.value = response.agents.map(agent => ({
       title: [agent.name, agent.last_name].filter(Boolean).join(' '),
       value: agent.id,
@@ -109,10 +116,43 @@ const fetchAgents = async () => {
   } catch (error) {
     console.error('Failed to load agents:', error)
     agents.value = []
+  } finally {
+    isLoadingAgents.value = false
   }
 }
 
-await fetchAgents()
+// Carica gli agenti all'apertura del dialogo, filtrati per il brand della pratica
+watch(() => props.isDialogVisible, (isVisible) => {
+  if (isVisible) {
+    const brandId = props.paperworkData?.product?.brand_id
+    fetchAgents(brandId)
+  }
+})
+
+// Ricarica gli agenti quando cambia il prodotto (e quindi il brand)
+watch(() => paperworkDataClone.value.product_id, async (newProductId) => {
+  if (newProductId && props.isDialogVisible) {
+    // Carica il prodotto per ottenere il brand_id
+    try {
+      const productResponse = await $api(`/products/${newProductId}`)
+      const brandId = productResponse.product?.brand_id
+      if (brandId) {
+        await fetchAgents(brandId)
+        // Se l'agente corrente non ha più il brand, resetta la selezione
+        const currentAgentId = paperworkDataClone.value.user_id
+        const agentHasBrand = agents.value.some(agent => agent.value === currentAgentId)
+        if (currentAgentId && !agentHasBrand) {
+          paperworkDataClone.value.user_id = null
+        }
+      } else {
+        await fetchAgents() // Nessun brand, carica tutti gli agenti
+      }
+    } catch (error) {
+      console.error('Failed to load product:', error)
+      await fetchAgents() // In caso di errore, carica tutti gli agenti
+    }
+  }
+})
 
 const mandates = ref([]);
 const { data: mandatesData, execute: fetchMandates } = await useApi('/mandates');
@@ -196,6 +236,8 @@ watch(() => paperworkDataClone.value.type, () => {
                 item-title="title"
                 item-value="value"
                 placeholder="Seleziona un agente"
+                :loading="isLoadingAgents"
+                :disabled="isLoadingAgents"
               />
             </VCol>
 
