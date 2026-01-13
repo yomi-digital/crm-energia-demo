@@ -20,7 +20,7 @@ const agents = ref([])
 
 const fetchAgents = async () => {
   agents.value = []
-  const response = await $api('/agents?itemsPerPage=99999999&select=1&structures=1')
+  const response = await $api('/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1')
   for (let i = 0; i < response.agents.length; i++) {
     agents.value.push({
       title: [response.agents[i].name, response.agents[i].last_name].join(' '),

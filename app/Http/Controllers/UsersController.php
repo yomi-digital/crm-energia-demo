@@ -103,9 +103,12 @@ class UsersController extends Controller
 
     public function agents(Request $request)
     {
-        $scopeRoles = ['agente'];
-        $scopeRoles[] = 'struttura';
-        if ($request->get('structures') === '1') {
+        // Ruoli base: agenti e strutture
+        $scopeRoles = ['agente', 'struttura'];
+
+        // Se gestione=1 includiamo anche il ruolo "gestione" tra i risultati
+        if ($request->get('gestione') === '1') {
+            $scopeRoles[] = 'gestione';
         }
 
         $agents = \App\Models\User::where('enabled', 1)
