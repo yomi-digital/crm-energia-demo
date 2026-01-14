@@ -1,4 +1,5 @@
 <script setup>
+import PaperworkEditPartnerOutcomeDialog from '@/components/dialogs/PaperworkEditPartnerOutcomeDialog.vue'
 import PaperworkNotesDialog from '@/components/dialogs/PaperworkNotesDialog.vue'
 import StatusChip from '@/components/StatusChip.vue'
 import { nextTick, onMounted, onUnmounted } from 'vue'
@@ -141,8 +142,13 @@ let headers = [
     key: 'account_pod_pdr',
   },
   {
-    title: 'Agente / Cliente',
+    title: 'Agente',
     key: 'user_id',
+    sortable: false,
+  },
+  {
+    title: 'Cliente',
+    key: 'customer_id',
     sortable: false,
   },
   {
@@ -565,6 +571,20 @@ const handleAgentUpdated = () => {
   fetchPaperworks()
 }
 
+// Modal states per modifica esito partner
+const isEditPartnerOutcomeDialogVisible = ref(false)
+const selectedPaperworkForPartnerOutcomeEdit = ref(null)
+
+const showEditPartnerOutcomeDialog = (paperwork) => {
+  selectedPaperworkForPartnerOutcomeEdit.value = paperwork
+  isEditPartnerOutcomeDialogVisible.value = true
+}
+
+const handlePartnerOutcomeUpdated = () => {
+  // Ricarica i dati della tabella
+  fetchPaperworks()
+}
+
 const categories = ref([
   { title: 'ALLACCIO', value: 'ALLACCIO' },
   { title: 'OTP', value: 'OTP' },
@@ -922,58 +942,58 @@ const updateDateFromYearMonth = () => {
           </div>
         </template>
 
-        <!-- 👉 Agent / Customer -->
+        <!-- 👉 Agent -->
         <template #item.user_id="{ item }">
-          <div class="d-flex flex-column ">
-            <!-- Agente -->
-            <div class="d-flex align-center " style="font-size: 0.75rem;">
-              <VIcon
-                icon="tabler-user-circle"
-                size="18"
-                color="primary"
-              />
-              <span class="text-high-emphasis text-body-1 text-capitalize">
-                <RouterLink
-                  v-if="item.user && $can('view', 'users')"
-                  :to="{ name: 'admin-users-id', params: { id: item.user.id } }"
-                  class="font-weight-medium text-link"
-                  @click.stop
-                >
-                  {{ [item.user.name, item.user.last_name].join(' ') }}
-                </RouterLink>
-                <template v-else>
-                  {{ [item.user?.name, item.user?.last_name].join(' ') || 'N/A' }}
-                </template>
+          <div class="d-flex align-center" style="font-size: 0.75rem;">
+            <VIcon
+              icon="tabler-user-circle"
+              size="18"
+              color="primary"
+            />
+            <span class="text-high-emphasis text-body-1 text-capitalize">
+              <RouterLink
+                v-if="item.user && $can('view', 'users')"
+                :to="{ name: 'admin-users-id', params: { id: item.user.id } }"
+                class="font-weight-medium text-link"
+                @click.stop
+              >
+                {{ [item.user.name, item.user.last_name].join(' ') }}
+              </RouterLink>
+              <template v-else>
+                {{ [item.user?.name, item.user?.last_name].join(' ') || 'N/A' }}
+              </template>
+            </span>
+          </div>
+        </template>
+
+        <!-- 👉 Customer -->
+        <template #item.customer_id="{ item }">
+          <div class="d-flex align-center" style="font-size: 0.875rem;">
+            <VIcon
+              icon="tabler-user"
+              size="18"
+              color="primary"
+              style="margin-right: 3px;"
+            />
+            <span class="text-capitalize" style="color: rgb(var(--v-theme-on-surface)); font-weight: 500;">
+              <RouterLink
+                v-if="item.customer?.id"
+                :to="{ name: 'workflow-customers-id', params: { id: item.customer.id } }"
+                class="text-link"
+                style="color: rgb(var(--v-theme-on-surface)); font-weight: 400;"
+                :title="getCustomerName(item.customer)"
+                @click.stop
+              >
+                {{ getCustomerName(item.customer) }}
+              </RouterLink>
+              <span
+                v-else
+                style="color: rgb(var(--v-theme-on-surface)); font-weight: 400;"
+                :title="getCustomerName(item.customer)"
+              >
+                {{ getCustomerName(item.customer) }}
               </span>
-            </div>
-            <!-- Cliente -->
-            <div class="d-flex align-center " style="font-size: 0.875rem;">
-              <VIcon
-                icon="tabler-user"
-                size="18"
-                color="primary"
-                style="margin-right: 3px;"
-              />
-              <span class="text-capitalize" style="color: rgb(var(--v-theme-on-surface)); font-weight: 500;">
-                <RouterLink
-                  v-if="item.customer?.id"
-                  :to="{ name: 'workflow-customers-id', params: { id: item.customer.id } }"
-                  class="text-link"
-                  style="color: rgb(var(--v-theme-on-surface)); font-weight: 400;"
-                  :title="getCustomerName(item.customer)"
-                  @click.stop
-                >
-                  {{ getCustomerName(item.customer) }}
-                </RouterLink>
-                <span
-                  v-else
-                  style="color: rgb(var(--v-theme-on-surface)); font-weight: 400;"
-                  :title="getCustomerName(item.customer)"
-                >
-                  {{ getCustomerName(item.customer) }}
-                </span>
-              </span>
-            </div>
+            </span>
           </div>
         </template>
 
@@ -1010,8 +1030,8 @@ const updateDateFromYearMonth = () => {
 
         <!-- 👉 Prodotto -->
         <template #item.product_id="{ item }">
-          <div class="d-flex flex-column">
-            <div class="text-high-emphasis text-body-1" style="font-size: 0.75rem; text-wrap: wrap; width: 200px; padding: 0 !important;">
+          <div>
+            <div class="text-high-emphasis text-body-1" style="font-size: 0.75rem; height:fit-content !important;text-wrap: wrap; width: 200px; padding: 0 !important;">
               <span style="white-space: normal; max-width: 200px; min-width: 200px;">
                 {{ item.product?.name }}
               </span>
@@ -1087,7 +1107,7 @@ const updateDateFromYearMonth = () => {
 
         <!-- 👉 Actions -->
         <template #item.actions="{ item }">
-          <div class="d-flex flex-column gap-y-1">
+          <div class="d-flex align-center gap-x-1" style="flex-wrap: nowrap;">
             <VBtn
               v-if="!isAgent"
               size="small"
@@ -1123,6 +1143,18 @@ const updateDateFromYearMonth = () => {
               :title="`Modifica agente della pratica ${item?.id}`"
             >
               <VIcon icon="tabler-user-edit" size="16" />
+            </VBtn>
+
+            <VBtn
+              v-if="isAdmin"
+              size="small"
+              color="success"
+              variant="tonal"
+              class="compact-btn"
+              @click.stop="showEditPartnerOutcomeDialog(item)"
+              :title="`Modifica esito partner e data esito partner della pratica ${item?.id}`"
+            >
+              <VIcon icon="tabler-file-check" size="16" />
             </VBtn>
           </div>
         </template>
@@ -1178,6 +1210,15 @@ const updateDateFromYearMonth = () => {
       :agents="agentsForEdit"
       @update:isDialogVisible="isEditAgentDialogVisible = $event"
       @agent-updated="handleAgentUpdated"
+    />
+
+    <!-- 👉 Edit Partner Outcome Dialog -->
+    <PaperworkEditPartnerOutcomeDialog
+      v-if="selectedPaperworkForPartnerOutcomeEdit"
+      :isDialogVisible="isEditPartnerOutcomeDialogVisible"
+      :paperworkData="selectedPaperworkForPartnerOutcomeEdit"
+      @update:isDialogVisible="isEditPartnerOutcomeDialogVisible = $event"
+      @partner-outcome-updated="handlePartnerOutcomeUpdated"
     />
   </section>
 </template>
