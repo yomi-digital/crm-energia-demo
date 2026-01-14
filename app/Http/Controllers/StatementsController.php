@@ -36,9 +36,22 @@ class StatementsController extends Controller
 
         foreach ($brands->getCollection() as $brand) {
             // Need to get all paperworks within the timerange and status in ['Attivo', 'Storno'] with a product of this brand. The paperworks table doesn't have a brand_id, but it's connected through the products.
-            $paperworks = \App\Models\Paperwork::whereHas('product', function ($query) use ($brand) {
+            $paperworksQuery = \App\Models\Paperwork::whereHas('product', function ($query) use ($brand) {
                 $query->where('brand_id', $brand->id);
-            })->whereBetween('partner_outcome_at', [$request->get('from'), $request->get('to')])->whereIn('partner_outcome', ['ATTIVO', 'OK PAGABILE', 'STORNO'])->get();
+            })->whereBetween('partner_outcome_at', [$request->get('from'), $request->get('to')])->whereIn('partner_outcome', ['ATTIVO', 'OK PAGABILE', 'STORNO']);
+            
+            // Filtro per agente (user_id)
+            if ($request->filled('agent_id') || $request->filled('user_id')) {
+                $agentId = $request->get('agent_id') ?? $request->get('user_id');
+                $paperworksQuery = $paperworksQuery->where('user_id', $agentId);
+            }
+            
+            // Filtro per prodotto (product_id)
+            if ($request->filled('product_id')) {
+                $paperworksQuery = $paperworksQuery->where('product_id', $request->get('product_id'));
+            }
+            
+            $paperworks = $paperworksQuery->get();
 
             $brand->paperworks_count = count($paperworks);
 
