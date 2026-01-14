@@ -8,7 +8,9 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Address;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Report;
 
 class InvitoFatturareEmail extends Mailable
@@ -19,70 +21,18 @@ class InvitoFatturareEmail extends Mailable
     public $entries;
     public $totalCompenso;
     public $periodoRiferimento;
+    public $pdfPath;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(Report $report, $entries, $totalCompenso, $periodoRiferimento)
+    public function __construct(Report $report, $entries, $totalCompenso, $periodoRiferimento, $pdfPath)
     {
         $this->report = $report;
-        $this->entries = $this->prepareEntries($entries);
+        $this->entries = $entries; // Le entries sono già preparate dal controller
         $this->totalCompenso = $totalCompenso;
         $this->periodoRiferimento = $periodoRiferimento;
-    }
-
-    /**
-     * Prepara le entries con i dati del cliente e dell'account
-     */
-    private function prepareEntries($entries)
-    {
-        $preparedEntries = [];
-        
-        // Ottieni tutti gli ID dei paperwork per evitare query N+1
-        $paperworkIds = $entries->pluck('paperwork_id')->filter()->unique()->toArray();
-        
-        // Carica tutti i paperwork con i loro clienti in una sola query
-        $paperworks = \App\Models\Paperwork::with('customer')
-            ->whereIn('id', $paperworkIds)
-            ->get()
-            ->keyBy('id');
-        
-        foreach ($entries as $entry) {
-            $preparedEntry = [
-                'id' => $entry->id,
-                'customer' => 'N/A',
-                'account' => 'N/A',
-                'activated_at' => $entry->activated_at ?? 'N/A',
-                'product' => $entry->product ?? 'N/A',
-                'payout_confirmed' => $entry->payout_confirmed ?? 0,
-            ];
-            
-            if ($entry->paperwork_id && isset($paperworks[$entry->paperwork_id])) {
-                $paperwork = $paperworks[$entry->paperwork_id];
-                
-                // Cliente
-                if ($paperwork->customer) {
-                    if (!empty($paperwork->customer->business_name)) {
-                        $preparedEntry['customer'] = $paperwork->customer->business_name;
-                    } else if (!empty($paperwork->customer->name) && !empty($paperwork->customer->last_name)) {
-                        $preparedEntry['customer'] = implode(' ', array_filter([$paperwork->customer->name, $paperwork->customer->last_name]));
-                    } else if (!empty($paperwork->customer->name)) {
-                        $preparedEntry['customer'] = $paperwork->customer->name;
-                    } else if (!empty($paperwork->customer->last_name)) {
-                        $preparedEntry['customer'] = $paperwork->customer->last_name;
-                    }
-                }
-                
-                // Account POD/PDR
-                if ($paperwork->account_pod_pdr) {
-                    $preparedEntry['account'] = $paperwork->account_pod_pdr;
-                }
-            }
-            
-            $preparedEntries[] = (object) $preparedEntry;
-        }
-        
-        return $preparedEntries;
+        $this->pdfPath = $pdfPath;
     }
 
     /**
@@ -122,6 +72,19 @@ class InvitoFatturareEmail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        if (!$this->pdfPath || !Storage::disk('do')->exists($this->pdfPath)) {
+            return [];
+        }
+
+        // Genera il nome del file
+        $filename = 'Invito-a-Fatturare-' . $this->report->id . '.pdf';
+        
+        // Scarica il PDF da DigitalOcean Spaces quando viene allegato
+        return [
+            Attachment::fromData(
+                fn () => Storage::disk('do')->get($this->pdfPath),
+                $filename
+            )->withMime('application/pdf'),
+        ];
     }
 }

@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Traits\PaperworkTrait;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class ReportsController extends Controller
 {
@@ -130,7 +132,15 @@ class ReportsController extends Controller
         $entries = $entries->paginate($perPage);
 
         // Get total sum of payout_confirmed
-        $totalPayoutConfirmed = $entries->getCollection()->sum('payout_confirmed');
+        // Le pratiche con stato "STORNO" sono sottrattive
+        $totalPayoutConfirmed = $entries->getCollection()->sum(function ($entry) {
+            $payout = $entry->payout_confirmed ?? 0;
+            // Se lo status è STORNO, sottrai invece di sommare (usa valore assoluto)
+            if ($entry->status === 'STORNO') {
+                return -abs($payout);
+            }
+            return $payout;
+        });
 
         return response()->json([
             'report' => $report,
@@ -666,21 +676,58 @@ class ReportsController extends Controller
         $report->status = $request->get('status');
         $report->save();
 
-        // Se lo status è stato cambiato a "Confermato" (2), invia l'email
+        // Se lo status è stato cambiato a "Confermato" (2), genera PDF e invia email
         if ($oldStatus != 2 && $request->get('status') == 2) {
-            // Carica tutte le entries del report
+            // Carica tutte le entries del report con i dati necessari
             $entries = $report->entries()->get();
             
+            // Prepara le entries con i dati del cliente e dell'account
+            $preparedEntries = $this->prepareEntriesForPdf($entries);
+            
             // Calcola il totale compenso confermato
-            $totalCompenso = $entries->sum('payout_confirmed');
+            // Le pratiche con stato "STORNO" sono sottrattive
+            $totalCompenso = $entries->sum(function ($entry) {
+                $payout = $entry->payout_confirmed ?? 0;
+                // Se lo status è STORNO, sottrai invece di sommare (usa valore assoluto)
+                if ($entry->status === 'STORNO') {
+                    return -abs($payout);
+                }
+                return $payout;
+            });
             
             // Estrai il periodo di riferimento dal nome del report
             $periodoRiferimento = $this->extractPeriodoFromReportName($report->name);
             
-            // Invia l'email all'utente associato al report
+            // Genera il PDF
+            $pdf = Pdf::loadView('pdf.invito-fatturare', [
+                'report' => $report,
+                'entries' => $preparedEntries,
+                'totalCompenso' => $totalCompenso,
+                'periodoRiferimento' => $periodoRiferimento,
+            ]);
+            
+            $pdf->setPaper('a4', 'portrait');
+            $pdf->setOption('enable-local-file-access', true);
+            $pdf->setOption('isRemoteEnabled', true);
+            $pdf->setOption('isHtml5ParserEnabled', true);
+            
+            // Genera il contenuto PDF
+            $pdfContent = $pdf->output();
+            
+            // Genera percorso file: reports/invito-fatturare/report-[id_report].pdf
+            $filename = 'reports/invito-fatturare/report-' . $report->id . '.pdf';
+            
+            // Salva su DigitalOcean Spaces come file privato
+            Storage::disk('do')->put($filename, $pdfContent, 'private');
+            
+            // Aggiorna il report con il percorso del PDF
+            $report->pdf_uri = $filename;
+            $report->save();
+            
+            // Invia l'email all'utente associato al report con PDF allegato
             if ($report->user && $report->user->email) {
                 \Mail::to($report->user->email)->send(
-                    new \App\Mail\InvitoFatturareEmail($report, $entries, $totalCompenso, $periodoRiferimento)
+                    new \App\Mail\InvitoFatturareEmail($report, $preparedEntries, $totalCompenso, $periodoRiferimento, $filename)
                 );
             }
         }
@@ -716,6 +763,61 @@ class ReportsController extends Controller
         }
         
         return null;
+    }
+
+    /**
+     * Prepara le entries con i dati del cliente e dell'account per il PDF
+     */
+    private function prepareEntriesForPdf($entries)
+    {
+        $preparedEntries = [];
+        
+        // Ottieni tutti gli ID dei paperwork per evitare query N+1
+        $paperworkIds = $entries->pluck('paperwork_id')->filter()->unique()->toArray();
+        
+        // Carica tutti i paperwork con i loro clienti in una sola query
+        $paperworks = \App\Models\Paperwork::with('customer')
+            ->whereIn('id', $paperworkIds)
+            ->get()
+            ->keyBy('id');
+        
+        foreach ($entries as $entry) {
+            $preparedEntry = [
+                'id' => $entry->id,
+                'customer' => 'N/A',
+                'account' => 'N/A',
+                'activated_at' => $entry->activated_at ?? 'N/A',
+                'product' => $entry->product ?? 'N/A',
+                'payout_confirmed' => $entry->payout_confirmed ?? 0,
+                'status' => $entry->status ?? null,
+            ];
+            
+            if ($entry->paperwork_id && isset($paperworks[$entry->paperwork_id])) {
+                $paperwork = $paperworks[$entry->paperwork_id];
+                
+                // Cliente
+                if ($paperwork->customer) {
+                    if (!empty($paperwork->customer->business_name)) {
+                        $preparedEntry['customer'] = $paperwork->customer->business_name;
+                    } else if (!empty($paperwork->customer->name) && !empty($paperwork->customer->last_name)) {
+                        $preparedEntry['customer'] = implode(' ', array_filter([$paperwork->customer->name, $paperwork->customer->last_name]));
+                    } else if (!empty($paperwork->customer->name)) {
+                        $preparedEntry['customer'] = $paperwork->customer->name;
+                    } else if (!empty($paperwork->customer->last_name)) {
+                        $preparedEntry['customer'] = $paperwork->customer->last_name;
+                    }
+                }
+                
+                // Account POD/PDR
+                if ($paperwork->account_pod_pdr) {
+                    $preparedEntry['account'] = $paperwork->account_pod_pdr;
+                }
+            }
+            
+            $preparedEntries[] = (object) $preparedEntry;
+        }
+        
+        return $preparedEntries;
     }
 
     public function addEntry(Request $request, $id)

@@ -14,6 +14,7 @@ class Report extends Model
         'name',
         'user_id',
         'status',
+        'pdf_uri',
     ];
 
     public function user()
