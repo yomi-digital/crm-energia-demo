@@ -13,6 +13,7 @@ class Report extends Model
     protected $fillable = [
         'name',
         'user_id',
+        'status',
     ];
 
     public function user()

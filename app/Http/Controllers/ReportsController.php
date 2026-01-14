@@ -661,13 +661,61 @@ class ReportsController extends Controller
     public function update(Request $request, $id)
     {
         $report = \App\Models\Report::findOrFail($id);
+        $oldStatus = $report->status;
         $report->name = $request->get('name');
         $report->status = $request->get('status');
         $report->save();
 
+        // Se lo status è stato cambiato a "Confermato" (2), invia l'email
+        if ($oldStatus != 2 && $request->get('status') == 2) {
+            // Carica tutte le entries del report
+            $entries = $report->entries()->get();
+            
+            // Calcola il totale compenso confermato
+            $totalCompenso = $entries->sum('payout_confirmed');
+            
+            // Estrai il periodo di riferimento dal nome del report
+            $periodoRiferimento = $this->extractPeriodoFromReportName($report->name);
+            
+            // Invia l'email all'utente associato al report
+            if ($report->user && $report->user->email) {
+                \Mail::to($report->user->email)->send(
+                    new \App\Mail\InvitoFatturareEmail($report, $entries, $totalCompenso, $periodoRiferimento)
+                );
+            }
+        }
+
         return response()->json([
             'message' => 'Nome aggiornato con successo',
         ]);
+    }
+
+    /**
+     * Estrae il periodo di riferimento dal nome del report
+     * Esempio: "Report Amministrativo Mario Rossi 01/08/2025 - 30/09/2025" -> "01/08/2025 - 30/09/2025"
+     */
+    private function extractPeriodoFromReportName($name)
+    {
+        // Cerca pattern di date nel formato DD/MM/YYYY o YYYY-MM-DD
+        // Pattern per DD/MM/YYYY - DD/MM/YYYY
+        if (preg_match('/(\d{2}\/\d{2}\/\d{4})\s*-\s*(\d{2}\/\d{2}\/\d{4})/', $name, $matches)) {
+            return $matches[1] . ' - ' . $matches[2];
+        }
+        
+        // Pattern per YYYY-MM-DD - YYYY-MM-DD
+        if (preg_match('/(\d{4}-\d{2}-\d{2})\s*-\s*(\d{4}-\d{2}-\d{2})/', $name, $matches)) {
+            // Converti in formato DD/MM/YYYY
+            $from = \Carbon\Carbon::parse($matches[1])->format('d/m/Y');
+            $to = \Carbon\Carbon::parse($matches[2])->format('d/m/Y');
+            return $from . ' - ' . $to;
+        }
+        
+        // Pattern per una singola data YYYY-MM-DD
+        if (preg_match('/(\d{4}-\d{2}-\d{2})/', $name, $matches)) {
+            return \Carbon\Carbon::parse($matches[1])->format('d/m/Y');
+        }
+        
+        return null;
     }
 
     public function addEntry(Request $request, $id)
