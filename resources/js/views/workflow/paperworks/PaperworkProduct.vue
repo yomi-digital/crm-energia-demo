@@ -24,6 +24,15 @@ const selectedBrand = ref({})
 const hasBrandError = computed(() => !formData.value.brand_id)
 const hasProductError = computed(() => !formData.value.product_id)
 
+const getProductTitle = (product) => {
+  if (!product) return ''
+  if (product.price) {
+    const formattedPrice = product.price.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    return `${product.name} (€${formattedPrice})`
+  }
+  return product.name
+}
+
 watch(formData, () => {
   emit('update:formData', formData.value)
 })
@@ -91,7 +100,7 @@ watch(() => formData.value.product_id, () => {
           :disabled="!formData.brand_id"
           v-model="formData.product_id"
           label="Prodotto"
-          item-title="name"
+          :item-title="getProductTitle"
           item-value="id"
           :items="selectedBrand ? selectedBrand.products : []"
           placeholder="Seleziona un Prodotto"
