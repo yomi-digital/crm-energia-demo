@@ -13,6 +13,8 @@ const sortBy = ref()
 const orderBy = ref()
 
 const selectedBrand = ref('')
+const selectedAgent = ref('')
+const selectedProduct = ref('')
 
 const router = useRouter()
 
@@ -79,6 +81,8 @@ const {
     from: fromDate,
     to: toDate,
     brand_id: selectedBrand,
+    agent_id: selectedAgent,
+    product_id: selectedProduct,
   },
 }))
 
@@ -95,6 +99,8 @@ const exportStatement = async () => {
         to: toDate.value,
         export: 'csv',
         brand_id: selectedBrand.value,
+        agent_id: selectedAgent.value,
+        product_id: selectedProduct.value,
       },
       responseType: 'blob'
     })
@@ -136,6 +142,40 @@ const fetchBrands = async (query) => {
   }
 }
 fetchBrands()
+
+const agents = ref([
+  {
+    title: 'Tutti',
+    value: '',
+  },
+])
+const fetchAgents = async (query) => {
+  const response = await $api('/agents?itemsPerPage=999999&select=1')
+  for (const agent of response.agents) {
+    agents.value.push({
+      title: `${agent.name} ${agent.last_name}`.trim(),
+      value: agent.id,
+    })
+  }
+}
+fetchAgents()
+
+const products = ref([
+  {
+    title: 'Tutti',
+    value: '',
+  },
+])
+const fetchProducts = async (query) => {
+  const response = await $api('/products?itemsPerPage=999999&enabled=1')
+  for (const product of response.products) {
+    products.value.push({
+      title: product.name,
+      value: product.id,
+    })
+  }
+}
+fetchProducts()
 </script>
 
 <template>
@@ -159,6 +199,26 @@ fetchBrands()
               clearable
               :items="brands"
               placeholder="Seleziona una Brand"
+            />
+          </VCol>
+
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedAgent"
+              label="Filtra per Agente"
+              clearable
+              :items="agents"
+              placeholder="Seleziona un Agente"
+            />
+          </VCol>
+
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedProduct"
+              label="Filtra per Prodotto"
+              clearable
+              :items="products"
+              placeholder="Seleziona un Prodotto"
             />
           </VCol>
 
