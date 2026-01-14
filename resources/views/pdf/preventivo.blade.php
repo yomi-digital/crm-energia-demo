@@ -2732,9 +2732,27 @@
                 <div style="position: absolute; top: 47mm; left: 18mm;">
                     <h3 style="font-size: 13px; font-weight: bold;">MODALITÀ DI PAGAMENTO</h3>
                     <div style="margin-bottom: 2mm;">
-                        <p style="font-size: 12px; margin: 0; line-height: 1.4;">
-                            La modalità di pagamento accettata per i servizi è il <strong>Bonifico Bancario</strong>.
-                        </p>
+                        @if(!empty($bonificoData) && !empty($finanziamentoData))
+                            {{-- Caso: Bonifico + Finanziamento --}}
+                            <p style="font-size: 12px; margin: 0; line-height: 1.4;">
+                                Le modalità di pagamento accettate per i servizi sono il <strong>Bonifico Bancario</strong> e la <strong>Finanziaria</strong>.
+                            </p>
+                        @elseif(!empty($bonificoData))
+                            {{-- Caso: Solo Bonifico --}}
+                            <p style="font-size: 12px; margin: 0; line-height: 1.4;">
+                                La modalità di pagamento accettata per i servizi è il <strong>Bonifico Bancario</strong>.
+                            </p>
+                        @elseif(!empty($finanziamentoData))
+                            {{-- Caso: Solo Finanziamento --}}
+                            <p style="font-size: 12px; margin: 0; line-height: 1.4;">
+                                La modalità di pagamento accettata per i servizi è la <strong>Finanziaria</strong>.
+                            </p>
+                        @else
+                            {{-- Fallback: default Bonifico se non sono presenti dati strutturati --}}
+                            <p style="font-size: 12px; margin: 0; line-height: 1.4;">
+                                La modalità di pagamento accettata per i servizi è il <strong>Bonifico Bancario</strong>.
+                            </p>
+                        @endif
                     </div>
                 </div>
 
