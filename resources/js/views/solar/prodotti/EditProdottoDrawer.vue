@@ -29,6 +29,14 @@ const potenzaInverter = ref()
 const marca = ref()
 const linkSchedaProdottoTecnica = ref('')
 
+// Nuovi campi
+const quantitaInverter = ref()
+const marcaBatteria = ref()
+const potenzaBatteria = ref()
+const quantitaBatterie = ref()
+const quantitaPannelli = ref()
+const marcaPannelli = ref()
+
 const categorie = ref([])
 
 const loadCategorie = async () => {
@@ -47,12 +55,18 @@ const loadCategorie = async () => {
 fkCategoria.value = props.prodotto.fk_categoria
 codiceProdotto.value = props.prodotto.codice_prodotto
 descrizione.value = props.prodotto.descrizione
-potenzaKwp.value = props.prodotto.potenza_kwp
+potenzaKwp.value = props.prodotto.potenza_kwp_pannelli
 capacitaKwh.value = props.prodotto.capacita_kwh
 prezzoBase.value = props.prodotto.prezzo_base
 potenzaInverter.value = props.prodotto.potenza_inverter
-marca.value = props.prodotto.marca
+marca.value = props.prodotto.marca_inverter
 linkSchedaProdottoTecnica.value = props.prodotto.link_scheda_prodotto_tecnica || ''
+quantitaInverter.value = props.prodotto.quantita_inverter
+marcaBatteria.value = props.prodotto.marca_batteria
+potenzaBatteria.value = props.prodotto.potenza_batteria
+quantitaBatterie.value = props.prodotto.quantita_batterie
+quantitaPannelli.value = props.prodotto.quantita_pannelli
+marcaPannelli.value = props.prodotto.marca_pannelli
 
 watch(() => props.isDrawerOpen, (val) => {
   if (val) {
@@ -60,12 +74,18 @@ watch(() => props.isDrawerOpen, (val) => {
     fkCategoria.value = props.prodotto.fk_categoria
     codiceProdotto.value = props.prodotto.codice_prodotto
     descrizione.value = props.prodotto.descrizione
-    potenzaKwp.value = props.prodotto.potenza_kwp
+    potenzaKwp.value = props.prodotto.potenza_kwp_pannelli
     capacitaKwh.value = props.prodotto.capacita_kwh
     prezzoBase.value = props.prodotto.prezzo_base
     potenzaInverter.value = props.prodotto.potenza_inverter
-    marca.value = props.prodotto.marca
+    marca.value = props.prodotto.marca_inverter
     linkSchedaProdottoTecnica.value = props.prodotto.link_scheda_prodotto_tecnica || ''
+    quantitaInverter.value = props.prodotto.quantita_inverter
+    marcaBatteria.value = props.prodotto.marca_batteria
+    potenzaBatteria.value = props.prodotto.potenza_batteria
+    quantitaBatterie.value = props.prodotto.quantita_batterie
+    quantitaPannelli.value = props.prodotto.quantita_pannelli
+    marcaPannelli.value = props.prodotto.marca_pannelli
   }
 })
 
@@ -86,16 +106,35 @@ const onSubmit = () => {
         fk_categoria: parseInt(fkCategoria.value, 10),
         codice_prodotto: codiceProdotto.value,
         descrizione: descrizione.value,
-        potenza_kwp: potenzaKwp.value,
+        potenza_kwp_pannelli: potenzaKwp.value,
         capacita_kwh: capacitaKwh.value,
         prezzo_base: prezzoBase.value,
         potenza_inverter: potenzaInverter.value,
-        marca: marca.value,
+        marca_inverter: marca.value,
       }
       
       if (linkSchedaProdottoTecnica.value) {
         body.link_scheda_prodotto_tecnica = linkSchedaProdottoTecnica.value
       }
+
+      // Campi opzionali - solo se valorizzati (in edit li includiamo comunque se non undefined)
+      if (quantitaInverter.value !== undefined)
+        body.quantita_inverter = quantitaInverter.value
+
+      if (marcaBatteria.value !== undefined)
+        body.marca_batteria = marcaBatteria.value
+
+      if (potenzaBatteria.value !== undefined)
+        body.potenza_batteria = potenzaBatteria.value
+
+      if (quantitaBatterie.value !== undefined)
+        body.quantita_batterie = quantitaBatterie.value
+
+      if (quantitaPannelli.value !== undefined)
+        body.quantita_pannelli = quantitaPannelli.value
+
+      if (marcaPannelli.value !== undefined)
+        body.marca_pannelli = marcaPannelli.value
       
       emit('prodottoData', body)
       emit('update:isDrawerOpen', false)
@@ -170,17 +209,6 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
 
-              <!-- 👉 Potenza kWp -->
-              <VCol cols="12">
-                <AppTextField
-                  v-model="potenzaKwp"
-                  :rules="[requiredValidator]"
-                  label="Potenza kWp"
-                  placeholder="1000"
-                  type="number"
-                />
-              </VCol>
-
               <!-- 👉 Capacità kWh -->
               <VCol cols="12">
                 <AppTextField
@@ -203,6 +231,63 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
 
+              <!-- 👉 Link Scheda Prodotto Tecnica -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="linkSchedaProdottoTecnica"
+                  label="Link Scheda Prodotto Tecnica"
+                  placeholder="https://www.example.com"
+                />
+              </VCol>
+
+              <!-- Sezione Pannelli -->
+              <VCol cols="12">
+                <VDivider class="my-2" />
+                <div class="d-flex align-center gap-2 mb-2">
+                  <VIcon icon="tabler-solar-panel" size="20" />
+                  <span class="text-subtitle-2">Pannelli</span>
+                </div>
+              </VCol>
+
+              <!-- 👉 Potenza kWp pannelli -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="potenzaKwp"
+                  :rules="[requiredValidator]"
+                  label="Potenza kWp pannelli"
+                  placeholder="1000"
+                  type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Quantità Pannelli -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="quantitaPannelli"
+                  label="Quantità pannelli"
+                  placeholder="10"
+                  type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Marca Pannelli -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="marcaPannelli"
+                  label="Marca pannelli"
+                  placeholder="Marca pannelli"
+                />
+              </VCol>
+
+              <!-- Sezione Inverter -->
+              <VCol cols="12">
+                <VDivider class="my-2" />
+                <div class="d-flex align-center gap-2 mb-2">
+                  <VIcon icon="tabler-bolt" size="20" />
+                  <span class="text-subtitle-2">Inverter</span>
+                </div>
+              </VCol>
+
               <!-- 👉 Potenza Inverter -->
               <VCol cols="12">
                 <AppTextField
@@ -214,22 +299,61 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
 
-              <!-- 👉 Marca -->
+              <!-- 👉 Quantità Inverter -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="quantitaInverter"
+                  label="Quantità inverter"
+                  placeholder="1"
+                  type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Marca inverter -->
               <VCol cols="12">
                 <AppTextField
                   v-model="marca"
                   :rules="[requiredValidator]"
-                  label="Marca"
-                  placeholder="Marca"
+                  label="Marca inverter"
+                  placeholder="Marca inverter"
                 />
               </VCol>
 
-              <!-- 👉 Link Scheda Prodotto Tecnica -->
+              <!-- Sezione Batteria -->
+              <VCol cols="12">
+                <VDivider class="my-2" />
+                <div class="d-flex align-center gap-2 mb-2">
+                  <VIcon icon="tabler-battery" size="20" />
+                  <span class="text-subtitle-2">Batteria</span>
+                </div>
+              </VCol>
+
+              <!-- 👉 Potenza Batteria -->
               <VCol cols="12">
                 <AppTextField
-                  v-model="linkSchedaProdottoTecnica"
-                  label="Link Scheda Prodotto Tecnica"
-                  placeholder="https://www.example.com"
+                  v-model="potenzaBatteria"
+                  label="Potenza batteria (kWh)"
+                  placeholder="5"
+                  type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Quantità Batterie -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="quantitaBatterie"
+                  label="Quantità batterie"
+                  placeholder="1"
+                  type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Marca Batteria -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="marcaBatteria"
+                  label="Marca batteria"
+                  placeholder="Marca batteria"
                 />
               </VCol>
 

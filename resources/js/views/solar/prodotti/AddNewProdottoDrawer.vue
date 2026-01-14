@@ -25,6 +25,14 @@ const potenzaInverter = ref('')
 const marca = ref('')
 const linkSchedaProdottoTecnica = ref('')
 
+// Nuovi campi
+const quantitaInverter = ref('')
+const marcaBatteria = ref('')
+const potenzaBatteria = ref('')
+const quantitaBatterie = ref('')
+const quantitaPannelli = ref('')
+const marcaPannelli = ref('')
+
 const categorie = ref([])
 
 const loadCategorie = async () => {
@@ -55,24 +63,49 @@ const closeNavigationDrawer = () => {
   })
 }
 
-const onSubmit = () => {
+const onSubmit = (e) => {
+  if (e) {
+    e.preventDefault()
+  }
+  console.log('onSubmit chiamato')
   refForm.value?.validate().then(({ valid }) => {
+    console.log('Validazione form:', valid)
     if (valid) {
       const body = {
         fk_categoria: parseInt(fkCategoria.value, 10),
         codice_prodotto: codiceProdotto.value,
         descrizione: descrizione.value,
-        potenza_kwp: potenzaKwp.value,
+        potenza_kwp_pannelli: potenzaKwp.value,
         capacita_kwh: capacitaKwh.value,
         prezzo_base: prezzoBase.value,
         potenza_inverter: potenzaInverter.value,
-        marca: marca.value,
+        marca_inverter: marca.value,
       }
+
+      // Campi opzionali - solo se valorizzati
+      if (quantitaInverter.value !== '')
+        body.quantita_inverter = quantitaInverter.value
+
+      if (marcaBatteria.value)
+        body.marca_batteria = marcaBatteria.value
+
+      if (potenzaBatteria.value !== '')
+        body.potenza_batteria = potenzaBatteria.value
+
+      if (quantitaBatterie.value !== '')
+        body.quantita_batterie = quantitaBatterie.value
+
+      if (quantitaPannelli.value !== '')
+        body.quantita_pannelli = quantitaPannelli.value
+
+      if (marcaPannelli.value)
+        body.marca_pannelli = marcaPannelli.value
       
       if (linkSchedaProdottoTecnica.value) {
         body.link_scheda_prodotto_tecnica = linkSchedaProdottoTecnica.value
       }
       
+      console.log('Emitting prodottoData:', body)
       emit('prodottoData', body)
       emit('update:isDrawerOpen', false)
       nextTick(() => {
@@ -87,8 +120,18 @@ const onSubmit = () => {
         potenzaInverter.value = ''
         marca.value = ''
         linkSchedaProdottoTecnica.value = ''
+        quantitaInverter.value = ''
+        marcaBatteria.value = ''
+        potenzaBatteria.value = ''
+        quantitaBatterie.value = ''
+        quantitaPannelli.value = ''
+        marcaPannelli.value = ''
       })
+    } else {
+      console.log('Form non valido')
     }
+  }).catch(error => {
+    console.error('Errore nella validazione:', error)
   })
 }
 
@@ -121,7 +164,6 @@ const handleDrawerModelValueUpdate = val => {
           <VForm
             ref="refForm"
             v-model="isFormValid"
-            @submit.prevent="onSubmit"
           >
             <VRow>
               <!-- 👉 Categoria -->
@@ -155,17 +197,6 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
 
-              <!-- 👉 Potenza kWp -->
-              <VCol cols="12">
-                <AppTextField
-                  v-model="potenzaKwp"
-                  :rules="[requiredValidator]"
-                  label="Potenza kWp"
-                  placeholder="1000"
-                  type="number"
-                />
-              </VCol>
-
               <!-- 👉 Capacità kWh -->
               <VCol cols="12">
                 <AppTextField
@@ -188,6 +219,63 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
 
+              <!-- 👉 Link Scheda Prodotto Tecnica -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="linkSchedaProdottoTecnica"
+                  label="Link Scheda Prodotto Tecnica"
+                  placeholder="https://www.example.com"
+                />
+              </VCol>
+
+              <!-- Sezione Pannelli -->
+              <VCol cols="12">
+                <VDivider class="my-2" />
+                <div class="d-flex align-center gap-2 mb-2">
+                  <VIcon icon="tabler-solar-panel" size="20" />
+                  <span class="text-subtitle-2">Pannelli</span>
+                </div>
+              </VCol>
+
+              <!-- 👉 Potenza kWp pannelli -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="potenzaKwp"
+                  :rules="[requiredValidator]"
+                  label="Potenza kWp pannelli"
+                  placeholder="1000"
+                  type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Quantità Pannelli -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="quantitaPannelli"
+                  label="Quantità pannelli"
+                  placeholder="10"
+                  type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Marca Pannelli -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="marcaPannelli"
+                  label="Marca pannelli"
+                  placeholder="Marca pannelli"
+                />
+              </VCol>
+
+              <!-- Sezione Inverter -->
+              <VCol cols="12">
+                <VDivider class="my-2" />
+                <div class="d-flex align-center gap-2 mb-2">
+                  <VIcon icon="tabler-bolt" size="20" />
+                  <span class="text-subtitle-2">Inverter</span>
+                </div>
+              </VCol>
+
               <!-- 👉 Potenza Inverter -->
               <VCol cols="12">
                 <AppTextField
@@ -199,22 +287,61 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
 
-              <!-- 👉 Marca -->
+              <!-- 👉 Quantità Inverter -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="quantitaInverter"
+                  label="Quantità inverter"
+                  placeholder="1"
+                  type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Marca inverter -->
               <VCol cols="12">
                 <AppTextField
                   v-model="marca"
                   :rules="[requiredValidator]"
-                  label="Marca"
-                  placeholder="Marca"
+                  label="Marca inverter"
+                  placeholder="Marca inverter"
                 />
               </VCol>
 
-              <!-- 👉 Link Scheda Prodotto Tecnica -->
+              <!-- Sezione Batteria -->
+              <VCol cols="12">
+                <VDivider class="my-2" />
+                <div class="d-flex align-center gap-2 mb-2">
+                  <VIcon icon="tabler-battery" size="20" />
+                  <span class="text-subtitle-2">Batteria</span>
+                </div>
+              </VCol>
+
+              <!-- 👉 Potenza Batteria -->
               <VCol cols="12">
                 <AppTextField
-                  v-model="linkSchedaProdottoTecnica"
-                  label="Link Scheda Prodotto Tecnica"
-                  placeholder="https://www.example.com"
+                  v-model="potenzaBatteria"
+                  label="Potenza batteria (kWh)"
+                  placeholder="5"
+                  type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Quantità Batterie -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="quantitaBatterie"
+                  label="Quantità batterie"
+                  placeholder="1"
+                  type="number"
+                />
+              </VCol>
+
+              <!-- 👉 Marca Batteria -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="marcaBatteria"
+                  label="Marca batteria"
+                  placeholder="Marca batteria"
                 />
               </VCol>
 
@@ -223,11 +350,12 @@ const handleDrawerModelValueUpdate = val => {
                 <VBtn
                   type="submit"
                   class="me-3"
+                  @click="onSubmit"
                 >
                   Aggiungi
                 </VBtn>
                 <VBtn
-                  type="reset"
+                  type="button"
                   variant="tonal"
                   color="error"
                   @click="closeNavigationDrawer"

@@ -58,8 +58,16 @@ const headers = [
     key: 'fk_categoria',
   },
   {
-    title: 'Potenza kWp',
-    key: 'potenza_kwp',
+    title: 'Potenza kWp pannelli',
+    key: 'potenza_kwp_pannelli',
+  },
+  {
+    title: 'Qtà Pannelli',
+    key: 'quantita_pannelli',
+  },
+  {
+    title: 'Marca Pannelli',
+    key: 'marca_pannelli',
   },
   {
     title: 'Capacità kWh',
@@ -74,8 +82,24 @@ const headers = [
     key: 'potenza_inverter',
   },
   {
-    title: 'Marca',
-    key: 'marca',
+    title: 'Qtà Inverter',
+    key: 'quantita_inverter',
+  },
+  {
+    title: 'Marca Inverter',
+    key: 'marca_inverter',
+  },
+  {
+    title: 'Potenza Batteria (kWh)',
+    key: 'potenza_batteria',
+  },
+  {
+    title: 'Qtà Batterie',
+    key: 'quantita_batterie',
+  },
+  {
+    title: 'Marca Batteria',
+    key: 'marca_batteria',
   },
   {
     title: 'Stato',
@@ -405,11 +429,11 @@ const statuses = [
           </div>
         </template>
 
-        <!-- Potenza kWp -->
-        <template #item.potenza_kwp="{ item }">
+        <!-- Potenza kWp pannelli -->
+        <template #item.potenza_kwp_pannelli="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ item.potenza_kwp }} kWp
+              {{ item.potenza_kwp_pannelli }} kWp
             </div>
           </div>
         </template>
@@ -441,11 +465,65 @@ const statuses = [
           </div>
         </template>
 
-        <!-- Marca -->
-        <template #item.marca="{ item }">
+        <!-- Marca Inverter -->
+        <template #item.marca_inverter="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ item.marca }}
+              {{ item.marca_inverter }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Quantità Inverter -->
+        <template #item.quantita_inverter="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.quantita_inverter ?? '-' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Marca Batteria -->
+        <template #item.marca_batteria="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.marca_batteria || '-' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Potenza Batteria -->
+        <template #item.potenza_batteria="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.potenza_batteria ? `${item.potenza_batteria} kWh` : '-' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Quantità Batterie -->
+        <template #item.quantita_batterie="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.quantita_batterie ?? '-' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Quantità Pannelli -->
+        <template #item.quantita_pannelli="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.quantita_pannelli ?? '-' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Marca Pannelli -->
+        <template #item.marca_pannelli="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.marca_pannelli || '-' }}
             </div>
           </div>
         </template>
