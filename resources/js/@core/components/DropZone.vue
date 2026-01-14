@@ -1,8 +1,8 @@
 <script setup>
 import {
-  useDropZone,
-  useFileDialog,
-  useObjectUrl,
+    useDropZone,
+    useFileDialog,
+    useObjectUrl,
 } from '@vueuse/core';
 
 const emit = defineEmits([
@@ -19,48 +19,74 @@ const props = defineProps({
 const dropZoneRef = ref()
 const fileData = ref([])
 const { open, onChange } = useFileDialog({ accept: '*/*' })
+
+function normalizeFiles(files) {
+  if (!files)
+    return []
+  return Array.isArray(files) ? files : Array.from(files)
+}
+
 function onDrop(DroppedFiles) {
-  DroppedFiles?.forEach(async file => {
-    // if (file.type.slice(0, 6) !== 'image/') {
+  const files = normalizeFiles(DroppedFiles)
+  if (!files.length)
+    return
 
-    //   // eslint-disable-next-line no-alert
-    //   alert('Only image files are allowed')
-
-    //   return
-    // }
+  // Aggiungi i file alla lista immediatamente per mostrare il feedback visivo
+  files.forEach(file => {
     fileData.value.push({
       file,
       url: useObjectUrl(file).value ?? '',
     })
+  })
 
-    await uploadFiles([file])
-
-    emit('dropped', fileData.value);
+  uploadFiles(files).then(() => {
+    emit('dropped', fileData.value)
   })
 }
 
 async function uploadFiles(files) {
-  for (const file of files) {
+  const uploadTasks = files.map(file => (async () => {
     const formData = new FormData()
     formData.append('scope', props.scope)
     formData.append('file', file)
-    let response = await $api('/uploads', {
-      method: 'POST',
-      body: formData,
-    })
 
+    try {
+      const response = await $api('/uploads', {
+        method: 'POST',
+        body: formData,
+      })
+
+      // Trova l'elemento corrispondente in fileData e aggiorna con il path
+      const fileItem = fileData.value.find(item => item.file === file)
+      if (fileItem) {
+        fileItem.path = response.path
+      }
+    } catch (error) {
+      // Trova l'elemento corrispondente e segna l'errore
+      const fileItem = fileData.value.find(item => item.file === file)
+      if (fileItem) {
+        fileItem.error = error
+      }
+    }
+  })())
+
+  await Promise.allSettled(uploadTasks)
+}
+
+onChange(async selectedFiles => {
+  const files = normalizeFiles(selectedFiles)
+  if (!files.length)
+    return
+
+  // Aggiungi i file alla lista immediatamente
+  files.forEach(file => {
     fileData.value.push({
       file,
       url: useObjectUrl(file).value ?? '',
-      path: response.path,
     })
-  }
-}
-onChange(async selectedFiles => {
-  if (!selectedFiles)
-    return
-  await uploadFiles(selectedFiles)
+  })
 
+  await uploadFiles(files)
   emit('dropped', fileData.value)
 })
 useDropZone(dropZoneRef, onDrop)
