@@ -1895,13 +1895,57 @@
                         @endif
                             @php
                                 $primoProdotto = $preventivo->dettagliProdotti->first();
+                                
+                                // Pannelli
+                                $quantitaPannelli = $primoProdotto->quantita_pannelli_salvato ?? 1;
+                                $marcaPannelli = $primoProdotto->marca_pannelli_salvato ?? '-';
+                                $potenzaPannelli = $primoProdotto->kWp_salvato ?? 0;
+                                
+                                // Inverter
+                                $quantitaInverter = $primoProdotto->quantita_inverter_salvati ?? 1;
                                 $potenzaInverter = $primoProdotto->potenza_inverter_salvata ?? 0;
-                                $marcaInverter = $primoProdotto->marca_salvata ?? '';
+                                $marcaInverter = $primoProdotto->marca_inverter_salvata ?? '-';
+                                
+                                // Batteria
+                                $quantitaBatterie = $primoProdotto->quantita_batterie_salvate ?? 1;
+                                $marcaBatteria = $primoProdotto->marca_batteria_salvato ?? '-';
+                                $potenzaBatteria = $primoProdotto->potenza_batterie_salvato ?? 0;
                             @endphp
+                        
+                        <!-- Riga Pannelli -->
                         <tr style="background-color: #f9f9f9;">
-                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{{ $quantitaPannelli }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Pannelli</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">
+                                {{ $marcaPannelli }}
+                                @if($potenzaPannelli > 0)
+                                    {{ number_format($potenzaPannelli, 2, ',', '.') }}kWp
+                                @endif
+                            </td>
+                        </tr>
+                        
+                        <!-- Riga Inverter -->
+                        <tr style="background-color: #f9f9f9;">
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{{ $quantitaInverter }}</td>
                             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Inverter</td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">{{ $marcaInverter }} {{ $potenzaInverter > 0 ? number_format($potenzaInverter, 0, ',', '.') . 'kW' : '10kWp' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">
+                                {{ $marcaInverter }}
+                                @if($potenzaInverter > 0)
+                                    {{ number_format($potenzaInverter, 0, ',', '.') }}kW
+                                @endif
+                            </td>
+                        </tr>
+                        
+                        <!-- Riga Batteria -->
+                        <tr style="background-color: #f9f9f9;">
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">{{ $quantitaBatterie }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Batteria</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">
+                                {{ $marcaBatteria }}
+                                @if($potenzaBatteria > 0)
+                                    {{ number_format($potenzaBatteria, 2, ',', '.') }}kWh
+                                @endif
+                            </td>
                         </tr>
                        
                         <tr style="background-color: #f9f9f9;">
