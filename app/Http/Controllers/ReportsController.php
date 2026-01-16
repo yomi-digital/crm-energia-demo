@@ -414,14 +414,16 @@ class ReportsController extends Controller
 
         //Fix del nome e cognome del cliente
         $customerName = "N/A";
-        if (!empty($paperwork->customer->business_name)) {
-            $customerName = $paperwork->customer->business_name;
-        } else if (!empty($paperwork->customer->name) && !empty($paperwork->customer->last_name)) {
-            $customerName = implode(' ', array_filter([$paperwork->customer->name, $paperwork->customer->last_name]));
-        } else if (!empty($paperwork->customer->name)) {
-            $customerName = $paperwork->customer->name;
-        } else if (!empty($paperwork->customer->last_name)) {
-            $customerName = $paperwork->customer->last_name;
+        if ($paperwork->customer) {
+            if (!empty($paperwork->customer->business_name)) {
+                $customerName = $paperwork->customer->business_name;
+            } else if (!empty($paperwork->customer->name) && !empty($paperwork->customer->last_name)) {
+                $customerName = implode(' ', array_filter([$paperwork->customer->name, $paperwork->customer->last_name]));
+            } else if (!empty($paperwork->customer->name)) {
+                $customerName = $paperwork->customer->name;
+            } else if (!empty($paperwork->customer->last_name)) {
+                $customerName = $paperwork->customer->last_name;
+            }
         }
 
         // Determina il nome del cliente
@@ -429,17 +431,17 @@ class ReportsController extends Controller
             'parent_id' => $parent ? $parent->id : null,
             'parent' => $parent ? implode(' ', array_filter([$parent->name, $parent->last_name])) : null,
             'agent_id' => $paperwork->user_id,
-            'agent' => implode(' ', array_filter([$paperwork->user->name, $paperwork->user->last_name])),
+            'agent' => $paperwork->user ? implode(' ', array_filter([$paperwork->user->name, $paperwork->user->last_name])) : 'N/A',
             'agency_id' => $paperwork->mandate_id,
             'agency' => $paperwork->mandate ? $paperwork->mandate->name : null,
             'customer_id' => $paperwork->customer_id,
             'customer' => $customerName,
-            'tax_id_code' => $paperwork->customer->tax_id_code ?? 'N/A',
-            'vat_number' => $paperwork->customer->vat_number ?? 'N/A',
-            'brand_id' => $paperwork->product->brand_id,
-            'brand' => $paperwork->product->brand->name,
+            'tax_id_code' => $paperwork->customer ? ($paperwork->customer->tax_id_code ?? 'N/A') : 'N/A',
+            'vat_number' => $paperwork->customer ? ($paperwork->customer->vat_number ?? 'N/A') : 'N/A',
+            'brand_id' => $paperwork->product && $paperwork->product->brand ? $paperwork->product->brand_id : null,
+            'brand' => $paperwork->product && $paperwork->product->brand ? $paperwork->product->brand->name : 'N/A',
             'product_id' => $paperwork->product_id,
-            'product' => $paperwork->product->name,
+            'product' => $paperwork->product ? $paperwork->product->name : 'N/A',
             'order_code' => $paperwork->order_code,
             'account_pod_pdr' => $paperwork->account_pod_pdr,
             'paperwork_id' => $paperwork->id,
@@ -466,15 +468,15 @@ class ReportsController extends Controller
             'parent_id' => $parent ? $parent->id : null,
             'parent' => $parent ? implode(' ', array_filter([$parent->name, $parent->last_name])) : null,
             'agent_id' => $paperwork->user_id,
-            'agent' => implode(' ', array_filter([$paperwork->user->name, $paperwork->user->last_name])),
+            'agent' => $paperwork->user ? implode(' ', array_filter([$paperwork->user->name, $paperwork->user->last_name])) : 'N/A',
             'agency_id' => $paperwork->mandate_id,
             'agency' => $paperwork->mandate ? $paperwork->mandate->name : null,
             'customer_id' => $paperwork->customer_id,
             'customer' => $paperwork->customer ? implode(' ', array_filter([$paperwork->customer->name, $paperwork->customer->business_name])) : null,
-            'brand_id' => $paperwork->product->brand_id,
-            'brand' => $paperwork->product->brand->name,
+            'brand_id' => $paperwork->product && $paperwork->product->brand ? $paperwork->product->brand_id : null,
+            'brand' => $paperwork->product && $paperwork->product->brand ? $paperwork->product->brand->name : 'N/A',
             'product_id' => $paperwork->product_id,
-            'product' => $paperwork->product->name,
+            'product' => $paperwork->product ? $paperwork->product->name : 'N/A',
             'order_code' => $paperwork->order_code,
             'paperwork_id' => $paperwork->id,
             'inserted_at' => $paperwork->partner_sent_at ? \Carbon\Carbon::parse($paperwork->partner_sent_at)->format(config('app.date_format')) : null,
