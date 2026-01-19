@@ -151,44 +151,63 @@ const openAppointmentFromQuery = async () => {
   const appointmentId = route.query.appointment
   if (!appointmentId) return
 
-  // Aspetta che il calendario sia montato e gli eventi siano caricati
+  // Aspetta che il calendario sia montato
   await nextTick()
   
-  // Funzione per tentare di aprire l'appuntamento
-  const tryOpenAppointment = (maxAttempts = 10, attempt = 0) => {
-    if (attempt >= maxAttempts) {
-      console.warn('Impossibile trovare l\'appuntamento con ID:', appointmentId)
-      // Rimuovi comunque il parametro dalla query string
-      const { appointment, ...restQuery } = route.query
-      router.replace({ query: restQuery })
+  // Rimuovi il parametro dalla query string per evitare problemi futuri
+  const { appointment, ...restQuery } = route.query
+  router.replace({ query: restQuery })
+
+  // 1. Prova a trovarlo nel calendario caricato localmente
+  if (calendarApi.value) {
+    const calendarEvent = calendarApi.value.getEventById(String(appointmentId))
+    if (calendarEvent) {
+      event.value = extractEventDataFromEventApi(calendarEvent)
+      isEventHandlerDialogActive.value = true
       return
     }
-
-    if (calendarApi.value) {
-      const calendarEvent = calendarApi.value.getEventById(String(appointmentId))
-      if (calendarEvent) {
-        // Estrai i dati dell'evento e apri il dialog
-        event.value = extractEventDataFromEventApi(calendarEvent)
-        isEventHandlerDialogActive.value = true
-        
-        // Rimuovi il parametro dalla query string per evitare di riaprire il dialog al cambio di route
-        const { appointment, ...restQuery } = route.query
-        router.replace({ query: restQuery })
-        return
-      }
-    }
-    
-    // Se l'evento non è ancora caricato, riprova dopo un breve delay
-    setTimeout(() => tryOpenAppointment(maxAttempts, attempt + 1), 300)
   }
-  
-  // Inizia il tentativo di apertura
-  tryOpenAppointment()
+
+  // 2. Se non trovato localmente (es. mese diverso), recuperalo via API
+  try {
+    const response = await $api('/calendar/' + appointmentId)
+    
+    // Converti date in oggetti Date
+    const eventData = {
+      ...response,
+      start: new Date(response.start),
+      end: new Date(response.end),
+    }
+
+    // Imposta l'evento e apri il dialog
+    // Nota: passiamo response direttamente perché la struttura dell'API matcha quella attesa da extractEventDataFromEventApi (quasi)
+    // Ma extractEventDataFromEventApi si aspetta un oggetto EventApi di FullCalendar che ha metodi/proprietà specifiche a volte.
+    // Invece di usare extractEventDataFromEventApi che destruttura, costruiamo l'oggetto manualmente dato che abbiamo il JSON pulito.
+    
+    event.value = {
+      id: eventData.id,
+      title: eventData.title,
+      start: eventData.start,
+      end: eventData.end,
+      extendedProps: eventData.extendedProps,
+      allDay: eventData.allDay
+    }
+
+    // Sposta il calendario alla data dell'evento
+    jumpToDate(eventData.start)
+    
+    // Apri il dialog
+    isEventHandlerDialogActive.value = true
+    
+  } catch (e) {
+    console.error('Errore nel recupero dell\'appuntamento:', e)
+  }
 }
 
 // Esegui quando il componente è montato
 onMounted(() => {
-  openAppointmentFromQuery()
+  // Piccolo delay per assicurarsi che tutto sia pronto
+  setTimeout(openAppointmentFromQuery, 500)
 })
 </script>
 
