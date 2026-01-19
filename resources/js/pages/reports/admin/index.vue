@@ -23,6 +23,9 @@ const selectedCategory = ref('')
 const selectedAgency = ref('')
 // const selectedMandate = ref('')
 
+// Selected items in the table
+const selectedItems = ref([])
+
 const router = useRouter()
 
 const updateOptions = options => {
@@ -465,9 +468,11 @@ const saveReport = async () => {
       <VDataTableServer
         v-model:items-per-page="itemsPerPage"
         v-model:page="page"
+        v-model:selected="selectedItems"
         :items="entries"
         :items-length="totalEntries"
         :headers="headers"
+        item-value="paperwork_id"
         class="text-no-wrap"
         show-select
         @update:options="updateOptions"

@@ -221,7 +221,7 @@ class ReportsController extends Controller
 
             $allPaperworks = $paperworks->get();
             foreach ($allPaperworks as $paperwork) {
-                $transformedPaperwork = $this->transformPaperworkAdmin($paperwork, $user);
+                $transformedPaperwork = $this->transformPaperworkAdmin($paperwork, $user, false);
                 $entry = new \App\Models\ReportEntry();
                 $entry->fill($transformedPaperwork);
                 $entry->payout_confirmed = $entry->payout;
@@ -411,7 +411,7 @@ class ReportsController extends Controller
         dd('stop');
     }
 
-    private function transformPaperworkAdmin($paperwork, $user)
+    private function transformPaperworkAdmin($paperwork, $user, $formatDates = true)
     {
         if ($user) {
             $parent = $user;
@@ -436,6 +436,15 @@ class ReportsController extends Controller
             }
         }
 
+        // Formatta le date solo se richiesto (per visualizzazione/esportazione, non per salvataggio)
+        $insertedAt = $paperwork->partner_sent_at;
+        $activatedAt = $paperwork->partner_outcome_at;
+        
+        if ($formatDates) {
+            $insertedAt = $insertedAt ? \Carbon\Carbon::parse($insertedAt)->format(config('app.date_format')) : null;
+            $activatedAt = $activatedAt ? \Carbon\Carbon::parse($activatedAt)->format(config('app.date_format')) : null;
+        }
+
         // Determina il nome del cliente
         return [
             'parent_id' => $parent ? $parent->id : null,
@@ -455,8 +464,8 @@ class ReportsController extends Controller
             'order_code' => $paperwork->order_code,
             'account_pod_pdr' => $paperwork->account_pod_pdr,
             'paperwork_id' => $paperwork->id,
-            'inserted_at' => $paperwork->partner_sent_at ? \Carbon\Carbon::parse($paperwork->partner_sent_at)->format(config('app.date_format')) : null,
-            'activated_at' => $paperwork->partner_outcome_at ? \Carbon\Carbon::parse($paperwork->partner_outcome_at)->format(config('app.date_format')) : null,
+            'inserted_at' => $insertedAt,
+            'activated_at' => $activatedAt,
             'status' => $paperwork->partner_outcome ?: $paperwork->order_status,
             'order_status' => $paperwork->order_status,
             'payout' => $this->calculatePaperworkPayout($paperwork, $parent),
@@ -579,8 +588,8 @@ class ReportsController extends Controller
                 $data['brand'],
                 $data['product'],
                 $data['status'],
-                $data['inserted_at'] ? \Carbon\Carbon::parse($data['inserted_at'])->format(config('app.date_format')) : '',
-                $data['activated_at'] ? \Carbon\Carbon::parse($data['activated_at'])->format(config('app.date_format')) : '',
+                $data['inserted_at'] ?? '',
+                $data['activated_at'] ?? '',
                 $payout,
             ]);
         }
