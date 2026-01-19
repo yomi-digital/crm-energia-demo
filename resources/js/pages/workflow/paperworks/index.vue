@@ -71,28 +71,51 @@ watch([
   selectedContractType, 
   selectedSupplyType
 ], () => {
-  router.replace({
-    query: {
-      ...route.query,
-      q: searchQuery.value,
-      itemsPerPage: itemsPerPage.value,
-      page: page.value,
-      sortBy: sortBy.value,
-      orderBy: orderBy.value,
-      user_id: selectedAgent.value,
-      customer_id: selectedCustomer.value,
-      category: selectedCategory.value,
-      date_from: dateFrom.value,
-      date_to: dateTo.value,
-      phone: phoneSearch.value,
-      tax_id: taxIdSearch.value,
-      email: emailSearch.value,
-      pod_pdr: podPdrSearch.value,
-      product_id: selectedProduct.value,
-      contract_type: selectedContractType.value,
-      type: selectedSupplyType.value,
+  // Costruisci i nuovi query params
+  const newQuery = {
+    ...route.query,
+    q: searchQuery.value,
+    itemsPerPage: itemsPerPage.value,
+    page: page.value,
+    sortBy: sortBy.value,
+    orderBy: orderBy.value,
+    user_id: selectedAgent.value,
+    customer_id: selectedCustomer.value,
+    category: selectedCategory.value,
+    date_from: dateFrom.value,
+    date_to: dateTo.value,
+    phone: phoneSearch.value,
+    tax_id: taxIdSearch.value,
+    email: emailSearch.value,
+    pod_pdr: podPdrSearch.value,
+    product_id: selectedProduct.value,
+    contract_type: selectedContractType.value,
+    type: selectedSupplyType.value,
+  }
+  
+  // Rimuovi i parametri vuoti/null/undefined
+  Object.keys(newQuery).forEach(key => {
+    if (newQuery[key] === null || newQuery[key] === undefined || newQuery[key] === '') {
+      delete newQuery[key]
     }
   })
+  
+  // Usa history.replaceState direttamente per evitare lo scroll automatico del router
+  const queryString = new URLSearchParams(newQuery).toString()
+  const newUrl = queryString 
+    ? `${window.location.pathname}?${queryString}`
+    : window.location.pathname
+  
+  // Aggiorna l'URL senza causare scroll o re-render
+  window.history.replaceState(
+    { ...window.history.state, as: newUrl, url: newUrl },
+    '',
+    newUrl
+  )
+  
+  // Sincronizza manualmente il route di Vue Router senza triggerare navigazione
+  // Questo mantiene route.query aggiornato senza causare scroll
+  Object.assign(route.query, newQuery)
 })
 
 // Watch per tracciare quando la ricerca debounced cambia e avviare il caricamento
@@ -852,12 +875,14 @@ const updateDateFromYearMonth = () => {
         </div>
         <VSpacer />
 
-        <div class="app-user-search-filter d-flex align-center flex-wrap gap-4">
+        <div class="app-user-search-filter d-flex align-start flex-wrap gap-4">
           <!-- 👉 Search  -->
           <div style="inline-size: 15.625rem;">
             <AppTextField
               v-model="searchQuery"
-              placeholder="Cerca"
+              placeholder="Cerca per nome, cognome, P.IVA, CF, ID pratica..."
+              hint="Per ricerche più mirate, usa i filtri Anno/Mese sopra"
+              persistent-hint
             >
               <template #append-inner>
                 <VIcon

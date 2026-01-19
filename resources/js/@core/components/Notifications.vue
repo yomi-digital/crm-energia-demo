@@ -38,6 +38,12 @@ const emit = defineEmits([
 ])
 
 const isAllMarkRead = computed(() => props.notifications.some(item => item.isSeen === false))
+const hasArchivedFilter = computed(() => props.notificationTypes?.some(type => type?.value === 'Archived'))
+const isArchivedSelected = computed(() => props.selectedNotificationType === 'Archived')
+
+const toggleArchived = () => {
+  emit('update:notification-type', isArchivedSelected.value ? '' : 'Archived')
+}
 
 const markAllReadOrUnread = () => {
   const allNotificationsIds = props.notifications.map(item => item.id)
@@ -98,6 +104,16 @@ const toggleReadUnread = (isSeen, Id) => {
             >
               {{ totalUnseenNotifications }} Nuove
             </VChip>
+            <VBtn
+              v-if="hasArchivedFilter"
+              size="small"
+              variant="tonal"
+              color="secondary"
+              class="me-2"
+              @click="toggleArchived"
+            >
+              {{ isArchivedSelected ? 'Da leggere' : 'Archiviate' }}
+            </VBtn>
             <!-- <IconBtn
               v-show="props.notifications.length"
               size="34"
@@ -125,6 +141,7 @@ const toggleReadUnread = (isSeen, Id) => {
         <VCardItem v-if="props.notificationTypes.length" class="notification-filter-section">
           <NotificationFilter
             :selected-notification-type="props.selectedNotificationType"
+            :notification-types="props.notificationTypes"
             @update:notification-type="emit('update:notification-type', $event)"
           />
         </VCardItem>

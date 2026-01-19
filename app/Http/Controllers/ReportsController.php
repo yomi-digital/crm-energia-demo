@@ -320,7 +320,13 @@ class ReportsController extends Controller
         }
 
         if ($request->filled('product_id')) {
-            $paperworks = $paperworks->where('product_id', $request->get('product_id'));
+            // Split product IDs by "-" delimiter
+            $productIds = explode('-', $request->input('product_id'));
+            $productIds = array_filter($productIds); // Remove empty values
+            
+            if (!empty($productIds)) {
+                $paperworks = $paperworks->whereIn('product_id', $productIds);
+            }
         }
 
         if ($request->filled('agent_id')) {
@@ -329,6 +335,10 @@ class ReportsController extends Controller
 
         if ($request->filled('agency_id')) {
             $paperworks = $paperworks->where('mandate_id', $request->get('agency_id'));
+        }
+
+        if ($request->filled('mandate_id')) {
+            $paperworks = $paperworks->where('mandate_id', $request->get('mandate_id'));
         }
 
         if ($request->filled('status')) {
@@ -471,6 +481,8 @@ class ReportsController extends Controller
             'agent' => $paperwork->user ? implode(' ', array_filter([$paperwork->user->name, $paperwork->user->last_name])) : 'N/A',
             'agency_id' => $paperwork->mandate_id,
             'agency' => $paperwork->mandate ? $paperwork->mandate->name : null,
+            'mandate_id' => $paperwork->mandate_id,
+            'mandate' => $paperwork->mandate ? $paperwork->mandate->name : null,
             'customer_id' => $paperwork->customer_id,
             'customer' => $paperwork->customer ? implode(' ', array_filter([$paperwork->customer->name, $paperwork->customer->business_name])) : null,
             'brand_id' => $paperwork->product && $paperwork->product->brand ? $paperwork->product->brand_id : null,

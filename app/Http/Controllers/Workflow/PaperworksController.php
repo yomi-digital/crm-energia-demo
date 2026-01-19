@@ -38,11 +38,11 @@ class PaperworksController extends Controller
         }
 
         if ($request->filled('date_from')) {
-            $paperworks = $paperworks->whereDate('created_at', '>=', $request->get('date_from'));
+            $paperworks = $paperworks->whereDate('paperworks.created_at', '>=', $request->get('date_from'));
         }
 
         if ($request->filled('date_to')) {
-            $paperworks = $paperworks->whereDate('created_at', '<=', $request->get('date_to'));
+            $paperworks = $paperworks->whereDate('paperworks.created_at', '<=', $request->get('date_to'));
         }
 
         // FASE 1 - Ottimizzazione: JOIN invece di whereHas per filtri customer
@@ -114,7 +114,10 @@ class PaperworksController extends Controller
                 $needsUsersJoin = true;
             }
             
-            $paperworks = $paperworks->where(function ($query) use ($search) {
+            // Prepara le parole di ricerca per la ricerca intelligente nome/cognome
+            $searchWords = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
+            
+            $paperworks = $paperworks->where(function ($query) use ($search, $searchWords) {
                 // Se la ricerca è numerica, cerca per ID o order_code
                 if (is_numeric($search)) {
                     $query->where('paperworks.id', $search)
@@ -126,12 +129,51 @@ class PaperworksController extends Controller
                 }
                 
                 // Cerca nei campi del cliente tramite JOIN
-                $query->orWhere('customers.name', 'like', "%{$search}%")
-                    ->orWhere('customers.last_name', 'like', "%{$search}%")
-                    ->orWhere('customers.business_name', 'like', "%{$search}%")
-                    // Cerca nel nome dell'agente tramite JOIN
-                    ->orWhere('users.name', 'like', "%{$search}%")
-                    ->orWhere('users.last_name', 'like', "%{$search}%");
+                // Partita IVA e Codice Fiscale
+                $query->orWhere('customers.vat_number', 'like', "%{$search}%")
+                    ->orWhere('customers.tax_id_code', 'like', "%{$search}%")
+                    ->orWhere('customers.business_name', 'like', "%{$search}%");
+                
+                // Ricerca intelligente per nome e cognome (gestisce entrambi gli ordini)
+                if (count($searchWords) >= 2) {
+                    // Se ci sono almeno 2 parole, cerca tutte le combinazioni possibili
+                    // Esempio: "Mario Rossi" -> cerca (name LIKE "%Mario%" AND last_name LIKE "%Rossi%") 
+                    // OPPURE (name LIKE "%Rossi%" AND last_name LIKE "%Mario%")
+                    $query->orWhere(function ($q) use ($searchWords) {
+                        $q->where(function ($subQ) use ($searchWords) {
+                            // Prima combinazione: prima parola = nome, seconda parola = cognome
+                            $subQ->where('customers.name', 'like', "%{$searchWords[0]}%")
+                                ->where('customers.last_name', 'like', "%{$searchWords[1]}%");
+                        })->orWhere(function ($subQ) use ($searchWords) {
+                            // Seconda combinazione: prima parola = cognome, seconda parola = nome
+                            $subQ->where('customers.name', 'like', "%{$searchWords[1]}%")
+                                ->where('customers.last_name', 'like', "%{$searchWords[0]}%");
+                        });
+                    });
+                } else {
+                    // Se c'è una sola parola, cerca normalmente
+                    $query->orWhere('customers.name', 'like', "%{$search}%")
+                        ->orWhere('customers.last_name', 'like', "%{$search}%");
+                }
+                
+                // Ricerca intelligente per nome e cognome dell'agente (gestisce entrambi gli ordini)
+                if (count($searchWords) >= 2) {
+                    $query->orWhere(function ($q) use ($searchWords) {
+                        $q->where(function ($subQ) use ($searchWords) {
+                            // Prima combinazione: prima parola = nome, seconda parola = cognome
+                            $subQ->where('users.name', 'like', "%{$searchWords[0]}%")
+                                ->where('users.last_name', 'like', "%{$searchWords[1]}%");
+                        })->orWhere(function ($subQ) use ($searchWords) {
+                            // Seconda combinazione: prima parola = cognome, seconda parola = nome
+                            $subQ->where('users.name', 'like', "%{$searchWords[1]}%")
+                                ->where('users.last_name', 'like', "%{$searchWords[0]}%");
+                        });
+                    });
+                } else {
+                    // Se c'è una sola parola, cerca normalmente
+                    $query->orWhere('users.name', 'like', "%{$search}%")
+                        ->orWhere('users.last_name', 'like', "%{$search}%");
+                }
             });
         }
 

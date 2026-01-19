@@ -33,11 +33,23 @@ const parseBrandFromUrl = () => {
   return []
 }
 
+// Inizializza selectedProduct dall'URL (può essere una stringa separata da virgole o trattini)
+const parseProductFromUrl = () => {
+  const productParam = route.query.product_id
+  if (!productParam) return []
+  if (typeof productParam === 'string') {
+    // Supporta sia '-' che ',' come separatori
+    return productParam.split(/[-,\s]+/).filter(Boolean).map(Number).filter(n => !isNaN(n))
+  }
+  return []
+}
+
 const selectedArea = ref(route.query.area || '')
 const selectedBrand = ref(parseBrandFromUrl())
-const selectedProduct = ref(route.query.product_id || '')
+const selectedProduct = ref(parseProductFromUrl())
 const selectedAgent = ref(route.query.agent_id || '')
 const selectedAgency = ref(route.query.agency_id || '')
+const selectedMandate = ref(route.query.mandate_id || '')
 const selectedStatus = ref(route.query.status || '')
 const selectedCategory = ref(route.query.category || '')
 const selectedHasAppointment = ref(route.query.has_appointment || '')
@@ -77,6 +89,11 @@ const headers = [
   {
     title: 'Agenzia',
     key: 'agency',
+    sortable: false,
+  },
+  {
+    title: 'Mandato',
+    key: 'mandate',
     sortable: false,
   },
   {
@@ -132,7 +149,8 @@ const filteredHeaders = computed(() => {
   if (isAdminOrBackoffice.value) {
     return headers
   }
-  return headers.filter(header => header.key !== 'parent' && header.key !== 'agency')
+  // Gli agenti non vedono parent, agency e mandate
+  return headers.filter(header => header.key !== 'parent' && header.key !== 'agency' && header.key !== 'mandate')
 })
 
 // Default to last 30 days o dall'URL
@@ -161,6 +179,13 @@ const brandIdsParam = computed(() => {
     : ''
 })
 
+// Computed per concatenare i product IDs
+const productIdsParam = computed(() => {
+  return Array.isArray(selectedProduct.value) && selectedProduct.value.length > 0 
+    ? selectedProduct.value.join('-') 
+    : ''
+})
+
 // Flag per evitare loop infiniti quando aggiorniamo l'URL
 let isUpdatingFromUrl = false
 
@@ -178,6 +203,7 @@ watch([
   selectedProduct, 
   selectedAgent, 
   selectedAgency, 
+  selectedMandate,
   selectedStatus, 
   selectedCategory, 
   selectedHasAppointment
@@ -197,9 +223,12 @@ watch([
   if (Array.isArray(selectedBrand.value) && selectedBrand.value.length > 0) {
     query.brand_id = selectedBrand.value.join('-')
   }
-  if (selectedProduct.value) query.product_id = selectedProduct.value
+  if (Array.isArray(selectedProduct.value) && selectedProduct.value.length > 0) {
+    query.product_id = selectedProduct.value.join('-')
+  }
   if (selectedAgent.value) query.agent_id = selectedAgent.value
   if (selectedAgency.value) query.agency_id = selectedAgency.value
+  if (selectedMandate.value) query.mandate_id = selectedMandate.value
   if (selectedStatus.value) query.status = selectedStatus.value
   if (selectedCategory.value) query.category = selectedCategory.value
   if (selectedHasAppointment.value) query.has_appointment = selectedHasAppointment.value
@@ -227,9 +256,17 @@ watch(() => route.query, (newQuery) => {
       selectedBrand.value = []
     }
   }
-  if (newQuery.product_id !== undefined) selectedProduct.value = newQuery.product_id || ''
+  if (newQuery.product_id !== undefined) {
+    const productParam = newQuery.product_id
+    if (productParam && typeof productParam === 'string') {
+      selectedProduct.value = productParam.split(/[-,\s]+/).filter(Boolean).map(Number).filter(n => !isNaN(n))
+    } else {
+      selectedProduct.value = []
+    }
+  }
   if (newQuery.agent_id !== undefined) selectedAgent.value = newQuery.agent_id || ''
   if (newQuery.agency_id !== undefined) selectedAgency.value = newQuery.agency_id || ''
+  if (newQuery.mandate_id !== undefined) selectedMandate.value = newQuery.mandate_id || ''
   if (newQuery.status !== undefined) selectedStatus.value = newQuery.status || ''
   if (newQuery.category !== undefined) selectedCategory.value = newQuery.category || ''
   if (newQuery.has_appointment !== undefined) selectedHasAppointment.value = newQuery.has_appointment || ''
@@ -254,9 +291,10 @@ const {
     to: toDate,
     area: selectedArea,
     brand_id: brandIdsParam,
-    product_id: selectedProduct,
+    product_id: productIdsParam,
     agent_id: selectedAgent,
     agency_id: selectedAgency,
+    mandate_id: selectedMandate,
     status: selectedStatus,
     category: selectedCategory,
     has_appointment: selectedHasAppointment,
@@ -267,6 +305,9 @@ const exportReport = async () => {
   try {
     const brandIds = Array.isArray(selectedBrand.value) && selectedBrand.value.length > 0 
       ? selectedBrand.value.join('-') 
+      : ''
+    const productIds = Array.isArray(selectedProduct.value) && selectedProduct.value.length > 0 
+      ? selectedProduct.value.join('-') 
       : ''
     
     const data = await $api(`/reports/production`, {
@@ -282,9 +323,10 @@ const exportReport = async () => {
         export: 'csv',
         area: selectedArea.value,
         brand_id: brandIds,
-        product_id: selectedProduct.value,
+        product_id: productIds,
         agent_id: selectedAgent.value,
         agency_id: selectedAgency.value,
+        mandate_id: selectedMandate.value,
         status: selectedStatus.value,
         category: selectedCategory.value,
         has_appointment: selectedHasAppointment.value,
@@ -323,12 +365,7 @@ const defaultAgencyOption = {
 const agencies = ref([defaultAgencyOption])
 const isFetchingAgencies = ref(false)
 
-const products = ref([
-  {
-    title: 'Tutti',
-    value: '',
-  },
-])
+const products = ref([])
 
 const brands = ref([])
 
@@ -443,6 +480,36 @@ const hasAppointmentOptions = ref([
     value: 'NO',
   },
 ])
+
+const mandates = ref([
+  {
+    title: 'Tutti',
+    value: '',
+  },
+])
+
+const fetchMandates = async () => {
+  try {
+    const response = await $api('/mandates?itemsPerPage=999999')
+    mandates.value = [
+      {
+        title: 'Tutti',
+        value: '',
+      },
+      ...response.mandates.map(mandate => ({
+        title: mandate.name,
+        value: mandate.id,
+      }))
+    ]
+  } catch (error) {
+    console.error('Errore durante il recupero dei mandati:', error)
+  }
+}
+
+// Carica i mandati solo se l'utente non è un agente
+if (!isAgent) {
+  fetchMandates()
+}
 const fetchBrands = async (query) => {
   const response = await $api('/brands?itemsPerPage=999999&select=1')
   for (const brand of response.brands) {
@@ -454,16 +521,56 @@ const fetchBrands = async (query) => {
 }
 fetchBrands()
 
-const fetchProducts = async (query) => {
+// Computed per i prodotti filtrati in base ai brand selezionati
+const filteredProducts = computed(() => {
+  return products.value
+})
+
+const fetchProducts = async (brandIds = []) => {
+  products.value = []
+  
+  // Carica tutti i prodotti con i loro brand
   const response = await $api('/products?itemsPerPage=999999&enabled=1')
-  for (const product of response.products) {
-    products.value.push({
-      title: product.name,
-      value: product.id,
+  const allProducts = response.products
+  
+  // Se ci sono brand selezionati, filtra i prodotti per quei brand
+  if (Array.isArray(brandIds) && brandIds.length > 0) {
+    // Filtra i prodotti che appartengono ai brand selezionati
+    const filtered = allProducts.filter(product => {
+      return product.brand_id && brandIds.includes(product.brand_id)
     })
+    
+    for (const product of filtered) {
+      products.value.push({
+        title: product.name,
+        value: product.id,
+        brand_id: product.brand_id,
+      })
+    }
+  } else {
+    // Nessun brand selezionato, carica tutti i prodotti
+    for (const product of allProducts) {
+      products.value.push({
+        title: product.name,
+        value: product.id,
+        brand_id: product.brand_id,
+      })
+    }
   }
 }
-fetchProducts()
+
+// Watch per ricaricare i prodotti quando cambiano i brand selezionati
+watch(selectedBrand, async (newBrands) => {
+  await fetchProducts(newBrands)
+  // Se i prodotti selezionati non sono più disponibili dopo il filtro, rimuovili
+  if (Array.isArray(selectedProduct.value) && selectedProduct.value.length > 0) {
+    const availableProductIds = products.value.map(p => p.value)
+    selectedProduct.value = selectedProduct.value.filter(id => availableProductIds.includes(id))
+  }
+}, { deep: true })
+
+// Carica i prodotti iniziali
+fetchProducts(selectedBrand.value)
 
 const fetchAgents = async (query) => {
   const response = await $api('/agents?select=1')
@@ -640,9 +747,29 @@ const saveProduct = async () => {
               v-model="selectedProduct"
               label="Filtra per Prodotto"
               clearable
-              :items="products"
-              placeholder="Seleziona un Prodotto"
-            />
+              multiple
+              chips
+              closable-chips
+              :items="filteredProducts"
+              item-title="title"
+              item-value="value"
+              placeholder="Seleziona uno o più Prodotti"
+            >
+              <template #selection="{ item, index }">
+                <VChip v-if="index < 2">
+                  <span>{{ item.title }}</span>
+                </VChip>
+                <span
+                  v-if="index === 2"
+                  class="text-grey text-caption align-self-center"
+                >
+                  (+{{ selectedProduct.length - 2 }} altri)
+                </span>
+              </template>
+              <template #prepend-inner>
+                <span v-if="selectedProduct.length === 0" class="text-high-emphasis">Tutti</span>
+              </template>
+            </AppAutocomplete>
           </VCol>
 
         </VRow>
@@ -699,6 +826,15 @@ const saveProduct = async () => {
             :loading="isFetchingAgencies"
               placeholder="Seleziona un'Agenzia"
             @update:search="handleAgenciesSearch"
+            />
+          </VCol>
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedMandate"
+              label="Filtra per Mandato"
+              clearable
+              :items="mandates"
+              placeholder="Seleziona un Mandato"
             />
           </VCol>
         </VRow>
@@ -794,6 +930,15 @@ const saveProduct = async () => {
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
               {{ item.agency || 'N/A' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Mandato -->
+        <template #item.mandate="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              {{ item.mandate || 'N/A' }}
             </div>
           </div>
         </template>

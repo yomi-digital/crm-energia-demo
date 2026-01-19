@@ -419,16 +419,32 @@ class UsersController extends Controller
 
         $notifications = $user->notifications();
 
+        // Supporta notification_type=Archived come alias di is_archived=true
+        $notificationType = $request->get('notification_type');
+        $showArchived = false;
+        if ($request->has('is_archived')) {
+            $showArchived = $request->is_archived === 'true';
+        } elseif ($notificationType === 'Archived') {
+            $showArchived = true;
+            $notificationType = null;
+        }
+
+        // Filtro archivio (read vs unread)
+        if ($showArchived) {
+            $notifications = $notifications->whereNotNull('read_at');
+        } else {
+            // Default: mostra solo le notifiche non lette (attive)
+            $notifications = $notifications->whereNull('read_at');
+        }
+
         // Filtro per tipo di notifica
-        if ($request->filled('notification_type')) {
-            $notificationType = $request->get('notification_type');
-            
+        if (!empty($notificationType)) {
             if ($notificationType === 'Calendar') {
                 $notifications = $notifications->whereIn('type', ['calendar-created', 'calendar-updated', 'calendar-deleted']);
             } elseif ($notificationType === 'Ticket') {
                 $notifications = $notifications->whereIn('type', ['ticket-created', 'ticket-comment-created']);
             } elseif ($notificationType === 'Paperwork') {
-                $notifications = $notifications->where('type', 'paperwork-created');
+                $notifications = $notifications->whereIn('type', ['paperwork-created', 'paperwork-status-updated']);
             }
         }
 
