@@ -758,9 +758,9 @@ const updateDateFromYearMonth = () => {
           <VCol cols="4">
             <AppTextField
               v-model="taxIdSearch"
-              label="Codice Fiscale"
+              label="Codice Fiscale e Partita IVA"
               clearable
-              placeholder="Cerca per codice fiscale"
+              placeholder="Cerca per codice fiscale o partita IVA"
             />
           </VCol>
 

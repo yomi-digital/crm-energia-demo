@@ -64,7 +64,10 @@ class PaperworksController extends Controller
                 $paperworks = $paperworks->leftJoin('customers', 'paperworks.customer_id', '=', 'customers.id');
                 $needsCustomersJoin = true;
             }
-            $paperworks = $paperworks->where('customers.tax_id_code', 'like', "%{$taxId}%");
+            $paperworks = $paperworks->where(function ($query) use ($taxId) {
+                $query->where('customers.tax_id_code', 'like', "%{$taxId}%")
+                    ->orWhere('customers.vat_number', 'like', "%{$taxId}%");
+            });
         }
 
         if ($request->filled('email')) {
