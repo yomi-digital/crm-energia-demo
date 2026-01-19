@@ -973,8 +973,8 @@ const saveProduct = async () => {
 
         <!-- Product -->
         <template #item.product="{ item }">
-          <div class="d-flex flex-column" style="max-width: 200px;width: 200px; white-space: normal;">
-            <div class="text-capitalize text-high-emphasis text-body-1" style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+          <div style="max-width: 200px;width: 200px; white-space: normal;">
+            <div class="text-capitalize text-high-emphasis text-body-1" style="word-wrap: break-word; overflow-wrap: break-word; white-space: normal;height: max-content !important;">
               <RouterLink
                 :to="{ name: 'configuration-products-id', params: { id: item.product_id } }"
                 class="font-weight-medium text-link"
