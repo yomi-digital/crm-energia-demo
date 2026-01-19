@@ -14,7 +14,8 @@ import FullCalendar from '@fullcalendar/vue3';
 
 // Components
 import CalendarEventHandler from '@/views/general/calendar/CalendarEventHandler.vue';
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 // 👉 Store
 const store = useCalendarStore()
@@ -39,8 +40,12 @@ watch(isEventHandlerSidebarActive, val => {
 
 const { isLeftSidebarOpen } = useResponsiveLeftSidebar()
 
+// 👉 Router
+const route = useRoute()
+const router = useRouter()
+
 // 👉 useCalendar
-const { refCalendar, calendarOptions, addEvent, updateEvent, removeEvent, jumpToDate } = useCalendar(event, isEventHandlerDialogActive, isEventHandlerSidebarActive, isLeftSidebarOpen)
+const { refCalendar, calendarOptions, addEvent, updateEvent, removeEvent, jumpToDate, calendarApi, extractEventDataFromEventApi } = useCalendar(event, isEventHandlerDialogActive, isEventHandlerSidebarActive, isLeftSidebarOpen)
 
 // SECTION Sidebar
 
@@ -140,6 +145,51 @@ const isAgent = loggedInUser.roles.some(role => role.name === 'agente')
 const isStructure = loggedInUser.roles.some(role => role.name === 'struttura')
 const isTelemarketing = loggedInUser.roles.some(role => role.name === 'telemarketing' || role.name === 'team leader')
 const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+
+// 👉 Gestione apertura appuntamento da notifica
+const openAppointmentFromQuery = async () => {
+  const appointmentId = route.query.appointment
+  if (!appointmentId) return
+
+  // Aspetta che il calendario sia montato e gli eventi siano caricati
+  await nextTick()
+  
+  // Funzione per tentare di aprire l'appuntamento
+  const tryOpenAppointment = (maxAttempts = 10, attempt = 0) => {
+    if (attempt >= maxAttempts) {
+      console.warn('Impossibile trovare l\'appuntamento con ID:', appointmentId)
+      // Rimuovi comunque il parametro dalla query string
+      const { appointment, ...restQuery } = route.query
+      router.replace({ query: restQuery })
+      return
+    }
+
+    if (calendarApi.value) {
+      const calendarEvent = calendarApi.value.getEventById(String(appointmentId))
+      if (calendarEvent) {
+        // Estrai i dati dell'evento e apri il dialog
+        event.value = extractEventDataFromEventApi(calendarEvent)
+        isEventHandlerDialogActive.value = true
+        
+        // Rimuovi il parametro dalla query string per evitare di riaprire il dialog al cambio di route
+        const { appointment, ...restQuery } = route.query
+        router.replace({ query: restQuery })
+        return
+      }
+    }
+    
+    // Se l'evento non è ancora caricato, riprova dopo un breve delay
+    setTimeout(() => tryOpenAppointment(maxAttempts, attempt + 1), 300)
+  }
+  
+  // Inizia il tentativo di apertura
+  tryOpenAppointment()
+}
+
+// Esegui quando il componente è montato
+onMounted(() => {
+  openAppointmentFromQuery()
+})
 </script>
 
 <template>
