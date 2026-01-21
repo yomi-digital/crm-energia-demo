@@ -3,7 +3,7 @@ import PaperworkEditPartnerOutcomeDialog from '@/components/dialogs/PaperworkEdi
 import PaperworkNotesDialog from '@/components/dialogs/PaperworkNotesDialog.vue'
 import StatusChip from '@/components/StatusChip.vue'
 import { nextTick, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 definePage({
   meta: {
@@ -16,6 +16,7 @@ definePage({
 
 // 👉 Store
 const route = useRoute()
+const router = useRouter()
 const searchQuery = ref(route.query.q || '')
 const debouncedSearchQuery = ref(route.query.q || '')
 const isSearchLoading = ref(false)
@@ -51,29 +52,19 @@ watch(searchQuery, (newValue) => {
   }, 500)
 }, { immediate: true })
 
-// Update URL on filter change
-watch([
-  searchQuery, 
-  itemsPerPage, 
-  page, 
-  sortBy, 
-  orderBy, 
-  selectedAgent, 
-  selectedCustomer, 
-  selectedCategory, 
-  dateFrom, 
-  dateTo, 
-  phoneSearch, 
-  taxIdSearch, 
-  emailSearch, 
-  podPdrSearch, 
-  selectedProduct, 
-  selectedContractType, 
-  selectedSupplyType
-], () => {
-  router.replace({
-    query: {
-      ...route.query,
+// Flag per evitare loop quando sincronizziamo i valori dalla route
+let isSyncingFromRoute = false
+
+// Debounce per l'aggiornamento dell'URL quando cambia solo searchQuery
+let urlUpdateTimeout = null
+
+// Chiave per il localStorage
+const STORAGE_KEY = 'paperworks_filters'
+
+// Funzione per salvare i filtri in localStorage
+const saveFiltersToLocalStorage = () => {
+  try {
+    const filters = {
       q: searchQuery.value,
       itemsPerPage: itemsPerPage.value,
       page: page.value,
@@ -92,7 +83,213 @@ watch([
       contract_type: selectedContractType.value,
       type: selectedSupplyType.value,
     }
+    
+    // Rimuovi i valori vuoti/null/undefined prima di salvare
+    Object.keys(filters).forEach(key => {
+      if (filters[key] === null || filters[key] === undefined || filters[key] === '') {
+        delete filters[key]
+      }
+    })
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(filters))
+  } catch (error) {
+    console.warn('Errore nel salvataggio dei filtri in localStorage:', error)
+  }
+}
+
+// Funzione per caricare i filtri da localStorage
+const loadFiltersFromLocalStorage = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      const filters = JSON.parse(saved)
+      
+      // Applica i filtri salvati solo se non ci sono query params nell'URL
+      // (i query params hanno priorità)
+      if (!route.query.q && !route.query.user_id && !route.query.customer_id && 
+          !route.query.category && !route.query.date_from && !route.query.date_to &&
+          !route.query.phone && !route.query.tax_id && !route.query.email &&
+          !route.query.pod_pdr && !route.query.product_id && !route.query.contract_type &&
+          !route.query.type) {
+        
+        if (filters.q) searchQuery.value = filters.q
+        if (filters.itemsPerPage) itemsPerPage.value = Number(filters.itemsPerPage)
+        if (filters.page) page.value = Number(filters.page)
+        if (filters.sortBy) sortBy.value = filters.sortBy
+        if (filters.orderBy) orderBy.value = filters.orderBy
+        if (filters.user_id) selectedAgent.value = Number(filters.user_id)
+        if (filters.customer_id) selectedCustomer.value = Number(filters.customer_id)
+        if (filters.category) selectedCategory.value = filters.category
+        if (filters.date_from) dateFrom.value = filters.date_from
+        if (filters.date_to) dateTo.value = filters.date_to
+        if (filters.phone) phoneSearch.value = filters.phone
+        if (filters.tax_id) taxIdSearch.value = filters.tax_id
+        if (filters.email) emailSearch.value = filters.email
+        if (filters.pod_pdr) podPdrSearch.value = filters.pod_pdr
+        if (filters.product_id) selectedProduct.value = Number(filters.product_id)
+        if (filters.contract_type) selectedContractType.value = filters.contract_type
+        if (filters.type) selectedSupplyType.value = filters.type
+      }
+    }
+  } catch (error) {
+    console.warn('Errore nel caricamento dei filtri da localStorage:', error)
+  }
+}
+
+// Funzione per aggiornare l'URL preservando lo scroll
+const updateUrlPreservingScroll = () => {
+  // Evita loop: non aggiornare l'URL se stiamo sincronizzando dalla route
+  if (isSyncingFromRoute) {
+    return
+  }
+  
+  // Salva la posizione corrente dello scroll prima di navigare
+  const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop
+  
+  // Costruisci i nuovi query params
+  const newQuery = {
+    ...route.query,
+    q: searchQuery.value,
+    itemsPerPage: itemsPerPage.value,
+    page: page.value,
+    sortBy: sortBy.value,
+    orderBy: orderBy.value,
+    user_id: selectedAgent.value,
+    customer_id: selectedCustomer.value,
+    category: selectedCategory.value,
+    date_from: dateFrom.value,
+    date_to: dateTo.value,
+    phone: phoneSearch.value,
+    tax_id: taxIdSearch.value,
+    email: emailSearch.value,
+    pod_pdr: podPdrSearch.value,
+    product_id: selectedProduct.value,
+    contract_type: selectedContractType.value,
+    type: selectedSupplyType.value,
+  }
+  
+  // Rimuovi i parametri vuoti/null/undefined
+  Object.keys(newQuery).forEach(key => {
+    if (newQuery[key] === null || newQuery[key] === undefined || newQuery[key] === '') {
+      delete newQuery[key]
+    }
   })
+  
+  // Salva i filtri in localStorage
+  saveFiltersToLocalStorage()
+  
+  // Imposta il flag per evitare che il watch sulla route triggeri un loop
+  isSyncingFromRoute = true
+  
+  // Costruisci l'URL con i nuovi query params
+  const queryString = new URLSearchParams(newQuery).toString()
+  const newUrl = queryString 
+    ? `${window.location.pathname}?${queryString}`
+    : window.location.pathname
+  
+  // Usa history.pushState invece di replaceState per aggiungere allo storico
+  // Questo evita lo scroll automatico del router
+  window.history.pushState(
+    { ...window.history.state, as: newUrl, url: newUrl },
+    '',
+    newUrl
+  )
+  
+  // Sincronizza manualmente il route di Vue Router senza triggerare navigazione
+  // Questo mantiene route.query aggiornato senza causare scroll
+  Object.assign(route.query, newQuery)
+  
+  // Ripristina immediatamente la posizione dello scroll (nel caso fosse cambiata)
+  // e usa multiple strategie per essere sicuri
+  requestAnimationFrame(() => {
+    window.scrollTo({
+      top: scrollY,
+      left: 0,
+      behavior: 'instant'
+    })
+    
+    // Fallback con piccoli delay per sicurezza
+    setTimeout(() => {
+      window.scrollTo({
+        top: scrollY,
+        left: 0,
+        behavior: 'instant'
+      })
+    }, 0)
+    
+    setTimeout(() => {
+      window.scrollTo({
+        top: scrollY,
+        left: 0,
+        behavior: 'instant'
+      })
+      // Reset del flag dopo che lo scroll è stato ripristinato
+      isSyncingFromRoute = false
+    }, 10)
+  })
+}
+
+// Watch sulla route per sincronizzare i filtri quando si torna indietro
+watch(() => route.query, (newQuery) => {
+  // Evita loop: non sincronizzare se stiamo aggiornando l'URL noi stessi
+  if (isSyncingFromRoute) {
+    return
+  }
+  
+  // Sincronizza i valori dei filtri con i query params della route
+  searchQuery.value = newQuery.q || ''
+  itemsPerPage.value = Number(newQuery.itemsPerPage) || 10
+  page.value = Number(newQuery.page) || 1
+  sortBy.value = newQuery.sortBy || null
+  orderBy.value = newQuery.orderBy || null
+  selectedAgent.value = newQuery.user_id ? Number(newQuery.user_id) : null
+  selectedCustomer.value = newQuery.customer_id ? Number(newQuery.customer_id) : null
+  selectedCategory.value = newQuery.category || ''
+  dateFrom.value = newQuery.date_from || ''
+  dateTo.value = newQuery.date_to || ''
+  phoneSearch.value = newQuery.phone || ''
+  taxIdSearch.value = newQuery.tax_id || ''
+  emailSearch.value = newQuery.email || ''
+  podPdrSearch.value = newQuery.pod_pdr || ''
+  selectedProduct.value = newQuery.product_id ? Number(newQuery.product_id) : ''
+  selectedContractType.value = newQuery.contract_type || ''
+  selectedSupplyType.value = newQuery.type || ''
+}, { deep: true })
+
+// Watch per searchQuery con debounce per evitare troppi aggiornamenti URL durante la digitazione
+watch(searchQuery, () => {
+  // Cancella il timeout precedente se esiste
+  if (urlUpdateTimeout) {
+    clearTimeout(urlUpdateTimeout)
+  }
+  
+  // Debounce l'aggiornamento dell'URL di 300ms quando cambia solo searchQuery
+  urlUpdateTimeout = setTimeout(() => {
+    updateUrlPreservingScroll()
+  }, 300)
+})
+
+// Update URL on filter change (tutti gli altri filtri tranne searchQuery)
+watch([
+  itemsPerPage, 
+  page, 
+  sortBy, 
+  orderBy, 
+  selectedAgent, 
+  selectedCustomer, 
+  selectedCategory, 
+  dateFrom, 
+  dateTo, 
+  phoneSearch, 
+  taxIdSearch, 
+  emailSearch, 
+  podPdrSearch, 
+  selectedProduct, 
+  selectedContractType, 
+  selectedSupplyType
+], () => {
+  // Aggiorna immediatamente l'URL per tutti gli altri filtri (non searchQuery)
+  updateUrlPreservingScroll()
 })
 
 // Watch per tracciare quando la ricerca debounced cambia e avviare il caricamento
@@ -106,10 +303,13 @@ watch(debouncedSearchQuery, async (newValue, oldValue) => {
   }
 })
 
-// Cleanup del timeout quando il componente viene smontato
+// Cleanup dei timeout quando il componente viene smontato
 onUnmounted(() => {
   if (searchTimeout) {
     clearTimeout(searchTimeout)
+  }
+  if (urlUpdateTimeout) {
+    clearTimeout(urlUpdateTimeout)
   }
 })
 
@@ -314,8 +514,12 @@ const stopPolling = () => {
 
 // Avvia il polling quando il componente viene montato
 onMounted(async () => {
-  // Se ci sono query parameters, forza il refresh dei dati
-  if (route.query.date_from || route.query.date_to || route.query.user_id || route.query.customer_id) {
+  // Carica i filtri salvati da localStorage se non ci sono query params nell'URL
+  loadFiltersFromLocalStorage()
+  
+  // Se ci sono query parameters o filtri caricati da localStorage, forza il refresh dei dati
+  if (route.query.date_from || route.query.date_to || route.query.user_id || route.query.customer_id ||
+      dateFrom.value || dateTo.value || selectedAgent.value || selectedCustomer.value) {
     await fetchPaperworks()
   }
   // Carica gli agenti per il dialog di modifica se l'utente è admin
@@ -474,8 +678,6 @@ const closeBulkActionDialog = () => {
 const handleBulkAction = (newStatus) => {
   fetchPaperworks()
 }
-
-const router = useRouter()
 
 const openPaperwork = (event, item) => {
   if(!item.item?.id){
@@ -735,9 +937,9 @@ const updateDateFromYearMonth = () => {
           <VCol cols="4">
             <AppTextField
               v-model="taxIdSearch"
-              label="Codice Fiscale"
+              label="Codice Fiscale e Partita IVA"
               clearable
-              placeholder="Cerca per codice fiscale"
+              placeholder="Cerca per codice fiscale o partita IVA"
             />
           </VCol>
 
@@ -852,12 +1054,14 @@ const updateDateFromYearMonth = () => {
         </div>
         <VSpacer />
 
-        <div class="app-user-search-filter d-flex align-center flex-wrap gap-4">
+        <div class="app-user-search-filter d-flex align-start flex-wrap gap-4">
           <!-- 👉 Search  -->
           <div style="inline-size: 15.625rem;">
             <AppTextField
               v-model="searchQuery"
-              placeholder="Cerca"
+              placeholder="Cerca per nome, cognome, P.IVA, CF, ID pratica..."
+              hint="Per ricerche più mirate, usa i filtri Anno/Mese sopra"
+              persistent-hint
             >
               <template #append-inner>
                 <VIcon
@@ -1122,13 +1326,12 @@ const updateDateFromYearMonth = () => {
             </VBtn>
             
             <VBtn
-              v-if="item.notes || item.owner_notes"
               size="small"
               color="info"
               variant="tonal"
               class="compact-btn"
               @click.stop="showNotesDialog(item)"
-              :title="`Visualizza note della pratica ${item?.id}`"
+              :title="`${item.notes || item.owner_notes ? 'Modifica' : 'Aggiungi'} note della pratica ${item?.id}`"
             >
               Note
             </VBtn>
@@ -1197,9 +1400,11 @@ const updateDateFromYearMonth = () => {
 
     <!-- 👉 Notes Dialog -->
     <PaperworkNotesDialog
+      v-if="selectedPaperworkForNotes"
       :isDialogVisible="isNotesDialogVisible"
       :paperworkData="selectedPaperworkForNotes"
       @update:isDialogVisible="isNotesDialogVisible = $event"
+      @notes-updated="handleNotesUpdated"
     />
 
     <!-- 👉 Edit Agent Dialog -->

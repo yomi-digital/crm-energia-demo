@@ -135,6 +135,7 @@ const savePartnerOutcome = async () => {
     :model-value="isDialogVisible"
     @update:model-value="closeDialog"
     :width="$vuetify.display.smAndDown ? 'auto' : 500"
+    persistent
   >
     <DialogCloseBtn @click="closeDialog" />
 

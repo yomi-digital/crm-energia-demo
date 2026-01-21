@@ -190,6 +190,14 @@ const startDateTimePickerConfig = computed(() => {
     monthSelectorType: 'dropdown', // Abilita dropdown per mese e anno
     static: false, // Fondamentale per i modal: evita il blocco dei clic
     disable: [],
+    onOpen: [
+      function(selectedDates, dateStr, instance) {
+        // Forza position fixed per il calendario quando è dentro un dialog
+        if (instance.calendarContainer) {
+          instance.calendarContainer.style.position = 'fixed'
+        }
+      }
+    ],
   }
 
   return config

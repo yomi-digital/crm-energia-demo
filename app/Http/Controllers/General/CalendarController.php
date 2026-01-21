@@ -125,6 +125,40 @@ class CalendarController extends Controller
         return response()->json($calendar);
     }
 
+    public function show($id)
+    {
+        $item = \App\Models\Calendar::with(['agent', 'operator'])->find($id);
+
+        if (!$item) {
+            return response()->json(['message' => 'Event not found'], 404);
+        }
+
+        return response()->json([
+            'id' => $item->id,
+            'title' => $item->title ?: $item->user_name,
+            'start' => $item->start,
+            'end' => $item->end,
+            'allDay' => $item->all_day ?? false,
+            'extendedProps' => [
+                'calendar' => $item->status,
+                'agent_id' => $item->agent_id,
+                'agent' => $item->agent,
+                'operator' => $item->operator,
+                'referent' => $item->referent,
+                'user_name' => $item->user_name,
+                'user_phone' => $item->user_phone,
+                'user_mobile' => $item->user_mobile,
+                'user_address' => $item->user_address,
+                'user_city' => $item->user_city,
+                'type' => $item->type,
+                'cost' => $item->cost,
+                'notes_call_center' => $item->notes_call_center,
+                'notes_agent' => $item->notes_agent,
+                'notes' => $item->notes,
+            ],
+        ]);
+    }
+
     public function update(Request $request, $id)
     {
         $calendar = \App\Models\Calendar::find($id);

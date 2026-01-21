@@ -8,15 +8,19 @@ let pollingInterval = null
 const isPollingActive = ref(false)
 
 const notificationTypes = [
-  { title: 'Tutte', value: '' },
+  { title: 'Da leggere', value: '' },
   { title: 'Calendario', value: 'Calendar' },
   { title: 'Ticket', value: 'Ticket' },
   { title: 'Pratiche', value: 'Paperwork' },
+  { title: 'Archiviate', value: 'Archived' },
 ]
 
 const fetchNotifications = async () => {
   const params = {}
-  if (selectedNotificationType.value) {
+  
+  if (selectedNotificationType.value === 'Archived') {
+    params.is_archived = 'true'
+  } else if (selectedNotificationType.value) {
     params.notification_type = selectedNotificationType.value
   }
   

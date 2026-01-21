@@ -103,7 +103,8 @@ const fetchAgents = async (brandId = null) => {
   agents.value = []
   try {
     // Costruisci l'URL con il filtro brand_id se disponibile
-    let url = '/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1&backoffice=1'
+    // Include strutture, gestione, backoffice e amministrazione
+    let url = '/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1&backoffice=1&amministrazione=1'
     if (brandId) {
       url += `&brand_id=${brandId}`
     }
@@ -336,6 +337,29 @@ watch(() => paperworkDataClone.value.type, () => {
                 v-model="paperworkDataClone.annual_consumption"
                 label="Consumo Annuo"
                 placeholder="1000"
+              />
+            </VCol>
+
+            <VCol cols="12" sm="6">
+              <VCheckbox
+                v-model="paperworkDataClone.shipping"
+                label="Spedizione"
+              />
+            </VCol>
+
+            <VCol cols="12" sm="6">
+              <VCheckbox
+                v-model="paperworkDataClone.visura"
+                label="Visura"
+              />
+            </VCol>
+
+            <VCol cols="12">
+              <AppTextarea
+                v-model="paperworkDataClone.other"
+                label="Altri costi"
+                placeholder="Inserisci ulteriori dettagli..."
+                rows="2"
               />
             </VCol>
 

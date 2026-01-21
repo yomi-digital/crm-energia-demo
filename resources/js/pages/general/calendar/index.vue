@@ -14,7 +14,8 @@ import FullCalendar from '@fullcalendar/vue3';
 
 // Components
 import CalendarEventHandler from '@/views/general/calendar/CalendarEventHandler.vue';
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 // 👉 Store
 const store = useCalendarStore()
@@ -39,8 +40,12 @@ watch(isEventHandlerSidebarActive, val => {
 
 const { isLeftSidebarOpen } = useResponsiveLeftSidebar()
 
+// 👉 Router
+const route = useRoute()
+const router = useRouter()
+
 // 👉 useCalendar
-const { refCalendar, calendarOptions, addEvent, updateEvent, removeEvent, jumpToDate } = useCalendar(event, isEventHandlerDialogActive, isEventHandlerSidebarActive, isLeftSidebarOpen)
+const { refCalendar, calendarOptions, addEvent, updateEvent, removeEvent, jumpToDate, calendarApi, extractEventDataFromEventApi } = useCalendar(event, isEventHandlerDialogActive, isEventHandlerSidebarActive, isLeftSidebarOpen)
 
 // SECTION Sidebar
 
@@ -140,6 +145,70 @@ const isAgent = loggedInUser.roles.some(role => role.name === 'agente')
 const isStructure = loggedInUser.roles.some(role => role.name === 'struttura')
 const isTelemarketing = loggedInUser.roles.some(role => role.name === 'telemarketing' || role.name === 'team leader')
 const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+
+// 👉 Gestione apertura appuntamento da notifica
+const openAppointmentFromQuery = async () => {
+  const appointmentId = route.query.appointment
+  if (!appointmentId) return
+
+  // Aspetta che il calendario sia montato
+  await nextTick()
+  
+  // Rimuovi il parametro dalla query string per evitare problemi futuri
+  const { appointment, ...restQuery } = route.query
+  router.replace({ query: restQuery })
+
+  // 1. Prova a trovarlo nel calendario caricato localmente
+  if (calendarApi.value) {
+    const calendarEvent = calendarApi.value.getEventById(String(appointmentId))
+    if (calendarEvent) {
+      event.value = extractEventDataFromEventApi(calendarEvent)
+      isEventHandlerDialogActive.value = true
+      return
+    }
+  }
+
+  // 2. Se non trovato localmente (es. mese diverso), recuperalo via API
+  try {
+    const response = await $api('/calendar/' + appointmentId)
+    
+    // Converti date in oggetti Date
+    const eventData = {
+      ...response,
+      start: new Date(response.start),
+      end: new Date(response.end),
+    }
+
+    // Imposta l'evento e apri il dialog
+    // Nota: passiamo response direttamente perché la struttura dell'API matcha quella attesa da extractEventDataFromEventApi (quasi)
+    // Ma extractEventDataFromEventApi si aspetta un oggetto EventApi di FullCalendar che ha metodi/proprietà specifiche a volte.
+    // Invece di usare extractEventDataFromEventApi che destruttura, costruiamo l'oggetto manualmente dato che abbiamo il JSON pulito.
+    
+    event.value = {
+      id: eventData.id,
+      title: eventData.title,
+      start: eventData.start,
+      end: eventData.end,
+      extendedProps: eventData.extendedProps,
+      allDay: eventData.allDay
+    }
+
+    // Sposta il calendario alla data dell'evento
+    jumpToDate(eventData.start)
+    
+    // Apri il dialog
+    isEventHandlerDialogActive.value = true
+    
+  } catch (e) {
+    console.error('Errore nel recupero dell\'appuntamento:', e)
+  }
+}
+
+// Esegui quando il componente è montato
+onMounted(() => {
+  // Piccolo delay per assicurarsi che tutto sia pronto
+  setTimeout(openAppointmentFromQuery, 500)
+})
 </script>
 
 <template>

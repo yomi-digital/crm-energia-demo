@@ -45,6 +45,9 @@ class Paperwork extends Model
         'particella',
         'sub',
         'indirizzo_installazione',
+        'shipping',
+        'visura',
+        'other',
     ];
 
     protected $casts = [
@@ -65,7 +68,7 @@ class Paperwork extends Model
 
     public function mandate()
     {
-        return $this->belongsTo(Agency::class);
+        return $this->belongsTo(Mandate::class);
     }
 
     public function product()

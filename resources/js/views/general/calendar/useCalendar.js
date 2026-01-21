@@ -342,5 +342,7 @@ export const useCalendar = (event, isEventHandlerDialogActive, isEventHandlerSid
     updateEvent,
     removeEvent,
     jumpToDate,
+    calendarApi,
+    extractEventDataFromEventApi,
   }
 }

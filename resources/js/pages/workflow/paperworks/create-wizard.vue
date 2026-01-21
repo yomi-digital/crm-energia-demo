@@ -205,6 +205,9 @@ const createPaperworkData = ref({
     particella: null,
     sub: null,
     indirizzo_installazione: null,
+    shipping: false,
+    visura: false,
+    other: null,
   },
   product: {
     brand_id: null,
@@ -350,6 +353,9 @@ const onSubmit = async () => {
       energy_type: createPaperworkData.value.paperworkType.energy_type,
       mobile_type: createPaperworkData.value.paperworkType.mobile_type,
       previous_provider: createPaperworkData.value.paperworkType.previous_provider,
+      shipping: createPaperworkData.value.paperworkType.shipping,
+      visura: createPaperworkData.value.paperworkType.visura,
+      other: createPaperworkData.value.paperworkType.other,
       documents: uploadedDocuments,
     }
 
