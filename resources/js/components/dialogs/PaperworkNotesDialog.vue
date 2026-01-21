@@ -1,4 +1,6 @@
 <script setup>
+import { watch } from 'vue'
+
 const props = defineProps({
   paperworkData: {
     type: Object,
@@ -12,10 +14,58 @@ const props = defineProps({
 
 const emit = defineEmits([
   'update:isDialogVisible',
+  'notes-updated',
 ])
+
+const notes = ref(props.paperworkData?.notes || '')
+const ownerNotes = ref(props.paperworkData?.owner_notes || '')
+const isSaving = ref(false)
+
+// Verifica se l'utente è admin per modificare le note Alfacom
+const loggedInUser = useCookie('userData').value
+const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+
+// Sincronizza i valori quando cambia paperworkData
+watch(() => props.paperworkData, (newData) => {
+  if (newData) {
+    notes.value = newData.notes || ''
+    ownerNotes.value = newData.owner_notes || ''
+  }
+}, { immediate: true, deep: true })
 
 const closeDialog = () => {
   emit('update:isDialogVisible', false)
+}
+
+const saveNotes = async () => {
+  if (!props.paperworkData?.id) {
+    return
+  }
+
+  isSaving.value = true
+  try {
+    const body = {
+      notes: notes.value || null,
+    }
+    
+    // Solo admin può modificare owner_notes
+    if (isAdmin) {
+      body.owner_notes = ownerNotes.value || null
+    }
+
+    await $api(`/paperworks/${props.paperworkData.id}`, {
+      method: 'PUT',
+      body,
+    })
+
+    emit('notes-updated')
+    closeDialog()
+  } catch (error) {
+    console.error('Errore nel salvataggio delle note:', error)
+    alert('Errore nel salvataggio delle note')
+  } finally {
+    isSaving.value = false
+  }
 }
 </script>
 
@@ -23,7 +73,7 @@ const closeDialog = () => {
   <VDialog
     :model-value="isDialogVisible"
     @update:model-value="closeDialog"
-    :width="$vuetify.display.smAndDown ? 'auto' : 600"
+    :width="$vuetify.display.smAndDown ? 'auto' : 700"
   >
     <DialogCloseBtn @click="closeDialog" />
 
@@ -34,46 +84,51 @@ const closeDialog = () => {
           Note Pratica #{{ paperworkData?.id }}
         </h4>
 
-        <!-- 👉 Notes Content -->
-        <div class="mt-6">
-          <!-- Note Generali -->
-          <div v-if="paperworkData?.notes" class="mb-4">
-            <h6 class="text-h6 mb-2">Note Generali</h6>
-            <VCard variant="outlined" class="pa-4">
-              <div class="text-body-1">
-                {{ paperworkData.notes }}
-              </div>
-            </VCard>
-          </div>
+        <!-- 👉 Form -->
+        <VForm @submit.prevent="saveNotes">
+          <div class="mt-6">
+            <!-- Note Generali -->
+            <div class="mb-6">
+              <h6 class="text-h6 mb-2">Note Generali</h6>
+              <AppTextarea
+                v-model="notes"
+                label="Note Generali"
+                placeholder="Inserisci note generali per questa pratica..."
+                rows="6"
+              />
+            </div>
 
-          <!-- Note Alfacom -->
-          <div v-if="paperworkData?.owner_notes" class="mb-4">
-            <h6 class="text-h6 mb-2">Note Alfacom</h6>
-            <VCard variant="outlined" class="pa-4">
-              <div class="text-body-1">
-                {{ paperworkData.owner_notes }}
-              </div>
-            </VCard>
-          </div>
-
-          <!-- Nessuna nota -->
-          <div v-if="!paperworkData?.notes && !paperworkData?.owner_notes" class="text-center pa-4">
-            <VIcon icon="tabler-note-off" size="48" color="disabled" class="mb-2" />
-            <div class="text-body-1 text-medium-emphasis">
-              Nessuna nota disponibile per questa pratica
+            <!-- Note Alfacom (solo per admin) -->
+            <div v-if="isAdmin" class="mb-6">
+              <h6 class="text-h6 mb-2">Note Alfacom</h6>
+              <AppTextarea
+                v-model="ownerNotes"
+                label="Note Alfacom"
+                placeholder="Inserisci note Alfacom per questa pratica..."
+                rows="6"
+              />
             </div>
           </div>
-        </div>
 
-        <!-- 👉 Close Button -->
-        <div class="d-flex justify-center mt-6">
-          <VBtn
-            color="primary"
-            @click="closeDialog"
-          >
-            Chiudi
-          </VBtn>
-        </div>
+          <!-- 👉 Buttons -->
+          <div class="d-flex justify-center gap-4 mt-6">
+            <VBtn
+              color="secondary"
+              variant="tonal"
+              @click="closeDialog"
+              :disabled="isSaving"
+            >
+              Annulla
+            </VBtn>
+            <VBtn
+              type="submit"
+              color="primary"
+              :loading="isSaving"
+            >
+              Salva
+            </VBtn>
+          </div>
+        </VForm>
       </VCardText>
     </VCard>
   </VDialog>

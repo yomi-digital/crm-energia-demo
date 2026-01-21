@@ -1326,13 +1326,12 @@ const updateDateFromYearMonth = () => {
             </VBtn>
             
             <VBtn
-              v-if="item.notes || item.owner_notes"
               size="small"
               color="info"
               variant="tonal"
               class="compact-btn"
               @click.stop="showNotesDialog(item)"
-              :title="`Visualizza note della pratica ${item?.id}`"
+              :title="`${item.notes || item.owner_notes ? 'Modifica' : 'Aggiungi'} note della pratica ${item?.id}`"
             >
               Note
             </VBtn>
@@ -1401,9 +1400,11 @@ const updateDateFromYearMonth = () => {
 
     <!-- 👉 Notes Dialog -->
     <PaperworkNotesDialog
+      v-if="selectedPaperworkForNotes"
       :isDialogVisible="isNotesDialogVisible"
       :paperworkData="selectedPaperworkForNotes"
       @update:isDialogVisible="isNotesDialogVisible = $event"
+      @notes-updated="handleNotesUpdated"
     />
 
     <!-- 👉 Edit Agent Dialog -->
