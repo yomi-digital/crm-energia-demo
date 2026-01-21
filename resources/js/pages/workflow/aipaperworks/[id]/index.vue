@@ -1343,6 +1343,35 @@ onUnmounted(() => {
                 </VRow>
 
                 <VRow>
+                  <VCol cols="6">
+                    <VCheckbox
+                      v-model="extractedPaperwork.shipping"
+                      label="Spedizione"
+                      :readonly="aiPaperwork?.status === 5"
+                    />
+                  </VCol>
+                  <VCol cols="6">
+                    <VCheckbox
+                      v-model="extractedPaperwork.visura"
+                      label="Visura"
+                      :readonly="aiPaperwork?.status === 5"
+                    />
+                  </VCol>
+                </VRow>
+
+                <VRow>
+                  <VCol cols="12">
+                    <AppTextarea
+                      v-model="extractedPaperwork.other"
+                      label="Altri costi"
+                      placeholder="Inserisci ulteriori dettagli..."
+                      rows="2"
+                      :readonly="aiPaperwork?.status === 5"
+                    />
+                  </VCol>
+                </VRow>
+
+                <VRow>
                   <VCol cols="12">
                     <AppTextField
                       v-model="extractedPaperwork.previous_provider"

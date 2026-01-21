@@ -69,9 +69,9 @@ const toggleReadUnread = (isSeen, Id) => {
   <IconBtn id="notification-btn">
     <VBadge
       v-bind="props.badgeProps"
-      :model-value="props.notifications.some(n => !n.isSeen)"
+      :model-value="totalUnseenNotifications > 0"
       color="error"
-      dot
+      :content="totalUnseenNotifications"
       offset-x="2"
       offset-y="3"
     >

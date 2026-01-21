@@ -277,6 +277,30 @@ const contractTypesMobile = ref([
         </VCol>
       </template>
 
+      <!-- Campi comuni aggiuntivi -->
+      <VCol cols="12" sm="6">
+        <VCheckbox
+          v-model="formData.shipping"
+          label="Spedizione"
+        />
+      </VCol>
+
+      <VCol cols="12" sm="6">
+        <VCheckbox
+          v-model="formData.visura"
+          label="Visura"
+        />
+      </VCol>
+
+      <VCol cols="12">
+        <AppTextarea
+          v-model="formData.other"
+          label="Altri costi"
+          placeholder="Inserisci ulteriori dettagli..."
+          rows="2"
+        />
+      </VCol>
+
     </VRow>
   </VForm>
 </template>

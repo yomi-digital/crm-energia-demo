@@ -121,10 +121,11 @@ class PaperworksController extends Controller
             $searchWords = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
             
             $paperworks = $paperworks->where(function ($query) use ($search, $searchWords) {
-                // Se la ricerca è numerica, cerca per ID o order_code
+                // Se la ricerca è numerica, cerca per ID, order_code o POD/PDR
                 if (is_numeric($search)) {
                     $query->where('paperworks.id', $search)
-                        ->orWhere('paperworks.order_code', 'like', "%{$search}%");
+                        ->orWhere('paperworks.order_code', 'like', "%{$search}%")
+                        ->orWhere('paperworks.account_pod_pdr', 'like', "%{$search}%");
                 } else {
                     // Cerca nei campi della pratica
                     $query->where('paperworks.order_code', 'like', "%{$search}%")
@@ -382,6 +383,9 @@ class PaperworksController extends Controller
                 'particella' => 'nullable|string',
                 'sub' => 'nullable|string',
                 'indirizzo_installazione' => 'nullable|string',
+                'shipping' => 'boolean|nullable',
+                'visura' => 'boolean|nullable',
+                'other' => 'nullable|string',
             ]);
         }
         
@@ -401,6 +405,9 @@ class PaperworksController extends Controller
                 'coverage',
                 'previous_provider',
                 'notes',
+                'shipping',
+                'visura',
+                'other',
             ]);
         } else {
             $fields = $request->all();
