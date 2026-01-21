@@ -157,7 +157,7 @@ const handleDrawerModelValueUpdate = val => {
                 <AppSelect
                   v-model="category"
                   label="Tipologia"
-                  :items="['Telefonia', 'Energia', 'Altro']"
+                  :items="['Telefonia', 'Energia', 'Fotovoltaico']"
                 />
               </VCol>
 

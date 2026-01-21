@@ -138,7 +138,7 @@ const categories = [
   { value: '', title: 'Tutti' },
   { value: 'Telefonia', title: 'Telefonia' },
   { value: 'Energia', title: 'Energia' },
-  { value: 'Altro', title: 'Altro' },
+  { value: 'Fotovoltaico', title: 'Fotovoltaico' },
 ]
 const statuses = [
   { value: '1', title: 'Abilitati' },
