@@ -121,15 +121,29 @@ class PaperworksController extends Controller
             $searchWords = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
             
             $paperworks = $paperworks->where(function ($query) use ($search, $searchWords) {
+                // Prepara la ricerca per POD/PDR considerando il prefisso "IT"
+                $podSearch = $search;
+                $podSearchWithIT = 'IT' . $search;
+                $podSearchWithoutIT = preg_replace('/^IT/i', '', $search);
+                
                 // Se la ricerca è numerica, cerca per ID, order_code o POD/PDR
                 if (is_numeric($search)) {
                     $query->where('paperworks.id', $search)
                         ->orWhere('paperworks.order_code', 'like', "%{$search}%")
-                        ->orWhere('paperworks.account_pod_pdr', 'like', "%{$search}%");
+                        ->orWhere(function ($q) use ($podSearch, $podSearchWithIT) {
+                            // Cerca POD/PDR con o senza prefisso IT
+                            $q->where('paperworks.account_pod_pdr', 'like', "%{$podSearch}%")
+                              ->orWhere('paperworks.account_pod_pdr', 'like', "%{$podSearchWithIT}%");
+                        });
                 } else {
                     // Cerca nei campi della pratica
                     $query->where('paperworks.order_code', 'like', "%{$search}%")
-                        ->orWhere('paperworks.account_pod_pdr', 'like', "%{$search}%");
+                        ->orWhere(function ($q) use ($podSearch, $podSearchWithIT, $podSearchWithoutIT) {
+                            // Cerca POD/PDR con o senza prefisso IT
+                            $q->where('paperworks.account_pod_pdr', 'like', "%{$podSearch}%")
+                              ->orWhere('paperworks.account_pod_pdr', 'like', "%{$podSearchWithIT}%")
+                              ->orWhere('paperworks.account_pod_pdr', 'like', "%{$podSearchWithoutIT}%");
+                        });
                 }
                 
                 // Cerca nei campi del cliente tramite JOIN
