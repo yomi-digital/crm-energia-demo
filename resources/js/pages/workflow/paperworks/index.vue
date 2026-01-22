@@ -1,6 +1,6 @@
 <script setup>
-import PaperworkEditPartnerOutcomeDialog from '@/components/dialogs/PaperworkEditPartnerOutcomeDialog.vue'
 import PaperworkEditMandateDialog from '@/components/dialogs/PaperworkEditMandateDialog.vue'
+import PaperworkEditPartnerOutcomeDialog from '@/components/dialogs/PaperworkEditPartnerOutcomeDialog.vue'
 import PaperworkNotesDialog from '@/components/dialogs/PaperworkNotesDialog.vue'
 import StatusChip from '@/components/StatusChip.vue'
 import { nextTick, onMounted, onUnmounted } from 'vue'

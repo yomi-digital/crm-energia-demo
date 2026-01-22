@@ -40,8 +40,43 @@ const emit = defineEmits([
 
 const paperworkDataClone = ref(structuredClone(toRaw(props.paperworkData)))
 
-watch(props, () => {
-  paperworkDataClone.value = structuredClone(toRaw(props.paperworkData))
+watch(() => props.paperworkData, (newData) => {
+  if (newData) {
+    paperworkDataClone.value = structuredClone(toRaw(newData))
+    // Assicurati che i campi boolean siano correttamente inizializzati (gestisci null, undefined, 0, 1)
+    if (paperworkDataClone.value.shipping === undefined || paperworkDataClone.value.shipping === null) {
+      paperworkDataClone.value.shipping = false
+    } else {
+      paperworkDataClone.value.shipping = Boolean(paperworkDataClone.value.shipping)
+    }
+    if (paperworkDataClone.value.visura === undefined || paperworkDataClone.value.visura === null) {
+      paperworkDataClone.value.visura = false
+    } else {
+      paperworkDataClone.value.visura = Boolean(paperworkDataClone.value.visura)
+    }
+  }
+}, { deep: true, immediate: true })
+
+watch(() => props.isDialogVisible, (isVisible) => {
+  if (isVisible) {
+    // Quando il dialog si apre, ricarica i dati e inizializza i campi boolean
+    paperworkDataClone.value = structuredClone(toRaw(props.paperworkData))
+    // Assicurati che i campi boolean siano correttamente inizializzati (gestisci null, undefined, 0, 1)
+    if (paperworkDataClone.value.shipping === undefined || paperworkDataClone.value.shipping === null) {
+      paperworkDataClone.value.shipping = false
+    } else {
+      // Converti in boolean se necessario (gestisce anche 0/1 dal database)
+      paperworkDataClone.value.shipping = Boolean(paperworkDataClone.value.shipping)
+    }
+    if (paperworkDataClone.value.visura === undefined || paperworkDataClone.value.visura === null) {
+      paperworkDataClone.value.visura = false
+    } else {
+      // Converti in boolean se necessario (gestisce anche 0/1 dal database)
+      paperworkDataClone.value.visura = Boolean(paperworkDataClone.value.visura)
+    }
+    // Carica tutti gli utenti quando il dialog si apre
+    fetchAgents()
+  }
 })
 
 const onFormSubmit = () => {
@@ -94,66 +129,28 @@ const statuses = ref([
   { title: 'INVIATO', value: 'INVIATO' },
 ])
 
-// Agenti disponibili per riassegnare la pratica
+// Utenti disponibili per riassegnare la pratica (tutti gli utenti)
 const agents = ref([])
 const isLoadingAgents = ref(false)
 
-const fetchAgents = async (brandId = null) => {
+const fetchAgents = async () => {
   isLoadingAgents.value = true
   agents.value = []
   try {
-    // Costruisci l'URL con il filtro brand_id se disponibile
-    // Include strutture, gestione, backoffice e amministrazione
-    let url = '/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1&backoffice=1&amministrazione=1'
-    if (brandId) {
-      url += `&brand_id=${brandId}`
-    }
-    
-    const response = await $api(url)
-    agents.value = response.agents.map(agent => ({
-      title: [agent.name, agent.last_name].filter(Boolean).join(' '),
-      value: agent.id,
+    // Carica tutti gli utenti abilitati
+    const response = await $api('/users?itemsPerPage=99999999&enabled=1')
+    agents.value = response.users.map(user => ({
+      title: [user.name, user.last_name].filter(Boolean).join(' '),
+      value: user.id,
     }))
   } catch (error) {
-    console.error('Failed to load agents:', error)
+    console.error('Failed to load users:', error)
     agents.value = []
   } finally {
     isLoadingAgents.value = false
   }
 }
 
-// Carica gli agenti all'apertura del dialogo, filtrati per il brand della pratica
-watch(() => props.isDialogVisible, (isVisible) => {
-  if (isVisible) {
-    const brandId = props.paperworkData?.product?.brand_id
-    fetchAgents(brandId)
-  }
-})
-
-// Ricarica gli agenti quando cambia il prodotto (e quindi il brand)
-watch(() => paperworkDataClone.value.product_id, async (newProductId) => {
-  if (newProductId && props.isDialogVisible) {
-    // Carica il prodotto per ottenere il brand_id
-    try {
-      const productResponse = await $api(`/products/${newProductId}`)
-      const brandId = productResponse.product?.brand_id
-      if (brandId) {
-        await fetchAgents(brandId)
-        // Se l'agente corrente non ha più il brand, resetta la selezione
-        const currentAgentId = paperworkDataClone.value.user_id
-        const agentHasBrand = agents.value.some(agent => agent.value === currentAgentId)
-        if (currentAgentId && !agentHasBrand) {
-          paperworkDataClone.value.user_id = null
-        }
-      } else {
-        await fetchAgents() // Nessun brand, carica tutti gli agenti
-      }
-    } catch (error) {
-      console.error('Failed to load product:', error)
-      await fetchAgents() // In caso di errore, carica tutti gli agenti
-    }
-  }
-})
 
 const mandates = ref([]);
 const { data: mandatesData, execute: fetchMandates } = await useApi('/mandates');
