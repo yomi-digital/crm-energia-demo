@@ -1,5 +1,6 @@
 <script setup>
 import PaperworkEditPartnerOutcomeDialog from '@/components/dialogs/PaperworkEditPartnerOutcomeDialog.vue'
+import PaperworkEditMandateDialog from '@/components/dialogs/PaperworkEditMandateDialog.vue'
 import PaperworkNotesDialog from '@/components/dialogs/PaperworkNotesDialog.vue'
 import StatusChip from '@/components/StatusChip.vue'
 import { nextTick, onMounted, onUnmounted } from 'vue'
@@ -787,6 +788,39 @@ const handlePartnerOutcomeUpdated = () => {
   fetchPaperworks()
 }
 
+// Modal states per modifica mandato
+const isEditMandateDialogVisible = ref(false)
+const selectedPaperworkForMandateEdit = ref(null)
+const mandatesForEdit = ref([])
+
+const fetchMandatesForEdit = async () => {
+  mandatesForEdit.value = []
+  try {
+    const response = await $api('/mandates?itemsPerPage=999999')
+    if (response && response.mandates && Array.isArray(response.mandates)) {
+      mandatesForEdit.value = response.mandates.map(mandate => ({
+        title: mandate.name,
+        value: mandate.id,
+      }))
+    }
+  } catch (error) {
+    console.error('Errore durante il caricamento dei mandati:', error)
+    mandatesForEdit.value = []
+  }
+}
+
+const showEditMandateDialog = async (paperwork) => {
+  // Carica sempre i mandati per assicurarsi che siano aggiornati
+  await fetchMandatesForEdit()
+  selectedPaperworkForMandateEdit.value = paperwork
+  isEditMandateDialogVisible.value = true
+}
+
+const handleMandateUpdated = () => {
+  // Ricarica i dati della tabella
+  fetchPaperworks()
+}
+
 const categories = ref([
   { title: 'ALLACCIO', value: 'ALLACCIO' },
   { title: 'OTP', value: 'OTP' },
@@ -1257,8 +1291,17 @@ const updateDateFromYearMonth = () => {
         <template #item.mandate_id="{ item }">
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
-              {{ item.mandate?.name }}
+              {{ item.mandate?.name || 'N/A' }}
             </div>
+            <VIcon
+              v-if="isAdmin"
+              icon="tabler-pencil"
+              size="18"
+              color="primary"
+              class="cursor-pointer"
+              @click.stop="showEditMandateDialog(item)"
+              :title="`${item.mandate ? 'Modifica' : 'Aggiungi'} mandato della pratica ${item?.id}`"
+            />
           </div>
         </template>
 
@@ -1424,6 +1467,16 @@ const updateDateFromYearMonth = () => {
       :paperworkData="selectedPaperworkForPartnerOutcomeEdit"
       @update:isDialogVisible="isEditPartnerOutcomeDialogVisible = $event"
       @partner-outcome-updated="handlePartnerOutcomeUpdated"
+    />
+
+    <!-- 👉 Edit Mandate Dialog -->
+    <PaperworkEditMandateDialog
+      v-if="selectedPaperworkForMandateEdit"
+      :isDialogVisible="isEditMandateDialogVisible"
+      :paperworkData="selectedPaperworkForMandateEdit"
+      :mandates="mandatesForEdit"
+      @update:isDialogVisible="isEditMandateDialogVisible = $event"
+      @mandate-updated="handleMandateUpdated"
     />
   </section>
 </template>

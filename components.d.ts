@@ -403,6 +403,7 @@ declare module 'vue' {
     PaperworkConfirmInsertDialog: typeof import('./resources/js/components/dialogs/PaperworkConfirmInsertDialog.vue')['default']
     PaperworkEditAgentDialog: typeof import('./resources/js/components/dialogs/PaperworkEditAgentDialog.vue')['default']
     PaperworkEditDialog: typeof import('./resources/js/components/dialogs/PaperworkEditDialog.vue')['default']
+    PaperworkEditMandateDialog: typeof import('./resources/js/components/dialogs/PaperworkEditMandateDialog.vue')['default']
     PaperworkEditPartnerOutcomeDialog: typeof import('./resources/js/components/dialogs/PaperworkEditPartnerOutcomeDialog.vue')['default']
     PaperworkNotesDialog: typeof import('./resources/js/components/dialogs/PaperworkNotesDialog.vue')['default']
     PaperworkUndoPartnerSentDialog: typeof import('./resources/js/components/dialogs/PaperworkUndoPartnerSentDialog.vue')['default']
