@@ -509,6 +509,30 @@ class ReportsController extends Controller
         ];
     }
 
+    /**
+     * Pulisce le note da caratteri terminatori e spazi problematici per l'export CSV/Excel
+     */
+    private function sanitizeNotesForExport($notes)
+    {
+        if (empty($notes)) {
+            return '';
+        }
+
+        // Rimuovi caratteri terminatori di riga (\n, \r, \r\n)
+        $notes = str_replace(["\r\n", "\n", "\r"], ' ', $notes);
+        
+        // Rimuovi tab
+        $notes = str_replace("\t", ' ', $notes);
+        
+        // Rimuovi spazi multipli e sostituiscili con uno spazio singolo
+        $notes = preg_replace('/\s+/', ' ', $notes);
+        
+        // Rimuovi spazi all'inizio e alla fine
+        $notes = trim($notes);
+        
+        return $notes;
+    }
+
     private function transformPaperworksToCSV($paperworks, $user)
     {
         $headers = [
@@ -539,7 +563,7 @@ class ReportsController extends Controller
                 $data['order_code'],
                 $data['inserted_at'],
                 $data['status'],
-                $data['notes'] ?? '',
+                $this->sanitizeNotesForExport($data['notes'] ?? ''),
             ]);
         }
 
