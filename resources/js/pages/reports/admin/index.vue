@@ -21,6 +21,7 @@ const selectedProduct = ref('')
 const selectedStatus = ref('')
 const selectedCategory = ref('')
 const selectedAgency = ref('')
+const selectedAdditionalCosts = ref('')
 // const selectedMandate = ref('')
 
 // Selected items in the table
@@ -142,6 +143,7 @@ const {
     status: selectedStatus,
     category: selectedCategory,
     agency_id: selectedAgency,
+    additional_costs: selectedAdditionalCosts,
   },
 }))
 
@@ -271,6 +273,33 @@ const categories = ref([
   },
 ])
 
+const additionalCostsOptions = ref([
+  {
+    title: 'Tutti',
+    value: '',
+  },
+  {
+    title: 'Con Spedizione',
+    value: 'shipping',
+  },
+  {
+    title: 'Con Visura',
+    value: 'visura',
+  },
+  {
+    title: 'Con Altri Costi',
+    value: 'other',
+  },
+  {
+    title: 'Con Costi Aggiuntivi',
+    value: 'any',
+  },
+  {
+    title: 'Senza Costi Aggiuntivi',
+    value: 'none',
+  },
+])
+
 const fetchBrands = async (query) => {
   const response = await $api('/brands?itemsPerPage=999999&select=1')
   for (const brand of response.brands) {
@@ -332,6 +361,7 @@ const saveReport = async () => {
       brand_id: selectedBrand.value,
       product_id: selectedProduct.value,
       agency_id: selectedAgency.value,
+      additional_costs: selectedAdditionalCosts.value,
     },
   })
   // Redirect to the saved report
@@ -415,6 +445,16 @@ const saveReport = async () => {
               clearable
               :items="categories"
               placeholder="Seleziona una Tipologia"
+            />
+          </VCol>
+
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedAdditionalCosts"
+              label="Filtra per Costi Aggiuntivi"
+              clearable
+              :items="additionalCostsOptions"
+              placeholder="Seleziona un filtro"
             />
           </VCol>
         </VRow>
@@ -588,12 +628,16 @@ const saveReport = async () => {
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
               <RouterLink
+                v-if="item.product_id"
                 :to="{ name: 'configuration-products-id', params: { id: item.product_id } }"
                 class="font-weight-medium text-link"
                 :title="item.product"
               >
                 {{ item.product }}
               </RouterLink>
+              <span v-else>
+                {{ item.product }}
+              </span>
             </div>
           </div>
         </template>
@@ -603,12 +647,16 @@ const saveReport = async () => {
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
               <RouterLink
+                v-if="item.paperwork_id"
                 :to="{ name: 'workflow-paperworks-id', params: { id: item.paperwork_id } }"
                 class="font-weight-medium text-link"
                 :title="item.paperwork_id"
               >
                 {{ item.order_code }}
               </RouterLink>
+              <span v-else>
+                {{ item.order_code || 'N/A' }}
+              </span>
             </div>
           </div>
         </template>

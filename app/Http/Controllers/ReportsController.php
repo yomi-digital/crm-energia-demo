@@ -199,6 +199,57 @@ class ReportsController extends Controller
             $paperworks = $paperworks->where('category', $request->get('category'));
         }
 
+        // Filtro per costi aggiuntivi (spedizione, visura, altri costi)
+        if ($request->filled('additional_costs')) {
+            $additionalCostsFilter = $request->get('additional_costs');
+            switch ($additionalCostsFilter) {
+                case 'shipping':
+                    // Solo pratiche con spedizione
+                    $paperworks = $paperworks->where('shipping', true);
+                    break;
+                case 'visura':
+                    // Solo pratiche con visura
+                    $paperworks = $paperworks->where('visura', true);
+                    break;
+                case 'other':
+                    // Solo pratiche con altri costi (campo other non vuoto)
+                    $paperworks = $paperworks->whereNotNull('other')
+                                             ->where('other', '!=', '')
+                                             ->where('other', '!=', ' ');
+                    break;
+                case 'any':
+                    // Pratiche con almeno uno dei costi aggiuntivi
+                    $paperworks = $paperworks->where(function ($query) {
+                        $query->where('shipping', true)
+                              ->orWhere('visura', true)
+                              ->orWhere(function ($q) {
+                                  $q->whereNotNull('other')
+                                    ->where('other', '!=', '')
+                                    ->where('other', '!=', ' ');
+                              });
+                    });
+                    break;
+                case 'none':
+                    // Pratiche senza costi aggiuntivi
+                    $paperworks = $paperworks->where(function ($query) {
+                        $query->where(function ($q) {
+                            $q->where('shipping', false)
+                              ->orWhereNull('shipping');
+                        })
+                        ->where(function ($q) {
+                            $q->where('visura', false)
+                              ->orWhereNull('visura');
+                        })
+                        ->where(function ($q) {
+                            $q->whereNull('other')
+                              ->orWhere('other', '')
+                              ->orWhere('other', ' ');
+                        });
+                    });
+                    break;
+            }
+        }
+
         $paperworks = $paperworks->orderBy('created_at', 'desc');
 
         if ($request->has('save')) {
@@ -221,12 +272,16 @@ class ReportsController extends Controller
 
             $allPaperworks = $paperworks->get();
             foreach ($allPaperworks as $paperwork) {
+                // Salva la riga principale della pratica
                 $transformedPaperwork = $this->transformPaperworkAdmin($paperwork, $user, false);
                 $entry = new \App\Models\ReportEntry();
                 $entry->fill($transformedPaperwork);
                 $entry->payout_confirmed = $entry->payout;
                 $entry->report_id = $report->id;
                 $entry->save();
+
+                // Aggiungi righe aggiuntive per spedizione, visura e altri costi
+                $this->addAdditionalCostEntries($paperwork, $transformedPaperwork, $report->id);
             }
 
             return response()->json([
@@ -262,14 +317,23 @@ class ReportsController extends Controller
         $perPage = $request->get('itemsPerPage', 500);
         $paperworks = $paperworks->paginate($perPage);
 
-        $paperworks->getCollection()->transform(function ($paperwork) use ($user) {
-            return $this->transformPaperworkAdmin($paperwork, $user);
-        });
+        $entries = collect();
+        $additionalEntriesCount = 0;
+        foreach ($paperworks->getCollection() as $paperwork) {
+            // Aggiungi la riga principale
+            $mainEntry = $this->transformPaperworkAdmin($paperwork, $user);
+            $entries->push($mainEntry);
+            
+            // Aggiungi righe aggiuntive per spedizione, visura e altri costi
+            $additionalEntries = $this->getAdditionalCostEntries($paperwork, $mainEntry);
+            $entries = $entries->merge($additionalEntries);
+            $additionalEntriesCount += $additionalEntries->count();
+        }
 
         return response()->json([
-            'entries' => $paperworks->getCollection(),
+            'entries' => $entries,
             'totalPages' => $paperworks->lastPage(),
-            'totalEntries' => $paperworks->total(),
+            'totalEntries' => $paperworks->total() + $additionalEntriesCount,
             'page' => $paperworks->currentPage()
         ]);
     }
@@ -350,6 +414,10 @@ class ReportsController extends Controller
                             ->where('order_status', $status);
                       });
             });
+        }
+
+        if ($request->filled('substatus')) {
+            $paperworks = $paperworks->where('order_substatus', $request->get('substatus'));
         }
 
         if ($request->filled('category')) {
@@ -597,6 +665,7 @@ class ReportsController extends Controller
 
         $totalPayout = 0;
         foreach ($paperworks as $paperwork) {
+            // Riga principale
             $data = $this->transformPaperworkAdmin($paperwork, $user);
             $payout = $data['payout'] ?? 0;
             $totalPayout += $payout;
@@ -616,6 +685,26 @@ class ReportsController extends Controller
                 $data['activated_at'] ?? '',
                 $payout,
             ]);
+
+            // Righe aggiuntive per spedizione, visura e altri costi
+            $additionalEntries = $this->getAdditionalCostEntries($paperwork, $data);
+            foreach ($additionalEntries as $additionalEntry) {
+                fputcsv($fp, [
+                    $additionalEntry['order_code'],
+                    $additionalEntry['account_pod_pdr'],
+                    $additionalEntry['parent'],
+                    $additionalEntry['agent'],
+                    $additionalEntry['customer'],
+                    $additionalEntry['tax_id_code'],
+                    $additionalEntry['vat_number'],
+                    $additionalEntry['brand'],
+                    $additionalEntry['product'],
+                    $additionalEntry['status'],
+                    $additionalEntry['inserted_at'] ?? '',
+                    $additionalEntry['activated_at'] ?? '',
+                    $additionalEntry['payout'] ?? '',
+                ]);
+            }
         }
 
         // Aggiungi riga vuota e riga totale
@@ -888,5 +977,106 @@ class ReportsController extends Controller
         return response()->json([
             'message' => 'Riga aggiunta con successo',
         ]);
+    }
+
+    /**
+     * Crea righe aggiuntive per spedizione, visura e altri costi quando si salva un report
+     */
+    private function addAdditionalCostEntries($paperwork, $transformedPaperwork, $reportId)
+    {
+        // Riga per spedizione (controlla se è true o 1)
+        if ($paperwork->shipping === true || $paperwork->shipping === 1 || $paperwork->shipping === '1') {
+            $entry = new \App\Models\ReportEntry();
+            $entry->fill($transformedPaperwork);
+            $entry->product = 'Addebito Spedizione';
+            $entry->product_id = null; // Nessun prodotto associato
+            $entry->payout = null; // Non selezionato ma modificabile
+            $entry->payout_confirmed = null; // Non selezionato ma modificabile
+            $entry->report_id = $reportId;
+            $entry->save();
+        }
+
+        // Riga per visura (controlla se è true o 1)
+        if ($paperwork->visura === true || $paperwork->visura === 1 || $paperwork->visura === '1') {
+            $entry = new \App\Models\ReportEntry();
+            $entry->fill($transformedPaperwork);
+            $entry->product = 'Addebito Visura';
+            $entry->product_id = null; // Nessun prodotto associato
+            $entry->payout = null; // Non selezionato ma modificabile
+            $entry->payout_confirmed = null; // Non selezionato ma modificabile
+            $entry->report_id = $reportId;
+            $entry->save();
+        }
+
+        // Riga per altri costi
+        if (!empty($paperwork->other) && trim($paperwork->other) !== '') {
+            $entry = new \App\Models\ReportEntry();
+            $entry->fill($transformedPaperwork);
+            $entry->product = trim($paperwork->other); // Usa il valore del campo "other"
+            $entry->product_id = null; // Nessun prodotto associato
+            $entry->payout = null; // Non selezionato ma modificabile
+            $entry->payout_confirmed = null; // Non selezionato ma modificabile
+            $entry->report_id = $reportId;
+            $entry->save();
+        }
+    }
+
+    /**
+     * Restituisce le righe aggiuntive per spedizione, visura e altri costi per la visualizzazione
+     */
+    private function getAdditionalCostEntries($paperwork, $transformedPaperwork)
+    {
+        $entries = collect();
+        $counter = 0;
+
+        // Riga per spedizione (controlla se è true o 1)
+        if ($paperwork->shipping === true || $paperwork->shipping === 1 || $paperwork->shipping === '1') {
+            $entry = array_merge([], $transformedPaperwork); // Copia dell'array
+            $entry['product'] = 'Addebito Spedizione';
+            $entry['product_id'] = null;
+            $entry['payout'] = null;
+            $entry['payout_confirmed'] = null;
+            // Assicurati che paperwork_id sia sempre presente per item-value
+            if (empty($entry['paperwork_id'])) {
+                $entry['paperwork_id'] = $paperwork->id;
+            }
+            // Aggiungi un identificatore univoco per distinguere le righe aggiuntive
+            $entry['unique_id'] = $paperwork->id . '_shipping_' . $counter++;
+            $entries->push($entry);
+        }
+
+        // Riga per visura (controlla se è true o 1)
+        if ($paperwork->visura === true || $paperwork->visura === 1 || $paperwork->visura === '1') {
+            $entry = array_merge([], $transformedPaperwork); // Copia dell'array
+            $entry['product'] = 'Addebito Visura';
+            $entry['product_id'] = null;
+            $entry['payout'] = null;
+            $entry['payout_confirmed'] = null;
+            // Assicurati che paperwork_id sia sempre presente per item-value
+            if (empty($entry['paperwork_id'])) {
+                $entry['paperwork_id'] = $paperwork->id;
+            }
+            // Aggiungi un identificatore univoco per distinguere le righe aggiuntive
+            $entry['unique_id'] = $paperwork->id . '_visura_' . $counter++;
+            $entries->push($entry);
+        }
+
+        // Riga per altri costi
+        if (!empty($paperwork->other) && trim($paperwork->other) !== '') {
+            $entry = array_merge([], $transformedPaperwork); // Copia dell'array
+            $entry['product'] = trim($paperwork->other); // Usa il valore del campo "other"
+            $entry['product_id'] = null;
+            $entry['payout'] = null;
+            $entry['payout_confirmed'] = null;
+            // Assicurati che paperwork_id sia sempre presente per item-value
+            if (empty($entry['paperwork_id'])) {
+                $entry['paperwork_id'] = $paperwork->id;
+            }
+            // Aggiungi un identificatore univoco per distinguere le righe aggiuntive
+            $entry['unique_id'] = $paperwork->id . '_other_' . $counter++;
+            $entries->push($entry);
+        }
+
+        return $entries;
     }
 }

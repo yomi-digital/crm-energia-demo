@@ -44,9 +44,9 @@ const onFormSubmit = async () => {
       order_code: orderCode.value,
       order_status: orderStatus.value,
       order_substatus: orderSubStatus.value,
-      partner_outcome: partnerOutcome.value,
-      partner_outcome_at: partnerOutcomeAt.value,
-      partner_sent_at: partnerSentAt.value,
+      partner_outcome: partnerOutcome.value || null,
+      partner_outcome_at: partnerOutcomeAt.value || null,
+      partner_sent_at: partnerSentAt.value || null,
       notify_agent: sendNotification.value,
       notes: notes.value,
       owner_notes: ownerNotes.value,
@@ -218,6 +218,10 @@ const orderSubStatuses = ref([
   {
     title: 'KO DISCONOSCIMENTO',
     value: 'KO DISCONOSCIMENTO',
+  },
+  {
+    title: 'In Fornitura',
+    value: 'In Fornitura',
   },
 ])
 

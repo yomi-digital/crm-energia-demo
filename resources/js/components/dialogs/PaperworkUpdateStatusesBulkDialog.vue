@@ -152,6 +152,10 @@ const orderSubStatuses = ref([
     title: 'KO DISCONOSCIMENTO',
     value: 'KO DISCONOSCIMENTO',
   },
+  {
+    title: 'In Fornitura',
+    value: 'In Fornitura',
+  },
 ])
 
 const partnerOutcomes = ref([

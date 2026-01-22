@@ -614,30 +614,44 @@ class PaperworksController extends Controller
 
         // Gestisci i campi data prima di fill per evitare errori di formato
         $partnerOutcomeAt = null;
-        if ($request->has('partner_outcome_at') && $request->get('partner_outcome_at')) {
-            try {
-                // Tenta di creare da d/m/Y (formato frontend) o usa il valore così com'è
-                $partnerOutcomeAt = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_outcome_at'));
-            } catch (\Exception $e) {
-                // Se fallisce, prova a interpretarlo come data qualsiasi
+        $shouldClearPartnerOutcomeAt = false;
+        if ($request->has('partner_outcome_at')) {
+            $partnerOutcomeAtValue = $request->get('partner_outcome_at');
+            if (empty($partnerOutcomeAtValue) || $partnerOutcomeAtValue === null || $partnerOutcomeAtValue === '') {
+                // Campo presente ma vuoto: svuota il campo
+                $shouldClearPartnerOutcomeAt = true;
+            } else {
                 try {
-                    $partnerOutcomeAt = \Carbon\Carbon::parse($request->get('partner_outcome_at'));
+                    // Tenta di creare da d/m/Y (formato frontend) o usa il valore così com'è
+                    $partnerOutcomeAt = \Carbon\Carbon::createFromFormat('d/m/Y', $partnerOutcomeAtValue);
                 } catch (\Exception $e) {
-                    // Se anche questo fallisce, ignora l'input per evitare l'errore
-                    $partnerOutcomeAt = null;
+                    // Se fallisce, prova a interpretarlo come data qualsiasi
+                    try {
+                        $partnerOutcomeAt = \Carbon\Carbon::parse($partnerOutcomeAtValue);
+                    } catch (\Exception $e) {
+                        // Se anche questo fallisce, ignora l'input per evitare l'errore
+                        $partnerOutcomeAt = null;
+                    }
                 }
             }
         }
         
         $partnerSentAt = null;
-        if ($request->has('partner_sent_at') && $request->get('partner_sent_at')) {
-            try {
-                $partnerSentAt = \Carbon\Carbon::createFromFormat('d/m/Y', $request->get('partner_sent_at'));
-            } catch (\Exception $e) {
+        $shouldClearPartnerSentAt = false;
+        if ($request->has('partner_sent_at')) {
+            $partnerSentAtValue = $request->get('partner_sent_at');
+            if (empty($partnerSentAtValue) || $partnerSentAtValue === null || $partnerSentAtValue === '') {
+                // Campo presente ma vuoto: svuota il campo
+                $shouldClearPartnerSentAt = true;
+            } else {
                 try {
-                    $partnerSentAt = \Carbon\Carbon::parse($request->get('partner_sent_at'));
+                    $partnerSentAt = \Carbon\Carbon::createFromFormat('d/m/Y', $partnerSentAtValue);
                 } catch (\Exception $e) {
-                    $partnerSentAt = null;
+                    try {
+                        $partnerSentAt = \Carbon\Carbon::parse($partnerSentAtValue);
+                    } catch (\Exception $e) {
+                        $partnerSentAt = null;
+                    }
                 }
             }
         }
@@ -647,11 +661,16 @@ class PaperworksController extends Controller
 
         $paperwork->fill($dataToFill);
 
-        // Assegna le date processate
-        if ($partnerOutcomeAt) {
+        // Assegna le date processate o svuota se necessario
+        if ($shouldClearPartnerOutcomeAt) {
+            $paperwork->partner_outcome_at = null;
+        } elseif ($partnerOutcomeAt) {
             $paperwork->partner_outcome_at = $partnerOutcomeAt->format('Y-m-d H:i:s');
         }
-        if ($partnerSentAt) {
+        
+        if ($shouldClearPartnerSentAt) {
+            $paperwork->partner_sent_at = null;
+        } elseif ($partnerSentAt) {
             $paperwork->partner_sent_at = $partnerSentAt->format('Y-m-d H:i:s');
         }
 
