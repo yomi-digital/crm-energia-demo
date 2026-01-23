@@ -76,6 +76,15 @@ class PaperworkStatusUpdated extends Notification
         // Formatta le note pratica
         $notePratica = $this->paperwork->notes ?? 'N/A';
         
+        // Formatta la data esito partner
+        $dataEsitoPartner = 'N/A';
+        if ($this->paperwork->partner_outcome_at) {
+            $dataEsitoPartner = $this->paperwork->partner_outcome_at->format('d/m/Y');
+        }
+        
+        // Formatta l'esito partner
+        $esitoPartner = $this->paperwork->partner_outcome ?? 'N/A';
+        
         return (new MailMessage)
                     ->subject('Stato Pratica Aggiornato - Pratica #' . $this->paperwork->id)
                     ->greeting(null)
@@ -86,6 +95,8 @@ class PaperworkStatusUpdated extends Notification
                     ->line('**Note Pratica:** ' . $notePratica)
                     ->line('**Stato Pratica:** ' . ($this->paperwork->order_status ?? 'N/A'))
                     ->line('**Sotto Stato:** ' . ($this->paperwork->order_substatus ?? 'N/A'))
+                    ->line('**Esito Partner:** ' . $esitoPartner)
+                    ->line('**Data Esito Partner:** ' . $dataEsitoPartner)
                     ->action('Visualizza Pratica', url('/workflow/paperworks/' . $this->paperwork->id))
                     ->line('Grazie per aver utilizzato Alfacom CRM!');
     }

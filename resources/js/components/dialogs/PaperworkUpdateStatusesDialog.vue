@@ -93,11 +93,13 @@ const ownerNotes = ref(props.paperworkData.owner_notes || '')
 // Valori iniziali per confrontare i cambiamenti
 const initialOrderStatus = ref(props.paperworkData.order_status)
 const initialOrderSubStatus = ref(props.paperworkData.order_substatus)
+const initialPartnerOutcome = ref(props.paperworkData.partner_outcome)
 
-// Computed per verificare se lo stato o il sottostato sono stati modificati
+// Computed per verificare se lo stato, il sottostato o l'esito partner sono stati modificati
 const isStatusChanged = computed(() => {
   return orderStatus.value !== initialOrderStatus.value || 
-         orderSubStatus.value !== initialOrderSubStatus.value
+         orderSubStatus.value !== initialOrderSubStatus.value ||
+         partnerOutcome.value !== initialPartnerOutcome.value
 })
 
 // Watch per resettare il checkbox quando non ci sono più cambiamenti
@@ -123,6 +125,7 @@ watch(() => props.isDialogVisible, (isVisible) => {
     // Reset dei valori iniziali
     initialOrderStatus.value = props.paperworkData.order_status
     initialOrderSubStatus.value = props.paperworkData.order_substatus
+    initialPartnerOutcome.value = props.paperworkData.partner_outcome
     
     // Reset del checkbox
     sendNotification.value = false
@@ -349,7 +352,7 @@ const onFormReset = () => {
             >
               <VCheckbox
                 v-model="sendNotification"
-                label="Notifica agente cambio sottostato?"
+                label="Notifica agente cambio sottostato o esito partner"
                 color="primary"
                 :disabled="!isStatusChanged"
               />
