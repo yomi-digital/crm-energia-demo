@@ -448,38 +448,46 @@ class CustomersController extends Controller
 
 
         // Validazione incrociata di unicità telefono e cellulare
-        $errors = [];
-
-        // Controllo duplicati codice fiscale
-        if ($request->filled('tax_id_code')) {
-            $taxIdCode = strtoupper($request->tax_id_code);
-            
-            $existingTaxIdCode = \App\Models\Customer::where('tax_id_code', $taxIdCode)
-                ->whereNull('deleted_at')
-                ->first();
-                
-            if ($existingTaxIdCode) {
-                $errors['tax_id_code'] = 'Questo codice fiscale è già associato a un altro cliente';
-            }
-        }
+        // Salta il controllo se force=true (creazione forzata)
+        $force = filter_var($request->get('force', false), FILTER_VALIDATE_BOOLEAN);
         
-        // Se ci sono errori, restituisci errore 422
-        if (!empty($errors)) {
-            // Messaggio più specifico se c'è un errore di codice fiscale duplicato
-            $message = 'I dati forniti non sono validi.';
-            if (isset($errors['tax_id_code'])) {
-                $message = 'Codice fiscale già esistente';
+        if (!$force) {
+            $errors = [];
+
+            // Controllo duplicati codice fiscale
+            if ($request->filled('tax_id_code')) {
+                $taxIdCode = strtoupper($request->tax_id_code);
+                
+                $existingTaxIdCode = \App\Models\Customer::where('tax_id_code', $taxIdCode)
+                    ->whereNull('deleted_at')
+                    ->first();
+                    
+                if ($existingTaxIdCode) {
+                    $errors['tax_id_code'] = 'Questo codice fiscale è già associato a un altro cliente';
+                }
             }
             
-            return response()->json([
-                'message' => $message,
-                'errors' => $errors
-            ], 422);
+            // Se ci sono errori, restituisci errore 422
+            if (!empty($errors)) {
+                // Messaggio più specifico se c'è un errore di codice fiscale duplicato
+                $message = 'I dati forniti non sono validi.';
+                if (isset($errors['tax_id_code'])) {
+                    $message = 'Codice fiscale già esistente';
+                }
+                
+                return response()->json([
+                    'message' => $message,
+                    'errors' => $errors
+                ], 422);
+            }
         }
 
         $customer = new \App\Models\Customer;
 
         $customerData = $request->all();
+        
+        // Rimuovi il campo 'force' dai dati del cliente (non è un campo del database)
+        unset($customerData['force']);
         
         // Converti il codice fiscale in maiuscolo se presente
         if (isset($customerData['tax_id_code'])) {

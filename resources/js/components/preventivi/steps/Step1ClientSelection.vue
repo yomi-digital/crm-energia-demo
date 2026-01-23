@@ -11,11 +11,13 @@
           v-model:search="search"
           :loading="loading"
           :items="customers"
-          placeholder="Cerca cliente..."
+          placeholder="Cerca per nome, cognome, P.IVA, CF o email..."
           return-object
           item-title="title"
           item-value="value"
           clearable
+          :custom-filter="() => true"
+          auto-select-first
         >
           <template #no-data>
             <VListItem>
@@ -26,8 +28,19 @@
                 Inizia a digitare per cercare un cliente...
               </VListItemTitle>
               <VListItemTitle v-else>
-                Nessun dato disponibile
+                Nessun cliente trovato
               </VListItemTitle>
+            </VListItem>
+          </template>
+          <template #item="{ props, item }">
+            <VListItem v-bind="props">
+              <VListItemSubtitle v-if="item.raw.rawData">
+                <span v-if="item.raw.rawData.email">{{ item.raw.rawData.email }}</span>
+                <span v-if="item.raw.rawData.email && (item.raw.rawData.phone || item.raw.rawData.mobile)"> • </span>
+                <span v-if="item.raw.rawData.phone">{{ item.raw.rawData.phone }}</span>
+                <span v-if="item.raw.rawData.phone && item.raw.rawData.mobile"> / </span>
+                <span v-if="item.raw.rawData.mobile">{{ item.raw.rawData.mobile }}</span>
+              </VListItemSubtitle>
             </VListItem>
           </template>
         </AppAutocomplete>
@@ -65,6 +78,7 @@
 import { usePreventiviApi } from '@/composables/usePreventiviApi';
 import FormCreate from '@/views/workflow/customers/FormCreate.vue';
 import { defineEmits, defineProps, onMounted, ref, watch } from 'vue';
+import { useDebounceFn } from '@vueuse/core';
 import { COEFFICIENTS } from '../constants';
 
 const props = defineProps({
@@ -103,6 +117,9 @@ const getCustomerName = (customer) => {
   if (customer.tax_id_code) {
     name += ` - ${customer.tax_id_code}`;
   }
+  if (customer.email) {
+    name += ` - ${customer.email}`;
+  }
   
   return name;
 };
@@ -111,7 +128,10 @@ const getCustomerName = (customer) => {
 const fetchCustomers = async (query, id = null) => {
   try {
     loading.value = true;
-    const response = await $api('/customers?skipControl=false&itemsPerPage=50&select=1&q=' + query + (id ? '&id=' + id : ''));
+    // Encode la query per gestire caratteri speciali nell'email
+    const encodedQuery = query ? encodeURIComponent(query) : '';
+    const url = `/customers?skipControl=false&itemsPerPage=50&select=1&q=${encodedQuery}` + (id ? `&id=${id}` : '');
+    const response = await $api(url);
     
     if (!response || !response.customers || !Array.isArray(response.customers)) {
       console.error('Risposta API non valida:', response);
@@ -198,8 +218,8 @@ onMounted(async () => {
   }
 });
 
-// Watch per la ricerca
-watch(search, (query) => {
+// Debounced function per la ricerca clienti
+const debouncedFetchCustomers = useDebounceFn((query) => {
   if (!query && !selectedCustomer.value) {
     customers.value = [];
     return;
@@ -207,6 +227,11 @@ watch(search, (query) => {
   if (query && query.length >= 2) {
     fetchCustomers(query);
   }
+}, 500);
+
+// Watch per la ricerca con debounce
+watch(search, (query) => {
+  debouncedFetchCustomers(query);
 });
 
 // Watch per aggiornare formData quando cambia la selezione

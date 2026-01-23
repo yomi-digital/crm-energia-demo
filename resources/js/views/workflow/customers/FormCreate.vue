@@ -1,6 +1,6 @@
 <script setup>
 import { useDebounceFn } from '@vueuse/core';
-import { ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 
 const name = ref('')
 const lastName = ref('')
@@ -35,6 +35,7 @@ const phoneError = ref('')
 const mobileError = ref('')
 const duplicateUsers = ref([])
 const isDuplicateModalVisible = ref(false)
+const isModalOpenedFromCreate = ref(false)
 
 const normalizePhone = (p) => p ? p.replace(/\D/g, '') : ''
 
@@ -120,6 +121,7 @@ const checkDuplicateCustomer = useDebounceFn(async () => {
 
 const openDuplicateModal = () => {
     isDuplicateModalVisible.value = true
+    isModalOpenedFromCreate.value = false // Aperto manualmente, non mostrare il pulsante forza creazione
 }
 
 const fetchPostalCode = useDebounceFn(async () => {
@@ -348,7 +350,123 @@ const provinces = [
   { title: 'Viterbo (VT)', value: 'VT', region: 'Lazio' },
 ]
 
+const checkDuplicatesBeforeCreate = async () => {
+  // Gather data for duplicate check
+  const params = {}
+  
+  if (phone.value) params.telefono = phone.value
+  if (mobile.value) params.telefono = mobile.value
+  if (email.value) params.email = email.value
+  if (vatNumber.value) params.vat_number = vatNumber.value
+  if (taxIdCode.value) params.tax_id_code = taxIdCode.value
+
+  const hasData = Object.keys(params).length > 0
+  if (!hasData) return false
+
+  try {
+    const response = await $api('/customers-search-by-phone-email-tax-iva', {
+      method: 'GET',
+      params: params
+    })
+
+    let foundUsers = []
+    if (response && response.users && Array.isArray(response.users)) {
+        foundUsers = response.users
+    } else if (Array.isArray(response)) {
+        foundUsers = response
+    } else if (response && response.data && Array.isArray(response.data)) {
+        foundUsers = response.data
+    } else if (response && response.customers && Array.isArray(response.customers)) {
+        foundUsers = response.customers
+    }
+
+    if (foundUsers.length > 0) {
+        duplicateUsers.value = foundUsers
+        return true
+    }
+    return false
+  } catch (error) {
+    console.error('Error checking duplicate customer:', error)
+    return false
+  }
+}
+
+const selectExistingCustomer = (customer) => {
+  emit('customerData', customer)
+  isDuplicateModalVisible.value = false
+  isModalOpenedFromCreate.value = false
+  nextTick(() => {
+    refForm.value?.reset()
+    refForm.value?.resetValidation()
+  })
+}
+
+const forceCreate = async () => {
+  isDuplicateModalVisible.value = false
+  isModalOpenedFromCreate.value = false
+  
+  let customerData = {
+    category: category.value === 'all' ? null : category.value,
+    email: email.value,
+    phone: phone.value,
+    mobile: mobile.value,
+    privacy: privacy.value,
+    address: address.value,
+    region: typeof region.value === 'object' ? region.value.value : region.value,
+    province: typeof province.value === 'object' ? province.value.value : province.value,
+    city: city.value,
+    zip: zip.value,
+    force: true, // Flag per forzare la creazione ignorando i duplicati
+  }
+  if (category.value === 'Residenziale' || category.value === 'all') {
+    customerData.name = name.value
+    customerData.last_name = lastName.value
+    customerData.tax_id_code = taxIdCode.value.toUpperCase()
+  }
+  if (category.value === 'Business' || category.value === 'all') {
+    customerData.business_name = businessName.value
+    customerData.vat_number = vatNumber.value
+    customerData.pec = pec.value
+    customerData.ateco_code = atecoCode.value
+    customerData.unique_code = uniqueCode.value
+  }
+
+  isSaving.value = true
+  
+  try {
+    const response = await $api('/customers', {
+      method: 'POST',
+      body: customerData,
+    })
+    
+    isSaving.value = false
+    
+    // Redirect to the customer detail page
+    if (response.id) {
+      emit('customerData', response)
+      nextTick(() => {
+        refForm.value?.reset()
+        refForm.value?.resetValidation()
+      })
+    }
+  } catch (error) {
+    isSaving.value = false
+    errorMessage.value = error.response?._data?.message || 'Errore durante il salvataggio del cliente. Riprova.'
+  }
+}
+
 const createUser = async () => {
+  // Prima controlla se ci sono duplicati
+  const hasDuplicates = await checkDuplicatesBeforeCreate()
+  
+  if (hasDuplicates) {
+    // Mostra il modal con i clienti trovati (aperto automaticamente dal pulsante Crea)
+    isModalOpenedFromCreate.value = true
+    isDuplicateModalVisible.value = true
+    isSaving.value = false
+    return
+  }
+
   let customerData = {
     category: category.value === 'all' ? null : category.value,
     email: email.value,
@@ -748,7 +866,7 @@ const filteredProvinces = computed(() => {
             icon
             variant="text"
             color="default"
-            @click="isDuplicateModalVisible = false"
+            @click="isDuplicateModalVisible = false; isModalOpenedFromCreate = false"
           >
             <VIcon icon="tabler-x" />
           </VBtn>
@@ -757,11 +875,12 @@ const filteredProvinces = computed(() => {
         <VDivider />
         
         <VCardText class="pa-4">
-          <p class="mb-4">Sono stati trovati i seguenti clienti con dati simili:</p>
+          <p class="mb-4">Abbiamo trovato i seguenti clienti con dati simili. Seleziona un cliente esistente oppure chiudi per continuare con la creazione:</p>
           
           <VTable>
             <thead>
               <tr>
+                <th class="text-left">Azioni</th>
                 <th class="text-left">Nominativo</th>
                 <th class="text-left">Tipologia</th>
                 <th class="text-left">Email</th>
@@ -773,6 +892,15 @@ const filteredProvinces = computed(() => {
             </thead>
             <tbody>
               <tr v-for="user in duplicateUsers" :key="user.id">
+                <td>
+                  <VBtn
+                    size="small"
+                    color="primary"
+                    @click="selectExistingCustomer(user)"
+                  >
+                    Seleziona
+                  </VBtn>
+                </td>
                 <td>{{ user.business_name || (user.name + ' ' + user.last_name) }}</td>
                 <td>{{ user.category }}</td>
                 <td>{{ user.email }}</td>
@@ -780,19 +908,37 @@ const filteredProvinces = computed(() => {
                 <td>{{ user.mobile }}</td>
                 <td>{{ user.tax_id_code }}</td>
                 <td>{{ user.vat_number }}</td>
+               
               </tr>
             </tbody>
           </VTable>
         </VCardText>
         
-        <VCardActions class="pa-4 justify-end">
+        <VCardActions class="pa-4 justify-space-between">
           <VBtn
+            v-if="!isModalOpenedFromCreate"
             variant="tonal"
             color="secondary"
-            @click="isDuplicateModalVisible = false"
+            @click="isDuplicateModalVisible = false; isModalOpenedFromCreate = false"
           >
             Chiudi
           </VBtn>
+          <div v-else class="d-flex gap-2">
+            <VBtn
+              variant="tonal"
+              color="secondary"
+              @click="isDuplicateModalVisible = false; isModalOpenedFromCreate = false"
+            >
+              Annulla
+            </VBtn>
+            <VBtn
+              color="warning"
+              @click="forceCreate"
+              :loading="isSaving"
+            >
+              Forza creazione
+            </VBtn>
+          </div>
         </VCardActions>
       </VCard>
     </VDialog>
