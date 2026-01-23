@@ -35,6 +35,7 @@ const emit = defineEmits([
   'remove',
   'click:notification',
   'update:notification-type',
+  'close',
 ])
 
 const isAllMarkRead = computed(() => props.notifications.some(item => item.isSeen === false))
@@ -63,6 +64,17 @@ const toggleReadUnread = (isSeen, Id) => {
   else
     emit('read', [Id])
 }
+
+const isMenuOpen = ref(false)
+
+const handleMenuUpdate = (value) => {
+  const wasOpen = isMenuOpen.value
+  isMenuOpen.value = value
+  // Quando il menu viene chiuso (da true a false), resetta i filtri
+  if (wasOpen && !value) {
+    emit('close')
+  }
+}
 </script>
 
 <template>
@@ -71,7 +83,8 @@ const toggleReadUnread = (isSeen, Id) => {
       v-bind="props.badgeProps"
       :model-value="totalUnseenNotifications > 0"
       color="error"
-      :content="totalUnseenNotifications"
+      :content="totalUnseenNotifications > 0 ? totalUnseenNotifications : ''"
+      :dot="false"
       offset-x="2"
       offset-y="3"
     >
@@ -82,6 +95,8 @@ const toggleReadUnread = (isSeen, Id) => {
     </VBadge>
 
     <VMenu
+      :model-value="isMenuOpen"
+      @update:model-value="handleMenuUpdate"
       activator="parent"
       width="380px"
       :location="props.location"
@@ -280,12 +295,18 @@ const toggleReadUnread = (isSeen, Id) => {
 }
 
 // Badge Style Override for Notification Badge
-.notification-badge {
+#notification-btn {
   .v-badge__badge {
     /* stylelint-disable-next-line liberty/use-logical-spec */
     min-width: 18px;
-    padding: 0;
-    block-size: 18px;
+    padding: 2px 6px;
+    block-size: auto;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 </style>

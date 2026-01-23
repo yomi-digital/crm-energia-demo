@@ -337,8 +337,22 @@ const downloadDocument = async doc => {
                 <div class="text-body-1 mb-2">
                   <span class="font-weight-medium">Esito Partner:</span> {{ paperworkData.partner_outcome || 'N/A' }}
                 </div>
-                <div class="text-body-1">
+                <div class="text-body-1 mb-2">
                   <span class="font-weight-medium">Data Esito Partner:</span> {{ paperworkData.partner_outcome_at ? new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(paperworkData.partner_outcome_at)) : 'N/A' }}
+                </div>
+                <!-- Spedizione, Visura e Altri Costi -->
+                <div v-if="paperworkData.shipping || paperworkData.visura || paperworkData.other" class="text-body-1">
+                  <VDivider class="my-3" />
+                  <div class="font-weight-medium mb-2">Costi Aggiuntivi</div>
+                  <div v-if="paperworkData.shipping" class="text-body-1 mb-2">
+                    <span class="font-weight-medium">Spedizione:</span> Sì
+                  </div>
+                  <div v-if="paperworkData.visura" class="text-body-1 mb-2">
+                    <span class="font-weight-medium">Visura:</span> Sì
+                  </div>
+                  <div v-if="paperworkData.other" class="text-body-1">
+                    <span class="font-weight-medium">Altri Costi:</span> {{ paperworkData.other }}
+                  </div>
                 </div>
               </VCardText>
             </VCol>

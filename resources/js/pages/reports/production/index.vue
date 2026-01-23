@@ -51,6 +51,7 @@ const selectedAgent = ref(route.query.agent_id || '')
 const selectedAgency = ref(route.query.agency_id || '')
 const selectedMandate = ref(route.query.mandate_id || '')
 const selectedStatus = ref(route.query.status || '')
+const selectedSubStatus = ref(route.query.substatus || '')
 const selectedCategory = ref(route.query.category || '')
 const selectedHasAppointment = ref(route.query.has_appointment || '')
 
@@ -205,6 +206,7 @@ watch([
   selectedAgency, 
   selectedMandate,
   selectedStatus, 
+  selectedSubStatus,
   selectedCategory, 
   selectedHasAppointment
 ], () => {
@@ -230,6 +232,7 @@ watch([
   if (selectedAgency.value) query.agency_id = selectedAgency.value
   if (selectedMandate.value) query.mandate_id = selectedMandate.value
   if (selectedStatus.value) query.status = selectedStatus.value
+  if (selectedSubStatus.value) query.substatus = selectedSubStatus.value
   if (selectedCategory.value) query.category = selectedCategory.value
   if (selectedHasAppointment.value) query.has_appointment = selectedHasAppointment.value
   
@@ -296,6 +299,7 @@ const {
     agency_id: selectedAgency,
     mandate_id: selectedMandate,
     status: selectedStatus,
+    substatus: selectedSubStatus,
     category: selectedCategory,
     has_appointment: selectedHasAppointment,
   },
@@ -328,6 +332,7 @@ const exportReport = async () => {
         agency_id: selectedAgency.value,
         mandate_id: selectedMandate.value,
         status: selectedStatus.value,
+        substatus: selectedSubStatus.value,
         category: selectedCategory.value,
         has_appointment: selectedHasAppointment.value,
       },
@@ -428,6 +433,57 @@ const statuses = ref([
   {
     title: 'INVIATO OTP',
     value: 'INVIATO OTP',
+  },
+])
+
+const subStatuses = ref([
+  {
+    title: 'Tutti',
+    value: '',
+  },
+  {
+    title: 'NON RISPONDE QC',
+    value: 'NON RISPONDE QC',
+  },
+  {
+    title: 'INDIRIZZO DA CENSIRE',
+    value: 'INDIRIZZO DA CENSIRE',
+  },
+  {
+    title: 'CLIENTE NON ACQUISIBILE',
+    value: 'CLIENTE NON ACQUISIBILE',
+  },
+  {
+    title: 'SWICH-OUT',
+    value: 'SWICH-OUT',
+  },
+  {
+    title: 'PORTIN - PORTOUT',
+    value: 'PORTIN - PORTOUT',
+  },
+  {
+    title: 'KO CREDITO',
+    value: 'KO CREDITO',
+  },
+  {
+    title: 'KO TECNICO',
+    value: 'KO TECNICO',
+  },
+  {
+    title: 'KO QC',
+    value: 'KO QC',
+  },
+  {
+    title: 'KO FRODI',
+    value: 'KO FRODI',
+  },
+  {
+    title: 'KO DISCONOSCIMENTO',
+    value: 'KO DISCONOSCIMENTO',
+  },
+  {
+    title: 'In Fornitura',
+    value: 'In Fornitura',
   },
 ])
 
@@ -792,6 +848,16 @@ const saveProduct = async () => {
               clearable
               :items="statuses"
               placeholder="Seleziona uno Stato"
+            />
+          </VCol>
+
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedSubStatus"
+              label="Filtra per Sottostato"
+              clearable
+              :items="subStatuses"
+              placeholder="Seleziona un Sottostato"
             />
           </VCol>
 

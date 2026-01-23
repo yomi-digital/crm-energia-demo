@@ -114,8 +114,8 @@ const savePartnerOutcome = async () => {
     await $api(`/paperworks/${props.paperworkData.id}`, {
       method: 'PUT',
       body: {
-        partner_outcome: partnerOutcome.value,
-        partner_outcome_at: partnerOutcomeAt.value,
+        partner_outcome: partnerOutcome.value || null,
+        partner_outcome_at: partnerOutcomeAt.value || null,
       },
     })
     

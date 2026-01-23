@@ -97,6 +97,14 @@ const handleNotificationClick = notification => {
     router.push(notification.link)
   }
 }
+
+const handleMenuClose = () => {
+  // Resetta i filtri quando il menu viene chiuso
+  const currentValue = selectedNotificationType.value
+  if (currentValue !== '') {
+    selectedNotificationType.value = ''
+  }
+}
 </script>
 
 <template>
@@ -109,5 +117,6 @@ const handleNotificationClick = notification => {
     @unread="markUnRead"
     @click:notification="handleNotificationClick"
     @update:notification-type="selectedNotificationType = $event"
+    @close="handleMenuClose"
   />
 </template>
