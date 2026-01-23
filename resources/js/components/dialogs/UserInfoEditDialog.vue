@@ -46,9 +46,13 @@ const isLoading = ref(false)
 const onFormSubmit = async () => {
   isLoading.value = true
   try {
+    // Rimuovi il campo role dal payload per evitare modifiche al ruolo
+    const payload = { ...userData.value }
+    delete payload.role
+    
     const response = await $api(`/users/${ props.userData.id }`, {
       method: 'PUT',
-      body: userData.value,
+      body: payload,
     })
 
     snackbarMessage.value = 'Utente aggiornato con successo'
@@ -166,8 +170,8 @@ await fetchAgencies()
           @submit.prevent="onFormSubmit"
         >
           <VRow>
-            <!-- 👉 Role -->
-            <VCol
+            <!-- 👉 Role - Nascosto: non è possibile modificare il ruolo a posteriori -->
+            <!-- <VCol
               cols="12"
               md="12"
             >
@@ -178,7 +182,7 @@ await fetchAgencies()
                 :rules="[requiredValidator]"
                 :items="roles"
               />
-            </VCol>
+            </VCol> -->
 
             <!-- 👉 Name -->
             <VCol
