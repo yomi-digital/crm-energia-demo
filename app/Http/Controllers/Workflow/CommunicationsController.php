@@ -37,14 +37,27 @@ class CommunicationsController extends Controller
             'subject' => 'required|string|max:255',
             'body' => 'required|string',
             'send_email' => 'nullable|in:true,false,1,0',
+            // I brand arrivano come brand_ids[] dal frontend
+            'brand_ids' => 'required|array|min:1',
+            'brand_ids.*' => 'integer|exists:brands,id',
             'documents.*' => 'nullable|file|max:20480', // 20MB max per file
         ]);
 
         $communication = new \App\Models\Communication;
 
-        $communication->fill($request->all());
+        // Non vogliamo fare fill di brand_ids perché non è una colonna della tabella communications
+        $communication->fill($request->except(['brand_ids']));
 
         $communication->save();
+
+        // Salva i brand nella tabella pivot communication_brands
+        $brandIds = $request->input('brand_ids', []);
+        foreach ($brandIds as $brandId) {
+            \App\Models\CommunicationBrand::create([
+                'id_communication' => $communication->id,
+                'id_brand' => $brandId,
+            ]);
+        }
 
         // Gestione upload documenti
         if ($request->hasFile('documents')) {
@@ -77,8 +90,17 @@ class CommunicationsController extends Controller
             // Carica i documenti prima di inviare le email
             $communication->load('documents');
             
-            // Ottieni tutti gli utenti con le comunicazioni abilitate
-            $users = \App\Models\User::where('communications_enabled', 1)->get();
+            // Ottieni i brand associati alla comunicazione
+            $communicationBrandIds = $brandIds; // Usa i brand_ids già salvati
+            
+            // Trova gli utenti che hanno:
+            // 1. communications_enabled = 1
+            // 2. E che hanno almeno uno dei brand associati alla comunicazione
+            $users = \App\Models\User::where('communications_enabled', 1)
+                ->whereHas('brands', function ($query) use ($communicationBrandIds) {
+                    $query->whereIn('brands.id', $communicationBrandIds);
+                })
+                ->get();
             
             if ($users->count() > 0) {
                 // Prendi il primo utente come destinatario principale
@@ -195,9 +217,77 @@ class CommunicationsController extends Controller
     {
         $communication = \App\Models\Communication::findOrFail($id);
 
-        $communication->fill($request->all());
+        // Validazione solo dei campi eventualmente passati
+        $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'subject' => 'sometimes|required|string|max:255',
+            'body' => 'sometimes|required|string',
+            'send_email' => 'nullable|in:true,false,1,0',
+            // I brand arrivano come brand_ids[] dal frontend
+            'brand_ids' => 'sometimes|required|array|min:1',
+            'brand_ids.*' => 'integer|exists:brands,id',
+        ]);
+
+        // Evitiamo di fare fill di brand_ids perché non è una colonna della tabella communications
+        $communication->fill($request->except(['brand_ids']));
 
         $communication->save();
+
+        // Se arrivano brand_ids, aggiorniamo le relazioni nella tabella communication_brands
+        if ($request->has('brand_ids')) {
+            $brandIds = $request->input('brand_ids', []);
+
+            // Cancella le associazioni esistenti per questa comunicazione
+            \App\Models\CommunicationBrand::where('id_communication', $communication->id)->delete();
+
+            // Crea le nuove associazioni
+            foreach ($brandIds as $brandId) {
+                \App\Models\CommunicationBrand::create([
+                    'id_communication' => $communication->id,
+                    'id_brand' => $brandId,
+                ]);
+            }
+        } else {
+            // Se non sono stati inviati brand_ids, recupera quelli già associati
+            $brandIds = \App\Models\CommunicationBrand::where('id_communication', $communication->id)
+                ->pluck('id_brand')
+                ->toArray();
+        }
+
+        // Gestione invio email anche in update
+        $sendEmail = filter_var($request->get('send_email'), FILTER_VALIDATE_BOOLEAN);
+
+        if ($sendEmail && !empty($brandIds)) {
+            // Carica i documenti prima di inviare le email
+            $communication->load('documents');
+
+            // Trova gli utenti che hanno:
+            // 1. communications_enabled = 1
+            // 2. E che hanno almeno uno dei brand associati alla comunicazione
+            $users = \App\Models\User::where('communications_enabled', 1)
+                ->whereHas('brands', function ($query) use ($brandIds) {
+                    $query->whereIn('brands.id', $brandIds);
+                })
+                ->get();
+
+            if ($users->count() > 0) {
+                // Prendi il primo utente come destinatario principale
+                $primaryUser = $users->first();
+                $bccUsers = $users->slice(1)->pluck('email')->toArray();
+
+                // Invia una sola email con BCC a tutti gli altri
+                $mail = \Mail::to($primaryUser->email);
+
+                if (!empty($bccUsers)) {
+                    $mail->bcc($bccUsers);
+                }
+
+                $mail->send(new \App\Mail\CommunicationEmail($communication));
+
+                $communication->sent_at = now();
+                $communication->save();
+            }
+        }
 
         return response()->json($communication);
     }

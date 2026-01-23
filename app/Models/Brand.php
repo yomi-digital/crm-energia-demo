@@ -23,6 +23,16 @@ class Brand extends Model
         return $this->hasMany(Product::class);
     }
 
+    public function communications()
+    {
+        return $this->belongsToMany(
+            Communication::class,
+            'communication_brands',
+            'id_brand',
+            'id_communication'
+        );
+    }
+
     public function getCreatedAtAttribute($value)
     {
         return date(config('app.date_format'), strtotime($value));

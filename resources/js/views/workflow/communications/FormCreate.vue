@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue';
+import SearchBrand from '@/components/SearchBrand.vue';
+import { computed, onMounted, ref } from 'vue';
 
 const props = defineProps({
   communication: {
@@ -17,6 +18,67 @@ const refForm = ref()
 const isSaving = ref(false)
 const showSnackbar = ref(false)
 
+// Brand multipli
+const selectedBrandIds = ref(
+  props.communication.brand_ids 
+    ? (Array.isArray(props.communication.brand_ids) ? props.communication.brand_ids : [props.communication.brand_ids])
+    : []
+)
+const brands = ref([])
+const isLoadingBrands = ref(false)
+const newBrandToAdd = ref(null)
+
+// Carica brand abilitati
+const fetchBrands = async () => {
+  isLoadingBrands.value = true
+  try {
+    const response = await $api('/brands/personal?itemsPerPage=999999&enabled=1')
+    brands.value = response.brands
+  } catch (error) {
+    console.error('Failed to load brands:', error)
+  } finally {
+    isLoadingBrands.value = false
+  }
+}
+
+onMounted(() => {
+  fetchBrands()
+})
+
+// Aggiungi brand selezionato
+watch(newBrandToAdd, (brandId) => {
+  if (brandId && !selectedBrandIds.value.includes(brandId)) {
+    selectedBrandIds.value.push(brandId)
+    newBrandToAdd.value = null
+  }
+})
+
+// Rimuovi brand
+const removeBrand = (brandId) => {
+  const index = selectedBrandIds.value.indexOf(brandId)
+  if (index > -1) {
+    selectedBrandIds.value.splice(index, 1)
+  }
+}
+
+// Trova nome brand
+const getBrandName = (brandId) => {
+  const brand = brands.value.find(b => b.id === brandId)
+  return brand ? brand.name : ''
+}
+
+// Verifica se tutti i campi obbligatori sono compilati
+const isFormValid = computed(() => {
+  const titleValid = title.value && title.value.trim().length > 0
+  const subjectValid = subject.value && subject.value.trim().length > 0
+  // Rimuove i tag HTML per verificare se c'è contenuto reale
+  const bodyTextOnly = body.value ? body.value.replace(/<[^>]*>/g, '').trim() : ''
+  const bodyHasContent = bodyTextOnly.length > 0
+  const hasBrands = selectedBrandIds.value.length > 0
+  
+  return titleValid && subjectValid && bodyHasContent && hasBrands
+})
+
 const emit = defineEmits([
   'communicationData',
 ])
@@ -33,6 +95,11 @@ const downloadFile = async (communicationId, documentId) => {
 }
 
 const createCommunication = async () => {
+  // Validazione: almeno un brand deve essere selezionato
+  if (selectedBrandIds.value.length === 0) {
+    return
+  }
+
   isSaving.value = true
   try {
     const formData = new FormData()
@@ -41,6 +108,11 @@ const createCommunication = async () => {
     formData.append('subject', subject.value)
     formData.append('body', body.value)
     formData.append('send_email', sendEmail.value ? '1' : '0')
+
+    // Aggiungi brand_ids
+    selectedBrandIds.value.forEach(brandId => {
+      formData.append('brand_ids[]', brandId)
+    })
 
     documents.value.forEach(file => {
       formData.append('documents[]', file)
@@ -107,6 +179,61 @@ const createCommunication = async () => {
           placeholder="Oggetto"
           :rules="[requiredValidator]"
         />
+      </VCol>
+
+      <!-- 👉 Brand -->
+      <VCol
+        cols="12"
+        md="9"
+      >
+        <VLabel class="mb-2">Brand *</VLabel>
+        
+        <!-- Brand selezionati come chip -->
+        <div
+          v-if="selectedBrandIds.length > 0"
+          class="d-flex flex-wrap gap-2 mb-3"
+        >
+          <VChip
+            v-for="brandId in selectedBrandIds"
+            :key="brandId"
+            closable
+            @click:close="removeBrand(brandId)"
+          >
+            {{ getBrandName(brandId) }}
+          </VChip>
+        </div>
+
+        <!-- Campo per aggiungere nuovo brand -->
+        <SearchBrand
+          v-model="newBrandToAdd"
+          label="Aggiungi Brand"
+          placeholder="Seleziona un brand da aggiungere"
+          :items="brands.filter(b => !selectedBrandIds.includes(b.id))"
+          :loading="isLoadingBrands"
+          :error="selectedBrandIds.length === 0"
+          :select-all="true"
+          item-title="name"
+          item-value="id"
+          @select-all="(allBrandIds) => {
+            allBrandIds.forEach(brandId => {
+              if (!selectedBrandIds.includes(brandId)) {
+                selectedBrandIds.push(brandId)
+              }
+            })
+            newBrandToAdd = null
+          }"
+          @deselect-all="() => {
+            selectedBrandIds = []
+            newBrandToAdd = null
+          }"
+        />
+
+        <div
+          v-if="selectedBrandIds.length === 0"
+          class="text-error text-caption mt-1"
+        >
+          Seleziona almeno un brand
+        </div>
       </VCol>
 
       <!-- 👉 Body -->
@@ -187,7 +314,7 @@ const createCommunication = async () => {
         cols="12"
         class="d-flex gap-4"
       >
-        <VBtn type="submit" :disabled="isSaving">
+        <VBtn type="submit" :disabled="isSaving || !isFormValid">
           {{ props.communication.id ? 'Salva' : 'Crea' }}
         </VBtn>
 

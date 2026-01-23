@@ -34,9 +34,18 @@ const props = defineProps({
     type: String,
     default: 'id',
   },
+  error: {
+    type: Boolean,
+    default: false,
+  },
+  // Quando true mostra i controlli "Seleziona tutti" / "Deseleziona tutti"
+  selectAll: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'select-all', 'deselect-all'])
 
 const searchQuery = ref('')
 const expandedCategories = ref({})
@@ -139,13 +148,28 @@ const selectedBrandName = computed(() => {
   return ''
 })
 
-// Seleziona un brand
+// Seleziona un brand singolo
 const selectBrand = (brand) => {
   emit('update:modelValue', brand[props.itemValue])
   searchQuery.value = ''
   nextTick(() => {
     menuOpen.value = false
   })
+}
+
+// Seleziona tutti i brand disponibili (usato in FormCreate.vue)
+const handleSelectAll = () => {
+  if (!props.selectAll) return
+
+  const allBrandIds = props.items.map(brand => brand[props.itemValue])
+  emit('select-all', allBrandIds)
+}
+
+// Eventuale supporto per "deseleziona tutti"
+const handleDeselectAll = () => {
+  if (!props.selectAll) return
+
+  emit('deselect-all')
 }
 
 // Gestisce l'apertura del menu
@@ -223,6 +247,7 @@ watch(() => props.items, () => {
           :placeholder="selectedBrandName ? selectedBrandName : placeholder"
           :loading="loading"
           :readonly="readonly"
+          :error="error"
           variant="outlined"
           v-bind="menuProps"
           autocomplete="off"
@@ -241,6 +266,28 @@ watch(() => props.items, () => {
         @mousedown.prevent
       >
         <VCardText class="pa-0">
+          <div
+            v-if="selectAll && !loading"
+            class="d-flex justify-start px-4 pt-3 pb-1 gap-2"
+          >
+            <VBtn
+              size="x-small"
+              variant="text"
+              color="primary"
+              :disabled="!Object.keys(filteredGroupedBrands).length"
+              @click.stop="handleSelectAll"
+            >
+              Seleziona tutti
+            </VBtn>
+            <VBtn
+              size="x-small"
+              variant="text"
+              color="secondary"
+              @click.stop="handleDeselectAll"
+            >
+              Deseleziona tutti
+            </VBtn>
+          </div>
           <div
             v-if="loading"
             class="pa-4 text-center text-body-2"
