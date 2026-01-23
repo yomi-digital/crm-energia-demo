@@ -23,6 +23,11 @@ const alert = ref({
 const loggedInUser = useCookie('userData').value
 const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
 
+// Controlla se l'utente può vedere il pulsante AI (admin, backoffice, struttura, agente)
+const canSeeAI = loggedInUser?.roles?.some(role => 
+  ['gestione', 'amministrazione', 'backoffice', 'struttura', 'agente'].includes(role.name)
+)
+
 // Controlla se l'utente può selezionare l'agente (gestione, struttura, backoffice)
 const canSelectAgent = loggedInUser?.roles?.some(role => 
   ['gestione', 'struttura', 'backoffice'].includes(role.name)
@@ -191,7 +196,7 @@ const uploadContract = async (files) => {
 <template>
   <div>
     <IconBtn 
-      v-if="!isBackoffice"
+      v-if="canSeeAI"
       @click="dialog = true" 
       id="ai-contract-upload-btn"
     >

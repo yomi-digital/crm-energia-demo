@@ -15,12 +15,17 @@ const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || ro
 const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
 const isAgent = loggedInUser?.roles?.some(role => role.name === 'agente')
 
+// Controlla se l'utente può vedere il pulsante AI (admin, backoffice, struttura, agente)
+const canSeeAI = loggedInUser?.roles?.some(role => 
+  ['gestione', 'amministrazione', 'backoffice', 'struttura', 'agente'].includes(role.name)
+)
+
 let quickLinks = [
   { name: 'Clienti', icon: 'tabler-users', to: '/workflow/customers' },
 ]
 
-// Solo se NON è backoffice, aggiungi "Crea Pratica AI"
-if (!isBackoffice) {
+// Solo se può vedere AI, aggiungi "Crea Pratica AI"
+if (canSeeAI) {
   quickLinks.unshift({ name: 'Crea Pratica AI', icon: 'tabler-file-plus', action: () => document.querySelector('#ai-contract-upload-btn').click() })
 }
 
