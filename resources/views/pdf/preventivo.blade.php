@@ -2571,7 +2571,7 @@
                 <!-- Cosa è escluso -->
                 <div style="position: absolute; top: 5mm; right: 18mm; width: 83mm;">
                     <p style="font-size: 20px; font-weight: bold; margin-bottom: 8px;">
-                        Cosa è <span style="color: #e74c3c;">escluso</span>
+                        Cosa è <span style="color:rgb(247, 230, 1);">escluso</span>
                     </p>
                     <ul style="font-size: 12px; margin: 0; padding-left: 20px;">
                         <li style="line-height: 1.0;">Linea vita ed eventuale noleggio Gru</li>
