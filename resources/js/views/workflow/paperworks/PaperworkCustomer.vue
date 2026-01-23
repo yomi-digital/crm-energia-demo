@@ -1,5 +1,6 @@
 <script setup>
 import FormCreate from '@/views/workflow/customers/FormCreate.vue'
+import { useDebounceFn } from '@vueuse/core'
 
 const props = defineProps({
   formData: {
@@ -61,6 +62,9 @@ const getCustomerName = (customer) => {
   if (customer.tax_id_code) {
     name += ` - ${customer.tax_id_code}`
   }
+  if (customer.email) {
+    name += ` - ${customer.email}`
+  }
 
   return name
 }
@@ -68,16 +72,32 @@ const getCustomerName = (customer) => {
 const fetchCustomers = async (query, id = null) => {
   try {
     loading.value = true
-    const response = await $api('/customers?itemsPerPage=10&select=1&q=' + query + (id ? '&id=' + id : ''))
-    customers.value = response.customers.map(customer => ({
-      title: getCustomerName(customer),
-      value: customer.id,
-    }))
+    // Encode la query per gestire caratteri speciali nell'email
+    const encodedQuery = query ? encodeURIComponent(query) : ''
+    const url = `/customers?itemsPerPage=20&select=1&q=${encodedQuery}` + (id ? `&id=${id}` : '')
+    const response = await $api(url)
+    
+    console.log('API Response:', response)
+    console.log('Query:', query)
+    
+    if (response && response.customers && Array.isArray(response.customers)) {
+      customers.value = response.customers.map(customer => ({
+        title: getCustomerName(customer),
+        value: customer.id,
+        rawData: customer, // Mantieni i dati completi per riferimento
+      }))
+      console.log('Mapped customers:', customers.value)
+    } else {
+      customers.value = []
+    }
     
     // If this was an initial load with ID, set the formData properly
     if (id && customers.value.length === 1) {
       formData.value.id = customers.value[0]
     }
+  } catch (error) {
+    console.error('Error fetching customers:', error)
+    customers.value = []
   } finally {
     loading.value = false
   }
@@ -89,8 +109,8 @@ if (formData.value.id) {
   await fetchCustomers('', numericId)
 }
 
-// Watch for search changes and fetch customers
-watch(search, (query) => {
+// Debounced function per la ricerca clienti
+const debouncedFetchCustomers = useDebounceFn((query) => {
   if (!query && !formData.value.id) {
     customers.value = []
     return
@@ -98,6 +118,11 @@ watch(search, (query) => {
   if (query && query.length >= 2) {
     fetchCustomers(query)
   }
+}, 500)
+
+// Watch for search changes and fetch customers con debounce
+watch(search, (query) => {
+  debouncedFetchCustomers(query)
 })
 
 const isAppointment = ref(false)
@@ -154,7 +179,7 @@ watch(() => formData.value.appointment_id, () => {
           :loading="loading"
           label="Cliente"
           :items="customers"
-          placeholder="Seleziona un Cliente"
+          placeholder="Cerca per nome, cognome, P.IVA, CF o email..."
           return-object
           item-title="title"
           item-value="value"
@@ -162,7 +187,34 @@ watch(() => formData.value.appointment_id, () => {
           :error="hasCustomerError"
           :error-messages="hasCustomerError ? 'Seleziona un cliente' : ''"
           :rules="[v => !!v || 'Seleziona un cliente']"
-        />
+          :custom-filter="() => true"
+          auto-select-first
+        >
+          <template #no-data>
+            <VListItem>
+              <VListItemTitle v-if="loading">
+                Caricamento in corso...
+              </VListItemTitle>
+              <VListItemTitle v-else-if="!search || search.length < 2">
+                Inizia a digitare per cercare un cliente...
+              </VListItemTitle>
+              <VListItemTitle v-else>
+                Nessun cliente trovato
+              </VListItemTitle>
+            </VListItem>
+          </template>
+          <template #item="{ props, item }">
+            <VListItem v-bind="props">
+              <VListItemSubtitle v-if="item.raw.rawData">
+                <span v-if="item.raw.rawData.email">{{ item.raw.rawData.email }}</span>
+                <span v-if="item.raw.rawData.email && (item.raw.rawData.phone || item.raw.rawData.mobile)"> • </span>
+                <span v-if="item.raw.rawData.phone">{{ item.raw.rawData.phone }}</span>
+                <span v-if="item.raw.rawData.phone && item.raw.rawData.mobile"> / </span>
+                <span v-if="item.raw.rawData.mobile">{{ item.raw.rawData.mobile }}</span>
+              </VListItemSubtitle>
+            </VListItem>
+          </template>
+        </AppAutocomplete>
         <div class="d-flex align-center gap-2 mt-2">
           <a
             href="#"
