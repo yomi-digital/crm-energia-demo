@@ -103,18 +103,30 @@ class CommunicationsController extends Controller
                 ->get();
             
             if ($users->count() > 0) {
-                // Prendi il primo utente come destinatario principale
-                $primaryUser = $users->first();
-                $bccUsers = $users->slice(1)->pluck('email')->toArray();
+                // Limite di destinatari per email (50 totali: 1 TO + 49 BCC)
+                $maxRecipientsPerEmail = 50;
                 
-                // Invia una sola email con BCC a tutti gli altri
-                $mail = \Mail::to($primaryUser->email);
+                // Dividi gli utenti in batch di 50
+                $userChunks = $users->chunk($maxRecipientsPerEmail);
                 
-                if (!empty($bccUsers)) {
-                    $mail->bcc($bccUsers);
+                foreach ($userChunks as $chunk) {
+                    $chunkUsers = $chunk->values();
+                    $primaryUser = $chunkUsers->first();
+                    $bccUsers = $chunkUsers->slice(1)->pluck('email')->toArray();
+                    
+                    try {
+                        $mail = \Mail::to($primaryUser->email);
+                        
+                        if (!empty($bccUsers)) {
+                            $mail->bcc($bccUsers);
+                        }
+                        
+                        $mail->send(new \App\Mail\CommunicationEmail($communication));
+                    } catch (\Exception $e) {
+                        // Log dell'errore ma continua con gli altri batch
+                        \Log::error('Error sending communication email batch: ' . $e->getMessage());
+                    }
                 }
-                
-                $mail->send(new \App\Mail\CommunicationEmail($communication));
                 
                 $communication->sent_at = now();
                 $communication->save();
@@ -271,18 +283,30 @@ class CommunicationsController extends Controller
                 ->get();
 
             if ($users->count() > 0) {
-                // Prendi il primo utente come destinatario principale
-                $primaryUser = $users->first();
-                $bccUsers = $users->slice(1)->pluck('email')->toArray();
-
-                // Invia una sola email con BCC a tutti gli altri
-                $mail = \Mail::to($primaryUser->email);
-
-                if (!empty($bccUsers)) {
-                    $mail->bcc($bccUsers);
+                // Limite di destinatari per email (50 totali: 1 TO + 49 BCC)
+                $maxRecipientsPerEmail = 50;
+                
+                // Dividi gli utenti in batch di 50
+                $userChunks = $users->chunk($maxRecipientsPerEmail);
+                
+                foreach ($userChunks as $chunk) {
+                    $chunkUsers = $chunk->values();
+                    $primaryUser = $chunkUsers->first();
+                    $bccUsers = $chunkUsers->slice(1)->pluck('email')->toArray();
+                    
+                    try {
+                        $mail = \Mail::to($primaryUser->email);
+                        
+                        if (!empty($bccUsers)) {
+                            $mail->bcc($bccUsers);
+                        }
+                        
+                        $mail->send(new \App\Mail\CommunicationEmail($communication));
+                    } catch (\Exception $e) {
+                        // Log dell'errore ma continua con gli altri batch
+                        \Log::error('Error sending communication email batch: ' . $e->getMessage());
+                    }
                 }
-
-                $mail->send(new \App\Mail\CommunicationEmail($communication));
 
                 $communication->sent_at = now();
                 $communication->save();
