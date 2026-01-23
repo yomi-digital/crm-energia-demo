@@ -38,6 +38,8 @@ class CustomersController extends Controller
             $customers = $customers->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhereRaw("CONCAT(name, ' ', last_name) LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("CONCAT(last_name, ' ', name) LIKE ?", ["%{$search}%"])
                     ->orWhere('business_name', 'like', "%{$search}%")
                     ->orWhere('vat_number', 'like', "%{$search}%")
                     ->orWhere('tax_id_code', 'like', "%{$search}%")
@@ -673,6 +675,8 @@ class CustomersController extends Controller
             $customers = $customers->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhereRaw("CONCAT(name, ' ', last_name) LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("CONCAT(last_name, ' ', name) LIKE ?", ["%{$search}%"])
                     ->orWhere('business_name', 'like', "%{$search}%")
                     ->orWhere('vat_number', 'like', "%{$search}%")
                     ->orWhere('tax_id_code', 'like', "%{$search}%")
