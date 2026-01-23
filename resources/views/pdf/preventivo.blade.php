@@ -1833,8 +1833,15 @@
             <div style="width: 90%; height: 100mm; padding-left: 18mm; padding-right: 18mm;">
                 @php
                     $potenza_totale_kwp = 0;
+                    $nome_prodotto_oggetto = null;
                     if ($preventivo->dettagliProdotti) {
                         foreach ($preventivo->dettagliProdotti as $dettaglioProdotto) {
+                            // Nel nostro caso c'è un solo prodotto: prendiamo il primo nome disponibile
+                            if ($nome_prodotto_oggetto === null) {
+                                $nome_prodotto_oggetto = $dettaglioProdotto->nome_prodotto_salvato
+                                    ?? ($dettaglioProdotto->prodotto->name ?? null);
+                            }
+
                             // Usa kWp_salvato se disponibile, altrimenti calcola da prodotto
                             if (isset($dettaglioProdotto->kWp_salvato) && $dettaglioProdotto->kWp_salvato > 0) {
                                 $potenza_totale_kwp += $dettaglioProdotto->kWp_salvato;
@@ -1846,14 +1853,14 @@
                     }
                 @endphp
                 <h3 style="margin-bottom: 10px;">OGGETTO:</h3>
-                <p style="margin-bottom: 10px;"><b>Offerta per la realizzazione "chiavi in mano" di un impianto fotovoltaico per un totale di circa {{ number_format($potenza_totale_kwp, 1, ',', '.') }} kWp sulla copertura esistente.</b></p>
+                <p style="margin-bottom: 10px;"><b>Offerta per la realizzazione "chiavi in mano" di un impianto fotovoltaico {{ $nome_prodotto_oggetto ? '('.$nome_prodotto_oggetto.') ' : '' }}per un totale di circa {{ number_format($potenza_totale_kwp, 1, ',', '.') }} kWp sulla copertura esistente.</b></p>
                 <p><i>Spett.le Cliente</i></p>
                 <p style="margin-bottom: 10px;">in riferimento ai colloqui intercorsi ed alla Sua richiesta, Le formuliamo la nostra proposta per l'esecuzione di quanto in oggetto alle seguenti principali condizioni. L'Azienda rimane a disposizione per ulteriori chiarimenti.</p>
                 <p>La presente proposta commerciale comprende:</p>
                 <ul style="padding-left: 20px;">
                     <li>
                         servizi di ingegneria relativi alla progettazione, al conseguimento di tutti i pareri necessari presso gli enti d'interesse, alla direzione lavori, alla sicurezza, al collaudo dell'impianto ed all'espletamento della pratica per 
-                        <span style="border-bottom: 1px solid black; display: inline-block; padding-bottom: 1px;">l'accesso tramite il GSE alla convenzione "Scambio sul posto e/o Ritiro dedicato"</span>;
+                        <span style="border-bottom: 1px solid black; display: inline-block; padding-bottom: 1px;">l'accesso tramite il GSE alla convenzione, inclusa iscrizione sul portale ENEA</span>;
                     </li>
                     <li>fornitura dei componenti costituenti gli impianti offerti;</li>
                     <li>installazione dell'impianto a regola d'arte;</li>
@@ -1882,7 +1889,7 @@
                             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">{{ $dettaglioProdotto->nome_prodotto_salvato ?? 'Prodotto' }}</td>
                             <td style="padding: 8px; border: 1px solid #ddd;">
                                 @if($dettaglioProdotto->descrizione_prodotto_salvata && trim($dettaglioProdotto->descrizione_prodotto_salvata) !== '')
-                                    {{ $dettaglioProdotto->descrizione_prodotto_salvata }}. Compreso di cavi e connettori.
+                                    {{ $dettaglioProdotto->descrizione_prodotto_salvata }}.
                                 @else
                                     Modulo fotovoltaico: {{ $dettaglioProdotto->nome_prodotto_salvato ?? '' }}. Compreso di cavi e connettori.
                                 @endif
@@ -1956,7 +1963,7 @@
                         <tr style="background-color: #f9f9f9;">
                             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
                             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Cavi solari di collegamento e cablaggi</td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">Cavi solari lato DC e cavi AC di collegamento incluso cablaggi e tubazione apposita (entro 30mt)</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">Cavi solari lato DC e cavi AC di collegamento incluso cablaggi e tubazione apposita (entro 15mt)</td>
                         </tr>
                         <tr style="background-color: #f9f9f9;">
                             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">1</td>
@@ -2217,14 +2224,16 @@
                     <li>Sopralluogo tecnico assieme al Committente con conseguente redazione progetto preliminare;</li>
                     <li>Definizione materiali e progettazione esecutiva dell'impianto;</li>
                     <li>Elaborazione della domanda di connessione in rete sul portale E-DISTRIBUZIONE;</li>
-                    <li>Assistenza tecnica in cantiere, direzione lavori e coordinamento della sicurezza in fase di realizzazione;</li>
+                    <li>Servizi di ingegneria relativi alla progettazione, al conseguimento di tutti i pareri necessari presso gli enti d'interesse,
+                    al collaudo dell'impianto ed all'espletamento della pratica per l'accesso tramite il GSE e all’iscrizione sul portale ENEA;</li>
+                    <li>Assistenza tecnica in cantiere;</li>
                     <li>Montaggio a regola d'arte dell'impianto e collaudo finale;</li>
                 </ul>
             </div>
 
             <!-- Tabella -->
-            <div style="height: 45mm; padding-left: 25mm;">
-                <table style="width: 178mm; margin: 0 auto; border-collapse: collapse; font-size: 12px; transform: translateX(-12mm);">
+            <div style="height: 45mm; padding-left: 25mm; margin-top: 5mm;">
+                <table style="width: 178mm; margin: 0 auto; border-collapse: collapse; font-size: 12px; transform: translateX(-14mm);">
                     <thead>
                         <tr style="background-color: #4BAE66; color: white;">
                             <th colspan="2" style="background-color: #4BAE66; padding: 8px; border: 1px solid #ddd; text-align: center;">GARANZIA DEI COMPONENTI DELL'IMPIANTO (come da schede tecniche dei fornitori)</th>
@@ -2244,7 +2253,7 @@
             </div>
 
             <!-- Banner immagine Tecnico -->
-            <div style="height: 142mm; background-image: url('{{ public_path('images/pdf/Tecnico-min.webp') }}'); background-size: cover; background-position: center;">
+            <div style="height: 142mm; margin-top: -5mm; background-image: url('{{ public_path('images/pdf/Tecnico-min.webp') }}'); background-size: cover; background-position: center;">
             </div>
         <div>
 
@@ -2357,11 +2366,11 @@
             </div>
 
             <!-- Grafico -->
-            <div style="height: 100mm; padding-left: 18mm; padding-right: 18mm;">
+            <!-- <div style="height: 100mm; padding-left: 18mm; padding-right: 18mm;">
                 <div style=" width: 100%; height: 100%; background-image: url('{{ public_path('images/pdf/Serie.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
                     
                 </div>
-            </div>
+            </div> -->
         </div>
 
        <!-- Footer Aziendale -->
@@ -2537,7 +2546,7 @@
                 <div style="width:70mm; height:80mm; position: absolute; top: 10mm; left: 55mm; background-image: url('{{ public_path('images/pdf/Contatore-min.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
 
                 </div>
-                <div style="width:65mm; height:60mm; position: absolute; top: 10mm; right: 50mm; display: flex; align-items: center; justify-content: center;">
+                <div style="width:65mm; height:60mm; position: absolute; top: 5mm; right: 50mm; display: flex; align-items: center; justify-content: center;">
                     <img src="{{ public_path('images/pdf/Sopralluogo_gratuito.png') }}" style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain;" alt="Sopralluogo gratuito">
                 </div>
 
@@ -2651,7 +2660,7 @@
                 
                 <!-- Titolo -->
                 <div style="position: absolute; top: 4mm; left: 18mm;">
-                    <h2 style="font-size: 30px; font-weight: bold; color: white; margin: 0; font-family: sans-serif;">SIMULAZIONE COSTI</h2>
+                    <h2 style="font-size: 30px; font-weight: bold; color: white; margin: 0; font-family: sans-serif;">OFFERTA ECONOMICA</h2>
                 </div>
                 
                 <!-- Testo esplicativo -->
@@ -2968,6 +2977,33 @@
             </div>
         
     </div>
+
+    <script type="text/php">
+        if (isset($pdf)) {
+            $pdf->page_script('
+                $text = $PAGE_NUM;
+                $font = null;
+                $size = 9;
+                // Colore nero esplicito (RGB)
+                $color = array(0, 0, 0);
+                $word_space = 0.0;
+                $char_space = 0.0;
+                $angle = 0.0;
+                
+                // Posizione in basso a destra (x=540, y=820 per A4 portrait)
+                // Assicurati che sia sempre visibile, anche sull\'ultima pagina
+                $x = 540;
+                // Sposta leggermente più in alto per evitare conflitti con sfondi bianchi
+                $y = $pdf->get_height() - 30;
+                
+                // Forza il colore nero esplicito (potrebbe essere un problema di rendering su alcune pagine)
+                $blackColor = array(0, 0, 0);
+                
+                // Disegna il testo con colore nero esplicito
+                $pdf->text($x, $y, $text, $font, $size, $blackColor, $word_space, $char_space, $angle);
+            ');
+        }
+    </script>
 
 </body>
 </html>

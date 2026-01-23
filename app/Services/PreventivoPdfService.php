@@ -233,6 +233,7 @@ class PreventivoPdfService
         $pdf->setOption('isHtml5ParserEnabled', true);
         $pdf->setOption('isFontSubsettingEnabled', true);
         $pdf->setOption('image-dpi', 150); // DPI specifico per le immagini (migliora la qualità senza influenzare layout)
+        $pdf->setOption('enable_php', true); // Necessario per usare script PHP nel template per numerazione pagine
 
         // Genera il contenuto PDF
         $pdfContent = $pdf->output();
@@ -274,6 +275,7 @@ class PreventivoPdfService
         $pdf->setOption('isHtml5ParserEnabled', true);
         $pdf->setOption('isFontSubsettingEnabled', true);
         $pdf->setOption('image-dpi', 150); // DPI specifico per le immagini (migliora la qualità senza influenzare layout)
+        $pdf->setOption('enable_php', true); // Necessario per usare script PHP nel template per numerazione pagine
 
         // Pulisci i file temporanei dopo la generazione del PDF
         // Nota: questo viene chiamato dopo che il PDF è stato generato dall'utente
