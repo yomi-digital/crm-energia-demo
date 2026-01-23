@@ -19,10 +19,14 @@ const isSaving = ref(false)
 const showSnackbar = ref(false)
 
 // Brand multipli
+const initialBrandIdsFromBrands = Array.isArray(props.communication.brands)
+  ? props.communication.brands.map(brand => brand.id)
+  : []
+
 const selectedBrandIds = ref(
-  props.communication.brand_ids 
+  props.communication.brand_ids && props.communication.brand_ids.length
     ? (Array.isArray(props.communication.brand_ids) ? props.communication.brand_ids : [props.communication.brand_ids])
-    : []
+    : initialBrandIdsFromBrands
 )
 const brands = ref([])
 const isLoadingBrands = ref(false)

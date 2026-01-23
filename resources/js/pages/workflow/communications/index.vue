@@ -28,6 +28,11 @@ const headers = [
     key: 'title',
   },
   {
+    title: 'Brand',
+    key: 'brands',
+    sortable: false,
+  },
+  {
     title: 'Documenti',
     key: 'documents',
     sortable: false,
@@ -206,6 +211,22 @@ const downloadAllFiles = async (communicationId) => {
               </RouterLink>
             </div>
           </div>
+        </template>
+
+        <!-- 👉 Brands -->
+        <template #item.brands="{ item }">
+          <div v-if="item.brands && item.brands.length" class="d-flex flex-wrap gap-1">
+            <VChip
+              v-for="brand in item.brands"
+              :key="brand.id"
+              size="x-small"
+              color="primary"
+              variant="tonal"
+            >
+              {{ brand.name }}
+            </VChip>
+          </div>
+          <span v-else>-</span>
         </template>
 
         <!-- Documents -->

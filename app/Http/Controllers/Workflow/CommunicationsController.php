@@ -11,7 +11,7 @@ class CommunicationsController extends Controller
     {
         $perPage = $request->get('itemsPerPage', 10);
 
-        $communications = \App\Models\Communication::with('documents');
+        $communications = \App\Models\Communication::with(['documents', 'brands']);
 
         if ($request->get('sortBy')) {
             $communications = $communications->orderBy($request->get('sortBy'), $request->get('orderBy', 'desc'));
@@ -129,7 +129,7 @@ class CommunicationsController extends Controller
 
     public function show(Request $request, $id)
     {
-        $communication = \App\Models\Communication::with('documents')->findOrFail($id);
+        $communication = \App\Models\Communication::with(['documents', 'brands'])->findOrFail($id);
 
         if (!$communication) {
             return response()->json(['error' => 'Communication not found'], 404);
