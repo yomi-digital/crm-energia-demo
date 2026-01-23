@@ -304,19 +304,70 @@ const exportPreventivi = async () => {
 
     const fileName = `preventivi_${new Date().toISOString().slice(0, 10)}.xlsx`
 
-    const blob = new Blob([data], { type: data.type })
+    // Assicurati che il tipo MIME sia corretto per Safari
+    const blobType = data.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    const blob = new Blob([data], { type: blobType })
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
     link.setAttribute('download', fileName)
+    
+    // Safari richiede che il link sia aggiunto al DOM prima del click
     document.body.appendChild(link)
     link.click()
-    link.remove()
-    window.URL.revokeObjectURL(url)
+    
+    // Piccolo delay per Safari prima della pulizia
+    setTimeout(() => {
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    }, 100)
   } catch (error) {
     console.error('Errore nell\'esportazione preventivi:', error)
   } finally {
     isExporting.value = false
+  }
+}
+
+const viewPdf = async (preventivoId) => {
+  try {
+    const response = await $api(`/preventivi/download/${preventivoId}`)
+    if (response && response.downloadUrl) {
+      window.open(response.downloadUrl, '_blank')
+    } else {
+      console.error('URL di download non disponibile')
+    }
+  } catch (error) {
+    console.error('Errore nel caricamento del PDF:', error)
+  }
+}
+
+const downloadPdf = async (preventivoId) => {
+  try {
+    const response = await $api(`/preventivi/download/${preventivoId}`)
+    if (response && response.downloadUrl) {
+      // Safari richiede di fare fetch del blob prima di scaricare
+      const fileResponse = await fetch(response.downloadUrl)
+      const blob = await fileResponse.blob()
+      
+      // Crea un URL temporaneo per il blob
+      const url = window.URL.createObjectURL(blob)
+      
+      // Crea il link e cliccalo
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `preventivo-${preventivoId}.pdf`)
+      
+      document.body.appendChild(link)
+      link.click()
+      
+      // Pulizia
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } else {
+      console.error('URL di download non disponibile')
+    }
+  } catch (error) {
+    console.error('Errore nel download del PDF:', error)
   }
 }
 </script>
@@ -821,34 +872,14 @@ const exportPreventivi = async () => {
         <!-- Azioni -->
         <template #item.actions="{ item }">
           <div class="d-flex align-center gap-x-2">
-            <VBtn
-              v-if="item.pdf_url"
-              icon
-              size="x-small"
-              color="primary"
-              variant="text"
-              :href="item.pdf_url"
-              target="_blank"
-            >
-              <VIcon
-                size="22"
-                icon="tabler-file"
-              />
-              <VTooltip
-                activator="parent"
-                location="top"
-              >
-                Visualizza PDF
-              </VTooltip>
-            </VBtn>
+          
             <VBtn
               v-if="item.id_preventivo"
               icon
               size="x-small"
               color="primary"
               variant="text"
-              :href="`/api/preventivi/download/${item.id_preventivo}`"
-              target="_blank"
+              @click="downloadPdf(item.id_preventivo)"
             >
               <VIcon
                 size="22"
