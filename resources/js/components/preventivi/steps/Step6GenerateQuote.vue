@@ -661,7 +661,29 @@ const handleGenerateQuote = async () => {
             const url = window.URL.createObjectURL(response);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `preventivo_${new Date().toISOString().slice(0, 10)}.pdf`);
+            
+            // Costruisci il nome del file: <Nome> <Cognome>.pdf
+            // Quando è un blob, non abbiamo ancora l'ID del preventivo
+            let fileName = 'preventivo'
+            
+            // Aggiungi nome e cognome del cliente se disponibili
+            if (props.formData.clientData) {
+                const cliente = props.formData.clientData
+                if (cliente.name || cliente.last_name) {
+                    const nome = cliente.name || ''
+                    const cognome = cliente.last_name || ''
+                    const nomeCompleto = [nome, cognome].filter(Boolean).join(' ')
+                    if (nomeCompleto) {
+                        fileName = `${nomeCompleto}.pdf`
+                    }
+                }
+            }
+            
+            if (!fileName.endsWith('.pdf')) {
+                fileName += '.pdf'
+            }
+            
+            link.setAttribute('download', fileName);
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -670,19 +692,55 @@ const handleGenerateQuote = async () => {
             pdfUrl.value = ''; // Non serve URL per blob
         } else if (response?.data?.pdf_temporary_url) {
             // Se la risposta contiene un URL temporaneo del PDF dentro data
-            // Usa un link temporaneo che funziona meglio su Safari
             const url = response.data.pdf_temporary_url;
+            const preventivoId = response.data.id_preventivo;
             pdfUrl.value = url; // Imposta sempre l'URL per il pulsante di fallback
             
-            const link = document.createElement('a');
-            link.href = url;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            successMessage.value = response?.message || 'Preventivo creato con successo! Il PDF è stato aperto in una nuova scheda.';
+            // Scarica il PDF con il nome corretto: <id> <Nome> <Cognome>.pdf
+            try {
+                const fileResponse = await fetch(url);
+                const blob = await fileResponse.blob();
+                
+                // Costruisci il nome del file
+                let fileName = preventivoId ? `${preventivoId}` : 'preventivo'
+                if (props.formData.clientData) {
+                    const cliente = props.formData.clientData
+                    if (cliente.name || cliente.last_name) {
+                        const nome = cliente.name || ''
+                        const cognome = cliente.last_name || ''
+                        const nomeCompleto = [nome, cognome].filter(Boolean).join(' ')
+                        if (nomeCompleto) {
+                            fileName = `${preventivoId || ''} ${nomeCompleto}`.trim()
+                        }
+                    }
+                }
+                if (!fileName.endsWith('.pdf')) {
+                    fileName += '.pdf'
+                }
+                
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.setAttribute('download', fileName);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(downloadUrl);
+                
+                successMessage.value = response?.message || 'Preventivo creato con successo! Il PDF è stato scaricato.';
+            } catch (error) {
+                console.error('Errore nel download del PDF:', error);
+                // Fallback: apri in una nuova scheda
+                const link = document.createElement('a');
+                link.href = url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                successMessage.value = response?.message || 'Preventivo creato con successo! Il PDF è stato aperto in una nuova scheda.';
+            }
         } else if (response?.pdf_temporary_url || response?.pdf_url || response?.url) {
             // Fallback per altri formati di risposta
             const url = response.pdf_temporary_url || response.pdf_url || response.url;

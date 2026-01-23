@@ -341,13 +341,31 @@ const viewPdf = async (preventivoId) => {
   }
 }
 
-const downloadPdf = async (preventivoId) => {
+const downloadPdf = async (preventivo) => {
   try {
+    const preventivoId = typeof preventivo === 'object' ? preventivo.id_preventivo : preventivo
     const response = await $api(`/preventivi/download/${preventivoId}`)
     if (response && response.downloadUrl) {
       // Safari richiede di fare fetch del blob prima di scaricare
       const fileResponse = await fetch(response.downloadUrl)
       const blob = await fileResponse.blob()
+      
+      // Costruisci il nome del file: <id> <Nome> <Cognome>.pdf
+      let fileName = `${preventivoId}`
+      if (typeof preventivo === 'object' && preventivo.cliente) {
+        const cliente = preventivo.cliente
+        if (cliente.name || cliente.last_name) {
+          const nome = cliente.name || ''
+          const cognome = cliente.last_name || ''
+          const nomeCompleto = [nome, cognome].filter(Boolean).join(' ')
+          if (nomeCompleto) {
+            fileName = `${preventivoId} ${nomeCompleto}.pdf`
+          }
+        }
+      }
+      if (!fileName.endsWith('.pdf')) {
+        fileName += '.pdf'
+      }
       
       // Crea un URL temporaneo per il blob
       const url = window.URL.createObjectURL(blob)
@@ -355,7 +373,7 @@ const downloadPdf = async (preventivoId) => {
       // Crea il link e cliccalo
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', `preventivo-${preventivoId}.pdf`)
+      link.setAttribute('download', fileName)
       
       document.body.appendChild(link)
       link.click()
@@ -879,7 +897,7 @@ const downloadPdf = async (preventivoId) => {
               size="x-small"
               color="primary"
               variant="text"
-              @click="downloadPdf(item.id_preventivo)"
+              @click="downloadPdf(item)"
             >
               <VIcon
                 size="22"
