@@ -1,15 +1,15 @@
 <template>
   <div>
     <h2 class="section-title">Dati Bolletta Energetica</h2>
-    <p class="muted">Indica se possiedi i dati di consumo su base mensile, bimestrale o solo il totale annuale.</p>
+    <p class="muted">Indica se possiedi i dati di consumo su base mensile o solo il totale annuale.</p>
     
     <div class="segments" style="margin-bottom:16px;">
       <button @click="handleModeSelect('monthly')" :class="['segment', localBillEntryMode === 'monthly' ? 'is-active' : '']">
         Ho dati Mensili
       </button>
-      <button @click="handleModeSelect('bimonthly')" :class="['segment', localBillEntryMode === 'bimonthly' ? 'is-active' : '']">
+      <!-- <button @click="handleModeSelect('bimonthly')" :class="['segment', localBillEntryMode === 'bimonthly' ? 'is-active' : '']">
         Ho dati Bimestrali
-      </button>
+      </button> -->
       <button @click="handleModeSelect('annual')" :class="['segment', localBillEntryMode === 'annual' ? 'is-active' : '']">
         Ho dati Annuali
       </button>
