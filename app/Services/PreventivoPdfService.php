@@ -144,7 +144,202 @@ class PreventivoPdfService
         
         return $tempPath;
     }
-    
+
+    /**
+     * Genera un'immagine PNG del grafico del Business Plan (flussi di cassa cumulati anno 0-20)
+     *
+     * Asse X: anni 0-20 (21 slot)
+     * Asse Y: flusso_cassa_cumulato (valore economico, positivo/negativo)
+     *
+     * @param Preventivo $preventivo
+     * @return string|null Percorso dell'immagine generata o null se dati non disponibili
+     */
+    public function generateBusinessPlanChartImage(Preventivo $preventivo): ?string
+    {
+        $dettagli = $preventivo->dettagliBusinessPlan;
+
+        // Richiediamo esattamente 21 punti (anni 0-20) per coerenza con il business plan
+        if (!$dettagli || $dettagli->count() !== 21) {
+            return null;
+        }
+
+        // Estrai i valori dei flussi di cassa cumulati in ordine di anno_simulazione
+        $points = $dettagli
+            ->sortBy('anno_simulazione')
+            ->values()
+            ->map(function ($bp) {
+                return [
+                    'year' => (int) $bp->anno_simulazione,
+                    'value' => (float) $bp->flusso_cassa_cumulato,
+                ];
+            })
+            ->all();
+
+        if (empty($points)) {
+            return null;
+        }
+
+        $values = array_column($points, 'value');
+        $minValue = min($values);
+        $maxValue = max($values);
+
+        // Evita range nullo
+        if ($minValue === $maxValue) {
+            if ($minValue === 0.0) {
+                $minValue = -1.0;
+                $maxValue = 1.0;
+            } else {
+                $padding = abs($minValue) * 0.1;
+                $minValue -= $padding;
+                $maxValue += $padding;
+            }
+        }
+
+        // Aggiungi un piccolo margine sopra/sotto
+        $range = $maxValue - $minValue;
+        $minValue -= $range * 0.05;
+        $maxValue += $range * 0.05;
+        $range = $maxValue - $minValue;
+
+        // Parametri immagine (usiamo scala 2x per migliore qualità)
+        $scale = 2;
+        // Larghezza per corrispondere alla tabella (175mm) - a 150 DPI: 175mm ≈ 1033px, con scale=2: ~2066px
+        // Usiamo 600*scale per avere buona risoluzione e poi lo scaliamo a 175mm nel Blade
+        $width = 600 * $scale;   // ~600px visivi (poi scalato a 175mm nel PDF)
+        $height = 220 * $scale;  // ~220px visivi
+
+        // Padding minimo per etichette e assi (ridotto al minimo necessario)
+        $paddingLeft = 1 * $scale;   // spazio per etichetta Y "Valore economico"
+        $paddingRight = 1 * $scale;  // margine minimo destro
+        $paddingTop = 15 * $scale;    // spazio per etichetta Y in alto
+        $paddingBottom = 15 * $scale; // spazio per etichetta X e numeri sotto barre negative
+
+        $plotWidth = $width - $paddingLeft - $paddingRight;
+        $plotHeight = $height - $paddingTop - $paddingBottom;
+
+        // Crea immagine
+        $image = imagecreatetruecolor($width, $height);
+
+        // Colori
+        $white = imagecolorallocate($image, 255, 255, 255);
+        $axisColor = imagecolorallocate($image, 120, 120, 120);
+        $gridColor = imagecolorallocate($image, 230, 230, 230);
+        $barPositive = imagecolorallocate($image, 75, 174, 102);   // verde
+        $barNegative = imagecolorallocate($image, 231, 76, 60);    // rosso
+        $labelColor = imagecolorallocate($image, 60, 60, 60);
+
+        // Sfondo bianco
+        imagefill($image, 0, 0, $white);
+        imagealphablending($image, true);
+        imagesavealpha($image, true);
+
+        // Funzione helper per mappare valore -> y pixel
+        $mapValueToY = function (float $value) use ($minValue, $maxValue, $paddingTop, $plotHeight) {
+            if ($maxValue === $minValue) {
+                return $paddingTop + $plotHeight / 2;
+            }
+            $relative = ($value - $minValue) / ($maxValue - $minValue);
+            // y cresce verso il basso
+            return (int) round($paddingTop + $plotHeight * (1.0 - $relative));
+        };
+
+        // Posizione linea zero (break-even)
+        $zeroY = $mapValueToY(0.0);
+
+        // Disegna grid orizzontale (es. 4 linee)
+        $steps = 4;
+        for ($i = 0; $i <= $steps; $i++) {
+            $v = $minValue + $range * ($i / $steps);
+            $y = $mapValueToY($v);
+            imageline($image, $paddingLeft, $y, $paddingLeft + $plotWidth, $y, $gridColor);
+        }
+
+        // Disegna assi
+        // Asse Y
+        imageline($image, $paddingLeft, $paddingTop, $paddingLeft, $paddingTop + $plotHeight, $axisColor);
+        // Asse X (linea del tempo) – usiamo la linea dello zero se è nel range, altrimenti in basso
+        $xAxisY = ($zeroY >= $paddingTop && $zeroY <= $paddingTop + $plotHeight) ? $zeroY : ($paddingTop + $plotHeight);
+        imageline($image, $paddingLeft, $xAxisY, $paddingLeft + $plotWidth, $xAxisY, $axisColor);
+
+        // Etichette degli assi (semplici, orizzontali) - posizionate con padding minimo
+        $axisFont = 3;
+        $yLabel = 'Valore economico';
+        imagestring($image, $axisFont, $paddingLeft, 2, $yLabel, $labelColor);
+        $xLabel = '0 - 20 (anni)';
+        $xLabelWidth = imagefontwidth($axisFont) * strlen($xLabel);
+        imagestring(
+            $image,
+            $axisFont,
+            (int) ($paddingLeft + $plotWidth - $xLabelWidth),
+            (int) ($paddingTop + $plotHeight + 5),
+            $xLabel,
+            $labelColor
+        );
+
+        // Larghezza barre: 21 slot
+        $slots = max(21, count($points));
+        $slotWidth = $plotWidth / $slots;
+        $barWidth = $slotWidth * 0.6; // un po' di spazio tra le barre
+
+        $font = 2; // piccolo font built-in per le etichette sulle barre
+
+        foreach ($points as $index => $point) {
+            $year = $point['year'];
+            $value = $point['value'];
+
+            // Centro della barra nel suo slot (usiamo index, che dovrebbe corrispondere a year 0-20)
+            $xCenter = $paddingLeft + ($index + 0.5) * $slotWidth;
+            $barX1 = (int) round($xCenter - $barWidth / 2);
+            $barX2 = (int) round($xCenter + $barWidth / 2);
+
+            $yValue = $mapValueToY($value);
+
+            if ($value >= 0) {
+                $y1 = $yValue;
+                $y2 = $xAxisY;
+                $color = $barPositive;
+            } else {
+                $y1 = $xAxisY;
+                $y2 = $yValue;
+                $color = $barNegative;
+            }
+
+            imagefilledrectangle($image, $barX1, $y1, $barX2, $y2, $color);
+
+            // Etichetta di valore sulla barra (+100 / -100)
+            $formatted = ($value >= 0 ? '+' : '') . number_format($value, 0, ',', '.');
+            $textWidth = imagefontwidth($font) * strlen($formatted);
+            $textHeight = imagefontheight($font);
+
+            if ($value >= 0) {
+                // Positivo: scritta sopra la barra
+                $textX = (int) round($xCenter - $textWidth / 2);
+                $textY = min($y1 - $textHeight - 2, $paddingTop + $plotHeight - $textHeight - 2);
+            } else {
+                // Negativo: scritta sotto la barra (alla base della candela)
+                $textX = (int) round($xCenter - $textWidth / 2);
+                // y2 è la parte più in basso della barra negativa
+                $textY = min($y2 + 2, $paddingTop + $plotHeight - $textHeight - 2);
+            }
+
+            imagestring($image, $font, $textX, $textY, $formatted, $labelColor);
+        }
+
+        // Salva immagine temporanea
+        $tempPath = storage_path('app/temp/business_plan_chart_' . uniqid() . '.png');
+        $tempDir = dirname($tempPath);
+        if (!file_exists($tempDir)) {
+            mkdir($tempDir, 0777, true);
+        }
+
+        imagepng($image, $tempPath, 9);
+        imagedestroy($image);
+
+        $this->tempFiles[] = $tempPath;
+
+        return $tempPath;
+    }
+ 
     /**
      * Disegna un segmento del grafico a torta donut
      */

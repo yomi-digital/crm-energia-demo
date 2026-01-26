@@ -2458,6 +2458,21 @@
             <span style="font-size: 20px; font-weight: bold; margin-bottom: 3mm;">
                 BUSINESS <span style="color: #4BAE66;">PLAN</span>
             </span>
+
+            @php
+                $businessPlanChartPath = null;
+                if ($preventivo->dettagliBusinessPlan && $preventivo->dettagliBusinessPlan->count() === 21) {
+                    $businessPlanChartPath = isset($pdfService)
+                        ? $pdfService->generateBusinessPlanChartImage($preventivo)
+                        : (new \App\Services\PreventivoPdfService())->generateBusinessPlanChartImage($preventivo);
+                }
+            @endphp
+
+            @if($businessPlanChartPath)
+                <div style="width: 175mm; height: 70mm; margin-bottom: 5mm; display: flex; align-items: center; justify-content: center;">
+                    <img src="{{ $businessPlanChartPath }}" alt="Business Plan - Flussi di cassa" style="width: 175mm; height: auto; max-height: 65mm;">
+                </div>
+            @endif
             <table class="business-plan-table" style="width: 175mm;">
                 <thead>
                     <tr>
