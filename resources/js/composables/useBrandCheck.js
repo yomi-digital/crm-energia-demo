@@ -65,11 +65,11 @@ export function useBrandCheck() {
           },
         })
 
-        // Cerca il brand "ALFACOM SOLAR" nella risposta
+        // Cerca se c'è un brand di categoria Fotovoltaico nella risposta
         // La risposta ha la struttura: { brands: [...], totalPages: ..., totalBrands: ..., page: ... }
         const brands = response?.brands || []
         const hasAlfacomSolar = brands.some(
-          brand => brand.name === 'ALFACOM SOLAR'
+          brand => brand.category === 'Fotovoltaico'
         )
         console.log('hasAlfacomSolar', hasAlfacomSolar)
         console.log('brands', brands)
