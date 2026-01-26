@@ -26,9 +26,8 @@
                 </select>
              </div>
              <div>
-                <label for="roof-type" class="field-label">Tipologia tetto</label>
-                <select id="roof-type" :value="formData.roofType" @change="handleRoofTypeChange($event.target.value)" class="field-select">
-                    <option value="">Seleziona tipologia</option>
+                <label for="roof-type" class="field-label">Tipologia tetto <span style="color:red;">*</span></label>
+                <select id="roof-type" :value="formData.roofType" @change="handleRoofTypeChange($event.target.value)" class="field-select" required>
                     <option v-for="tipo in tipologieTetto" :key="tipo.id_voce" :value="tipo.nome_tipologia">
                         {{ tipo.nome_tipologia }}
                     </option>
@@ -377,6 +376,25 @@ watch(() => props.formData.selectedProduct, (newVal) => {
   localSelectedProduct.value = newVal ? String(newVal) : '';
 }, { immediate: true });
 
+// Watch per impostare il primo tetto come default quando vengono caricate le tipologie
+watch(tipologieTetto, (newTipologie) => {
+  if (newTipologie && newTipologie.length > 0) {
+    const currentRoofType = props.formData.roofType;
+    // Verifica se il valore attuale esiste nelle tipologie caricate
+    const roofTypeExists = currentRoofType && newTipologie.some(t => t.nome_tipologia === currentRoofType);
+    
+    // Se roofType non è valorizzato, è vuoto, o non esiste nelle tipologie caricate, imposta il primo
+    if (!currentRoofType || currentRoofType === '' || !roofTypeExists) {
+      const primoTetto = newTipologie[0];
+      updateFormData('roofType', primoTetto.nome_tipologia);
+      // Se ha un costo_extra_kwp, impostalo anche
+      if (primoTetto.costo_extra_kwp !== undefined && primoTetto.costo_extra_kwp !== null && primoTetto.costo_extra_kwp > 0) {
+        updateFormData('roofTypePricePerKw', primoTetto.costo_extra_kwp);
+      }
+    }
+  }
+}, { immediate: true });
+
 // Computed per il testo di visualizzazione del prodotto selezionato
 const selectedProductDisplayText = computed(() => {
   if (!localSelectedProduct.value) return '';
@@ -507,6 +525,21 @@ onMounted(async () => {
     console.log(tipologie);
     // Gestisci la risposta paginata o diretta
     tipologieTetto.value = Array.isArray(tipologie) ? tipologie : (tipologie?.data || []);
+    
+    // Imposta il primo tetto come default se non è già valorizzato o se il valore attuale non esiste
+    if (tipologieTetto.value.length > 0) {
+      const currentRoofType = props.formData.roofType;
+      const roofTypeExists = currentRoofType && tipologieTetto.value.some(t => t.nome_tipologia === currentRoofType);
+      
+      if (!currentRoofType || currentRoofType === '' || !roofTypeExists) {
+        const primoTetto = tipologieTetto.value[0];
+        updateFormData('roofType', primoTetto.nome_tipologia);
+        // Se ha un costo_extra_kwp, impostalo anche
+        if (primoTetto.costo_extra_kwp !== undefined && primoTetto.costo_extra_kwp !== null && primoTetto.costo_extra_kwp > 0) {
+          updateFormData('roofTypePricePerKw', primoTetto.costo_extra_kwp);
+        }
+      }
+    }
     
     // Carica prodotti fotovoltaico
     const prodotti = await loadProdottiFotovoltaico();
