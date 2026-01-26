@@ -2488,7 +2488,7 @@
                         </tr>
                         @endforeach
                     @else
-                        @for($i = 1; $i <= 20; $i++)
+                        @for($i = 0; $i <= 20; $i++)
                         <tr>
                             <td class="text-center" style="padding: 7.2px 3px; text-align: center;">{{ $i }}</td>
                             <td class="text-center" style="padding: 7.2px 3px; text-align: center;">-</td>

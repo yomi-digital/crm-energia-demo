@@ -496,7 +496,7 @@ const preparePayload = () => {
         const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
         
         const initialInvestment = -totalSystemCost;
-        let cumulativeCashFlow = 0; // Inizializza a 0, sarà calcolato nell'anno 1
+        let cumulativeCashFlow = 0;
 
         // Calcola pagamento finanziamento
         const annualLoanPayment = props.formData.paymentMethod === 'Misto' && props.formData.paymentMisto
@@ -514,69 +514,82 @@ const preparePayload = () => {
             fiscalDeductionAnnual = (totalSystemCost * deductionPercentage) / 10;
         }
 
-        for (let year = 1; year <= 20; year++) {
-            const loanPayment = year <= loanYears ? annualLoanPayment : 0;
-            const insuranceCost = props.formData.insurance?.enabled ? (props.formData.insurance.cost || 0) : 0;
-            const maintenanceCost = props.formData.maintenance?.enabled ? (props.formData.maintenance.cost || 0) : 0;
-            
-            const risparmioAnnuale = simulationData.value.risparmioAutoconsumo * Math.pow(1.02, year - 1);
-            const venditaEnergia = simulationData.value.venditaEccedenza * Math.pow(1.02, year - 1);
-            
-            // Incentivo CER - sempre lo stesso valore per 20 anni se abilitato (eccedenza × 0.108)
-            const ricavoIncentivoCer = props.formData.enableCer ? simulationData.value.incentivoCer : 0;
-            
-            // Detrazione fiscale solo per i primi 10 anni
-            const fiscalDeduction = year <= 10 ? fiscalDeductionAnnual : 0;
-            
-            // Incentivi PNRR (diversi dal CER) - per altri incentivi PNRR specifici
-            let incentivoPnrr = 0;
-            (props.formData.incentives || []).forEach(inc => {
-                const annoInizio = inc.anno_inizio || 1;
-                const annoFine = inc.anno_fine || 1;
-                if (year >= annoInizio && year <= annoFine) {
-                    incentivoPnrr += calculateAdjustmentAmount(inc);
-                }
-            });
-            
-            // Sconti: calcola solo se l'anno è compreso tra anno_inizio e anno_fine
-            let sconto = 0;
-            (props.formData.discounts || []).forEach(scontoItem => {
-                const annoInizio = scontoItem.anno_inizio || 1;
-                const annoFine = scontoItem.anno_fine || 1;
-                if (year >= annoInizio && year <= annoFine) {
-                    sconto += calculateAdjustmentAmount(scontoItem);
-                }
-            });
-
-            let cashFlow = 0;
-            if (year === 1) {
-                // L'anno 1 include l'investimento iniziale negativo
-                const cashIn = risparmioAnnuale + venditaEnergia + ricavoIncentivoCer + fiscalDeduction + incentivoPnrr;
-                const cashOut = totalSystemCost + loanPayment + insuranceCost + maintenanceCost + sconto;
-                cashFlow = cashIn - cashOut;
+        for (let year = 0; year <= 20; year++) {
+            if (year === 0) {
+                // Anno 0: solo investimento iniziale negativo
+                cumulativeCashFlow = initialInvestment;
+                businessPlan.push({
+                    anno_simulazione: 0,
+                    costo_annuo_investimento: 0,
+                    costo_annuo_assicurazione: 0,
+                    costo_annuo_manutenzione: 0,
+                    ricavo_risparmio_bolletta: 0,
+                    ricavo_vendita_eccedenze: 0,
+                    ricavo_incentivo_cer: 0,
+                    ricavo_fondo_perduto: 0,
+                    flusso_cassa_annuo: Math.round(initialInvestment),
+                    flusso_cassa_cumulato: Math.round(cumulativeCashFlow),
+                    incentivo_pnnr: 0,
+                    detrazione_fiscale: 0,
+                    sconto: 0,
+                });
             } else {
+                // Anni 1-20: calcoli normali
+                const loanPayment = year <= loanYears ? annualLoanPayment : 0;
+                const insuranceCost = props.formData.insurance?.enabled ? (props.formData.insurance.cost || 0) : 0;
+                const maintenanceCost = props.formData.maintenance?.enabled ? (props.formData.maintenance.cost || 0) : 0;
+                
+                const risparmioAnnuale = simulationData.value.risparmioAutoconsumo * Math.pow(1.02, year - 1);
+                const venditaEnergia = simulationData.value.venditaEccedenza * Math.pow(1.02, year - 1);
+                
+                // Incentivo CER - sempre lo stesso valore per 20 anni se abilitato (eccedenza × 0.108)
+                const ricavoIncentivoCer = props.formData.enableCer ? simulationData.value.incentivoCer : 0;
+                
+                // Detrazione fiscale solo per i primi 10 anni
+                const fiscalDeduction = year <= 10 ? fiscalDeductionAnnual : 0;
+                
+                // Incentivi PNRR (diversi dal CER) - per altri incentivi PNRR specifici
+                let incentivoPnrr = 0;
+                (props.formData.incentives || []).forEach(inc => {
+                    const annoInizio = inc.anno_inizio || 1;
+                    const annoFine = inc.anno_fine || 1;
+                    if (year >= annoInizio && year <= annoFine) {
+                        incentivoPnrr += calculateAdjustmentAmount(inc);
+                    }
+                });
+                
+                // Sconti: calcola solo se l'anno è compreso tra anno_inizio e anno_fine
+                let sconto = 0;
+                (props.formData.discounts || []).forEach(scontoItem => {
+                    const annoInizio = scontoItem.anno_inizio || 1;
+                    const annoFine = scontoItem.anno_fine || 1;
+                    if (year >= annoInizio && year <= annoFine) {
+                        sconto += calculateAdjustmentAmount(scontoItem);
+                    }
+                });
+
                 const cashIn = risparmioAnnuale + venditaEnergia + ricavoIncentivoCer + fiscalDeduction + incentivoPnrr;
                 const cashOut = loanPayment + insuranceCost + maintenanceCost + sconto;
-                cashFlow = cashIn - cashOut;
+                const cashFlow = cashIn - cashOut;
+
+                cumulativeCashFlow += cashFlow;
+
+                businessPlan.push({
+                    anno_simulazione: year,
+                    costo_annuo_investimento: loanPayment,
+                    costo_annuo_assicurazione: insuranceCost,
+                    costo_annuo_manutenzione: maintenanceCost,
+                    ricavo_risparmio_bolletta: Math.round(risparmioAnnuale),
+                    ricavo_vendita_eccedenze: Math.round(venditaEnergia),
+                    ricavo_incentivo_cer: Math.round(ricavoIncentivoCer),
+                    ricavo_fondo_perduto: 0, // Placeholder per eventuali fondi perduti
+                    flusso_cassa_annuo: Math.round(cashFlow),
+                    flusso_cassa_cumulato: Math.round(cumulativeCashFlow),
+                    incentivo_pnnr: Math.round(incentivoPnrr),
+                    detrazione_fiscale: Math.round(fiscalDeduction),
+                    sconto: Math.round(sconto),
+                });
             }
-
-            cumulativeCashFlow += cashFlow;
-
-            businessPlan.push({
-                anno_simulazione: year,
-                costo_annuo_investimento: loanPayment,
-                costo_annuo_assicurazione: insuranceCost,
-                costo_annuo_manutenzione: maintenanceCost,
-                ricavo_risparmio_bolletta: Math.round(risparmioAnnuale),
-                ricavo_vendita_eccedenze: Math.round(venditaEnergia),
-                ricavo_incentivo_cer: Math.round(ricavoIncentivoCer),
-                ricavo_fondo_perduto: 0, // Placeholder per eventuali fondi perduti
-                flusso_cassa_annuo: Math.round(cashFlow),
-                flusso_cassa_cumulato: Math.round(cumulativeCashFlow),
-                incentivo_pnnr: Math.round(incentivoPnrr),
-                detrazione_fiscale: Math.round(fiscalDeduction),
-                sconto: Math.round(sconto),
-            });
         }
     }
 

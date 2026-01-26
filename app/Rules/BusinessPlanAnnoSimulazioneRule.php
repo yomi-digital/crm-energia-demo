@@ -31,13 +31,13 @@ class BusinessPlanAnnoSimulazioneRule implements ValidationRule, DataAwareRule
     {
         $businessPlan = $this->data['DETTAGLIO_BUSINESS_PLAN'] ?? [];
 
-        if (count($businessPlan) !== 20) {
-            $fail('Il campo DETTAGLIO_BUSINESS_PLAN deve contenere esattamente 20 elementi.');
+        if (count($businessPlan) !== 21) {
+            $fail('Il campo DETTAGLIO_BUSINESS_PLAN deve contenere esattamente 21 elementi (anni 0-20).');
             return;
         }
 
         foreach ($businessPlan as $index => $item) {
-            $expectedAnno = $index + 1;
+            $expectedAnno = $index; // Ora parte da 0 (0, 1, 2, ..., 20)
             if (!isset($item['anno_simulazione']) || $item['anno_simulazione'] !== $expectedAnno) {
                 $fail("L'elemento {$index} di DETTAGLIO_BUSINESS_PLAN: anno_simulazione deve essere {$expectedAnno}.");
                 return;

@@ -576,7 +576,7 @@ class PreventivoController extends Controller
                 'array',
                 new BusinessPlanAnnoSimulazioneRule(),
             ],
-            'DETTAGLIO_BUSINESS_PLAN.*.anno_simulazione' => ['required', new StrictPositiveNumberRule('DETTAGLIO_BUSINESS_PLAN.*.anno_simulazione', true, 1, true)],
+            'DETTAGLIO_BUSINESS_PLAN.*.anno_simulazione' => ['required', new StrictNonNegativeRule('DETTAGLIO_BUSINESS_PLAN.*.anno_simulazione', true, 0, true, 20, true)],
             'DETTAGLIO_BUSINESS_PLAN.*.costo_annuo_investimento' => ['required', new StrictPositiveNumberRule('DETTAGLIO_BUSINESS_PLAN.*.costo_annuo_investimento', false, 0, true)],
             'DETTAGLIO_BUSINESS_PLAN.*.costo_annuo_assicurazione' => ['required', new StrictPositiveNumberRule('DETTAGLIO_BUSINESS_PLAN.*.costo_annuo_assicurazione', false, 0, true)],
             'DETTAGLIO_BUSINESS_PLAN.*.costo_annuo_manutenzione' => ['required', new StrictPositiveNumberRule('DETTAGLIO_BUSINESS_PLAN.*.costo_annuo_manutenzione', false, 0, true)],
