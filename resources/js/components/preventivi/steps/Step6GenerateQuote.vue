@@ -596,7 +596,7 @@ const preparePayload = () => {
     const payload = {
         PREVENTIVI: {
             fk_cliente: props.formData.client || null,
-            fk_agente: agentId,
+            fk_agente: props.formData.selectedAgent || null,
             stato: 'protocollato',
             tetto_salvato: props.formData.roofType || '',
             area_geografica_salvata: (props.formData.geographicArea || '').toLowerCase(),

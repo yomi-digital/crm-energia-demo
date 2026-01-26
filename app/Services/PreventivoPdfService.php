@@ -504,8 +504,10 @@ class PreventivoPdfService
         // Pulisci i file temporanei dopo la generazione del PDF
         $this->cleanupTempFiles();
 
-        // Genera percorso file con struttura: preventivi/id_agente/preventivo-[id_preventivo]
-        $filename = 'preventivi/' . $preventivo->fk_agente . '/preventivo-' . $preventivo->id_preventivo . '.pdf';
+        // Genera percorso file con struttura: preventivi/id_utente_creatore/preventivo-[id_preventivo]
+        // Usa created_by invece di fk_agente perché created_by è sempre valorizzato
+        $userId = $preventivo->created_by ?? $preventivo->fk_agente;
+        $filename = 'preventivi/' . $userId . '/preventivo-' . $preventivo->id_preventivo . '.pdf';
 
         // Salva su DigitalOcean Spaces come file privato
         Storage::disk('do')->put($filename, $pdfContent, 'private');
@@ -577,7 +579,16 @@ class PreventivoPdfService
      */
     public function getTemporaryUrl(Preventivo $preventivo, int $expirationMinutes = 60): string
     {
-        $filename = 'preventivi/' . $preventivo->fk_agente . '/preventivo-' . $preventivo->id_preventivo . '.pdf';
+        // Usa created_by invece di fk_agente perché created_by è sempre valorizzato
+        // Se per qualche motivo created_by non esiste, usa fk_agente come fallback
+        $userId = $preventivo->created_by ?? $preventivo->fk_agente;
+        
+        // Se non abbiamo né created_by né fk_agente, usa il pdf_url salvato
+        if (!$userId && $preventivo->pdf_url) {
+            return Storage::disk('do')->temporaryUrl($preventivo->pdf_url, now()->addMinutes($expirationMinutes));
+        }
+        
+        $filename = 'preventivi/' . $userId . '/preventivo-' . $preventivo->id_preventivo . '.pdf';
         
         // Genera URL temporaneo firmato valido per X minuti
         return Storage::disk('do')->temporaryUrl($filename, now()->addMinutes($expirationMinutes));

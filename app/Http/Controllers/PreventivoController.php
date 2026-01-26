@@ -441,7 +441,7 @@ class PreventivoController extends Controller
         $validatedData = $request->validate([
             'PREVENTIVI' => 'required|array',
             'PREVENTIVI.fk_cliente' => ['required', new StrictPositiveNumberRule('PREVENTIVI.fk_cliente', true, 1, true)],
-            'PREVENTIVI.fk_agente' => ['required', new StrictPositiveNumberRule('PREVENTIVI.fk_agente', true, 1, true)],
+            'PREVENTIVI.fk_agente' => ['nullable', new StrictPositiveNumberRule('PREVENTIVI.fk_agente', true, 1, true)],
             'PREVENTIVI.stato' => 'required|string|in:protocollato',
             'PREVENTIVI.tetto_salvato' => 'required|string|max:255',
             'PREVENTIVI.area_geografica_salvata' => 'required|string|in:sud,nord,centro,isole',
@@ -625,7 +625,7 @@ class PreventivoController extends Controller
 
         //Transaction per aggiungere il preventivo a database
         try {
-            $preventivoId = DB::transaction(function () use ($validatedData) {
+            $preventivoId = DB::transaction(function () use ($validatedData, $request) {
                 // 1. Prepara i dati del preventivo convertendo i JSON in stringhe
                 $preventivoData = $validatedData['PREVENTIVI'];
                 if (isset($preventivoData['bonifico_data_json']) && is_array($preventivoData['bonifico_data_json'])) {
@@ -633,6 +633,14 @@ class PreventivoController extends Controller
                 }
                 if (isset($preventivoData['finanziamento_data_json']) && is_array($preventivoData['finanziamento_data_json'])) {
                     $preventivoData['finanziamento_data_json'] = json_encode($preventivoData['finanziamento_data_json']);
+                }
+
+                // Popola created_by con l'id dell'utente chiamante
+                $preventivoData['created_by'] = $request->user()->id;
+                
+                // Popola fk_agente solo se passata, altrimenti lascia null
+                if (!isset($preventivoData['fk_agente']) || empty($preventivoData['fk_agente'])) {
+                    unset($preventivoData['fk_agente']);
                 }
 
                 // 2. Crea il preventivo

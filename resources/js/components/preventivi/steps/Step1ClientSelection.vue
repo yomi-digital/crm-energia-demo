@@ -48,6 +48,36 @@
       <button class="btn btn-secondary" @click="openModal" style="margin-bottom: 0;">Crea Cliente</button>
     </div>
 
+    <div class="field" style="margin-top: 16px;">
+      <label for="agent" class="field-label">Agente/Struttura (opzionale)</label>
+      <AppAutocomplete
+        v-model="selectedAgent"
+        v-model:search="agentSearch"
+        :loading="loadingAgents"
+        :items="filteredAgents"
+        placeholder="Cerca per nome o cognome..."
+        return-object
+        item-title="title"
+        item-value="value"
+        clearable
+        :custom-filter="() => true"
+      >
+        <template #no-data>
+          <VListItem>
+            <VListItemTitle v-if="loadingAgents">
+              Caricamento in corso...
+            </VListItemTitle>
+            <VListItemTitle v-else-if="!agentSearch || agentSearch.length < 2">
+              Inizia a digitare per cercare un agente o struttura...
+            </VListItemTitle>
+            <VListItemTitle v-else>
+              Nessun agente o struttura trovato
+            </VListItemTitle>
+          </VListItem>
+        </template>
+      </AppAutocomplete>
+    </div>
+
     <!-- Modal per creare un nuovo cliente -->
     <VDialog
       v-model="isModalOpen"
@@ -77,7 +107,7 @@
 <script setup lang="js">
 import { usePreventiviApi } from '@/composables/usePreventiviApi';
 import FormCreate from '@/views/workflow/customers/FormCreate.vue';
-import { defineEmits, defineProps, onMounted, ref, watch } from 'vue';
+import { computed, defineEmits, defineProps, onMounted, ref, watch } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
 import { COEFFICIENTS } from '../constants';
 
@@ -88,9 +118,13 @@ const emit = defineEmits(['update:formData']);
 
 const isModalOpen = ref(false);
 const customers = ref([]);
+const agents = ref([]);
 const search = ref('');
+const agentSearch = ref('');
 const loading = ref(false);
+const loadingAgents = ref(false);
 const selectedCustomer = ref(null);
+const selectedAgent = ref(null);
 const { loadCoefficientiProduzione } = usePreventiviApi();
 
 const preventDefaultStopPropagation = (event) => {
@@ -158,8 +192,81 @@ const fetchCustomers = async (query, id = null) => {
   }
 };
 
+// Funzione per caricare gli agenti, strutture e amministratori
+const fetchAgents = async (id = null) => {
+  try {
+    loadingAgents.value = true;
+    const url = `/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1&amministrazione=1${id ? `&id=${id}` : ''}`;
+    const response = await $api(url);
+    
+    if (response?.agents && Array.isArray(response.agents)) {
+      agents.value = response.agents.map(agent => ({
+        title: [agent.name, agent.last_name].filter(Boolean).join(' '),
+        value: agent.id,
+        rawData: agent,
+      }));
+      
+      // Se abbiamo caricato per ID, imposta il valore selezionato
+      if (id && agents.value.length === 1) {
+        selectedAgent.value = agents.value[0];
+      }
+    } else {
+      agents.value = [];
+    }
+  } catch (error) {
+    console.error('Errore nel caricamento agenti:', error);
+    agents.value = [];
+  } finally {
+    loadingAgents.value = false;
+  }
+};
+
+// Filtra gli agenti in base alla ricerca locale
+const filteredAgents = computed(() => {
+  if (!agentSearch.value || agentSearch.value.length < 2) {
+    return agents.value;
+  }
+  const searchLower = agentSearch.value.toLowerCase();
+  return agents.value.filter(agent => 
+    agent.title.toLowerCase().includes(searchLower)
+  );
+});
+
+// Watch per aggiornare formData quando cambia la selezione agente
+watch(selectedAgent, (newVal) => {
+  if (!newVal || newVal === null) {
+    // Se viene cancellato (null), emetti null e resetta la ricerca
+    agentSearch.value = '';
+    emit('update:formData', {
+      ...props.formData,
+      selectedAgent: null,
+    });
+    return;
+  }
+  
+  const agentValue = typeof newVal === 'object' ? newVal.value : (newVal || null);
+  emit('update:formData', {
+    ...props.formData,
+    selectedAgent: agentValue,
+  });
+});
+
 // Carica i coefficienti produzione all'avvio dello step 1
 onMounted(async () => {
+  // Carica tutti gli agenti iniziali
+  await fetchAgents();
+  
+  // Se c'è un agente già selezionato nel formData, trovarlo nella lista
+  if (props.formData.selectedAgent) {
+    const numericId = typeof props.formData.selectedAgent === 'object' ? props.formData.selectedAgent.value : props.formData.selectedAgent;
+    const foundAgent = agents.value.find(a => a.value === numericId);
+    if (foundAgent) {
+      selectedAgent.value = foundAgent;
+    } else {
+      // Se non trovato, prova a caricarlo per ID
+      await fetchAgents(numericId);
+    }
+  }
   // Carica i coefficienti solo se non sono già stati caricati
   if (!props.formData.coefficientsMap || Object.keys(props.formData.coefficientsMap || {}).length === 0) {
     try {

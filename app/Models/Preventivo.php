@@ -18,6 +18,7 @@ class Preventivo extends Model
         'data_preventivo',
         'fk_cliente',
         'fk_agente',
+        'created_by',
         'stato',
         'tetto_salvato',
         'area_geografica_salvata',
@@ -56,6 +57,11 @@ class Preventivo extends Model
     public function agente()
     {
         return $this->belongsTo(User::class, 'fk_agente', 'id');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id');
     }
 
     public function consumi()
