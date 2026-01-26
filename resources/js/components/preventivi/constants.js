@@ -35,7 +35,7 @@ export const PRODUCTS = [
   { name: 'Premium 6kWp', price: 14000 },
 ];
 
-export const BATTERY_OPTIONS_KWH = [5, 7, 14, 21, 25, 30, 35, 40, 45, 50];
+export const BATTERY_OPTIONS_KWH = [5, 7, 10, 14, 20, 21, 25, 28, 30, 35, 40, 45, 50];
 export const POWER_OPTIONS_KW = [3, 4.5, 6, 8, 10, 15, 20, 25, 30];
 
 export const calculateBatteryPrice = (capacity) => {

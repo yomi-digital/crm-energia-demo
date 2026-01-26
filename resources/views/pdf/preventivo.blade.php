@@ -2492,20 +2492,30 @@
                 </thead>
                 <tbody>
                     @if($preventivo->dettagliBusinessPlan && $preventivo->dettagliBusinessPlan->count() > 0)
+                        @php
+                            $primaRigaPositivaTrovata = false;
+                        @endphp
                         @foreach($preventivo->dettagliBusinessPlan as $bp)
+                        @php
+                            $isPrimaRigaPositiva = false;
+                            if (!$primaRigaPositivaTrovata && floatval($bp->flusso_cassa_cumulato ?? 0) > 0) {
+                                $isPrimaRigaPositiva = true;
+                                $primaRigaPositivaTrovata = true;
+                            }
+                        @endphp
                         <tr>
-                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">{{ $bp->anno_simulazione }}</td>
-                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->costo_annuo_investimento, 2, ',', '.') }}</td>
-                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->costo_annuo_assicurazione, 2, ',', '.') }}</td>
-                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->costo_annuo_manutenzione, 2, ',', '.') }}</td>
-                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->ricavo_risparmio_bolletta, 2, ',', '.') }}</td>
-                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->ricavo_vendita_eccedenze, 2, ',', '.') }}</td>
-                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->ricavo_incentivo_cer, 2, ',', '.') }}</td>
-                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->incentivo_pnnr ?? 0, 2, ',', '.') }}</td>
-                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->detrazione_fiscale ?? 0, 2, ',', '.') }}</td>
-                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->sconto ?? 0, 2, ',', '.') }}</td>
-                            <td class="text-center" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->flusso_cassa_annuo, 2, ',', '.') }}</td>
-                            <td class="text-center text-bold" style="padding: 7.2px 3px; text-align: center;">€ {{ number_format($bp->flusso_cassa_cumulato, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center; @if($isPrimaRigaPositiva) color: #4BAE66; @endif">{{ $bp->anno_simulazione }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center; @if($isPrimaRigaPositiva) color: #4BAE66; @endif">€ {{ number_format($bp->costo_annuo_investimento, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center; @if($isPrimaRigaPositiva) color: #4BAE66; @endif">€ {{ number_format($bp->costo_annuo_assicurazione, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center; @if($isPrimaRigaPositiva) color: #4BAE66; @endif">€ {{ number_format($bp->costo_annuo_manutenzione, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center; @if($isPrimaRigaPositiva) color: #4BAE66; @endif">€ {{ number_format($bp->ricavo_risparmio_bolletta, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center; @if($isPrimaRigaPositiva) color: #4BAE66; @endif">€ {{ number_format($bp->ricavo_vendita_eccedenze, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center; @if($isPrimaRigaPositiva) color: #4BAE66; @endif">€ {{ number_format($bp->ricavo_incentivo_cer, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center; @if($isPrimaRigaPositiva) color: #4BAE66; @endif">€ {{ number_format($bp->incentivo_pnnr ?? 0, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center; @if($isPrimaRigaPositiva) color: #4BAE66; @endif">€ {{ number_format($bp->detrazione_fiscale ?? 0, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center; @if($isPrimaRigaPositiva) color: #4BAE66; @endif">€ {{ number_format($bp->sconto ?? 0, 2, ',', '.') }}</td>
+                            <td class="text-center" style="padding: 7.2px 3px; text-align: center; @if($isPrimaRigaPositiva) color: #4BAE66; @endif">€ {{ number_format($bp->flusso_cassa_annuo, 2, ',', '.') }}</td>
+                            <td class="text-center text-bold" style="padding: 7.2px 3px; text-align: center; @if($isPrimaRigaPositiva) color: #4BAE66; @endif">€ {{ number_format($bp->flusso_cassa_cumulato, 2, ',', '.') }}</td>
                         </tr>
                         @endforeach
                     @else
