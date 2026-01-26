@@ -87,13 +87,14 @@
         </label>
         <div class="inline-fields">
             <input 
-                type="number" 
+                type="text" 
+                inputmode="decimal"
                 id="totalBillCost" 
-                :value="formData.totalBillCost"
+                v-model="localTotalBillCost"
                 @input="handleTotalCostChange($event.target.value)"
-                step="0.01" 
-                min="0" 
-                placeholder="es. 85.50" 
+                @blur="handleTotalCostBlur"
+                pattern="[0-9]+([,\.][0-9]+)?" 
+                placeholder="es. 85,50 o 85.50" 
                 class="field-input" style="max-width:260px;"
             />
             <div v-if="formData.costPerKwh > 0" class="pill">
@@ -124,9 +125,45 @@
                 <tbody>
                    <tr v-for="(item, index) in formData.billData" :key="`${item.month}-${index}`">
                        <th>{{ item.month }} {{ item.year }}</th>
-                       <td><input type="number" :value="item.f1" @input="handleBillChange(index, 'f1', $event.target.value)" :readonly="localBillEntryMode === 'annual'" class="field-input" style="text-align:right;"/></td>
-                       <td><input type="number" :value="item.f2" @input="handleBillChange(index, 'f2', $event.target.value)" :readonly="localBillEntryMode === 'annual'" class="field-input" style="text-align:right;"/></td>
-                       <td><input type="number" :value="item.f3" @input="handleBillChange(index, 'f3', $event.target.value)" :readonly="localBillEntryMode === 'annual'" class="field-input" style="text-align:right;"/></td>
+                       <td>
+                           <input 
+                               type="text" 
+                               inputmode="decimal"
+                               :value="getLocalBillValue(index, 'f1', item.f1)" 
+                               @input="handleBillChange(index, 'f1', $event.target.value)" 
+                               @blur="handleBillBlur(index, 'f1')"
+                               :readonly="localBillEntryMode === 'annual'" 
+                               pattern="[0-9]+([,\.][0-9]+)?" 
+                               class="field-input" 
+                               style="text-align:right;"
+                           />
+                       </td>
+                       <td>
+                           <input 
+                               type="text" 
+                               inputmode="decimal"
+                               :value="getLocalBillValue(index, 'f2', item.f2)" 
+                               @input="handleBillChange(index, 'f2', $event.target.value)" 
+                               @blur="handleBillBlur(index, 'f2')"
+                               :readonly="localBillEntryMode === 'annual'" 
+                               pattern="[0-9]+([,\.][0-9]+)?" 
+                               class="field-input" 
+                               style="text-align:right;"
+                           />
+                       </td>
+                       <td>
+                           <input 
+                               type="text" 
+                               inputmode="decimal"
+                               :value="getLocalBillValue(index, 'f3', item.f3)" 
+                               @input="handleBillChange(index, 'f3', $event.target.value)" 
+                               @blur="handleBillBlur(index, 'f3')"
+                               :readonly="localBillEntryMode === 'annual'" 
+                               pattern="[0-9]+([,\.][0-9]+)?" 
+                               class="field-input" 
+                               style="text-align:right;"
+                           />
+                       </td>
                        <td v-if="localBillEntryMode === 'monthly' || localBillEntryMode === 'bimonthly'" class="text-center">
                            <button @click="handleRemoveMonth(index)" class="btn-icon danger">&times;</button>
                        </td>
@@ -157,6 +194,21 @@ const annualData = reactive({ f1: 0, f2: 0, f3: 0 });
 const startMonth = ref(ALL_MONTHS[0]);
 const startYear = ref(new Date().getFullYear());
 
+// Mantieni il valore come stringa per permettere virgola/punto durante la digitazione
+const localTotalBillCost = ref(props.formData.totalBillCost ? String(props.formData.totalBillCost).replace('.', ',') : '');
+
+// Sincronizza quando formData.totalBillCost cambia esternamente
+watch(() => props.formData.totalBillCost, (newValue) => {
+    if (newValue !== undefined && newValue !== null) {
+        const stringValue = String(newValue).replace('.', ',');
+        if (localTotalBillCost.value !== stringValue) {
+            localTotalBillCost.value = stringValue;
+        }
+    } else {
+        localTotalBillCost.value = '';
+    }
+});
+
 const updateFormData = (field, value) => {
   const updatedFormData = { ...formData.value, [field]: value };
   emit('update:formData', updatedFormData);
@@ -177,6 +229,10 @@ const handleModeSelect = (mode) => {
       totalBillCost: 0,
       costPerKwh: 0,
     });
+    localTotalBillCost.value = '';
+    
+    // Reset valori locali tabella
+    localBillValues.value = {};
     
     // Reset dati annuali
     annualData.f1 = 0;
@@ -259,13 +315,82 @@ const handleAddBimestre = () => {
 };
 
 const handleRemoveMonth = (index) => {
-  updateFormData('billData', formData.value.billData.filter((_, i) => i !== index));
+  // Rimuovi i valori locali per questa riga
+  ['f1', 'f2', 'f3'].forEach(field => {
+    const key = `${index}-${field}`;
+    delete localBillValues.value[key];
+  });
+  
+  // Rimuovi la riga e riaggiorna le chiavi dei valori locali rimanenti
+  const newBillData = formData.value.billData.filter((_, i) => i !== index);
+  
+  // Riorganizza le chiavi locali (sposta in su gli indici)
+  const newLocalValues = {};
+  Object.keys(localBillValues.value).forEach(key => {
+    const [oldIndex, field] = key.split('-');
+    const oldIdx = parseInt(oldIndex);
+    if (oldIdx < index) {
+      // Mantieni la stessa chiave
+      newLocalValues[key] = localBillValues.value[key];
+    } else if (oldIdx > index) {
+      // Sposta in su di 1
+      newLocalValues[`${oldIdx - 1}-${field}`] = localBillValues.value[key];
+    }
+    // Se oldIdx === index, non copiare (riga rimossa)
+  });
+  localBillValues.value = newLocalValues;
+  
+  updateFormData('billData', newBillData);
+};
+
+// Stato locale per mantenere i valori della tabella come stringhe (per permettere virgola/punto)
+const localBillValues = ref({});
+
+// Ottieni il valore locale per una cella, o il valore numerico convertito
+const getLocalBillValue = (index, field, numericValue) => {
+    const key = `${index}-${field}`;
+    if (localBillValues.value[key] !== undefined) {
+        return localBillValues.value[key];
+    }
+    // Se non c'è valore locale, usa il valore numerico convertito in stringa con virgola
+    return numericValue ? String(numericValue).replace('.', ',') : '';
 };
 
 const handleBillChange = (index, field, value) => {
-  const newBillData = [...formData.value.billData];
-  newBillData[index] = { ...newBillData[index], [field]: Number(value) || 0 };
-  updateFormData('billData', newBillData);
+    // Filtra solo numeri, virgola e punto (rimuove tutti gli altri caratteri)
+    const filteredValue = String(value).replace(/[^0-9,.]/g, '');
+    
+    // Evita più di una virgola o punto
+    const parts = filteredValue.split(/[,.]/);
+    let cleanedValue = parts[0] || '';
+    if (parts.length > 1) {
+        cleanedValue += ',' + parts.slice(1).join('');
+    }
+    
+    // Salva il valore locale come stringa (per permettere virgola/punto durante la digitazione)
+    const key = `${index}-${field}`;
+    localBillValues.value[key] = cleanedValue;
+    
+    // Converti virgola in punto per calcoli (es. "85,50" -> "85.50")
+    const normalizedValue = cleanedValue.replace(',', '.');
+    const numValue = Number(normalizedValue) || 0;
+    
+    const newBillData = [...formData.value.billData];
+    newBillData[index] = { ...newBillData[index], [field]: numValue };
+    updateFormData('billData', newBillData);
+};
+
+// Normalizzazione al blur
+const handleBillBlur = (index, field) => {
+    const key = `${index}-${field}`;
+    if (localBillValues.value[key]) {
+        const normalizedValue = String(localBillValues.value[key]).replace(',', '.');
+        const numValue = Number(normalizedValue);
+        if (!isNaN(numValue)) {
+            // Mantieni il formato con virgola per l'utente italiano
+            localBillValues.value[key] = String(numValue).replace('.', ',');
+        }
+    }
 };
 
 const handleAutoGenerate = () => {
@@ -301,9 +426,9 @@ const handleAutoGenerate = () => {
         const newMonth = {
             month: ALL_MONTHS[nextMonthIndex],
             year: nextYear,
-            f1: Math.round(avg.f1),
-            f2: Math.round(avg.f2),
-            f3: Math.round(avg.f3),
+            f1: Math.round(avg.f1 * 100) / 100, // Arrotonda a 2 decimali
+            f2: Math.round(avg.f2 * 100) / 100, // Arrotonda a 2 decimali
+            f3: Math.round(avg.f3 * 100) / 100, // Arrotonda a 2 decimali
         };
         filledData.push(newMonth);
         lastMonthData = newMonth;
@@ -348,9 +473,9 @@ const handleAutoGenerateBimestri = () => {
         const newBimester = {
             month: bimesterLabel,
             year: nextYear,
-            f1: Math.round(avg.f1),
-            f2: Math.round(avg.f2),
-            f3: Math.round(avg.f3),
+            f1: Math.round(avg.f1 * 100) / 100, // Arrotonda a 2 decimali
+            f2: Math.round(avg.f2 * 100) / 100, // Arrotonda a 2 decimali
+            f3: Math.round(avg.f3 * 100) / 100, // Arrotonda a 2 decimali
         };
         filledData.push(newBimester);
         lastBimesterData = newBimester;
@@ -359,7 +484,22 @@ const handleAutoGenerateBimestri = () => {
 };
 
 const handleTotalCostChange = (value) => {
-    const totalCost = Number(value) || 0;
+    // Filtra solo numeri, virgola e punto (rimuove tutti gli altri caratteri)
+    const filteredValue = String(value).replace(/[^0-9,.]/g, '');
+    
+    // Evita più di una virgola o punto
+    const parts = filteredValue.split(/[,.]/);
+    let cleanedValue = parts[0] || '';
+    if (parts.length > 1) {
+        cleanedValue += ',' + parts.slice(1).join('');
+    }
+    
+    // Aggiorna il valore locale (come stringa) per permettere la digitazione di virgola/punto
+    localTotalBillCost.value = cleanedValue;
+    
+    // Converti virgola in punto per calcoli (es. "85,50" -> "85.50")
+    const normalizedValue = cleanedValue.replace(',', '.');
+    const totalCost = Number(normalizedValue) || 0;
 
     let totalKwhForPeriod = 0;
     if (localBillEntryMode.value === 'annual') {
@@ -375,8 +515,20 @@ const handleTotalCostChange = (value) => {
         ? totalCost / totalKwhForPeriod
         : 0;
 
-    // Emit one combined update to avoid overwriting the previous field with stale data
+    // Salva il valore numerico nel formData (per i calcoli)
     emit('update:formData', { ...formData.value, totalBillCost: totalCost, costPerKwh: newCostPerKwh });
+};
+
+// Al blur, normalizza il formato (opzionale, per consistenza)
+const handleTotalCostBlur = () => {
+    if (localTotalBillCost.value) {
+        const normalizedValue = String(localTotalBillCost.value).replace(',', '.');
+        const numValue = Number(normalizedValue);
+        if (!isNaN(numValue)) {
+            // Mantieni il formato con virgola per l'utente italiano
+            localTotalBillCost.value = String(numValue).replace('.', ',');
+        }
+    }
 };
 
 const isDataComplete = computed(() => localBillEntryMode.value && (
