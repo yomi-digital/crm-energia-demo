@@ -2469,7 +2469,7 @@
             @endphp
 
             @if($businessPlanChartPath)
-                <div style="width: 175mm; height: 70mm; margin-bottom: 5mm; display: flex; align-items: center; justify-content: center;">
+                <div style="width: 175mm; height: 70mm; margin-bottom: 5mm; display: flex; align-items: center; justify-content: center; margin-top: 5mm;">
                     <img src="{{ $businessPlanChartPath }}" alt="Business Plan - Flussi di cassa" style="width: 175mm; height: auto; max-height: 65mm;">
                 </div>
             @endif

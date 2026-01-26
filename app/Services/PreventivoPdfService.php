@@ -233,6 +233,24 @@ class PreventivoPdfService
         imagealphablending($image, true);
         imagesavealpha($image, true);
 
+        // Prova a usare un font TrueType se disponibile (stesso sistema del donut chart)
+        $fontPath = null;
+        $possibleFontPaths = [
+            resource_path('fonts/arial.ttf'),
+            resource_path('fonts/DejaVuSans.ttf'),
+            public_path('fonts/arial.ttf'),
+            public_path('fonts/DejaVuSans.ttf'),
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', // Linux
+            'C:/Windows/Fonts/arial.ttf', // Windows
+        ];
+        
+        foreach ($possibleFontPaths as $path) {
+            if (file_exists($path)) {
+                $fontPath = $path;
+                break;
+            }
+        }
+
         // Funzione helper per mappare valore -> y pixel
         $mapValueToY = function (float $value) use ($minValue, $maxValue, $paddingTop, $plotHeight) {
             if ($maxValue === $minValue) {
@@ -261,27 +279,52 @@ class PreventivoPdfService
         $xAxisY = ($zeroY >= $paddingTop && $zeroY <= $paddingTop + $plotHeight) ? $zeroY : ($paddingTop + $plotHeight);
         imageline($image, $paddingLeft, $xAxisY, $paddingLeft + $plotWidth, $xAxisY, $axisColor);
 
-        // Etichette degli assi (semplici, orizzontali) - posizionate con padding minimo
-        $axisFont = 3;
+        // Etichette degli assi - usa font TrueType se disponibile
+        $axisFontSize = 5 * $scale;
         $yLabel = 'Valore economico';
-        imagestring($image, $axisFont, $paddingLeft, 2, $yLabel, $labelColor);
         $xLabel = '0 - 20 (anni)';
-        $xLabelWidth = imagefontwidth($axisFont) * strlen($xLabel);
-        imagestring(
-            $image,
-            $axisFont,
-            (int) ($paddingLeft + $plotWidth - $xLabelWidth),
-            (int) ($paddingTop + $plotHeight + 5),
-            $xLabel,
-            $labelColor
-        );
+        
+        if ($fontPath && function_exists('imagettftext')) {
+            // Etichetta Y (in alto a sinistra)
+            $bboxY = imagettfbbox($axisFontSize, 0, $fontPath, $yLabel);
+            $yLabelHeight = abs($bboxY[5] - $bboxY[1]);
+            imagettftext($image, $axisFontSize, 0, $paddingLeft, $yLabelHeight + 2, $labelColor, $fontPath, $yLabel);
+            
+            // Etichetta X (in basso a destra)
+            $bboxX = imagettfbbox($axisFontSize, 0, $fontPath, $xLabel);
+            $xLabelWidth = abs($bboxX[4] - $bboxX[0]);
+            imagettftext(
+                $image,
+                $axisFontSize,
+                0,
+                (int) ($paddingLeft + $plotWidth - $xLabelWidth),
+                (int) ($paddingTop + $plotHeight + $yLabelHeight + 5),
+                $labelColor,
+                $fontPath,
+                $xLabel
+            );
+        } else {
+            // Fallback: usa font built-in
+            $axisFont = 3;
+            imagestring($image, $axisFont, $paddingLeft, 2, $yLabel, $labelColor);
+            $xLabelWidth = imagefontwidth($axisFont) * strlen($xLabel);
+            imagestring(
+                $image,
+                $axisFont,
+                (int) ($paddingLeft + $plotWidth - $xLabelWidth),
+                (int) ($paddingTop + $plotHeight + 5),
+                $xLabel,
+                $labelColor
+            );
+        }
 
         // Larghezza barre: 21 slot
         $slots = max(21, count($points));
         $slotWidth = $plotWidth / $slots;
         $barWidth = $slotWidth * 0.6; // un po' di spazio tra le barre
 
-        $font = 2; // piccolo font built-in per le etichette sulle barre
+        // Font per numeri sulle barre - usa TrueType se disponibile
+        $barFontSize = 4 * $scale;
 
         foreach ($points as $index => $point) {
             $year = $point['year'];
@@ -308,21 +351,46 @@ class PreventivoPdfService
 
             // Etichetta di valore sulla barra (+100 / -100)
             $formatted = ($value >= 0 ? '+' : '') . number_format($value, 0, ',', '.');
-            $textWidth = imagefontwidth($font) * strlen($formatted);
-            $textHeight = imagefontheight($font);
-
-            if ($value >= 0) {
-                // Positivo: scritta sopra la barra
-                $textX = (int) round($xCenter - $textWidth / 2);
-                $textY = min($y1 - $textHeight - 2, $paddingTop + $plotHeight - $textHeight - 2);
+            
+            if ($fontPath && function_exists('imagettftext')) {
+                // Usa font TrueType
+                $bbox = imagettfbbox($barFontSize, 0, $fontPath, $formatted);
+                $textWidth = abs($bbox[4] - $bbox[0]);
+                $textHeight = abs($bbox[5] - $bbox[1]);
+                
+                if ($value >= 0) {
+                    // Positivo: scritta sopra la barra (con più spazio)
+                    $textX = (int) round($xCenter - $textWidth / 2);
+                    $spacing = 6 * $scale; // spazio tra barra e testo
+                    $textY = min($y1 - $spacing, $paddingTop + $plotHeight - 2);
+                } else {
+                    // Negativo: scritta sotto la barra (con più spazio)
+                    $textX = (int) round($xCenter - $textWidth / 2);
+                    $spacing = 6 * $scale; // spazio tra barra e testo
+                    $textY = min($y2 + $textHeight + $spacing, $paddingTop + $plotHeight - 2);
+                }
+                
+                imagettftext($image, $barFontSize, 0, $textX, $textY, $labelColor, $fontPath, $formatted);
             } else {
-                // Negativo: scritta sotto la barra (alla base della candela)
-                $textX = (int) round($xCenter - $textWidth / 2);
-                // y2 è la parte più in basso della barra negativa
-                $textY = min($y2 + 2, $paddingTop + $plotHeight - $textHeight - 2);
+                // Fallback: usa font built-in
+                $font = 2;
+                $textWidth = imagefontwidth($font) * strlen($formatted);
+                $textHeight = imagefontheight($font);
+                
+                if ($value >= 0) {
+                    // Positivo: scritta sopra la barra (con più spazio)
+                    $textX = (int) round($xCenter - $textWidth / 2);
+                    $spacing = 6; // spazio tra barra e testo (font built-in più piccolo)
+                    $textY = min($y1 - $textHeight - $spacing, $paddingTop + $plotHeight - $textHeight - 2);
+                } else {
+                    // Negativo: scritta sotto la barra (con più spazio)
+                    $textX = (int) round($xCenter - $textWidth / 2);
+                    $spacing = 6; // spazio tra barra e testo (font built-in più piccolo)
+                    $textY = min($y2 + $spacing, $paddingTop + $plotHeight - $textHeight - 2);
+                }
+                
+                imagestring($image, $font, $textX, $textY, $formatted, $labelColor);
             }
-
-            imagestring($image, $font, $textX, $textY, $formatted, $labelColor);
         }
 
         // Salva immagine temporanea
