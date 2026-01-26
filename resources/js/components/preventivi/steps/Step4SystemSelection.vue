@@ -221,7 +221,7 @@
                             <div>
                                 <label class="field-label" for="installmentAmountMisto">Importo rata finanziamento (€)</label>
                                 <input type="number" id="installmentAmountMisto" :value="formData.paymentMisto?.installmentAmount || 0" @input="handlePagamentoMistoChange('installmentAmount', $event.target.value)" class="field-input" min="0" step="0.01" readonly style="background-color:#f3f4f6;"/>
-                                <p class="help-text" style="font-size:12px;margin-top:4px;">Calcolata automaticamente (TAEG 11.89%, spese 1.50€/mese)</p>
+                                <p class="help-text" style="font-size:12px;margin-top:4px;">Calcolata automaticamente (TAEG 9.30%, spese 1.50€/mese)</p>
                             </div>
                             <div>
                                 <label class="field-label" for="installmentsMisto">Numero di rate finanziamento</label>
@@ -235,7 +235,7 @@
                         <div>
                             <label class="field-label" for="installmentAmount">Importo rata (€)</label>
                             <input type="number" id="installmentAmount" :value="formData.installmentAmount" @input="handleFinanziamentoChange('installmentAmount', $event.target.value)" class="field-input" readonly style="background-color:#f3f4f6;"/>
-                            <p class="help-text" style="font-size:12px;margin-top:4px;">Calcolata automaticamente (TAEG 11.89%, spese 1.50€/mese)</p>
+                            <p class="help-text" style="font-size:12px;margin-top:4px;">Calcolata automaticamente (TAEG 9.30%, spese 1.50€/mese)</p>
                         </div>
                         <div>
                             <label class="field-label" for="installments">Numero di rate</label>
@@ -829,7 +829,7 @@ const isResidential = computed(() => {
 
 // Costanti per il calcolo finanziamento
 const TAN_ANNUAL = 0.079; // 7.90%
-const TAEG_ANNUAL = 0.1189; // 11.89%
+const TAEG_ANNUAL = 0.093; // 9.30%
 const MONTHLY_FEE = 1.50; // Spese mensili di incasso (€)
 
 // Calcolo rata con TAN (nominale annuo)
