@@ -2636,19 +2636,44 @@
                     }
                     
                     // Calcola totale offerta economica
-                    // Formula: bonifico_data_json.amount + finanziamento_data_json.rate_import * number_of_rate
+                    // Formula: prezzo prodotto - (sconti + incentivi)
                     $totale_offerta = 0;
+                    $prezzoProdotto = 0;
                     
-                    // Aggiungi importo bonifico se presente
-                    if (isset($bonificoData['amount'])) {
-                        $totale_offerta += floatval($bonificoData['amount']);
-                    }
-                    
-                    // Aggiungi importo finanziamento se presente
-                    if (isset($finanziamentoData['rate_import']) && isset($finanziamentoData['number_of_rate'])) {
-                        $rateImport = floatval($finanziamentoData['rate_import']);
-                        $numberOfRate = intval($finanziamentoData['number_of_rate']);
-                        $totale_offerta += $rateImport * $numberOfRate;
+                    // Recupera il prezzo del primo prodotto
+                    if ($preventivo->dettagliProdotti && $preventivo->dettagliProdotti->count() > 0) {
+                        $primoProdotto = $preventivo->dettagliProdotti->first();
+                        $quantita = floatval($primoProdotto->quantita ?? 1);
+                        $prezzoUnitario = floatval($primoProdotto->prezzo_unitario_salvato ?? 0);
+                        $prezzoProdotto = $quantita * $prezzoUnitario;
+                        
+                        // Calcola sconti e incentivi
+                        $totaleScontiIncentivi = 0;
+                        if ($preventivo->vociEconomiche) {
+                            $scontiIncentivi = $preventivo->vociEconomiche
+                                ->whereIn('tipo_voce_salvata', ['sconto', 'incentivo', 'costo']);
+                            
+                            foreach ($scontiIncentivi as $voce) {
+                                $valoreApplicato = floatval($voce->valore_applicato ?? 0);
+                                $tipoValore = $voce->tipo_valore_salvato ?? '';
+                                
+                                if ($tipoValore === '%') {
+                                    // Se è percentuale, calcola sul prezzo del prodotto
+                                    $totaleScontiIncentivi += ($prezzoProdotto * $valoreApplicato) / 100;
+                                } else {
+                                    // Se è importo fisso, usa direttamente il valore
+                                    $totaleScontiIncentivi += $valoreApplicato;
+                                }
+                            }
+                        }
+                        
+                        // Sottrai sconti e incentivi dal prezzo del prodotto
+                        $totale_offerta = $prezzoProdotto - $totaleScontiIncentivi;
+                        
+                        // Assicurati che il totale non sia negativo
+                        if ($totale_offerta < 0) {
+                            $totale_offerta = 0;
+                        }
                     }
                     
                     // Calcolo rate basato su rate_import e number_of_rate
