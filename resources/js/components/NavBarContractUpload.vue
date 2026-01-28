@@ -58,12 +58,20 @@ const fetchBrands = async (query = '') => {
   }
 }
 
-// Fetch agents filtrati per brand e ruoli (agente, struttura, gestione, backoffice)
+// Fetch agents filtrati per brand e ruoli
+// - Se l'utente è backoffice: mostra solo gli AGENTI (ruolo "agente")
+// - Altri ruoli (gestione, struttura, ecc.): vedono agenti + backoffice + strutture + gestione
 const fetchAgents = async (brandId = null) => {
   isLoadingAgents.value = true
   agents.value = []
   try {
-    let url = '/agents?itemsPerPage=99999999&select=1&structures=1&gestione=1&backoffice=1'
+    let url = '/agents?itemsPerPage=99999999&select=1'
+
+    // Solo se NON è un backoffice, includiamo anche altri ruoli
+    if (!isBackoffice) {
+      url += '&structures=1&gestione=1&backoffice=1'
+    }
+
     if (brandId) {
       url += `&brand_id=${brandId}`
     }

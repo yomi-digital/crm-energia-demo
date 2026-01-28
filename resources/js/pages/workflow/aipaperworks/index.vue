@@ -26,10 +26,11 @@ const updateOptions = options => {
 }
 
 const loggedInUser = useCookie('userData').value
-const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+const isAdmin = loggedInUser?.roles?.some(role => ['gestione', 'backoffice', 'amministrazione'].includes(role.name))
+const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
 
-// Headers
-const headers = [
+// Headers base comuni a tutti
+const baseHeaders = [
   {
     title: '',
     key: 'actions',
@@ -53,7 +54,7 @@ const headers = [
     sortable: false,
   },
   {
-    title: 'Stato',
+    title: 'Stato AI',
     key: 'status',
   },
   {
@@ -61,6 +62,44 @@ const headers = [
     key: 'created_at',
   },
 ]
+
+// Headers effettivi:
+// - per i backoffice aggiungiamo colonne su accettazione e azione (in coda)
+// - per gli altri ruoli mostriamo backoffice assegnato + stato di accettazione da parte sua
+const headers = computed(() => {
+  if (!isBackoffice) {
+    return [
+      ...baseHeaders,
+      {
+        title: 'Backoffice assegnato',
+        key: 'assigned_backoffice',
+        sortable: false,
+      },
+      {
+        title: 'Accettazione backoffice',
+        key: 'assignment_status',
+        sortable: false,
+        width: '160px',
+      },
+    ]
+  }
+
+  return [
+    ...baseHeaders,
+    {
+      title: 'Accettazione da parte tua',
+      key: 'assignment_status',
+      sortable: false,
+      width: '160px',
+    },
+    {
+      title: 'Azione',
+      key: 'accept_action',
+      sortable: false,
+      width: '140px',
+    },
+  ]
+})
 
 const {
   data: aiPaperworksData,
@@ -162,6 +201,25 @@ const getStatusText = (status) => {
     default:
       return 'Errore'
   }
+}
+
+// Testo leggibile per lo stato di accettazione (assignment_status)
+const getAssignmentStatusText = (status) => {
+  if (!status || status === 'pending') {
+    return 'In attesa di decisione'
+  }
+
+  if (status === 'accept' || status === 'accepted') {
+    return 'Accettata'
+  }
+
+  return status
+}
+
+// Azione di accettazione pratica AI (placeholder - da collegare al backend)
+const acceptPaperwork = async (item) => {
+  // TODO: implementare chiamata backend per accettare la pratica AI
+  console.log('Accetta pratica AI', item.id)
 }
 
 const processDocument = async (item) => {
@@ -271,6 +329,55 @@ const processDocument = async (item) => {
               color="primary"
             >
               Visualizza
+            </VBtn>
+          </div>
+        </template>
+
+        <!-- Backoffice assegnato (solo per ruoli diversi da backoffice) -->
+        <template v-if="!isBackoffice" #item.assigned_backoffice="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              <template v-if="item.assigned_backoffice && $can('view', 'users')">
+                <RouterLink
+                  :to="{ name: 'admin-users-id', params: { id: item.assigned_backoffice.id } }"
+                  class="font-weight-medium text-link"
+                >
+                  {{ [item.assigned_backoffice.name, item.assigned_backoffice.last_name].join(' ') }}
+                </RouterLink>
+              </template>
+              <template v-else>
+                {{ [item.assigned_backoffice?.name, item.assigned_backoffice?.last_name].join(' ') || 'Nessun backoffice' }}
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- Stato accettazione -->
+        <template #item.assignment_status="{ item }">
+          <div class="d-flex align-center">
+            <VChip
+              size="small"
+              variant="tonal"
+              class="text-capitalize"
+              :color="item.assignment_status === 'accept' || item.assignment_status === 'accepted' ? 'success' : 'warning'"
+            >
+              {{ getAssignmentStatusText(item.assignment_status) }}
+            </VChip>
+          </div>
+        </template>
+
+        <!-- Azione accettazione (solo per backoffice) -->
+        <template v-if="isBackoffice" #item.accept_action="{ item }">
+          <div class="d-flex align-center gap-x-1" style="flex-wrap: nowrap;">
+            <VBtn
+              v-if="item.assignment_status !== 'accept' && item.assignment_status !== 'accepted'"
+              size="small"
+              color="success"
+              variant="tonal"
+              class="compact-btn"
+              @click="acceptPaperwork(item)"
+            >
+              Accetta di lavorarla
             </VBtn>
           </div>
         </template>

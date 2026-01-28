@@ -17,7 +17,10 @@ class AIPaperwork extends Model
         'ai_extracted_customer',
         'ai_extracted_paperwork',
         'transfers_history',
-        'status'
+        'status',
+        'assigned_backoffice_id',
+        'assignment_status',
+        'assignment_expires_at',
     ];
 
     protected $casts = [
@@ -25,6 +28,7 @@ class AIPaperwork extends Model
         'ai_extracted_paperwork' => 'array',
         'transfers_history' => 'array',
         'status' => 'integer',
+        'assignment_expires_at' => 'datetime',
     ];
 
     protected $dates = [
@@ -37,6 +41,11 @@ class AIPaperwork extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function assignedBackoffice()
+    {
+        return $this->belongsTo(User::class, 'assigned_backoffice_id');
     }
 
     public function brand()

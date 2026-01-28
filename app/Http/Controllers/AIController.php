@@ -22,7 +22,7 @@ class AIController extends Controller
     {
         $perPage = $request->get('itemsPerPage', 10);
 
-        $aiPaperworks = AIPaperwork::with('user');
+        $aiPaperworks = AIPaperwork::with(['user', 'assignedBackoffice']);
 
         if ($request->get('id')) {
             $aiPaperworks = $aiPaperworks->where('id', $request->get('id'));
@@ -48,25 +48,20 @@ class AIController extends Controller
         // Filtro per escludere le pratiche confermate (status = 5)
         $aiPaperworks = $aiPaperworks->where('status', '!=', 5);
 
-        // Filtro per backoffice: vedere solo AI paperworks con brand_id assegnati
+        // Filtro per backoffice:
+        // - può vedere solo AI paperworks dei brand a lui assegnati
+        // - e solo quelli in cui è l'assigned_backoffice_id (cioè le pratiche a lui assegnate o dall'admin o dal bilanciamento per brand)
         if ($request->user()->hasRole('backoffice')) {
             $userBrands = $request->user()->brands->pluck('id');
+
             if ($userBrands->isNotEmpty()) {
-                $aiPaperworks = $aiPaperworks->whereIn('brand_id', $userBrands);
+                $aiPaperworks = $aiPaperworks
+                    ->whereIn('brand_id', $userBrands)
+                    ->where('assigned_backoffice_id', $request->user()->id);
             } else {
                 // Se il backoffice non ha brand assegnati, non vede nessuna AI paperwork
                 $aiPaperworks = $aiPaperworks->whereRaw('1 = 0');
             }
-            
-            // Filtro per area: il backoffice vede pratiche AI create da utenti con la stessa area
-            // O da utenti senza area (null o stringa vuota) - queste sono visibili a tutti i backoffice
-            /* if ($request->user()->area) {
-                $aiPaperworks = $aiPaperworks->whereHas('user', function ($query) use ($request) {
-                    $query->where('area', $request->user()->area)
-                          ->orWhereNull('area')
-                          ->orWhere('area', '');
-                });
-            } */
         }
 
         if ($request->get('sortBy')) {
