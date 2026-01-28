@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import VueApexCharts from 'vue3-apexcharts'
+import StatusChip from '@/components/StatusChip.vue'
 
 definePage({
   meta: {
@@ -20,17 +21,11 @@ const canSeeAI = loggedInUser?.roles?.some(role =>
   ['gestione', 'amministrazione', 'backoffice', 'struttura', 'agente'].includes(role.name)
 )
 
-let quickLinks = [
-  { name: 'Clienti', icon: 'tabler-users', to: '/workflow/customers' },
-]
+let quickLinks = []
 
 // Solo se può vedere AI, aggiungi "Crea Pratica AI"
 if (canSeeAI) {
-  quickLinks.unshift({ name: 'Crea Pratica AI', icon: 'tabler-file-plus', action: () => document.querySelector('#ai-contract-upload-btn').click() })
-}
-
-if (isAdmin) {
-  quickLinks.push({ name: 'Report', icon: 'tabler-report', to: '/reports/admin' })
+  quickLinks.push({ name: 'Crea Pratica AI', icon: 'tabler-file-plus', action: () => document.querySelector('#ai-contract-upload-btn').click() })
 }
 
 const dateFilters = ref({
@@ -811,16 +806,34 @@ const navigateToPreviousMonthPaperworks = () => {
     }
   })
 }
+
+const navigateToSuspendedPaperworks = () => {
+  // Scroll alla sezione "Pratiche sospese" nella stessa pagina
+  const element = document.querySelector('[data-section="suspended-paperworks"]')
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+const navigateToOpenTickets = () => {
+  // Scroll alla sezione "Tickets" nella stessa pagina
+  const element = document.querySelector('[data-section="tickets"]')
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
 </script>
 
 <template>
   <div>
-    <!-- Quick Links -->
-    <VRow class="quick-links mb-6">
+    <!-- Quick Links e Contatori -->
+    <VRow class="quick-links-counters mb-6">
+      <!-- Crea Pratica AI -->
       <VCol
         v-for="link in quickLinks"
         :key="link.name"
-        :cols="quickLinks.length === 2 ? 6 : 4"
+        cols="12"
+        :md="quickLinks.length > 0 ? 4 : 0"
       >
         <VCard
           class="quick-link-card"
@@ -846,7 +859,7 @@ const navigateToPreviousMonthPaperworks = () => {
           flat
           @click="link.action"
         >
-          <VCardItem>
+          <VCardItem style="height: 100%;" class="h-100">
             <template #prepend>
               <VIcon
                 :icon="link.icon"
@@ -856,6 +869,56 @@ const navigateToPreviousMonthPaperworks = () => {
             <VCardTitle>
               {{ link.name }}
             </VCardTitle>
+          </VCardItem>
+        </VCard>
+      </VCol>
+      
+      <!-- Pratiche Sospese -->
+      <VCol cols="12" :md="quickLinks.length > 0 ? 4 : 6">
+        <VCard
+          class="counter-card"
+          variant="outlined"
+          @click="navigateToSuspendedPaperworks"
+        >
+          <VCardItem>
+            <template #prepend>
+              <VIcon
+                icon="tabler-page-break"
+                size="32"
+                color="warning"
+              />
+            </template>
+            <VCardTitle class="text-h6 mb-1">
+              Pratiche Sospese
+            </VCardTitle>
+            <VCardSubtitle class="text-h3 font-weight-bold">
+              {{ totalItems }}
+            </VCardSubtitle>
+          </VCardItem>
+        </VCard>
+      </VCol>
+      
+      <!-- Ticket Aperti -->
+      <VCol cols="12" :md="quickLinks.length > 0 ? 4 : 6">
+        <VCard
+          class="counter-card"
+          variant="outlined"
+          @click="navigateToOpenTickets"
+        >
+          <VCardItem>
+            <template #prepend>
+              <VIcon
+                icon="tabler-ticket"
+                size="32"
+                color="primary"
+              />
+            </template>
+            <VCardTitle class="text-h6 mb-1">
+              Ticket Aperti
+            </VCardTitle>
+            <VCardSubtitle class="text-h3 font-weight-bold">
+              {{ totalTickets }}
+            </VCardSubtitle>
           </VCardItem>
         </VCard>
       </VCol>
@@ -1069,9 +1132,12 @@ const navigateToPreviousMonthPaperworks = () => {
 
             <!-- State -->
             <template #item.state="{ item }">
-              <span :style="(item.state === 'SOSPESO' || item.state === 'SOSPESI') ? { color: '#FFC107' } : {}">
-                {{ item.state }}
-              </span>
+              <StatusChip 
+                :status="item.state" 
+                size="small"
+                fallback-style="text"
+                class="compact-chip"
+              />
             </template>
 
             <!-- Has Ticket -->
@@ -1098,7 +1164,7 @@ const navigateToPreviousMonthPaperworks = () => {
     </VRow>
 
     <!-- Tickets Section -->
-    <VRow class="mt-6">
+    <VRow class="mt-6" data-section="tickets">
       <VCol cols="12">
         <VCard variant="outlined" class="pa-4">
           <VCardTitle class="text-h5 mb-4">
@@ -1411,12 +1477,13 @@ const navigateToPreviousMonthPaperworks = () => {
 </template>
 
 <style lang="scss" scoped>
-.quick-links {
+.quick-links-counters {
   .quick-link-card {
     cursor: pointer;
     transition: all 0.3s ease;
     background-color: rgb(var(--v-theme-primary));
     border: 1px solid rgb(var(--v-theme-primary));
+    height: 100%;
 
     :deep(.v-icon),
     .v-card-title {
@@ -1430,6 +1497,30 @@ const navigateToPreviousMonthPaperworks = () => {
       .v-card-title {
         color: rgb(var(--v-theme-primary));
       }
+    }
+  }
+
+  .counter-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 100%;
+    
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    :deep(.v-card-item) {
+      padding: 24px;
+    }
+    
+    :deep(.v-card-title) {
+      margin-bottom: 8px;
+    }
+    
+    :deep(.v-card-subtitle) {
+      opacity: 1;
+      color: rgb(var(--v-theme-on-surface));
     }
   }
 }
@@ -1486,4 +1577,5 @@ const navigateToPreviousMonthPaperworks = () => {
     transition: all 0.2s ease;
   }
 }
+
 </style>

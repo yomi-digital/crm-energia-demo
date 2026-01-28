@@ -526,6 +526,13 @@ class UsersController extends Controller
         return response()->json(null, 204);
     }
 
+    public function markAllAsRead(Request $request)
+    {
+        $user = $request->user();
+        $user->notifications()->whereNull('read_at')->update(['read_at' => \Carbon\Carbon::now()]);
+        return response()->json(['message' => 'Tutte le notifiche sono state segnate come lette'], 200);
+    }
+
     public function updateProfile(Request $request)
     {
         $user = $request->user();

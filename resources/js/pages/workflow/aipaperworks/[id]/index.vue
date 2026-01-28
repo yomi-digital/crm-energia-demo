@@ -5,6 +5,7 @@ import BrandOverrideAlert from '@/components/BrandOverrideAlert.vue'
 import ProcessingAIStutteringBanner from '@/components/ProcessingAIStutteringBanner.vue'
 import TransferTable from '@/components/TransferTable.vue'
 import GeneralErrorDialog from '@/components/dialogs/GeneralErrorDialog.vue'
+import CustomerBioPanel from '@/views/workflow/customers/CustomerBioPanel.vue'
 import { useDebounceFn } from '@vueuse/core'
 import { onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -492,8 +493,17 @@ const phoneError = ref('')
 const mobileError = ref('')
 const duplicateUsers = ref([])
 const isDuplicateModalVisible = ref(false)
-const overrideDuplicates = ref(true)
+const overrideDuplicates = ref(false)
 const isOverrideInfoModalVisible = ref(false)
+
+// Customer Detail Dialog state
+const isCustomerDetailModalVisible = ref(false)
+const selectedCustomerForDetail = ref(null)
+
+const openCustomerDetail = (customer) => {
+  selectedCustomerForDetail.value = customer
+  isCustomerDetailModalVisible.value = true
+}
 
 const checkDuplicateCustomer = useDebounceFn(async () => {
   // Se lo stato è 5 (Confermato), non fare controlli
@@ -836,6 +846,10 @@ const getCategoryOptions = () => {
 
 // Computed per determinare se il campo POD/PDR è obbligatorio
 const isPodRequired = computed(() => {
+  if (extractedPaperwork.value.type === 'TELEFONIA') {
+    return false
+  }
+  
   if (extractedPaperwork.value.category === 'ALLACCIO') {
     return false // ALLACCIO è sempre opzionale
   }
@@ -1481,6 +1495,9 @@ onUnmounted(() => {
           <VTable>
             <thead>
               <tr>
+                <th class="text-left" style="width: 50px;">
+                  Visualizza
+                </th>
                 <th class="text-left">Nominativo</th>
                 <th class="text-left">Tipologia</th>
                 <th class="text-left">Email</th>
@@ -1492,6 +1509,20 @@ onUnmounted(() => {
             </thead>
             <tbody>
               <tr v-for="user in duplicateUsers" :key="user.id">
+                <td>
+                  <VBtn
+                    icon
+                    variant="tonal"
+                    color="info"
+                    size="small"
+                    @click="openCustomerDetail(user)"
+                  >
+                    <VIcon icon="tabler-eye" />
+                    <VTooltip activator="parent" location="top">
+                      Visualizza Scheda Cliente
+                    </VTooltip>
+                  </VBtn>
+                </td>
                 <td>{{ user.business_name || (user.name + ' ' + user.last_name) }}</td>
                 <td>{{ user.category }}</td>
                 <td>{{ user.email }}</td>
@@ -1542,6 +1573,43 @@ onUnmounted(() => {
             variant="tonal"
             color="secondary"
             @click="isOverrideInfoModalVisible = false"
+          >
+            Chiudi
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Customer Detail Dialog -->
+    <VDialog
+      v-model="isCustomerDetailModalVisible"
+      max-width="900"
+    >
+      <VCard>
+        <VCardTitle class="pa-4 d-flex align-center justify-space-between">
+          <span class="text-h6">Scheda Cliente</span>
+          <VBtn
+            icon
+            variant="text"
+            color="default"
+            @click="isCustomerDetailModalVisible = false"
+          >
+            <VIcon icon="tabler-x" />
+          </VBtn>
+        </VCardTitle>
+        <VDivider />
+        <VCardText class="pa-4">
+          <CustomerBioPanel 
+            v-if="selectedCustomerForDetail"
+            :customer-data="selectedCustomerForDetail"
+            @updateCustomerData="(updatedData) => selectedCustomerForDetail = updatedData"
+          />
+        </VCardText>
+        <VCardActions class="pa-4 justify-end">
+          <VBtn
+            variant="tonal"
+            color="secondary"
+            @click="isCustomerDetailModalVisible = false"
           >
             Chiudi
           </VBtn>
