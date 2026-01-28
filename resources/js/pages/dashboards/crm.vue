@@ -427,6 +427,33 @@ const isAiSnackbarVisible = ref(false)
 const aiSnackbarMessage = ref('')
 const aiSnackbarColor = ref('success')
 
+// Headers dinamici per la tabella "Pratiche in entrata" in base al ruolo
+const aiPaperworksHeaders = computed(() => {
+  const baseHeaders = [
+    { title: '#', key: 'id', width: '80' },
+    { title: 'Agente', key: 'user_id', sortable: false },
+    { title: 'File', key: 'filepath', sortable: false },
+    { title: 'Stato AI', key: 'status' },
+    { title: 'Data', key: 'created_at', sortable: false },
+  ]
+
+  // Per i backoffice aggiungiamo Accettazione da parte tua + Azioni (con bottone Accetta)
+  if (isBackoffice) {
+    return [
+      ...baseHeaders,
+      { title: 'Accettazione da parte tua', key: 'assignment_status', sortable: false, width: '160px' },
+      { title: 'Azioni', key: 'actions', sortable: false, width: '140px' },
+    ]
+  }
+
+  // Per admin/gestione aggiungiamo Backoffice assegnato + Stato accettazione backoffice
+  return [
+    ...baseHeaders,
+    { title: 'Backoffice assegnato', key: 'assigned_backoffice', sortable: false },
+    { title: 'Accettazione backoffice', key: 'assignment_status', sortable: false, width: '160px' },
+  ]
+})
+
 // Azione di accettazione pratica AI dalla dashboard
 const acceptAiPaperwork = async item => {
   try {
@@ -982,14 +1009,7 @@ const navigateToPreviousMonthPaperworks = () => {
             v-model:page="aiPaperworksPage"
             :items="aiPaperworksData"
             :items-length="totalAiPaperworks"
-            :headers="[
-              { title: '#', key: 'id', width: '80' },
-              { title: 'Agente', key: 'user_id', sortable: false },
-              { title: 'File', key: 'filepath', sortable: false },
-              { title: 'Stato AI', key: 'status' },
-              { title: 'Data', key: 'created_at', sortable: false },
-              { title: 'Azioni', key: 'actions', sortable: false, width: '140px' },
-            ]"
+            :headers="aiPaperworksHeaders"
             class="text-no-wrap"
             @update:options="updateAiPaperworksOptions"
           >
@@ -1035,11 +1055,56 @@ const navigateToPreviousMonthPaperworks = () => {
               </VChip>
             </template>
 
-            <!-- Azioni (accetta pratica AI) -->
+            <!-- Backoffice assegnato (solo per admin) -->
+            <template #item.assigned_backoffice="{ item }">
+              <span v-if="item.assigned_backoffice">
+                {{ [item.assigned_backoffice.name, item.assigned_backoffice.last_name].join(' ') }}
+              </span>
+              <span v-else class="text-medium-emphasis">-</span>
+            </template>
+
+            <!-- Accettazione backoffice (per admin) -->
+            <template v-if="!isBackoffice" #item.assignment_status="{ item }">
+              <VChip
+                v-if="item.assignment_status === 'accept' || item.assignment_status === 'accepted'"
+                color="success"
+                size="small"
+              >
+                Accettata
+              </VChip>
+              <VChip
+                v-else-if="item.assignment_status === 'pending'"
+                color="warning"
+                size="small"
+              >
+                In attesa
+              </VChip>
+              <VChip
+                v-else
+                color="default"
+                size="small"
+              >
+                Non assegnata
+              </VChip>
+            </template>
+
+            <!-- Accettazione da parte tua (per backoffice) -->
+            <template v-if="isBackoffice" #item.assignment_status="{ item }">
+              <VChip
+                size="small"
+                variant="tonal"
+                class="text-capitalize"
+                :color="item.assignment_status === 'accept' || item.assignment_status === 'accepted' ? 'success' : 'warning'"
+              >
+                {{ getAiAssignmentStatusText(item.assignment_status) }}
+              </VChip>
+            </template>
+
+            <!-- Azioni (accetta pratica AI - solo per backoffice) -->
             <template #item.actions="{ item }">
               <div class="d-flex align-center gap-x-1" style="flex-wrap: nowrap;">
                 <VBtn
-                  v-if="item.assignment_status !== 'accept' && item.assignment_status !== 'accepted'"
+                  v-if="isBackoffice && item.assignment_status !== 'accept' && item.assignment_status !== 'accepted'"
                   size="small"
                   color="success"
                   variant="tonal"

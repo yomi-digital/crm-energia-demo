@@ -14,6 +14,9 @@ class Kernel extends ConsoleKernel
     {
         // Process AIPaperworks every minute
         $schedule->command('aipaperworks:process')->everyMinute();
+
+        // Rebalance AIPaperworks (assegnazioni orfane e scadute) ogni minuto
+        $schedule->command('aipaperworks:rebalance')->everyMinute();
     }
 
     /**

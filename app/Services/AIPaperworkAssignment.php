@@ -21,7 +21,7 @@ class AIPaperworkAssignment
      * Se non è possibile assegnare nessun backoffice (es. nessun backoffice
      * abilitato per il brand), ritorna tutti i campi a null.
      */
-    public static function assignToBackofficeByBrand(?int $brandId): array
+    public static function assignToBackofficeByBrand(?int $brandId, ?int $backofficeIdToExclude = null): array
     {
         // Se non c'è un brand associato, non possiamo usare la logica per brand
         if (!$brandId) {
@@ -33,13 +33,21 @@ class AIPaperworkAssignment
         }
 
         // Seleziona tutti i backoffice abilitati che hanno quel brand associato
-        $backoffices = User::query()
+        $backofficesQuery = User::query()
             ->where('enabled', true)
             ->role('backoffice')
             ->whereHas('brands', function ($q) use ($brandId) {
                 $q->where('brands.id', $brandId);
-            })
-            ->get(['id']);
+            });
+
+        // Se è stato richiesto di escludere un backoffice specifico (es. per riassegnazioni scadute),
+        // rimuovilo dall'elenco dei candidati. Se dopo l'esclusione non rimane nessun candidato,
+        // ritorniamo tutti i campi a null e lasciamo il proprietario corrente invariato.
+        if ($backofficeIdToExclude) {
+            $backofficesQuery->where('id', '!=', $backofficeIdToExclude);
+        }
+
+        $backoffices = $backofficesQuery->get(['id']);
 
         if ($backoffices->isEmpty()) {
             return [

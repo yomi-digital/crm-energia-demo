@@ -29,6 +29,23 @@ This command:
 
 In production, this runs automatically every minute via the cron scheduler.
 
+### AI Paperworks Rebalancing (assegnazione backoffice)
+
+In local development, per simulare il cron che riassegna le pratiche AI:
+
+```bash
+# Ribilancia assegnazioni AI (orfane + scadute)
+docker-compose exec laravel.test php artisan aipaperworks:rebalance
+```
+
+Questo comando:
+- Assegna un backoffice al brand meno carico per tutte le pratiche AI **orfane**  
+  (`assigned_backoffice_id` null, `brand_id` valorizzato, `status != 5`)
+- Riassegna a un altro backoffice compatibile le pratiche con **assegnazione scaduta**  
+  (`assigned_backoffice_id` e `brand_id` valorizzati, `status != 5`, `assignment_expires_at` nel passato, `assignment_status` null/pending)
+
+In produzione, questo comando viene eseguito automaticamente ogni minuto via cron (vedi `App\Console\Kernel`).
+
 ## Database Seeding (Alfacom Import)
 
 ### Comandi standard (RAM di default PHP, 128MB)
