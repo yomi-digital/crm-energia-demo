@@ -11,6 +11,11 @@ definePage({
 const searchQuery = ref('')
 const loadingStates = ref(new Map())
 
+// Snackbar per messaggi di errore/successo
+const isSnackbarVisible = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('success')
+
 // Data table options
 const itemsPerPage = ref(25)
 const page = ref(1)
@@ -216,10 +221,31 @@ const getAssignmentStatusText = (status) => {
   return status
 }
 
-// Azione di accettazione pratica AI (placeholder - da collegare al backend)
+// Azione di accettazione pratica AI
 const acceptPaperwork = async (item) => {
-  // TODO: implementare chiamata backend per accettare la pratica AI
-  console.log('Accetta pratica AI', item.id)
+  try {
+    loadingStates.value.set(item.id, true)
+
+    await $api(`/ai-paperworks/${item.id}/accept-assignment`, {
+      method: 'POST',
+    })
+
+    snackbarColor.value = 'success'
+    snackbarMessage.value = 'Pratica AI accettata con successo.'
+    isSnackbarVisible.value = true
+
+    await fetchAIPaperworks()
+  } catch (error) {
+    console.error('Errore durante l\'accettazione della pratica AI:', error)
+    snackbarColor.value = 'error'
+
+    // Prova ad estrarre un messaggio leggibile dalla risposta API
+    let message = error?.data?.message || error?.data?.error || 'Si è verificato un errore durante l\'accettazione della pratica.'
+    snackbarMessage.value = message
+    isSnackbarVisible.value = true
+  } finally {
+    loadingStates.value.delete(item.id)
+  }
 }
 
 const processDocument = async (item) => {
@@ -457,5 +483,15 @@ const processDocument = async (item) => {
         </template>
       </VDataTableServer>
     </VCard>
+
+    <!-- Snackbar notifiche -->
+    <VSnackbar
+      v-model="isSnackbarVisible"
+      :color="snackbarColor"
+      location="top end"
+      variant="flat"
+    >
+      {{ snackbarMessage }}
+    </VSnackbar>
   </section>
 </template>

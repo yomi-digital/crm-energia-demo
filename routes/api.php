@@ -180,6 +180,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::post('ai-paperworks/{id}/confirm', [AIController::class, 'confirm']);
     Route::post('ai-paperworks/{id}/cancel', [AIController::class, 'cancel']);
     Route::post('ai-paperworks/{id}/transfer', [AIController::class, 'transfer']);
+    Route::post('ai-paperworks/{id}/accept-assignment', [AIController::class, 'acceptAssignment']);
 
     Route::get('paperworks', [PaperworksController::class, 'index']);
     Route::get('paperworks/{id}', [PaperworksController::class, 'show']);

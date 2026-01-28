@@ -318,12 +318,22 @@ const fetchPaperworks = async () => {
 // Function to fetch AI paperworks
 const fetchAiPaperworks = async () => {
   try {
+    const params = {
+      page: aiPaperworksPage.value,
+      itemsPerPage: aiPaperworksItemsPerPage.value,
+    }
+
+    // Per ruoli diversi dal backoffice mostriamo solo le pratiche AI già processate (status = 2).
+    // Per i backoffice, invece, chiediamo esplicitamente solo la coda "in entrata":
+    // pratiche assegnate a lui, non confermate (status != 5) e ancora in attesa di accettazione.
+    if (isBackoffice) {
+      params.only_pending_assignment = 1
+    } else {
+      params.status = 2
+    }
+
     const response = await $api('/ai-paperworks', {
-      params: {
-        status: 2,
-        page: aiPaperworksPage.value,
-        itemsPerPage: aiPaperworksItemsPerPage.value,
-      },
+      params,
     })
     aiPaperworksData.value = response.entries || []
     totalAiPaperworks.value = response.totalEntries || 0
@@ -396,6 +406,46 @@ const getStatusText = (status) => {
       return 'Confermato'
     default:
       return 'Errore'
+  }
+}
+
+// Testo leggibile per lo stato di accettazione AI (assignment_status)
+const getAiAssignmentStatusText = (status) => {
+  if (!status || status === 'pending') {
+    return 'In attesa'
+  }
+
+  if (status === 'accept' || status === 'accepted') {
+    return 'Accettata'
+  }
+
+  return status
+}
+
+// Snackbar per notifiche AI (pratiche in entrata)
+const isAiSnackbarVisible = ref(false)
+const aiSnackbarMessage = ref('')
+const aiSnackbarColor = ref('success')
+
+// Azione di accettazione pratica AI dalla dashboard
+const acceptAiPaperwork = async item => {
+  try {
+    await $api(`/ai-paperworks/${item.id}/accept-assignment`, {
+      method: 'POST',
+    })
+
+    aiSnackbarColor.value = 'success'
+    aiSnackbarMessage.value = 'Pratica AI accettata con successo.'
+    isAiSnackbarVisible.value = true
+
+    await fetchAiPaperworks()
+  } catch (error) {
+    console.error('Errore durante l\'accettazione della pratica AI:', error)
+    aiSnackbarColor.value = 'error'
+
+    let message = error?.data?.message || error?.data?.error || 'Si è verificato un errore durante l\'accettazione della pratica.'
+    aiSnackbarMessage.value = message
+    isAiSnackbarVisible.value = true
   }
 }
 
@@ -936,8 +986,9 @@ const navigateToPreviousMonthPaperworks = () => {
               { title: '#', key: 'id', width: '80' },
               { title: 'Agente', key: 'user_id', sortable: false },
               { title: 'File', key: 'filepath', sortable: false },
-              { title: 'Stato', key: 'status' },
+              { title: 'Stato AI', key: 'status' },
               { title: 'Data', key: 'created_at', sortable: false },
+              { title: 'Azioni', key: 'actions', sortable: false, width: '140px' },
             ]"
             class="text-no-wrap"
             @update:options="updateAiPaperworksOptions"
@@ -973,7 +1024,7 @@ const navigateToPreviousMonthPaperworks = () => {
               </div>
             </template>
 
-            
+            <!-- Stato AI -->
             <template #item.status="{ item }">
               <VChip
                 :color="getStatusChipColor(item.status)"
@@ -982,6 +1033,22 @@ const navigateToPreviousMonthPaperworks = () => {
               >
                 {{ getStatusText(item.status) }}
               </VChip>
+            </template>
+
+            <!-- Azioni (accetta pratica AI) -->
+            <template #item.actions="{ item }">
+              <div class="d-flex align-center gap-x-1" style="flex-wrap: nowrap;">
+                <VBtn
+                  v-if="item.assignment_status !== 'accept' && item.assignment_status !== 'accepted'"
+                  size="small"
+                  color="success"
+                  variant="tonal"
+                  class="compact-btn"
+                  @click.stop="acceptAiPaperwork(item)"
+                >
+                  Accetta di lavorarla
+                </VBtn>
+              </div>
             </template>
 
             
@@ -1000,6 +1067,15 @@ const navigateToPreviousMonthPaperworks = () => {
               />
             </template>
           </VDataTableServer>
+
+          <VSnackbar
+            v-model="isAiSnackbarVisible"
+            :color="aiSnackbarColor"
+            location="top end"
+            variant="flat"
+          >
+            {{ aiSnackbarMessage }}
+          </VSnackbar>
         </VCard>
       </VCol>
     </VRow>

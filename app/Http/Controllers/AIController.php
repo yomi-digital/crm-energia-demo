@@ -51,6 +51,7 @@ class AIController extends Controller
         // Filtro per backoffice:
         // - può vedere solo AI paperworks dei brand a lui assegnati
         // - e solo quelli in cui è l'assigned_backoffice_id (cioè le pratiche a lui assegnate o dall'admin o dal bilanciamento per brand)
+        // - opzionalmente (quando richiesto), solo quelle ancora in attesa di accettazione
         if ($request->user()->hasRole('backoffice')) {
             $userBrands = $request->user()->brands->pluck('id');
 
@@ -58,6 +59,16 @@ class AIController extends Controller
                 $aiPaperworks = $aiPaperworks
                     ->whereIn('brand_id', $userBrands)
                     ->where('assigned_backoffice_id', $request->user()->id);
+
+                // Se viene richiesta esplicitamente solo la coda "in entrata" per il backoffice
+                // (es. dalla dashboard), mostriamo solo le pratiche ancora in attesa di accettazione,
+                // escludendo quelle già accettate.
+                if ($request->boolean('only_pending_assignment')) {
+                    $aiPaperworks = $aiPaperworks->where(function ($query) {
+                        $query->whereNull('assignment_status')
+                              ->orWhere('assignment_status', 'pending');
+                    });
+                }
             } else {
                 // Se il backoffice non ha brand assegnati, non vede nessuna AI paperwork
                 $aiPaperworks = $aiPaperworks->whereRaw('1 = 0');
@@ -691,5 +702,47 @@ class AIController extends Controller
             'new_brand_id' => $request->brand_id,
             'ai_paperwork' => $aiPaperwork
         ]);
+    }
+
+    /**
+     * Permette ad un backoffice di accettare di lavorare una pratica AI.
+     *
+     * Regole:
+     * - l'utente deve avere ruolo "backoffice"
+     * - deve essere l'assigned_backoffice_id della pratica
+     * - l'assegnazione non deve essere scaduta (assignment_expires_at >= now() o null)
+     * - assignment_status viene impostato a "accept" e il timeout azzerato
+     */
+    public function acceptAssignment(Request $request, $id)
+    {
+        $user = $request->user();
+
+        if (!$user || !$user->hasRole('backoffice')) {
+            return response()->json([
+                'message' => 'Solo i backoffice possono accettare le pratiche AI.',
+            ], 403);
+        }
+
+        $aiPaperwork = AIPaperwork::findOrFail($id);
+
+        // Deve essere assegnata a questo backoffice
+        if ($aiPaperwork->assigned_backoffice_id !== $user->id) {
+            return response()->json([
+                'message' => 'Questa pratica AI non è assegnata a te.',
+            ], 403);
+        }
+
+
+        // Se è già stata accettata non facciamo nulla
+        if ($aiPaperwork->assignment_status === 'accept') {
+            return response()->json($aiPaperwork);
+        }
+
+        $aiPaperwork->assignment_status = 'accept';
+        // Una volta accettata, il timeout non è più necessario
+        $aiPaperwork->assignment_expires_at = null;
+        $aiPaperwork->save();
+
+        return response()->json($aiPaperwork);
     }
 }
