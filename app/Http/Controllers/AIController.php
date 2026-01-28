@@ -61,12 +61,24 @@ class AIController extends Controller
                     ->where('assigned_backoffice_id', $request->user()->id);
 
                 // Se viene richiesta esplicitamente solo la coda "in entrata" per il backoffice
-                // (es. dalla dashboard), mostriamo solo le pratiche ancora in attesa di accettazione,
-                // escludendo quelle già accettate.
+                // (es. dalla dashboard), applichiamo questa logica:
+                // - tutte le pratiche in stato 2 (AI completata) assegnate a lui, indipendentemente
+                //   dal fatto che siano già state accettate o meno;
+                // - più le pratiche in altri stati (0,1,8,9) SOLO se sono ancora in attesa di
+                //   accettazione (assignment_status null o 'pending').
                 if ($request->boolean('only_pending_assignment')) {
                     $aiPaperworks = $aiPaperworks->where(function ($query) {
-                        $query->whereNull('assignment_status')
-                              ->orWhere('assignment_status', 'pending');
+                        $query
+                            // Tutte le pratiche con status = 2 assegnate a questo backoffice
+                            ->where('status', 2)
+                            // Oppure pratiche in altri stati ancora in attesa di accettazione
+                            ->orWhere(function ($q) {
+                                $q->where('status', '!=', 2)
+                                  ->where(function ($q2) {
+                                      $q2->whereNull('assignment_status')
+                                         ->orWhere('assignment_status', 'pending');
+                                  });
+                            });
                     });
                 }
             } else {

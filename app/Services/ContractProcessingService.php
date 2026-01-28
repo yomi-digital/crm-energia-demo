@@ -12,6 +12,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Paperwork;
 use App\Models\AIPaperwork;
+use App\Services\AIPaperworkAssignment;
 
 class ContractProcessingService
 {
@@ -73,6 +74,13 @@ class ContractProcessingService
                     $brandIdToPersist = is_array($paperwork) ? ($paperwork['brand_id'] ?? null) : ($paperwork->brand_id ?? null);
                     if ($brandIdToPersist) {
                         $aiPaperwork->brand_id = $brandIdToPersist;
+
+                        // Il brand è stato cambiato dall'AI: riassegna la pratica al backoffice
+                        // meno carico per il nuovo brand usando la logica centrale.
+                        $assignment = AIPaperworkAssignment::assignToBackofficeByBrand($brandIdToPersist);
+                        $aiPaperwork->assigned_backoffice_id = $assignment['assigned_backoffice_id'];
+                        $aiPaperwork->assignment_status = $assignment['assignment_status'];
+                        $aiPaperwork->assignment_expires_at = $assignment['assignment_expires_at'];
                     }
                 }
 
