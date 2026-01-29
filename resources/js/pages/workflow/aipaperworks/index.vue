@@ -398,8 +398,8 @@ const processDocument = async (item) => {
           </div>
         </template>
 
-        <!-- Stato accettazione -->
-        <template #item.assignment_status="{ item }">
+        <!-- Stato accettazione (per backoffice) -->
+        <template v-if="isBackoffice" #item.assignment_status="{ item }">
           <div class="d-flex align-center">
             <VChip
               size="small"
@@ -410,6 +410,31 @@ const processDocument = async (item) => {
               {{ getAssignmentStatusText(item.assignment_status) }}
             </VChip>
           </div>
+        </template>
+
+        <!-- Accettazione backoffice (per admin) -->
+        <template v-if="!isBackoffice" #item.assignment_status="{ item }">
+          <VChip
+            v-if="item.assignment_status === 'accept' || item.assignment_status === 'accepted'"
+            color="success"
+            size="small"
+          >
+            Accettata
+          </VChip>
+          <VChip
+            v-else-if="item.assignment_status === 'pending'"
+            color="warning"
+            size="small"
+          >
+            In attesa
+          </VChip>
+          <VChip
+            v-else
+            color="default"
+            size="small"
+          >
+            Non assegnata
+          </VChip>
         </template>
 
         <!-- Azione accettazione (solo per backoffice) -->
