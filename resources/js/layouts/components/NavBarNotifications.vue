@@ -88,6 +88,20 @@ const markUnRead = async notificationId => {
   await fetchNotifications()
 }
 
+const markAllAsRead = async () => {
+  console.log('markAllAsRead handler chiamato')
+  try {
+    console.log('Chiamata API mark-all-read')
+    await $api('/auth/notifications/mark-all-read', {
+      method: 'POST',
+    })
+    console.log('API chiamata con successo, aggiorno le notifiche')
+    await fetchNotifications()
+  } catch (error) {
+    console.error('Errore nel segnare tutte le notifiche come lette:', error)
+  }
+}
+
 const handleNotificationClick = notification => {
   if (!notification.isSeen) {
     markRead(notification.id)
@@ -118,5 +132,6 @@ const handleMenuClose = () => {
     @click:notification="handleNotificationClick"
     @update:notification-type="selectedNotificationType = $event"
     @close="handleMenuClose"
+    :mark-all-read="markAllAsRead"
   />
 </template>

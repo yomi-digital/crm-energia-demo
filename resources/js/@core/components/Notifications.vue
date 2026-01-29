@@ -27,6 +27,11 @@ const props = defineProps({
     required: false,
     default: 'bottom end',
   },
+  markAllRead: {
+    type: Function,
+    required: false,
+    default: null,
+  },
 })
 
 const emit = defineEmits([
@@ -36,6 +41,7 @@ const emit = defineEmits([
   'click:notification',
   'update:notification-type',
   'close',
+  'readall',
 ])
 
 const isAllMarkRead = computed(() => props.notifications.some(item => item.isSeen === false))
@@ -52,6 +58,16 @@ const markAllReadOrUnread = () => {
     emit('unread', allNotificationsIds)
   else
     emit('read', allNotificationsIds)
+}
+
+const markAllAsRead = () => {
+  console.log('markAllAsRead chiamato nel componente Notifications (via prop)')
+  if (props.markAllRead) {
+    props.markAllRead()
+  } else {
+    // Fallback per compatibilità se la prop non è passata
+    emit('readall')
+  }
 }
 
 const totalUnseenNotifications = computed(() => {
@@ -129,24 +145,15 @@ const handleMenuUpdate = (value) => {
             >
               {{ isArchivedSelected ? 'Da leggere' : 'Archiviate' }}
             </VBtn>
-            <!-- <IconBtn
-              v-show="props.notifications.length"
-              size="34"
-              @click="markAllReadOrUnread"
+            <VBtn
+              v-show="props.notifications.some(n => !n.isSeen) && !isArchivedSelected"
+              size="small"
+              variant="text"
+              color="primary"
+              @click.stop="markAllAsRead"
             >
-              <VIcon
-                size="20"
-                color="high-emphasis"
-                :icon="!isAllMarkRead ? 'tabler-mail' : 'tabler-mail-opened' "
-              />
-
-              <VTooltip
-                activator="parent"
-                location="start"
-              >
-                {{ !isAllMarkRead ? 'Segna tutte come non lette' : 'Segna tutte come lette' }}
-              </VTooltip>
-            </IconBtn> -->
+              Segna tutte come lette
+            </VBtn>
           </template>
         </VCardItem>
 

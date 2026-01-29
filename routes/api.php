@@ -54,6 +54,7 @@ Route::group(['prefix' => 'auth'], function () {
         Route::get('logout', [AuthController::class, 'logout']);
         Route::get('user', [AuthController::class, 'user']);
         Route::get('notifications', [UsersController::class, 'notifications']);
+        Route::post('notifications/mark-all-read', [UsersController::class, 'markAllAsRead']);
         Route::post('notifications/{id}/read', [UsersController::class, 'read']);
         Route::post('notifications/{id}/unread', [UsersController::class, 'unread']);
     });

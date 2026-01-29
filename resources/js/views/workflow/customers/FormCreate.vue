@@ -1,4 +1,5 @@
 <script setup>
+import CustomerBioPanel from '@/views/workflow/customers/CustomerBioPanel.vue'
 import { useDebounceFn } from '@vueuse/core';
 import { computed, nextTick, ref, watch } from 'vue';
 
@@ -36,6 +37,15 @@ const mobileError = ref('')
 const duplicateUsers = ref([])
 const isDuplicateModalVisible = ref(false)
 const isModalOpenedFromCreate = ref(false)
+
+// Customer Detail Dialog state
+const isCustomerDetailModalVisible = ref(false)
+const selectedCustomerForDetail = ref(null)
+
+const openCustomerDetail = (customer) => {
+  selectedCustomerForDetail.value = customer
+  isCustomerDetailModalVisible.value = true
+}
 
 const normalizePhone = (p) => p ? p.replace(/\D/g, '') : ''
 
@@ -880,6 +890,9 @@ const filteredProvinces = computed(() => {
           <VTable>
             <thead>
               <tr>
+                <th class="text-left" style="width: 50px;">
+                  Visualizza
+                </th>
                 <th class="text-left">Azioni</th>
                 <th class="text-left">Nominativo</th>
                 <th class="text-left">Tipologia</th>
@@ -892,6 +905,20 @@ const filteredProvinces = computed(() => {
             </thead>
             <tbody>
               <tr v-for="user in duplicateUsers" :key="user.id">
+                <td>
+                  <VBtn
+                    icon
+                    variant="tonal"
+                    color="info"
+                    size="small"
+                    @click="openCustomerDetail(user)"
+                  >
+                    <VIcon icon="tabler-eye" />
+                    <VTooltip activator="parent" location="top">
+                      Visualizza Scheda Cliente
+                    </VTooltip>
+                  </VBtn>
+                </td>
                 <td>
                   <VBtn
                     size="small"
@@ -939,6 +966,43 @@ const filteredProvinces = computed(() => {
               Forza creazione
             </VBtn>
           </div>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Customer Detail Dialog -->
+    <VDialog
+      v-model="isCustomerDetailModalVisible"
+      max-width="900"
+    >
+      <VCard>
+        <VCardTitle class="pa-4 d-flex align-center justify-space-between">
+          <span class="text-h6">Scheda Cliente</span>
+          <VBtn
+            icon
+            variant="text"
+            color="default"
+            @click="isCustomerDetailModalVisible = false"
+          >
+            <VIcon icon="tabler-x" />
+          </VBtn>
+        </VCardTitle>
+        <VDivider />
+        <VCardText class="pa-4">
+          <CustomerBioPanel 
+            v-if="selectedCustomerForDetail"
+            :customer-data="selectedCustomerForDetail"
+            @updateCustomerData="(updatedData) => selectedCustomerForDetail = updatedData"
+          />
+        </VCardText>
+        <VCardActions class="pa-4 justify-end">
+          <VBtn
+            variant="tonal"
+            color="secondary"
+            @click="isCustomerDetailModalVisible = false"
+          >
+            Chiudi
+          </VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
