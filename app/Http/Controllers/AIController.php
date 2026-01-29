@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\AIPaperwork;
+use App\Models\User;
 use App\Services\ContractProcessingService;
+use App\Services\AIPaperworkAssignment;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
@@ -705,6 +707,45 @@ class AIController extends Controller
         ];
         
         $aiPaperwork->transfers_history = $transfersHistory;
+        
+        // Gestione riassegnazione backoffice quando cambia il brand
+        $currentBackofficeId = $aiPaperwork->assigned_backoffice_id;
+        
+        if ($currentBackofficeId) {
+            // Verifica se il backoffice attuale ha ancora il nuovo brand abilitato
+            $currentBackoffice = User::find($currentBackofficeId);
+            
+            if ($currentBackoffice && $currentBackoffice->brands()->where('brands.id', $request->brand_id)->exists()) {
+                // Il backoffice ha ancora il nuovo brand che ha scelto, mantiene la pratica a lui
+                // Non cambiamo nulla: assigned_backoffice_id, assignment_status, assignment_expires_at restano uguali
+            } else {
+                // Il backoffice NON ha più il nuovo brand, cerca un nuovo backoffice
+                $assignment = AIPaperworkAssignment::assignToBackofficeByBrand(
+                    $request->brand_id,
+                    $currentBackofficeId
+                );
+                
+                if ($assignment['assigned_backoffice_id']) {
+                    $aiPaperwork->assigned_backoffice_id = $assignment['assigned_backoffice_id'];
+                    $aiPaperwork->assignment_status = $assignment['assignment_status'];
+                    $aiPaperwork->assignment_expires_at = $assignment['assignment_expires_at'];
+                } else {
+                    // Se non esiste un backoffice per il nuovo brand, la pratica diventa orfana
+                    $aiPaperwork->assigned_backoffice_id = null;
+                    $aiPaperwork->assignment_status = null;
+                    $aiPaperwork->assignment_expires_at = null;
+                }
+            }
+        } else {
+            // Non c'è un backoffice assegnato, cerca di assegnarne uno per il nuovo brand
+            $assignment = AIPaperworkAssignment::assignToBackofficeByBrand($request->brand_id);
+            
+            if ($assignment['assigned_backoffice_id']) {
+                $aiPaperwork->assigned_backoffice_id = $assignment['assigned_backoffice_id'];
+                $aiPaperwork->assignment_status = $assignment['assignment_status'];
+                $aiPaperwork->assignment_expires_at = $assignment['assignment_expires_at'];
+            }
+        }
         
         $aiPaperwork->save();
 
