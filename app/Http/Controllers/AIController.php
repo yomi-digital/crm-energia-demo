@@ -24,7 +24,7 @@ class AIController extends Controller
     {
         $perPage = $request->get('itemsPerPage', 10);
 
-        $aiPaperworks = AIPaperwork::with(['user', 'assignedBackoffice']);
+        $aiPaperworks = AIPaperwork::with(['user', 'assignedBackoffice', 'brand']);
 
         if ($request->get('id')) {
             $aiPaperworks = $aiPaperworks->where('id', $request->get('id'));

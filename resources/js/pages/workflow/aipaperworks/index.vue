@@ -1,4 +1,5 @@
 <script setup>
+import AIPaperworkUnassignedModal from '@/components/dialogs/AIPaperworkUnassignedModal.vue'
 import { onMounted, onUnmounted } from 'vue'
 definePage({
   meta: {
@@ -15,6 +16,10 @@ const loadingStates = ref(new Map())
 const isSnackbarVisible = ref(false)
 const snackbarMessage = ref('')
 const snackbarColor = ref('success')
+
+// Modal per pratiche non assegnate
+const unassignedModalOpen = ref(false)
+const unassignedModalBrandName = ref(null)
 
 // Data table options
 const itemsPerPage = ref(25)
@@ -221,6 +226,12 @@ const getAssignmentStatusText = (status) => {
   return status
 }
 
+// Apri modal per pratica non assegnata
+const openUnassignedModal = (item) => {
+  unassignedModalBrandName.value = item.brand?.name || null
+  unassignedModalOpen.value = true
+}
+
 // Azione di accettazione pratica AI
 const acceptPaperwork = async (item) => {
   try {
@@ -362,8 +373,8 @@ const processDocument = async (item) => {
         <!-- Backoffice assegnato (solo per ruoli diversi da backoffice) -->
         <template v-if="!isBackoffice" #item.assigned_backoffice="{ item }">
           <div class="d-flex align-center gap-x-2">
-            <div class="text-high-emphasis text-body-1">
-              <template v-if="item.assigned_backoffice && $can('view', 'users')">
+            <div v-if="item.assigned_backoffice" class="text-high-emphasis text-body-1">
+              <template v-if="$can('view', 'users')">
                 <RouterLink
                   :to="{ name: 'admin-users-id', params: { id: item.assigned_backoffice.id } }"
                   class="font-weight-medium text-link"
@@ -372,9 +383,18 @@ const processDocument = async (item) => {
                 </RouterLink>
               </template>
               <template v-else>
-                {{ [item.assigned_backoffice?.name, item.assigned_backoffice?.last_name].join(' ') || 'Nessun backoffice' }}
+                {{ [item.assigned_backoffice.name, item.assigned_backoffice.last_name].join(' ') }}
               </template>
             </div>
+            <VBtn
+              v-else
+              size="small"
+              color="warning"
+              variant="tonal"
+              @click.stop="openUnassignedModal(item)"
+            >
+              Da assegnare
+            </VBtn>
           </div>
         </template>
 
@@ -494,4 +514,10 @@ const processDocument = async (item) => {
       {{ snackbarMessage }}
     </VSnackbar>
   </section>
+
+  <!-- Modal per pratiche non assegnate -->
+  <AIPaperworkUnassignedModal
+    v-model="unassignedModalOpen"
+    :brand-name="unassignedModalBrandName"
+  />
 </template>

@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import AIPaperworkUnassignedModal from '@/components/dialogs/AIPaperworkUnassignedModal.vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import VueApexCharts from 'vue3-apexcharts'
 
@@ -427,6 +428,10 @@ const isAiSnackbarVisible = ref(false)
 const aiSnackbarMessage = ref('')
 const aiSnackbarColor = ref('success')
 
+// Modal per pratiche non assegnate
+const unassignedModalOpen = ref(false)
+const unassignedModalBrandName = ref(null)
+
 // Headers dinamici per la tabella "Pratiche in entrata" in base al ruolo
 const aiPaperworksHeaders = computed(() => {
   const baseHeaders = [
@@ -453,6 +458,12 @@ const aiPaperworksHeaders = computed(() => {
     { title: 'Accettazione backoffice', key: 'assignment_status', sortable: false, width: '160px' },
   ]
 })
+
+// Apri modal per pratica non assegnata
+const openUnassignedModal = (item) => {
+  unassignedModalBrandName.value = item.brand?.name || null
+  unassignedModalOpen.value = true
+}
 
 // Azione di accettazione pratica AI dalla dashboard
 const acceptAiPaperwork = async item => {
@@ -1060,7 +1071,15 @@ const navigateToPreviousMonthPaperworks = () => {
               <span v-if="item.assigned_backoffice">
                 {{ [item.assigned_backoffice.name, item.assigned_backoffice.last_name].join(' ') }}
               </span>
-              <span v-else class="text-medium-emphasis">-</span>
+              <VBtn
+                v-else
+                size="small"
+                color="warning"
+                variant="tonal"
+                @click.stop="openUnassignedModal(item)"
+              >
+                Da assegnare
+              </VBtn>
             </template>
 
             <!-- Accettazione backoffice (per admin) -->
@@ -1549,6 +1568,12 @@ const navigateToPreviousMonthPaperworks = () => {
 
     
   </div>
+
+  <!-- Modal per pratiche non assegnate -->
+  <AIPaperworkUnassignedModal
+    v-model="unassignedModalOpen"
+    :brand-name="unassignedModalBrandName"
+  />
 </template>
 
 <style lang="scss" scoped>

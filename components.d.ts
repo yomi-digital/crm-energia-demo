@@ -20,6 +20,7 @@ declare module 'vue' {
     AIPaperworkTransfer: typeof import('./resources/js/components/AIPaperworkTransfer.vue')['default']
     AIPaperworkTransferModal: typeof import('./resources/js/components/AIPaperworkTransferModal.vue')['default']
     AIPaperworkTransferModalResult: typeof import('./resources/js/components/AIPaperworkTransferModalResult.vue')['default']
+    AIPaperworkUnassignedModal: typeof import('./resources/js/components/dialogs/AIPaperworkUnassignedModal.vue')['default']
     AppAttachmentsList: typeof import('./resources/js/components/AppAttachmentsList.vue')['default']
     AppAttachmentZone: typeof import('./resources/js/components/AppAttachmentZone.vue')['default']
     AppAutocomplete: typeof import('./resources/js/@core/components/app-form-elements/AppAutocomplete.vue')['default']
