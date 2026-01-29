@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\AIPaperwork;
+use App\Models\User;
 use App\Services\AIPaperworkAssignment;
 
 class RebalanceAIPaperworks extends Command
@@ -37,6 +38,7 @@ class RebalanceAIPaperworks extends Command
             ->where('status', '!=', 5)
             ->chunkById(100, function ($paperworks) {
                 foreach ($paperworks as $paperwork) {
+                    $this->info('Analisi della pratica orfana ' . $paperwork->id . ' per il brand ' . $paperwork->brand_id);
                     $assignment = AIPaperworkAssignment::assignToBackofficeByBrand($paperwork->brand_id);
 
                     if ($assignment['assigned_backoffice_id']) {
@@ -44,6 +46,9 @@ class RebalanceAIPaperworks extends Command
                         $paperwork->assignment_status = $assignment['assignment_status'];
                         $paperwork->assignment_expires_at = $assignment['assignment_expires_at'];
                         $paperwork->save();
+                        $this->info('Assegnazione della pratica orfana ' . $paperwork->id . ' al backoffice ' . $assignment['assigned_backoffice_id'] . ' per il brand ' . $paperwork->brand_id);
+                    }else {
+                        $this->info('Sembra che non sia stato possibile trovare un nuovo backoffice per la pratica orfana' . $paperwork->id . ' per il brand ' . $paperwork->brand_id . ' per questo resta orfana');
                     }
                 }
             });
@@ -66,23 +71,44 @@ class RebalanceAIPaperworks extends Command
             ->chunkById(100, function ($paperworks) {
                 foreach ($paperworks as $paperwork) {
                     $currentBackofficeId = $paperwork->assigned_backoffice_id;
+                    $this->info('Analisi della pratica ' . $paperwork->id . ' assegnata attualmente al backoffice ' . $currentBackofficeId . ' per il brand ' . $paperwork->brand_id . ' (con tempo scaduto) ' . $paperwork->assignment_expires_at);
 
                     // Tenta di trovare un nuovo backoffice per questo brand escludendo il proprietario attuale
+                    $this->info('Tentativo di trovare un nuovo backoffice per la pratica ' . $paperwork->id . ' per il brand ' . $paperwork->brand_id);
                     $assignment = AIPaperworkAssignment::assignToBackofficeByBrand(
                         $paperwork->brand_id,
                         $currentBackofficeId
                     );
+                    $this->info('Risultato del tentativo di trovare un nuovo backoffice: ' . $assignment['assigned_backoffice_id'] ?? 'null' . ' per la pratica ' . $paperwork->id . ' per il brand ' . $paperwork->brand_id);
 
-                    // Se non esiste un altro backoffice per questo brand, non cambiamo proprietario
+                    // Se non esiste un altro backoffice per questo brand
                     if (
                         !$assignment['assigned_backoffice_id'] ||
                         $assignment['assigned_backoffice_id'] === $currentBackofficeId
                     ) {
-                        continue;
+                        $this->info('Sembra che non sia stato possibile trovare un nuovo backoffice per la pratica ' . $paperwork->id . ' per il brand ' . $paperwork->brand_id);
+                        
+                        // Verifica se il backoffice attuale ha ancora il brand abilitato
+                        $currentBackoffice = User::find($currentBackofficeId);
+                        
+                        if ($currentBackoffice && $currentBackoffice->brands()->where('brands.id', $paperwork->brand_id)->exists()) {
+                            // Il backoffice ha ancora il brand, mantiene la pratica  a lui
+                            $this->info('Il backoffice precedente -> ' . $currentBackofficeId . ' -> ha ancora il brand ' . $paperwork->brand_id . ' quindi mantiene la pratica a lui');
+                            continue;
+                        } else {
+                            // Il backoffice ha perso il brand, la pratica diventa orfana
+                            $this->info('Il backoffice precedente -> ' . $currentBackofficeId . ' -> ha perso il brand ' . $paperwork->brand_id . ' quindi la pratica diventa orfana perché non ci sono altri backoffice con quel brand abilitato');
+                            $paperwork->assigned_backoffice_id = null;
+                            $paperwork->assignment_status = null;
+                            $paperwork->assignment_expires_at = null;
+                            $paperwork->save();
+                            continue;
+                        }
                     }
 
                     $previousBackofficeId = $currentBackofficeId;
 
+                    $this->info('Assegnazione della pratica ' . $paperwork->id . ' al backoffice ' . $assignment['assigned_backoffice_id'] . ' per il brand ' . $paperwork->brand_id);
                     $paperwork->assigned_backoffice_id = $assignment['assigned_backoffice_id'];
                     $paperwork->assignment_status = $assignment['assignment_status'];
                     $paperwork->assignment_expires_at = $assignment['assignment_expires_at'];
