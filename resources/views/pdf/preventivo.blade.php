@@ -1853,7 +1853,7 @@
                     }
                 @endphp
                 <h3 style="margin-bottom: 10px;">OGGETTO:</h3>
-                <p style="margin-bottom: 10px;"><b>Offerta per la realizzazione "chiavi in mano" di un impianto fotovoltaico {{ $nome_prodotto_oggetto ? '('.$nome_prodotto_oggetto.') ' : '' }}per un totale di circa {{ number_format($potenza_totale_kwp, 1, ',', '.') }} kWp sulla copertura esistente.</b></p>
+                <p style="margin-bottom: 10px;"><b>Offerta per la realizzazione "chiavi in mano" di {{ $nome_prodotto_oggetto ? '('.$nome_prodotto_oggetto.') ' : '' }}</b></p>
                 <p><i>Spett.le Cliente</i></p>
                 <p style="margin-bottom: 10px;">in riferimento ai colloqui intercorsi ed alla Sua richiesta, Le formuliamo la nostra proposta per l'esecuzione di quanto in oggetto alle seguenti principali condizioni. L'Azienda rimane a disposizione per ulteriori chiarimenti.</p>
                 <p>La presente proposta commerciale comprende:</p>
