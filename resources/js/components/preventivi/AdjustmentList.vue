@@ -6,7 +6,6 @@
                 <select 
                     :value="item.id_voce || item.description" 
                     @change="handleDescriptionChange(index, $event.target.value)"
-                    :disabled="disabled"
                     class="field-select field--grow"
                 >
                    <option v-for="option in currentOptions" :key="option.id_voce || option.id" :value="option.id_voce || option.id">
@@ -22,14 +21,14 @@
                     @input="handleAmountChange(index, $event.target.value)"
                     :step="item.tipo_valore === '%' ? '0.01' : '0.01'"
                     min="0"
+                    :disabled="disabled"
                     class="field-input" style="width:85px;"
                 />
                 <button @click="handleRemoveItem(index)" class="btn-icon danger" aria-label="Rimuovi">&times;</button>
             </div>
         </div>
-        <button :disabled="disabled || currentOptions.length <= 0" @click="handleAddItem" class="btn btn-small btn-secondary" style="margin-top:8px;">
+        <button :disabled="currentOptions.length <= 0" @click="handleAddItem" class="btn btn-small btn-secondary" style="margin-top:8px;">
             <span v-if="currentOptions.length <= 0">Nessuna voce disponibile</span>
-            <span v-else-if="disabled">Modifica non disponibile</span>
             <span v-else>+ Aggiungi {{ title }}</span>
         </button>
     </div>
