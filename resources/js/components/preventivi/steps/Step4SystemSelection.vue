@@ -147,24 +147,45 @@
                         >
                             <span>Scegli un prodotto</span>
                         </div>
-                        <div 
-                            v-for="product in prodottiFotovoltaico" 
-                            :key="product.id_prodotto"
-                            @click="handleProductChange(String(product.id_prodotto))"
-                            :style="{ 
-                                padding: '10px 12px', 
-                                cursor: 'pointer',
-                                backgroundColor: localSelectedProduct === String(product.id_prodotto) ? '#f3f4f6' : 'transparent',
-                                borderBottom: '1px solid #e5e7eb'
-                            }"
-                            @mouseenter="$event.target.style.backgroundColor = '#f9fafb'"
-                            @mouseleave="$event.target.style.backgroundColor = localSelectedProduct === String(product.id_prodotto) ? '#f3f4f6' : 'transparent'"
-                        >
-                            <div style="display: flex; flex-direction: column; gap: 4px;">
-                                <span style="font-weight: 500;">{{ product.codice_prodotto }} ({{ product.prezzo_base }} €)</span>
-                                <span v-if="product.descrizione && product.descrizione.length > 1" style="font-size: 12px; color: #6b7280; line-height: 1.4;">{{ product.descrizione }}</span>
+                        
+                        <template v-for="(products, groupName) in groupedProducts" :key="groupName">
+                            <div 
+                                @click.stop="toggleGroup(groupName)"
+                                style="padding: 8px 12px; font-weight: bold; background-color: #e5e7eb; color: #374151; font-size: 12px; text-transform: uppercase; cursor: pointer; display: flex; justify-content: space-between; align-items: center;"
+                            >
+                                <span>{{ groupName }} ({{ products.length }})</span>
+                                <svg 
+                                    width="10" 
+                                    height="10" 
+                                    viewBox="0 0 12 12" 
+                                    fill="none" 
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    :style="{ transform: expandedGroups[groupName] ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }"
+                                >
+                                    <path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
                             </div>
-                        </div>
+                            <div v-show="expandedGroups[groupName]">
+                                <div 
+                                    v-for="product in products" 
+                                    :key="product.id_prodotto + '-' + groupName"
+                                    @click="handleProductChange(String(product.id_prodotto))"
+                                    :style="{ 
+                                        padding: '10px 12px', 
+                                        cursor: 'pointer', 
+                                        backgroundColor: localSelectedProduct === String(product.id_prodotto) ? '#f3f4f6' : 'transparent',
+                                        borderBottom: '1px solid #e5e7eb'
+                                    }"
+                                    @mouseenter="$event.target.style.backgroundColor = '#f9fafb'"
+                                    @mouseleave="$event.target.style.backgroundColor = localSelectedProduct === String(product.id_prodotto) ? '#f3f4f6' : 'transparent'"
+                                >
+                                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                                        <span style="font-weight: 500;">{{ product.codice_prodotto }} ({{ product.prezzo_base }} €)</span>
+                                        <span v-if="product.descrizione && product.descrizione.length > 1" style="font-size: 12px; color: #6b7280; line-height: 1.4;">{{ product.descrizione }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
                         </div>
                     </Teleport>
                 </div>
@@ -370,6 +391,7 @@ const loadingCoefficients = ref(false);
 const isProductDropdownOpen = ref(false);
 const productSelectTrigger = ref(null);
 const dropdownPosition = ref({ top: 0, left: 0, width: 0 });
+const expandedGroups = ref({});
 
 // Sincronizza il valore locale con il prop
 watch(() => props.formData.selectedProduct, (newVal) => {
@@ -394,6 +416,46 @@ watch(tipologieTetto, (newTipologie) => {
     }
   }
 }, { immediate: true });
+
+// Computed per raggruppare i prodotti per listino
+const groupedProducts = computed(() => {
+  const groups = {};
+  const products = prodottiFotovoltaico.value || [];
+  console.log(props.formData.clientCategory)
+  // Determina la categoria cliente corrente (default: Business se vuoto)
+  const category = props.formData.clientCategory || '';
+  const normalizedCategory = category.trim().toLowerCase() || 'business';
+  const isRes = normalizedCategory === 'residenziale';
+  const targetTypeNormalized = isRes ? 'residenziale' : 'business';
+
+  products.forEach(product => {
+    // Se il prodotto non ha listini associati, mettilo in "Senza listino"
+    if (!product.listini || product.listini.length === 0) {
+      if (!groups['Senza listino']) {
+        groups['Senza listino'] = [];
+      }
+      groups['Senza listino'].push(product);
+    } else {
+      // Altrimenti aggiungilo a ogni listino di cui fa parte
+      product.listini.forEach(listino => {
+        // Filtra per tipo cliente se specificato nel listino (confronto normalizzato)
+        if (listino.tipo_cliente) {
+          const listinoTypeNormalized = listino.tipo_cliente.trim().toLowerCase();
+          if (listinoTypeNormalized !== targetTypeNormalized) {
+            return; // Salta questo listino se non corrisponde al tipo cliente
+          }
+        }
+
+        if (!groups[listino.nome]) {
+          groups[listino.nome] = [];
+        }
+        groups[listino.nome].push(product);
+      });
+    }
+  });
+
+  return groups;
+});
 
 // Computed per il testo di visualizzazione del prodotto selezionato
 const selectedProductDisplayText = computed(() => {
@@ -423,12 +485,25 @@ const updateDropdownPosition = () => {
   };
 };
 
+const toggleGroup = (groupName) => {
+    expandedGroups.value[groupName] = !expandedGroups.value[groupName];
+};
+
 // Funzione per aprire/chiudere il dropdown
 const toggleProductDropdown = () => {
   isProductDropdownOpen.value = !isProductDropdownOpen.value;
   if (isProductDropdownOpen.value) {
     // Aggiorna la posizione quando si apre
     setTimeout(() => updateDropdownPosition(), 0);
+    
+    // Espandi il gruppo del prodotto selezionato
+    if (localSelectedProduct.value) {
+        for (const [groupName, products] of Object.entries(groupedProducts.value)) {
+            if (products.some(p => String(p.id_prodotto) === localSelectedProduct.value)) {
+                expandedGroups.value[groupName] = true;
+            }
+        }
+    }
   }
 };
 
