@@ -22,6 +22,23 @@ const orderBy = ref(route.query.orderBy)
 const selectedProdotto = ref()
 const selectedProdottoRemove = ref()
 const selectedStatus = ref(route.query.is_active || 'true')
+const filterListinoId = ref(route.query.listino_id ? Number(route.query.listino_id) : null)
+const listiniOptions = ref([])
+
+const loadListini = async () => {
+  try {
+    const response = await $api('/listini?itemsPerPage=99999&is_active=true')
+    const data = Array.isArray(response) ? response : (response.data || [])
+    listiniOptions.value = data.map(l => ({
+      title: l.nome,
+      value: l.id,
+    }))
+  } catch (error) {
+    console.error('Errore nel caricamento dei listini:', error)
+  }
+}
+
+loadListini()
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -29,7 +46,7 @@ const updateOptions = options => {
 }
 
 // Update URL on filter change
-watch([searchQuery, itemsPerPage, page, sortBy, orderBy, selectedStatus], () => {
+watch([searchQuery, itemsPerPage, page, sortBy, orderBy, selectedStatus, filterListinoId], () => {
   router.replace({
     query: {
       ...route.query,
@@ -39,6 +56,7 @@ watch([searchQuery, itemsPerPage, page, sortBy, orderBy, selectedStatus], () => 
       sortBy: sortBy.value,
       orderBy: orderBy.value,
       is_active: selectedStatus.value,
+      listino_id: filterListinoId.value,
     }
   })
 })
@@ -56,6 +74,11 @@ const headers = [
   {
     title: 'Categoria',
     key: 'fk_categoria',
+  },
+  {
+    title: 'Listini',
+    key: 'listini',
+    sortable: false,
   },
   {
     title: 'Potenza kWp pannelli',
@@ -345,6 +368,20 @@ const statuses = [
               placeholder="Seleziona uno stato"
             />
           </VCol>
+
+          <!-- 👉 Select Listino -->
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <AppAutocomplete
+              v-model="filterListinoId"
+              label="Filtra per Listino"
+              clearable
+              :items="listiniOptions"
+              placeholder="Seleziona un listino"
+            />
+          </VCol>
         </VRow>
       </VCardText>
 
@@ -425,6 +462,15 @@ const statuses = [
           <div class="d-flex align-center gap-x-2">
             <div class="text-high-emphasis text-body-1">
               {{ item.categoria?.nome_categoria || '-' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Listini -->
+        <template #item.listini="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.listini && item.listini.length > 0 ? item.listini.map(l => l.nome).join(', ') : '-' }}
             </div>
           </div>
         </template>

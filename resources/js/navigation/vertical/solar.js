@@ -25,6 +25,13 @@ export default [
     action: 'access',
     subject: 'solar-prodotti',
   },
+  {
+    title: 'Listini',
+    icon: { icon: 'tabler-list' },
+    to: 'solar-listini',
+    action: 'access',
+    subject: 'solar-listini',
+  },
  /* {
     title: 'Pagamenti',
     icon: { icon: 'tabler-credit-card' },

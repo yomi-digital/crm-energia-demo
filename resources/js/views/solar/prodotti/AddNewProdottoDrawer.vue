@@ -32,8 +32,10 @@ const potenzaBatteria = ref('')
 const quantitaBatterie = ref('')
 const quantitaPannelli = ref('')
 const marcaPannelli = ref('')
+const listini = ref([])
 
 const categorie = ref([])
+const availableListini = ref([])
 
 const loadCategorie = async () => {
   try {
@@ -48,9 +50,23 @@ const loadCategorie = async () => {
   }
 }
 
+const loadListini = async () => {
+  try {
+    const response = await $api('/listini?itemsPerPage=99999&is_active=true')
+    const data = Array.isArray(response) ? response : (response.data || [])
+    availableListini.value = data.map(l => ({
+      title: l.nome,
+      value: l.id,
+    }))
+  } catch (error) {
+    console.error('Errore nel caricamento dei listini:', error)
+  }
+}
+
 watch(() => props.isDrawerOpen, (val) => {
   if (val) {
     loadCategorie()
+    loadListini()
   }
 })
 
@@ -105,6 +121,10 @@ const onSubmit = (e) => {
         body.link_scheda_prodotto_tecnica = linkSchedaProdottoTecnica.value
       }
       
+      if (listini.value.length > 0) {
+        body.listini = listini.value
+      }
+      
       console.log('Emitting prodottoData:', body)
       emit('prodottoData', body)
       emit('update:isDrawerOpen', false)
@@ -126,6 +146,7 @@ const onSubmit = (e) => {
         quantitaBatterie.value = ''
         quantitaPannelli.value = ''
         marcaPannelli.value = ''
+        listini.value = []
       })
     } else {
       console.log('Form non valido')
@@ -174,6 +195,19 @@ const handleDrawerModelValueUpdate = val => {
                   label="Categoria"
                   :items="categorie"
                   placeholder="Seleziona categoria"
+                />
+              </VCol>
+
+              <!-- 👉 Listini -->
+              <VCol cols="12">
+                <AppAutocomplete
+                  v-model="listini"
+                  label="Listini"
+                  :items="availableListini"
+                  placeholder="Seleziona listini"
+                  multiple
+                  chips
+                  closable-chips
                 />
               </VCol>
 

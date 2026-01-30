@@ -21,6 +21,7 @@ class ProdottoFotovoltaicoController extends Controller
                 'isActive' => ['nullable', 'string', Rule::in(['true', 'false', '1', '0', 'all', 'TRUE', 'FALSE', 'All', 'ALL'])],
                 'q' => ['nullable', 'string'],
                 'itemsPerPage' => ['nullable', 'integer', 'min:1'],
+                'listino_id' => ['nullable', 'integer', 'exists:listini,id'],
             ],
             [
                 'is_active.in' => 'Il parametro is_active può essere solo true, false o all.',
@@ -30,6 +31,7 @@ class ProdottoFotovoltaicoController extends Controller
                 'q.string' => 'Il parametro q deve essere una stringa.',
                 'itemsPerPage.integer' => 'Il parametro itemsPerPage deve essere un numero intero.',
                 'itemsPerPage.min' => 'Il parametro itemsPerPage deve essere almeno 1.',
+                'listino_id.exists' => 'Il listino selezionato non esiste.',
             ]
         );
 
@@ -42,7 +44,7 @@ class ProdottoFotovoltaicoController extends Controller
 
         $perPage = $request->get('itemsPerPage', 10);
 
-        $prodotti = ProdottoFotovoltaico::query()->with('categoria');
+        $prodotti = ProdottoFotovoltaico::query()->with(['categoria', 'listini']);
 
         $isActiveKey = $request->has('is_active')
             ? 'is_active'
@@ -63,6 +65,12 @@ class ProdottoFotovoltaicoController extends Controller
             $prodotti->where(function ($query) use ($search) {
                 $query->where('codice_prodotto', 'like', "%{$search}%")
                     ->orWhere('descrizione', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->has('listino_id')) {
+            $prodotti->whereHas('listini', function($q) use ($request) {
+                $q->where('listini.id', $request->get('listino_id'));
             });
         }
 
@@ -117,6 +125,8 @@ class ProdottoFotovoltaicoController extends Controller
                 'finanziamento_rate_standard' => ['nullable', 'array'],
                 'link_scheda_prodotto_tecnica' => ['nullable', 'url'],
                 'is_active' => ['sometimes', 'boolean'],
+                'listini' => ['nullable', 'array'],
+                'listini.*' => ['exists:listini,id'],
             ],
             [
                 'fk_categoria.required' => 'Selezionare una categoria valida.',
@@ -153,6 +163,8 @@ class ProdottoFotovoltaicoController extends Controller
                 'finanziamento_rate_standard.array' => 'Le rate standard devono essere fornite come array.',
                 'link_scheda_prodotto_tecnica.url' => 'Il link della scheda tecnica deve essere un URL valido.',
                 'is_active.boolean' => 'Il campo is_active deve essere un booleano.',
+                'listini.array' => 'Il campo listini deve essere un array.',
+                'listini.*.exists' => 'Uno o più listini selezionati non sono validi.',
             ]
         );
 
@@ -171,7 +183,11 @@ class ProdottoFotovoltaicoController extends Controller
 
         $prodotto = ProdottoFotovoltaico::create($payload);
 
-        return response()->json($prodotto->fresh(['categoria']), 201);
+        if (isset($payload['listini'])) {
+            $prodotto->listini()->sync($payload['listini']);
+        }
+
+        return response()->json($prodotto->fresh(['categoria', 'listini']), 201);
     }
 
     /**
@@ -179,7 +195,7 @@ class ProdottoFotovoltaicoController extends Controller
      */
     public function show(string $id)
     {
-        $prodotto = ProdottoFotovoltaico::with('categoria')->findOrFail($id);
+        $prodotto = ProdottoFotovoltaico::with(['categoria', 'listini'])->findOrFail($id);
 
         return response()->json($prodotto);
     }
@@ -211,6 +227,8 @@ class ProdottoFotovoltaicoController extends Controller
                 'finanziamento_rate_standard' => ['nullable', 'array'],
                 'link_scheda_prodotto_tecnica' => ['nullable', 'url'],
                 'is_active' => ['sometimes', 'boolean'],
+                'listini' => ['nullable', 'array'],
+                'listini.*' => ['exists:listini,id'],
             ],
             [
                 'fk_categoria.required' => 'Selezionare una categoria valida.',
@@ -247,6 +265,8 @@ class ProdottoFotovoltaicoController extends Controller
                 'finanziamento_rate_standard.array' => 'Le rate standard devono essere fornite come array.',
                 'link_scheda_prodotto_tecnica.url' => 'Il link della scheda tecnica deve essere un URL valido.',
                 'is_active.boolean' => 'Il campo is_active deve essere un booleano.',
+                'listini.array' => 'Il campo listini deve essere un array.',
+                'listini.*.exists' => 'Uno o più listini selezionati non sono validi.',
             ]
         );
 
@@ -268,7 +288,11 @@ class ProdottoFotovoltaicoController extends Controller
         $prodotto->fill($payload);
         $prodotto->save();
 
-        return response()->json($prodotto->fresh(['categoria']));
+        if (isset($payload['listini'])) {
+            $prodotto->listini()->sync($payload['listini']);
+        }
+
+        return response()->json($prodotto->fresh(['categoria', 'listini']));
     }
 
     /**
@@ -287,7 +311,7 @@ class ProdottoFotovoltaicoController extends Controller
         $prodotto->is_active = false;
         $prodotto->save();
 
-        return response()->json($prodotto->fresh(['categoria']), 200);
+        return response()->json($prodotto->fresh(['categoria', 'listini']), 200);
     }
 
     private function transformEntriesToCSV($entries)
@@ -297,6 +321,7 @@ class ProdottoFotovoltaicoController extends Controller
             'Codice prodotto',
             'Descrizione',
             'Categoria',
+            'Listini',
             'Potenza kWp',
             'Capacità kWh',
             'Prezzo base',
@@ -316,12 +341,15 @@ class ProdottoFotovoltaicoController extends Controller
             if (is_array($rateStandard) || is_object($rateStandard)) {
                 $rateStandard = json_encode($rateStandard);
             }
+            
+            $listini = $prodotto->listini->pluck('nome')->implode(', ');
 
             fputcsv($fp, [
                 //$prodotto->id_prodotto,
                 $prodotto->codice_prodotto,
                 $prodotto->descrizione,
                 optional($prodotto->categoria)->nome_categoria,
+                $listini,
                 $prodotto->potenza_kwp_pannelli . ' kWp',
                 $prodotto->capacita_kwh . ' kWh',
                 $prodotto->prezzo_base . ' €',

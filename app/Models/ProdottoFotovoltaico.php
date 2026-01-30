@@ -120,4 +120,14 @@ class ProdottoFotovoltaico extends Model
     {
         return $this->hasMany(DettaglioProdottoPreventivo::class, 'fk_prodotto', 'id_prodotto');
     }
+
+    public function listini()
+    {
+        return $this->belongsToMany(
+            Listino::class, 
+            'listino_prodotto_fotovoltaico', 
+            'fk_prodotto', 
+            'fk_listino'
+        )->withTimestamps();
+    }
 }

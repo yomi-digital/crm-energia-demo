@@ -28,6 +28,7 @@ use App\Http\Controllers\Workflow\CoefficientiProduzioneController;
 use App\Http\Controllers\Workflow\ProdottoFotovoltaicoController;
 use App\Http\Controllers\Workflow\TipologiaTettoController;
 use App\Http\Controllers\Workflow\VoceEconomicaController;
+use App\Http\Controllers\Workflow\ListinoController;
 use App\Http\Controllers\ModalitaPagamentoController;
 use App\Http\Controllers\PreventivoController;
 use App\Http\Controllers\GeocodingController;
@@ -253,6 +254,12 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('voci-economiche/{id}', [VoceEconomicaController::class, 'show']);
     Route::put('voci-economiche/{id}', [VoceEconomicaController::class, 'update']);
     Route::delete('voci-economiche/{id}', [VoceEconomicaController::class, 'destroy']);
+    
+    Route::get('listini', [ListinoController::class, 'index']);
+    Route::post('listini', [ListinoController::class, 'store']);
+    Route::get('listini/{id}', [ListinoController::class, 'show']);
+    Route::put('listini/{id}', [ListinoController::class, 'update']);
+    Route::delete('listini/{id}', [ListinoController::class, 'destroy']);
     
     Route::get('modalita-pagamento', [ModalitaPagamentoController::class, 'index']);
     Route::post('modalita-pagamento', [ModalitaPagamentoController::class, 'store']);

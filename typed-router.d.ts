@@ -97,6 +97,7 @@ declare module 'vue-router/auto/routes' {
     'reset-password': RouteRecordInfo<'reset-password', '/reset-password', Record<never, never>, Record<never, never>>,
     'solar-categorie': RouteRecordInfo<'solar-categorie', '/solar/categorie', Record<never, never>, Record<never, never>>,
     'solar-coefficienti-produzione': RouteRecordInfo<'solar-coefficienti-produzione', '/solar/coefficienti-produzione', Record<never, never>, Record<never, never>>,
+    'solar-listini': RouteRecordInfo<'solar-listini', '/solar/listini', Record<never, never>, Record<never, never>>,
     'solar-pagamenti': RouteRecordInfo<'solar-pagamenti', '/solar/pagamenti', Record<never, never>, Record<never, never>>,
     'solar-prodotti': RouteRecordInfo<'solar-prodotti', '/solar/prodotti', Record<never, never>, Record<never, never>>,
     'solar-tetti': RouteRecordInfo<'solar-tetti', '/solar/tetti', Record<never, never>, Record<never, never>>,

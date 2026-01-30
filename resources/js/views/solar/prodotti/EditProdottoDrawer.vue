@@ -36,8 +36,10 @@ const potenzaBatteria = ref()
 const quantitaBatterie = ref()
 const quantitaPannelli = ref()
 const marcaPannelli = ref()
+const listini = ref([])
 
 const categorie = ref([])
+const availableListini = ref([])
 
 const loadCategorie = async () => {
   try {
@@ -49,6 +51,19 @@ const loadCategorie = async () => {
     }))
   } catch (error) {
     console.error('Errore nel caricamento delle categorie:', error)
+  }
+}
+
+const loadListini = async () => {
+  try {
+    const response = await $api('/listini?itemsPerPage=99999&is_active=true')
+    const data = Array.isArray(response) ? response : (response.data || [])
+    availableListini.value = data.map(l => ({
+      title: l.nome,
+      value: l.id,
+    }))
+  } catch (error) {
+    console.error('Errore nel caricamento dei listini:', error)
   }
 }
 
@@ -67,10 +82,12 @@ potenzaBatteria.value = props.prodotto.potenza_batteria
 quantitaBatterie.value = props.prodotto.quantita_batterie
 quantitaPannelli.value = props.prodotto.quantita_pannelli
 marcaPannelli.value = props.prodotto.marca_pannelli
+listini.value = (props.prodotto.listini || []).map(l => l.id)
 
 watch(() => props.isDrawerOpen, (val) => {
   if (val) {
     loadCategorie()
+    loadListini()
     fkCategoria.value = props.prodotto.fk_categoria
     codiceProdotto.value = props.prodotto.codice_prodotto
     descrizione.value = props.prodotto.descrizione
@@ -86,6 +103,7 @@ watch(() => props.isDrawerOpen, (val) => {
     quantitaBatterie.value = props.prodotto.quantita_batterie
     quantitaPannelli.value = props.prodotto.quantita_pannelli
     marcaPannelli.value = props.prodotto.marca_pannelli
+    listini.value = (props.prodotto.listini || []).map(l => l.id)
   }
 })
 
@@ -136,6 +154,10 @@ const onSubmit = () => {
       if (marcaPannelli.value !== undefined)
         body.marca_pannelli = marcaPannelli.value
       
+      if (listini.value !== undefined) {
+        body.listini = listini.value
+      }
+
       emit('prodottoData', body)
       emit('update:isDrawerOpen', false)
       nextTick(() => {
@@ -186,6 +208,19 @@ const handleDrawerModelValueUpdate = val => {
                   label="Categoria"
                   :items="categorie"
                   placeholder="Seleziona categoria"
+                />
+              </VCol>
+
+              <!-- 👉 Listini -->
+              <VCol cols="12">
+                <AppAutocomplete
+                  v-model="listini"
+                  label="Listini"
+                  :items="availableListini"
+                  placeholder="Seleziona listini"
+                  multiple
+                  chips
+                  closable-chips
                 />
               </VCol>
 
