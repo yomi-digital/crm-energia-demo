@@ -20,11 +20,13 @@ const tipoVoce = ref('')
 const tipoValore = ref('')
 const valoreDefault = ref('')
 const tipoCliente = ref(['RESIDENZIALE', 'BUSINESS'])
+const iva = ref(false)
 
 const tipoVoceOptions = [
   { title: 'Incentivo', value: 'incentivo' },
   { title: 'Sconto', value: 'sconto' },
   { title: 'Costo', value: 'costo' },
+  { title: 'Prodotto', value: 'prodotto' },
 ]
 
 const tipoValoreOptions = [
@@ -55,6 +57,7 @@ const onSubmit = () => {
         tipo_valore: tipoValore.value,
         valore_default: valoreDefault.value,
         tipo_cliente: tipoCliente.value,
+        iva: iva.value,
       }
       
       emit('voce-economica-data', body)
@@ -67,6 +70,7 @@ const onSubmit = () => {
         tipoValore.value = ''
         valoreDefault.value = ''
         tipoCliente.value = ['RESIDENZIALE', 'BUSINESS']
+        iva.value = false
       })
     }
   })
@@ -153,6 +157,14 @@ const handleDrawerModelValueUpdate = val => {
                   label="Tipo Cliente"
                   multiple
                   chips
+                />
+              </VCol>
+
+              <!-- 👉 IVA -->
+              <VCol cols="12">
+                <VCheckbox
+                  v-model="iva"
+                  label="IVA"
                 />
               </VCol>
 

@@ -21,6 +21,7 @@ class VoceEconomica extends Model
         'anno_inizio',
         'anno_fine',
         'is_active',
+        'iva',
     ];
 
     protected $casts = [
@@ -28,6 +29,7 @@ class VoceEconomica extends Model
         'anno_inizio' => 'integer',
         'anno_fine' => 'integer',
         'is_active' => 'boolean',
+        'iva' => 'boolean',
     ];
 
     public function applicabilita()

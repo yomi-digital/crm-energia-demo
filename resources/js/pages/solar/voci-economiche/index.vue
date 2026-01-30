@@ -51,6 +51,10 @@ const headers = [
     key: 'tipo_cliente',
   },
   {
+    title: 'IVA',
+    key: 'iva',
+  },
+  {
     title: 'Stato',
     key: 'is_active',
   },
@@ -339,6 +343,16 @@ const customerTypes = [
               {{ tipo }}
             </VChip>
           </div>
+        </template>
+
+        <!-- IVA -->
+        <template #item.iva="{ item }">
+          <VChip
+            :color="item.iva ? 'success' : 'default'"
+            size="small"
+          >
+            {{ item.iva ? 'Sì' : 'No' }}
+          </VChip>
         </template>
 
         <!-- 👉 Enabled -->

@@ -24,11 +24,13 @@ const tipoVoce = ref()
 const tipoValore = ref()
 const valoreDefault = ref()
 const tipoCliente = ref([])
+const iva = ref(false)
 
 const tipoVoceOptions = [
   { title: 'Incentivo', value: 'incentivo' },
   { title: 'Sconto', value: 'sconto' },
   { title: 'Costo', value: 'costo' },
+  { title: 'Prodotto', value: 'prodotto' },
 ]
 
 const tipoValoreOptions = [
@@ -46,6 +48,7 @@ tipoVoce.value = props.voceEconomica.tipo_voce
 tipoValore.value = props.voceEconomica.tipo_valore
 valoreDefault.value = props.voceEconomica.valore_default
 tipoCliente.value = props.voceEconomica.tipo_cliente || []
+iva.value = props.voceEconomica.iva ?? false
 
 watch(() => props.isDrawerOpen, (val) => {
   if (val) {
@@ -54,6 +57,7 @@ watch(() => props.isDrawerOpen, (val) => {
     tipoValore.value = props.voceEconomica.tipo_valore
     valoreDefault.value = props.voceEconomica.valore_default
     tipoCliente.value = props.voceEconomica.tipo_cliente || []
+    iva.value = props.voceEconomica.iva ?? false
   }
 })
 
@@ -76,6 +80,7 @@ const onSubmit = () => {
         tipo_valore: tipoValore.value,
         valore_default: valoreDefault.value,
         tipo_cliente: tipoCliente.value,
+        iva: iva.value,
       }
       
       emit('voce-economica-data', body)
@@ -169,6 +174,14 @@ const handleDrawerModelValueUpdate = val => {
                   label="Tipo Cliente"
                   multiple
                   chips
+                />
+              </VCol>
+
+              <!-- 👉 IVA -->
+              <VCol cols="12">
+                <VCheckbox
+                  v-model="iva"
+                  label="IVA"
                 />
               </VCol>
 
