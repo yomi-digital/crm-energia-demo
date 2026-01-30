@@ -1,9 +1,9 @@
 <script setup>
 import AIPaperworkUnassignedModal from '@/components/dialogs/AIPaperworkUnassignedModal.vue'
+import StatusChip from '@/components/StatusChip.vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import VueApexCharts from 'vue3-apexcharts'
-import StatusChip from '@/components/StatusChip.vue'
 
 definePage({
   meta: {
@@ -1189,8 +1189,7 @@ const navigateToOpenTickets = () => {
                   v-if="isBackoffice && item.assignment_status !== 'accept' && item.assignment_status !== 'accepted'"
                   size="small"
                   color="success"
-                  variant="tonal"
-                  class="compact-btn"
+                  variant="flat"
                   @click.stop="acceptAiPaperwork(item)"
                 >
                   Accetta di lavorarla
