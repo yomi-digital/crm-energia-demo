@@ -914,6 +914,7 @@ const navigateToOpenTickets = () => {
 
 <template>
   <div>
+    
     <!-- Quick Links e Contatori -->
     <VRow class="quick-links-counters mb-6">
       <!-- Crea Pratica AI -->
@@ -1639,6 +1640,7 @@ const navigateToOpenTickets = () => {
     v-model="unassignedModalOpen"
     :brand-name="unassignedModalBrandName"
   />
+  
 </template>
 
 <style lang="scss" scoped>
