@@ -2678,8 +2678,9 @@
                                     $valoreCalcolato = $valoreApplicato;
                                 }
                                 
-                                // Se la voce ha IVA, applica l'IVA al 22%
-                                if ($haIva) {
+                                // Se la voce NON ha IVA, applica l'IVA al 22% perché è solo l'imponibile
+                                // Se ha IVA, il valore è già comprensivo di IVA
+                                if (!$haIva) {
                                     $valoreCalcolato = $valoreCalcolato * 1.22;
                                 }
                                 
@@ -2869,7 +2870,9 @@
                                 $valoreCalcolato = $valoreApplicato;
                             }
                             
-                            $valoreConIva = $haIva ? $valoreCalcolato * 1.22 : $valoreCalcolato;
+                            // Se la voce NON ha IVA, applica l'IVA al 22% perché è solo l'imponibile
+                            // Se ha IVA, il valore è già comprensivo di IVA
+                            $valoreConIva = $haIva ? $valoreCalcolato : $valoreCalcolato * 1.22;
                             
                             $tipoVoceLabels = [
                                 'sconto' => 'Sconto',
