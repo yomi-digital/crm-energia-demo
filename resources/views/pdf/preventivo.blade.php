@@ -2810,6 +2810,101 @@
         </div>
     </div>
 
+    <!-- Sesta Pagina - Voci Economiche Applicate -->
+    @if($preventivo->vociEconomiche && $preventivo->vociEconomiche->whereIn('tipo_voce_salvata', ['sconto', 'incentivo', 'costo', 'prodotto'])->count() > 0)
+    <div class="page page-break" style="height: 297mm; width: 210mm;">
+        <!-- Header -->
+        <div style="width: 210mm; padding-top: 10mm; padding-bottom: 10mm; position: relative; height: 20mm;">
+            
+            <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
+                <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
+                    alfacomsolar.it
+                </div>
+            </div>
+
+            <div style="position: absolute; top: 35%; left: 50%;">
+                P R E V E N T I V O
+            </div>
+
+            <div style="position: absolute; top: 30%; right: 15mm;">
+                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+            </div>
+        </div>
+
+        <!-- Contenuto principale -->
+        <div style="height: 250mm; width: 100%;">
+            <div style="width:100%; height: 78mm; position: relative; padding-left: 18mm; padding-right: 18mm;">
+                <h2 style="font-size: 30px; font-weight: bold; margin: 0 0 15mm 0; color: #4BAE66;">VOCI ECONOMICHE APPLICATE</h2>
+                
+                <table style="width: 174mm; border-collapse: collapse; font-size: 11px; page-break-inside: avoid; table-layout: fixed;">
+                    <thead>
+                        <tr>
+                            <th style="background-color: #4BAE66; padding: 6px; border: 1px solid #ddd; text-align: left; width: 25mm; color: white;">Tipo</th>
+                            <th style="background-color: #4BAE66; padding: 6px; border: 1px solid #ddd; text-align: left; width: 55mm; color: white;">Nome Voce</th>
+                            <th style="background-color: #4BAE66; padding: 6px; border: 1px solid #ddd; text-align: center; width: 30mm; color: white;">Valore</th>
+                            <th style="background-color: #4BAE66; padding: 6px; border: 1px solid #ddd; text-align: center; width: 20mm; color: white;">IVA</th>
+                            <th style="background-color: #4BAE66; padding: 6px; border: 1px solid #ddd; text-align: right; width: 44mm; color: white;">Importo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $prezzoProdottoBase = 0;
+                            if ($preventivo->dettagliProdotti && $preventivo->dettagliProdotti->count() > 0) {
+                                $primoProdotto = $preventivo->dettagliProdotti->first();
+                                $quantita = floatval($primoProdotto->quantita ?? 1);
+                                $prezzoUnitario = floatval($primoProdotto->prezzo_unitario_salvato ?? 0);
+                                $prezzoProdottoBase = $quantita * $prezzoUnitario;
+                            }
+                        @endphp
+                        @foreach($preventivo->vociEconomiche->whereIn('tipo_voce_salvata', ['sconto', 'incentivo', 'costo', 'prodotto']) as $voce)
+                        @php
+                            $valoreApplicato = floatval($voce->valore_applicato ?? 0);
+                            $tipoValore = $voce->tipo_valore_salvato ?? '';
+                            $haIva = $voce->iva ?? false;
+                            
+                            $valoreCalcolato = 0;
+                            if ($tipoValore === '%') {
+                                $valoreCalcolato = ($prezzoProdottoBase * $valoreApplicato) / 100;
+                            } else {
+                                $valoreCalcolato = $valoreApplicato;
+                            }
+                            
+                            $valoreConIva = $haIva ? $valoreCalcolato * 1.22 : $valoreCalcolato;
+                            
+                            $tipoVoceLabels = [
+                                'sconto' => 'Sconto',
+                                'incentivo' => 'Incentivo',
+                                'costo' => 'Costo',
+                                'prodotto' => 'Prodotto'
+                            ];
+                            $tipoVoceLabel = $tipoVoceLabels[$voce->tipo_voce_salvata] ?? ucfirst($voce->tipo_voce_salvata);
+                        @endphp
+                        <tr style="background-color: #f9f9f9;">
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; word-wrap: break-word;">{{ $tipoVoceLabel }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; word-wrap: break-word;">{{ $voce->nome_voce_salvato ?? '-' }}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center; word-wrap: break-word;">
+                                {{ number_format($valoreApplicato, 2, ',', '.') }}{{ $tipoValore === '%' ? '%' : ' €' }}
+                            </td>
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center; word-wrap: break-word;">
+                                {{ $haIva ? 'Sì (22%)' : 'No' }}
+                            </td>
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold; word-wrap: break-word;">
+                                € {{ number_format($valoreConIva, 2, ',', '.') }}
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer Aziendale -->
+        <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
+            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+        </div>
+    </div>
+    @endif
+
     <!-- Settima Pagina - Business Plan -->
     <div class="page page-break" style="height: 297mm; width: 210mm;">
          <!-- Header -->
