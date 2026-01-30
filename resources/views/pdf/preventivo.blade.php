@@ -1926,7 +1926,7 @@
                             <td style="padding: 8px; border: 1px solid #ddd;">
                                 {{ $marcaPannelli }}
                                 @if($potenzaPannelli > 0)
-                                    {{ number_format($potenzaPannelli, 2, ',', '.') }}kWp
+                                    {{ number_format($potenzaPannelli, 2, ',', '.') }} Wp
                                 @endif
                             </td>
                         </tr>
