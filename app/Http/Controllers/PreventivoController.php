@@ -565,9 +565,10 @@ class PreventivoController extends Controller
 
             'PREVENTIVI_VOCE_ECONOMICHE' => 'nullable|array',
             'PREVENTIVI_VOCE_ECONOMICHE.*.nome_voce_salvato' => 'required|string|max:255',
-            'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata' => ['required', 'string', Rule::in(['incentivo', 'sconto', 'costo'])],
+            'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata' => ['required', 'string', Rule::in(['incentivo', 'sconto', 'costo', 'prodotto'])],
             'PREVENTIVI_VOCE_ECONOMICHE.*.valore_applicato' => ['required', new StrictPositiveNumberRule('PREVENTIVI_VOCE_ECONOMICHE.*.valore_applicato', false, 0, true)],
             'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_valore_salvato' => 'required|string|in:%,€',
+            'PREVENTIVI_VOCE_ECONOMICHE.*.iva' => 'nullable|boolean',
             'PREVENTIVI_VOCE_ECONOMICHE.*.anno_inizio_salvato' => ['required', new StrictNonNegativeRule('PREVENTIVI_VOCE_ECONOMICHE.*.anno_inizio_salvato')],
             'PREVENTIVI_VOCE_ECONOMICHE.*.anno_fine_salvato' => ['required', new StrictNonNegativeRule('PREVENTIVI_VOCE_ECONOMICHE.*.anno_fine_salvato')],
 
@@ -594,7 +595,7 @@ class PreventivoController extends Controller
             'PREVENTIVI.area_geografica_salvata.in' => "Il campo PREVENTIVI.area_geografica_salvata deve essere uno tra: sud, nord, centro, isole.",
             'CONSUMI_PREVENTIVO.tipologia_bolletta' => "Il campo CONSUMI_PREVENTIVO.tipologia_bolletta deve essere uno tra: mensile, bimestrale.",
             'PREVENTIVI.modalita_pagamento_salvata' => "Il campo PREVENTIVI.modalita_pagamento_salvata deve essere uno tra: bonifico, finanziamento, bonifico,finanziamento.",
-            'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata.in' => "Il campo PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata deve essere uno tra: incentivo, sconto, costo.",
+            'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata.in' => "Il campo PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata deve essere uno tra: incentivo, sconto, costo, prodotto.",
             'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_valore_salvato.in' => "Il campo PREVENTIVI_VOCE_ECONOMICHE.*.tipo_valore_salvato deve essere uno tra: %, €. % per gli incentivi e € per le altre tipologie di voce.",
         ]);
 

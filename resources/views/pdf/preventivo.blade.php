@@ -2657,27 +2657,37 @@
                         $prezzoUnitario = floatval($primoProdotto->prezzo_unitario_salvato ?? 0);
                         $prezzoProdotto = $quantita * $prezzoUnitario;
                         
-                        // Calcola sconti e incentivi
+                        // Calcola sconti, incentivi, costi e prodotti
                         $totaleScontiIncentivi = 0;
                         if ($preventivo->vociEconomiche) {
-                            $scontiIncentivi = $preventivo->vociEconomiche
-                                ->whereIn('tipo_voce_salvata', ['sconto', 'incentivo', 'costo']);
+                            $vociEconomiche = $preventivo->vociEconomiche
+                                ->whereIn('tipo_voce_salvata', ['sconto', 'incentivo', 'costo', 'prodotto']);
                             
-                            foreach ($scontiIncentivi as $voce) {
+                            foreach ($vociEconomiche as $voce) {
                                 $valoreApplicato = floatval($voce->valore_applicato ?? 0);
                                 $tipoValore = $voce->tipo_valore_salvato ?? '';
+                                $haIva = $voce->iva ?? false;
+                                
+                                $valoreCalcolato = 0;
                                 
                                 if ($tipoValore === '%') {
                                     // Se è percentuale, calcola sul prezzo del prodotto
-                                    $totaleScontiIncentivi += ($prezzoProdotto * $valoreApplicato) / 100;
+                                    $valoreCalcolato = ($prezzoProdotto * $valoreApplicato) / 100;
                                 } else {
                                     // Se è importo fisso, usa direttamente il valore
-                                    $totaleScontiIncentivi += $valoreApplicato;
+                                    $valoreCalcolato = $valoreApplicato;
                                 }
+                                
+                                // Se la voce ha IVA, applica l'IVA al 22%
+                                if ($haIva) {
+                                    $valoreCalcolato = $valoreCalcolato * 1.22;
+                                }
+                                
+                                $totaleScontiIncentivi += $valoreCalcolato;
                             }
                         }
                         
-                        // Sottrai sconti e incentivi dal prezzo del prodotto
+                        // Sottrai sconti, incentivi, costi e prodotti dal prezzo del prodotto
                         $totale_offerta = $prezzoProdotto - $totaleScontiIncentivi;
                         
                         // Assicurati che il totale non sia negativo
