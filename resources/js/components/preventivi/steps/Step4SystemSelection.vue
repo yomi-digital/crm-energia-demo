@@ -352,8 +352,9 @@
                     description="Importo annuale della detrazione fiscale per 10 anni."
                 />
             </div>
-                <AdjustmentList title="Sconti" listName="discounts" :items="formData.discounts" @update:items="updateFormData('discounts', $event)" />
-                <AdjustmentList title="Costi Aggiuntivi" listName="additionalCosts" :items="formData.additionalCosts" @update:items="updateFormData('additionalCosts', $event)" />
+                <AdjustmentList title="Sconti" listName="discounts" :items="formData.discounts" :disabled="!canEditCostsAndDiscounts" @update:items="updateFormData('discounts', $event)" />
+                <AdjustmentList title="Costi Aggiuntivi" listName="additionalCosts" :items="formData.additionalCosts" :disabled="!canEditCostsAndDiscounts" @update:items="updateFormData('additionalCosts', $event)" />
+                <AdjustmentList title="Prodotti" listName="products" :items="formData.products || []" :disabled="!canEditCostsAndDiscounts" @update:items="updateFormData('products', $event)" />
              </div>
         </div>
 
@@ -372,6 +373,13 @@ const props = defineProps({
   formData: Object,
 });
 const emit = defineEmits(['update:formData']);
+
+// Controllo permessi: solo admin e gestione possono modificare costi e sconti
+const userDataCookie = useCookie('userData');
+const loggedInUser = userDataCookie?.value;
+const canEditCostsAndDiscounts = computed(() => {
+    return loggedInUser?.roles?.some(role => role?.name === 'gestione' || role?.name === 'amministrazione') || false;
+});
 
 const { 
   loadTipologieTetto, 
@@ -947,9 +955,10 @@ const simulationResults = computed(() => {
     };
     
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
+    const productsTotal = (props.formData.products || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = props.formData.discounts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     
-    const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+    const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal + productsTotal - discountsTotal;
 
     let deductionPercentage = 0;
     if (props.formData.fiscalDeductionType === 'prima_casa') {
@@ -1022,9 +1031,10 @@ const calculateTotalSystemCost = () => {
     };
     
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
+    const productsTotal = (props.formData.products || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = props.formData.discounts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     
-    return productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+    return productPrice + roofTypePrice + additionalCostsTotal + productsTotal - discountsTotal;
 };
 
 // Calcola automaticamente la rata del finanziamento

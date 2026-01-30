@@ -24,6 +24,7 @@
         <AdjustmentListSummary title="Incentivi" :items="formData.incentives" />
         <AdjustmentListSummary title="Sconti" :items="formData.discounts" />
         <AdjustmentListSummary title="Costi Aggiuntivi" :items="formData.additionalCosts" />
+        <AdjustmentListSummary title="Prodotti" :items="formData.products || []" />
         <div style="margin-top:12px;padding-top:12px;border-top:2px solid #e5e7eb;">
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <span style="font-weight:700;font-size:16px;color:#1f2937;">Prezzo Finale Totale:</span>
@@ -223,11 +224,9 @@ const simulationData = computed(() => {
     };
     
     const additionalCostsTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
+    const productsTotal = (props.formData.products || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = (props.formData.discounts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
-    const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
-
-    // CALCOLO INCENTIVO CER - 22% dei costi del cliente (solo se abilitato)
-    const incentivoCer = props.formData.enableCer ? totalSystemCost * 0.22 : 0;
+    const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal + productsTotal - discountsTotal;
 
     let deductionPercentage = 0;
     if (props.formData.fiscalDeductionType === 'prima_casa') {
@@ -276,9 +275,10 @@ const totalSystemCostDisplay = computed(() => {
     };
     
     const additionalCostsTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
+    const productsTotal = (props.formData.products || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = (props.formData.discounts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     
-    return productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+    return productPrice + roofTypePrice + additionalCostsTotal + productsTotal - discountsTotal;
 });
 
 // Formatta i dati bolletta nel formato richiesto
@@ -406,8 +406,9 @@ const preparePayload = () => {
     };
     
     const additionalCostsTotalForTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmountForTotal(item), 0);
+    const productsTotalForTotal = (props.formData.products || []).reduce((sum, item) => sum + calculateAdjustmentAmountForTotal(item), 0);
     const discountsTotalForTotal = (props.formData.discounts || []).reduce((sum, item) => sum + calculateAdjustmentAmountForTotal(item), 0);
-    const totalSystemCostForBonifico = productPriceForTotal + roofTypePriceForTotal + additionalCostsTotalForTotal - discountsTotalForTotal;
+    const totalSystemCostForBonifico = productPriceForTotal + roofTypePriceForTotal + additionalCostsTotalForTotal + productsTotalForTotal - discountsTotalForTotal;
 
     // Prepara dati bonifico
     let bonificoData = null;
@@ -532,6 +533,24 @@ const preparePayload = () => {
         });
     });
 
+    // Aggiungi prodotti
+    (props.formData.products || []).forEach(prodotto => {
+        const valoreApplicato = prodotto.tipo_valore === '%' 
+            ? (prodotto.valore_default || prodotto.amount || 0)
+            : (prodotto.amount || prodotto.valore_default || 0);
+        
+        vociEconomiche.push({
+            nome_voce_salvato: prodotto.nome_voce || prodotto.description || '',
+            tipo_voce_salvata: 'prodotto',
+            valore_applicato: valoreApplicato,
+            tipo_valore_salvato: prodotto.tipo_valore === '%' ? '%' : '€',
+            iva: prodotto.iva || false,
+            anni_durata_agevolazione_salvata: prodotto.anni_durata_default || 0,
+            anno_inizio_salvato: prodotto.anno_inizio || 1,
+            anno_fine_salvato: prodotto.anno_fine || 1,
+        });
+    });
+
     // Prepara business plan se richiesto
     const businessPlan = [];
     if (props.formData.generateBusinessPlan) {
@@ -563,8 +582,9 @@ const preparePayload = () => {
         };
         
         const additionalCostsTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
+        const productsTotal = (props.formData.products || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
         const discountsTotal = (props.formData.discounts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
-        const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+        const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal + productsTotal - discountsTotal;
         
         const initialInvestment = -totalSystemCost;
         let cumulativeCashFlow = 0;

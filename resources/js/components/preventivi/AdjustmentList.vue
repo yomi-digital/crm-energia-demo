@@ -6,6 +6,7 @@
                 <select 
                     :value="item.id_voce || item.description" 
                     @change="handleDescriptionChange(index, $event.target.value)"
+                    :disabled="disabled"
                     class="field-select field--grow"
                 >
                    <option v-for="option in currentOptions" :key="option.id_voce || option.id" :value="option.id_voce || option.id">
@@ -26,8 +27,9 @@
                 <button @click="handleRemoveItem(index)" class="btn-icon danger" aria-label="Rimuovi">&times;</button>
             </div>
         </div>
-        <button :disabled="currentOptions.length <= 0" @click="handleAddItem" class="btn btn-small btn-secondary" style="margin-top:8px;">
+        <button :disabled="disabled || currentOptions.length <= 0" @click="handleAddItem" class="btn btn-small btn-secondary" style="margin-top:8px;">
             <span v-if="currentOptions.length <= 0">Nessuna voce disponibile</span>
+            <span v-else-if="disabled">Modifica non disponibile</span>
             <span v-else>+ Aggiungi {{ title }}</span>
         </button>
     </div>
@@ -42,6 +44,10 @@ const props = defineProps({
     title: String,
     listName: String,
     items: Array,
+    disabled: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits(['update:items']);
@@ -54,6 +60,7 @@ const tipoVoceMap = {
     incentives: 'incentivo',
     discounts: 'sconto',
     additionalCosts: 'costo',
+    products: 'prodotto',
 };
 
 // Carica le voci economiche all'avvio
@@ -88,6 +95,7 @@ const loadVociFromApi = async () => {
             incentives: SAMPLE_INCENTIVES,
             discounts: SAMPLE_DISCOUNTS,
             additionalCosts: SAMPLE_ADDITIONAL_COSTS,
+            products: [],
         };
         vociEconomiche.value = fallbackMap[props.listName] || [];
     }
@@ -103,6 +111,7 @@ const currentOptions = computed(() => {
         incentives: SAMPLE_INCENTIVES,
         discounts: SAMPLE_DISCOUNTS,
         additionalCosts: SAMPLE_ADDITIONAL_COSTS,
+        products: [],
     };
     return fallbackMap[props.listName] || [];
 });

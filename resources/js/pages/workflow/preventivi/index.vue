@@ -68,6 +68,7 @@ const formData = ref({
     incentives: [],
     discounts: [],
     additionalCosts: [],
+    products: [],
     generateBusinessPlan: false,
     fiscalDeductionType: 'nessuna',
     enableCer: false,

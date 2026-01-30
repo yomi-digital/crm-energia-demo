@@ -159,10 +159,12 @@ const totalSystemCost = computed(() => {
     
     // I costi aggiuntivi vanno sommati subito sul totale
     const additionalCostsTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
+    // I prodotti vanno sommati come costi aggiuntivi
+    const productsTotal = (props.formData.products || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     // Gli sconti vengono sottratti dal totale
     const discountsTotal = (props.formData.discounts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     
-    return productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+    return productPrice + roofTypePrice + additionalCostsTotal + productsTotal - discountsTotal;
 });
 
 // Calcola il pagamento finanziamento annuo
