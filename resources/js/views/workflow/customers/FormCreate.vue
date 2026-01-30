@@ -1,5 +1,5 @@
 <script setup>
-import CustomerBioPanel from '@/views/workflow/customers/CustomerBioPanel.vue'
+import CustomerBioPanel from '@/views/workflow/customers/CustomerBioPanel.vue';
 import { useDebounceFn } from '@vueuse/core';
 import { computed, nextTick, ref, watch } from 'vue';
 
