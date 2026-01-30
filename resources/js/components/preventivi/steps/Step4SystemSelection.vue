@@ -421,7 +421,7 @@ watch(tipologieTetto, (newTipologie) => {
 const groupedProducts = computed(() => {
   const groups = {};
   const products = prodottiFotovoltaico.value || [];
-  console.log(props.formData.clientCategory)
+  
   // Determina la categoria cliente corrente (default: Business se vuoto)
   const category = props.formData.clientCategory || '';
   const normalizedCategory = category.trim().toLowerCase() || 'business';
@@ -429,18 +429,26 @@ const groupedProducts = computed(() => {
   const targetTypeNormalized = isRes ? 'residenziale' : 'business';
 
   products.forEach(product => {
+    // Assicurati che product.listini sia sempre un array (gestisce casi di caricamento incompleto)
+    const productListini = Array.isArray(product.listini) ? product.listini : [];
+    
     // Se il prodotto non ha listini associati, mettilo in "Senza listino"
-    if (!product.listini || product.listini.length === 0) {
+    if (productListini.length === 0) {
       if (!groups['Senza listino']) {
         groups['Senza listino'] = [];
       }
       groups['Senza listino'].push(product);
     } else {
       // Altrimenti aggiungilo a ogni listino di cui fa parte
-      product.listini.forEach(listino => {
+      productListini.forEach(listino => {
+        // Verifica che listino sia un oggetto valido
+        if (!listino || !listino.nome) {
+          return;
+        }
+        
         // Filtra per tipo cliente se specificato nel listino (confronto normalizzato)
         if (listino.tipo_cliente) {
-          const listinoTypeNormalized = listino.tipo_cliente.trim().toLowerCase();
+          const listinoTypeNormalized = String(listino.tipo_cliente).trim().toLowerCase();
           if (listinoTypeNormalized !== targetTypeNormalized) {
             return; // Salta questo listino se non corrisponde al tipo cliente
           }
@@ -618,7 +626,11 @@ onMounted(async () => {
     
     // Carica prodotti fotovoltaico
     const prodotti = await loadProdottiFotovoltaico();
-    prodottiFotovoltaico.value = prodotti;
+    // Assicurati che ogni prodotto abbia almeno un array vuoto per listini se non presente
+    prodottiFotovoltaico.value = prodotti.map(p => ({
+      ...p,
+      listini: Array.isArray(p.listini) ? p.listini : []
+    }));
     
     // Carica modalità pagamento
     const modalita = await loadModalitaPagamento();

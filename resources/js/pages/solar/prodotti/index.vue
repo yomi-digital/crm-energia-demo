@@ -334,8 +334,19 @@ const selectProdottoForRemove = prodotto => {
   isRemoveDialogVisible.value = true
 }
 
-const editProdotto = prodotto => {
-  selectedProdotto.value = prodotto
+const editProdotto = async prodotto => {
+  // Se il prodotto non ha i listini caricati, ricaricalo dal server
+  if (!prodotto.listini || prodotto.listini.length === 0) {
+    try {
+      const prodottoCompleto = await $api(`/prodotti-fotovoltaico/${prodotto.id_prodotto || prodotto.id}`)
+      selectedProdotto.value = prodottoCompleto
+    } catch (error) {
+      console.error('Errore nel caricamento del prodotto:', error)
+      selectedProdotto.value = prodotto
+    }
+  } else {
+    selectedProdotto.value = prodotto
+  }
   isEditProdottoDrawerVisible.value = true
 }
 

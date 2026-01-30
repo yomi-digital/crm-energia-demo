@@ -63,10 +63,10 @@ const loadListini = async () => {
   }
 }
 
-watch(() => props.isDrawerOpen, (val) => {
+watch(() => props.isDrawerOpen, async (val) => {
   if (val) {
-    loadCategorie()
-    loadListini()
+    // Carica categorie e listini in parallelo e aspetta il completamento
+    await Promise.all([loadCategorie(), loadListini()])
   }
 })
 

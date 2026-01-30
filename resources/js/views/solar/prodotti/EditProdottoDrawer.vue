@@ -1,5 +1,6 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import { nextTick } from 'vue'
 
 const props = defineProps({
   isDrawerOpen: {
@@ -84,10 +85,14 @@ quantitaPannelli.value = props.prodotto.quantita_pannelli
 marcaPannelli.value = props.prodotto.marca_pannelli
 listini.value = (props.prodotto.listini || []).map(l => l.id)
 
-watch(() => props.isDrawerOpen, (val) => {
+watch(() => props.isDrawerOpen, async (val) => {
   if (val) {
-    loadCategorie()
-    loadListini()
+    // Carica categorie e listini in parallelo
+    await Promise.all([loadCategorie(), loadListini()])
+    
+    // Aspetta che i listini siano caricati prima di impostare i valori
+    await nextTick()
+    
     fkCategoria.value = props.prodotto.fk_categoria
     codiceProdotto.value = props.prodotto.codice_prodotto
     descrizione.value = props.prodotto.descrizione
@@ -103,9 +108,42 @@ watch(() => props.isDrawerOpen, (val) => {
     quantitaBatterie.value = props.prodotto.quantita_batterie
     quantitaPannelli.value = props.prodotto.quantita_pannelli
     marcaPannelli.value = props.prodotto.marca_pannelli
-    listini.value = (props.prodotto.listini || []).map(l => l.id)
+    
+    // Imposta i listini solo dopo che availableListini è stato caricato
+    if (props.prodotto.listini && props.prodotto.listini.length > 0) {
+      listini.value = props.prodotto.listini.map(l => l.id)
+    } else {
+      listini.value = []
+    }
   }
 })
+
+// Watch anche sul prodotto per aggiornare quando cambia
+watch(() => props.prodotto, (newProdotto) => {
+  if (newProdotto && props.isDrawerOpen) {
+    fkCategoria.value = newProdotto.fk_categoria
+    codiceProdotto.value = newProdotto.codice_prodotto
+    descrizione.value = newProdotto.descrizione
+    potenzaKwp.value = newProdotto.potenza_kwp_pannelli
+    capacitaKwh.value = newProdotto.capacita_kwh
+    prezzoBase.value = newProdotto.prezzo_base
+    potenzaInverter.value = newProdotto.potenza_inverter
+    marca.value = newProdotto.marca_inverter
+    linkSchedaProdottoTecnica.value = newProdotto.link_scheda_prodotto_tecnica || ''
+    quantitaInverter.value = newProdotto.quantita_inverter
+    marcaBatteria.value = newProdotto.marca_batteria
+    potenzaBatteria.value = newProdotto.potenza_batteria
+    quantitaBatterie.value = newProdotto.quantita_batterie
+    quantitaPannelli.value = newProdotto.quantita_pannelli
+    marcaPannelli.value = newProdotto.marca_pannelli
+    
+    if (newProdotto.listini && newProdotto.listini.length > 0) {
+      listini.value = newProdotto.listini.map(l => l.id)
+    } else {
+      listini.value = []
+    }
+  }
+}, { deep: true })
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
