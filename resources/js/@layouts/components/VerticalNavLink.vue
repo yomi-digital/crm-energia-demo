@@ -19,12 +19,19 @@ const props = defineProps({
 const configStore = useLayoutConfigStore()
 const hideTitleAndBadge = configStore.isVerticalNavMini()
 
-// Controllo brand per menu Preventivi
-const { isAdmin, checkAlfacomSolarBrand } = useBrandCheck()
-const hasAlfacomSolarBrand = ref(false) // Inizializza come false per non mostrare finché il check non è completato
+// Controllo solar per menu Preventivi
+const userData = useCookie('userData')
 
-// Controlla se questo è un menu item che richiede il brand ALFACOM SOLAR
-const requiresAlfacomSolarBrand = computed(() => {
+// Controlla se l'utente ha ruoli admin/gestione/amministrazione
+const hasAdminRole = computed(() => {
+  if (!userData.value?.roles) return false
+  return userData.value.roles.some(
+    role => ['gestione', 'amministrazione', 'admin'].includes(role.name)
+  )
+})
+
+// Controlla se questo è un menu item che richiede il controllo solar
+const requiresSolarCheck = computed(() => {
   return props.item.subject === 'preventivi' && 
          (props.item.to === 'workflow-preventivi' || props.item.to === 'workflow-archivio-preventivi')
 })
@@ -32,68 +39,27 @@ const requiresAlfacomSolarBrand = computed(() => {
 // Controlla se il menu item può essere mostrato
 const canShowMenuItem = computed(() => {
   const caslCheck = can(props.item.action, props.item.subject)
-  console.log('canShowMenuItem computed:', {
-    item: props.item.title,
-    action: props.item.action,
-    subject: props.item.subject,
-    caslCheck,
-    requiresAlfacomSolarBrand: requiresAlfacomSolarBrand.value,
-    isAdmin: isAdmin.value,
-    hasAlfacomSolarBrand: hasAlfacomSolarBrand.value,
-  })
   
   // Controllo base dei permessi CASL
-  if (!caslCheck && hasAlfacomSolarBrand.value !== true) {
-    console.log('CASL check failed for:', props.item.title)
+  if (!caslCheck) {
     return false
   }
 
-  // Se non richiede il brand ALFACOM SOLAR, mostra normalmente
-  if (!requiresAlfacomSolarBrand.value) {
+  // Se non richiede il controllo solar, mostra normalmente
+  if (!requiresSolarCheck.value) {
     return true
   }
 
-  // Se è admin, mostra sempre
-  if (isAdmin.value) {
+  // Se ha ruoli admin/gestione/amministrazione, mostra sempre
+  if (hasAdminRole.value) {
     return true
   }
 
-  // Mostra solo se il check è completato e ha il brand abilitato
-  const result = hasAlfacomSolarBrand.value === true
-  console.log('Final result for', props.item.title, ':', result)
-  return result
+  // Per gli altri utenti, controlla il campo solar
+  const hasSolar = userData.value?.solar === true || userData.value?.solar === 1
+  return hasSolar
 })
 
-// Watch per vedere quando cambia hasAlfacomSolarBrand
-watch(hasAlfacomSolarBrand, (newVal) => {
-  console.log('hasAlfacomSolarBrand changed:', newVal, 'canShowMenuItem:', canShowMenuItem.value)
-})
-
-// Watch per vedere quando cambia canShowMenuItem
-watch(canShowMenuItem, (newVal) => {
-  console.log('canShowMenuItem changed:', newVal, 'item:', props.item.title)
-})
-
-// Controlla il brand quando il componente viene montato
-onMounted(async () => {
-  console.log('VerticalNavLink mounted:', {
-    item: props.item,
-    subject: props.item.subject,
-    to: props.item.to,
-    requiresAlfacomSolarBrand: requiresAlfacomSolarBrand.value,
-    isAdmin: isAdmin.value,
-    canShowMenuItem: canShowMenuItem.value,
-    hasAlfacomSolarBrand: hasAlfacomSolarBrand.value,
-  })
-  
-  if (requiresAlfacomSolarBrand.value && !isAdmin.value) {
-    const result = await checkAlfacomSolarBrand()
-    console.log('checkAlfacomSolarBrand result:', result)
-    hasAlfacomSolarBrand.value = result
-    console.log('hasAlfacomSolarBrand.value after update:', hasAlfacomSolarBrand.value)
-    console.log('canShowMenuItem.value after update:', canShowMenuItem.value)
-  }
-})
 </script>
 
 <template>

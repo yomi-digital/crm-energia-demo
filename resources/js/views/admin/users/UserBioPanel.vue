@@ -223,6 +223,18 @@ const updateUserInfo = async (data) => {
               </VListItemTitle>
             </VListItem>
 
+            <!-- Solar -->
+            <VListItem>
+              <VListItemTitle>
+                <h6 class="text-h6">
+                  Solar:
+                  <div class="d-inline-block text-body-1">
+                    {{ props.userData.solar ? 'Sì' : 'No' }}
+                  </div>
+                </h6>
+              </VListItemTitle>
+            </VListItem>
+
             <!-- Structure -->
             <VListItem v-if="props.userData.structure">
               <VListItemTitle>

@@ -29,6 +29,7 @@ class User extends Authenticatable
         'enabled',
         'team_leader',
         'extractor',
+        'solar',
         'manager_id',
         'agency_id',
         'area',
@@ -63,6 +64,7 @@ class User extends Authenticatable
             'last_logout_at' => 'datetime',
             'password' => 'hashed',
             'must_change_password' => 'boolean',
+            'solar' => 'boolean',
         ];
     }
 

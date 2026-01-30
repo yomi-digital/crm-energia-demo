@@ -18,6 +18,7 @@ const props = defineProps({
       team_leader: 0,
       extractor: 0,
       enabled: 0,
+      solar: 0,
     }),
   },
   isDialogVisible: {
@@ -33,8 +34,17 @@ const emit = defineEmits([
 
 const userData = ref(structuredClone(toRaw(props.userData)))
 
+// Converti solar da boolean/string a 1/0 per il select
+if (userData.value.solar !== undefined && userData.value.solar !== null) {
+  userData.value.solar = (userData.value.solar === true || userData.value.solar === 1 || userData.value.solar === 'true' || userData.value.solar === '1') ? 1 : 0
+}
+
 watch(props, () => {
   userData.value = structuredClone(toRaw(props.userData))
+  // Converti solar da boolean/string a 1/0 per il select
+  if (userData.value.solar !== undefined && userData.value.solar !== null) {
+    userData.value.solar = (userData.value.solar === true || userData.value.solar === 1 || userData.value.solar === 'true' || userData.value.solar === '1') ? 1 : 0
+  }
 })
 
 // Toast variables
@@ -300,6 +310,20 @@ await fetchAgencies()
               <AppSelect
                 v-model="userData.enabled"
                 label="Abilitato"
+                placeholder="Seleziona"
+                :rules="[requiredValidator]"
+                :items="[{ title: 'SI', value: 1 }, { title: 'NO', value: 0 }]"
+              />
+            </VCol>
+
+            <!-- 👉 Solar -->
+            <VCol
+              cols="12"
+              md="6"
+            >
+              <AppSelect
+                v-model="userData.solar"
+                label="Solar"
                 placeholder="Seleziona"
                 :rules="[requiredValidator]"
                 :items="[{ title: 'SI', value: 1 }, { title: 'NO', value: 0 }]"
