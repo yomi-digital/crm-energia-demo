@@ -22,6 +22,7 @@ const selectedVoceEconomicaRemove = ref()
 const selectedStatus = ref('true')
 const selectedTipoVoce = ref('')
 const selectedCustomerType = ref('')
+const selectedIva = ref('')
 
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
@@ -87,6 +88,11 @@ const queryParams = computed(() => {
   // Aggiungi is_active solo se non è vuoto (non "Tutti")
   if (selectedStatus.value && selectedStatus.value !== '') {
     params.is_active = selectedStatus.value
+  }
+  
+  // Aggiungi iva solo se non è vuoto
+  if (selectedIva.value && selectedIva.value !== '') {
+    params.iva = selectedIva.value
   }
   
   return params
@@ -176,12 +182,19 @@ const tipoVoci = [
   { value: 'incentivo', title: 'Incentivo' },
   {value: 'sconto', title: 'Sconto'},
   { value: 'costo', title: 'Costo' },
+  { value: 'prodotto', title: 'Prodotto' },
 ]
 
 const customerTypes = [
   { value: '', title: 'Tutti' },
   { value: 'RESIDENZIALE', title: 'Residenziale' },
   { value: 'BUSINESS', title: 'Business' },
+]
+
+const ivaOptions = [
+  { value: '', title: 'Tutti' },
+  { value: 'true', title: 'Con IVA' },
+  { value: 'false', title: 'Senza IVA' },
 ]
 </script>
 
@@ -233,6 +246,20 @@ const customerTypes = [
               clearable
               :items="statuses"
               placeholder="Seleziona uno stato"
+            />
+          </VCol>
+
+          <!-- 👉 Select IVA -->
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <AppAutocomplete
+              v-model="selectedIva"
+              label="Filtra per IVA"
+              clearable
+              :items="ivaOptions"
+              placeholder="Seleziona IVA"
             />
           </VCol>
         </VRow>

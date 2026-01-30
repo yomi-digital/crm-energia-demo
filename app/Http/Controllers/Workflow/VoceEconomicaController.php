@@ -22,6 +22,7 @@ class VoceEconomicaController extends Controller
                 'isActive' => ['nullable', 'string', Rule::in(['true', 'false', '1', '0', 'all', 'TRUE', 'FALSE', 'All', 'ALL'])],
                 'customer_type' => ['nullable', 'string', Rule::in(['residenziale', 'business', 'RESIDENZIALE', 'BUSINESS'])],
                 'tipo_voce' => ['nullable', 'string'],
+                'iva' => ['nullable', 'string', Rule::in(['true', 'false', '1', '0', 'TRUE', 'FALSE'])],
                 'q' => ['nullable', 'string'],
                 'itemsPerPage' => ['nullable', 'integer', 'min:1'],
             ],
@@ -32,6 +33,8 @@ class VoceEconomicaController extends Controller
                 'isActive.string' => 'Il parametro isActive deve essere una stringa.',
                 'customer_type.in' => 'Il parametro customer_type può essere solo RESIDENZIALE o BUSINESS.',
                 'customer_type.string' => 'Il parametro customer_type deve essere una stringa.',
+                'iva.in' => 'Il parametro iva può essere solo true o false.',
+                'iva.string' => 'Il parametro iva deve essere una stringa.',
                 'tipo_voce.string' => 'Il parametro tipo_voce deve essere una stringa.',
                 'q.string' => 'Il parametro q deve essere una stringa.',
                 'itemsPerPage.integer' => 'Il parametro itemsPerPage deve essere un numero intero.',
@@ -73,6 +76,10 @@ class VoceEconomicaController extends Controller
 
         if ($request->filled('tipo_voce')) {
             $vociEconomiche->where('tipo_voce', $request->get('tipo_voce'));
+        }
+
+        if ($request->filled('iva')) {
+            $vociEconomiche->where('iva', $request->boolean('iva'));
         }
 
         if ($request->get('q')) {
