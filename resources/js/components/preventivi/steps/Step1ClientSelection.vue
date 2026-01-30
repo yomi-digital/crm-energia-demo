@@ -48,7 +48,7 @@
       <button class="btn btn-secondary" @click="openModal" style="margin-bottom: 0;">Crea Cliente</button>
     </div>
 
-    <div class="field" style="margin-top: 16px;">
+    <div class="field" style="margin-top: 16px;" v-if="!isCurrentUserAgent">
       <label for="agent" class="field-label">Agente/Struttura (opzionale)</label>
       <AppAutocomplete
         v-model="selectedAgent"
@@ -115,6 +115,12 @@ const props = defineProps({
   formData: Object,
 });
 const emit = defineEmits(['update:formData']);
+
+const userData = useCookie('userData');
+const isCurrentUserAgent = computed(() => {
+  if (!userData.value?.roles) return false;
+  return userData.value.roles.some(role => role.name === 'agente');
+});
 
 const isModalOpen = ref(false);
 const customers = ref([]);
@@ -234,6 +240,18 @@ const filteredAgents = computed(() => {
 
 // Watch per aggiornare formData quando cambia la selezione agente
 watch(selectedAgent, (newVal) => {
+  // Se l'utente corrente è un agente, impedisci la deselezione
+  if (isCurrentUserAgent.value && (!newVal || newVal === null)) {
+    // Ripristina l'agente corrente se viene deselezionato
+    if (userData.value?.id && agents.value.length > 0) {
+      const currentAgent = agents.value.find(a => a.value === userData.value.id);
+      if (currentAgent) {
+        selectedAgent.value = currentAgent;
+        return;
+      }
+    }
+  }
+  
   if (!newVal || newVal === null) {
     // Se viene cancellato (null), emetti null e resetta la ricerca
     agentSearch.value = '';
@@ -253,18 +271,34 @@ watch(selectedAgent, (newVal) => {
 
 // Carica i coefficienti produzione all'avvio dello step 1
 onMounted(async () => {
-  // Carica tutti gli agenti iniziali
-  await fetchAgents();
-  
-  // Se c'è un agente già selezionato nel formData, trovarlo nella lista
-  if (props.formData.selectedAgent) {
-    const numericId = typeof props.formData.selectedAgent === 'object' ? props.formData.selectedAgent.value : props.formData.selectedAgent;
-    const foundAgent = agents.value.find(a => a.value === numericId);
-    if (foundAgent) {
-      selectedAgent.value = foundAgent;
-    } else {
-      // Se non trovato, prova a caricarlo per ID
-      await fetchAgents(numericId);
+  // Se l'utente corrente è un agente, imposta automaticamente se stesso come agente selezionato
+  if (isCurrentUserAgent.value && userData.value?.id) {
+    const currentUserId = userData.value.id;
+    // Carica l'agente corrente per ID
+    await fetchAgents(currentUserId);
+    // Imposta l'agente corrente come selezionato
+    if (agents.value.length > 0) {
+      selectedAgent.value = agents.value[0];
+      // Aggiorna il formData con l'agente corrente
+      emit('update:formData', {
+        ...props.formData,
+        selectedAgent: currentUserId,
+      });
+    }
+  } else {
+    // Carica tutti gli agenti iniziali solo se non è un agente
+    await fetchAgents();
+    
+    // Se c'è un agente già selezionato nel formData, trovarlo nella lista
+    if (props.formData.selectedAgent) {
+      const numericId = typeof props.formData.selectedAgent === 'object' ? props.formData.selectedAgent.value : props.formData.selectedAgent;
+      const foundAgent = agents.value.find(a => a.value === numericId);
+      if (foundAgent) {
+        selectedAgent.value = foundAgent;
+      } else {
+        // Se non trovato, prova a caricarlo per ID
+        await fetchAgents(numericId);
+      }
     }
   }
   // Carica i coefficienti solo se non sono già stati caricati
