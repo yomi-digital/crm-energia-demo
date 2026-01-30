@@ -117,8 +117,10 @@ const simulationData = computed(() => {
     const energiaImmessaInRete = Math.max(0, annualProductionKwh - totalAutoconsumoKwh);
     const venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO;
     
-    // Calcola incentivo CER - eccedenza × 0.108 €/kWh (solo se abilitato)
-    const incentivoCer = props.formData.enableCer ? energiaImmessaInRete * 0.108 : 0;
+    // CALCOLO INCENTIVO CER - venditaEccedenza * (0.108 / PRICE_RITIRO_DEDICATO) + IVA 22%
+    const incentiveRatio = PRICE_RITIRO_DEDICATO > 0 ? 0.108 / PRICE_RITIRO_DEDICATO : 0;
+    const incentivoCerBase = props.formData.enableCer ? venditaEccedenza * incentiveRatio : 0;
+    const incentivoCer = incentivoCerBase * 1.22; // Aggiungi IVA al 22%
 
     return {
         risparmioAutoconsumo,
@@ -141,11 +143,18 @@ const totalSystemCost = computed(() => {
     
     const calculateAdjustmentAmount = (item) => {
         if (!item) return 0;
+        let valoreCalcolato = 0;
         if (item.tipo_valore === '%') {
             const baseAmount = productPrice + roofTypePrice;
-            return (baseAmount * item.valore_default) / 100;
+            valoreCalcolato = (baseAmount * item.valore_default) / 100;
+        } else {
+            valoreCalcolato = item.amount || item.valore_default || 0;
         }
-        return item.amount || item.valore_default || 0;
+        // Se la voce ha IVA, applica l'IVA al 22%
+        if (item.iva) {
+            valoreCalcolato = valoreCalcolato * 1.22;
+        }
+        return valoreCalcolato;
     };
     
     // I costi aggiuntivi vanno sommati subito sul totale
@@ -228,10 +237,17 @@ const businessPlanData = computed(() => {
         const roofTypePrice = props.formData.roofTypePrice || 0;
         const baseAmount = productPrice + roofTypePrice;
         
+        let valoreCalcolato = 0;
         if (item.tipo_valore === '%') {
-            return (baseAmount * item.valore_default) / 100;
+            valoreCalcolato = (baseAmount * item.valore_default) / 100;
+        } else {
+            valoreCalcolato = item.amount || item.valore_default || 0;
         }
-        return item.amount || item.valore_default || 0;
+        // Se la voce ha IVA, applica l'IVA al 22%
+        if (item.iva) {
+            valoreCalcolato = valoreCalcolato * 1.22;
+        }
+        return valoreCalcolato;
     };
 
     for (let year = 0; year <= 20; year++) {
@@ -243,7 +259,7 @@ const businessPlanData = computed(() => {
         const risparmioAnnuale = year > 0 ? simulationData.value.risparmioAutoconsumo * Math.pow(1.02, year - 1) : 0;
         const venditaEnergia = year > 0 ? simulationData.value.venditaEccedenza * Math.pow(1.02, year - 1) : 0;
         
-        // Incentivo CER - sempre lo stesso valore per 20 anni se abilitato (eccedenza × 0.108)
+        // Incentivo CER - sempre lo stesso valore per 20 anni se abilitato (venditaEccedenza * ratio + IVA)
         const cer = year > 0 && props.formData.enableCer ? simulationData.value.incentivoCer : 0;
         
         // Detrazione fiscale solo per i primi 10 anni

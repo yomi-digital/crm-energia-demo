@@ -24,6 +24,14 @@
         <AdjustmentListSummary title="Incentivi" :items="formData.incentives" />
         <AdjustmentListSummary title="Sconti" :items="formData.discounts" />
         <AdjustmentListSummary title="Costi Aggiuntivi" :items="formData.additionalCosts" />
+        <div style="margin-top:12px;padding-top:12px;border-top:2px solid #e5e7eb;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-weight:700;font-size:16px;color:#1f2937;">Prezzo Finale Totale:</span>
+            <span style="font-weight:700;font-size:18px;color:#059669;">
+              {{ totalSystemCostDisplay.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }) }}
+            </span>
+          </div>
+        </div>
       </div>
       
       <div v-if="errorMessage" class="error-message" style="margin-top:16px;padding:12px;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;color:#991b1b;">
@@ -182,8 +190,10 @@ const simulationData = computed(() => {
     const energiaImmessaInRete = Math.max(0, annualProductionKwh - totalAutoconsumoKwh);
     const venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO;
 
-    // CALCOLO INCENTIVO CER - eccedenza × 0.108 €/kWh (solo se abilitato)
-    const incentivoCer = props.formData.enableCer ? energiaImmessaInRete * 0.108 : 0;
+    // CALCOLO INCENTIVO CER - venditaEccedenza * (0.108 / PRICE_RITIRO_DEDICATO) + IVA 22%
+    const incentiveRatio = PRICE_RITIRO_DEDICATO > 0 ? 0.108 / PRICE_RITIRO_DEDICATO : 0;
+    const incentivoCerBase = props.formData.enableCer ? venditaEccedenza * incentiveRatio : 0;
+    const incentivoCer = incentivoCerBase * 1.22; // Aggiungi IVA al 22%
 
     // Calcola costo totale sistema per detrazione fiscale
     let productPrice = 0;
@@ -198,16 +208,26 @@ const simulationData = computed(() => {
     
     const calculateAdjustmentAmount = (item) => {
         if (!item) return 0;
+        let valoreCalcolato = 0;
         if (item.tipo_valore === '%') {
             const baseAmount = productPrice + roofTypePrice;
-            return (baseAmount * item.valore_default) / 100;
+            valoreCalcolato = (baseAmount * item.valore_default) / 100;
+        } else {
+            valoreCalcolato = item.amount || item.valore_default || 0;
         }
-        return item.amount || item.valore_default || 0;
+        // Se la voce ha IVA, applica l'IVA al 22%
+        if (item.iva) {
+            valoreCalcolato = valoreCalcolato * 1.22;
+        }
+        return valoreCalcolato;
     };
     
     const additionalCostsTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const discountsTotal = (props.formData.discounts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
     const totalSystemCost = productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
+
+    // CALCOLO INCENTIVO CER - 22% dei costi del cliente (solo se abilitato)
+    const incentivoCer = props.formData.enableCer ? totalSystemCost * 0.22 : 0;
 
     let deductionPercentage = 0;
     if (props.formData.fiscalDeductionType === 'prima_casa') {
@@ -224,7 +244,41 @@ const simulationData = computed(() => {
         incentivoCer: Math.round(incentivoCer),
         detrazioneFiscaleAnnua: Math.round(detrazioneFiscaleAnnua),
         detrazioneFiscalePercentuale: deductionPercentage,
+        totalSystemCost: Math.round(totalSystemCost),
     };
+});
+
+// Computed per calcolare il totale del sistema per visualizzazione
+const totalSystemCostDisplay = computed(() => {
+    let productPrice = 0;
+    if (props.formData.selectedProduct && prodottiFotovoltaico.value.length > 0) {
+        const selectedProduct = prodottiFotovoltaico.value.find(p => p.id_prodotto === Number(props.formData.selectedProduct));
+        if (selectedProduct && selectedProduct.prezzo_base) {
+            productPrice = selectedProduct.prezzo_base;
+        }
+    }
+    const roofTypePrice = props.formData.roofTypePrice || 0;
+    
+    const calculateAdjustmentAmount = (item) => {
+        if (!item) return 0;
+        let valoreCalcolato = 0;
+        if (item.tipo_valore === '%') {
+            const baseAmount = productPrice + roofTypePrice;
+            valoreCalcolato = (baseAmount * item.valore_default) / 100;
+        } else {
+            valoreCalcolato = item.amount || item.valore_default || 0;
+        }
+        // Se la voce ha IVA, applica l'IVA al 22%
+        if (item.iva) {
+            valoreCalcolato = valoreCalcolato * 1.22;
+        }
+        return valoreCalcolato;
+    };
+    
+    const additionalCostsTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
+    const discountsTotal = (props.formData.discounts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
+    
+    return productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
 });
 
 // Formatta i dati bolletta nel formato richiesto
@@ -337,11 +391,18 @@ const preparePayload = () => {
     
     const calculateAdjustmentAmountForTotal = (item) => {
         if (!item) return 0;
+        let valoreCalcolato = 0;
         if (item.tipo_valore === '%') {
             const baseAmount = productPriceForTotal + roofTypePriceForTotal;
-            return (baseAmount * item.valore_default) / 100;
+            valoreCalcolato = (baseAmount * item.valore_default) / 100;
+        } else {
+            valoreCalcolato = item.amount || item.valore_default || 0;
         }
-        return item.amount || item.valore_default || 0;
+        // Se la voce ha IVA, applica l'IVA al 22%
+        if (item.iva) {
+            valoreCalcolato = valoreCalcolato * 1.22;
+        }
+        return valoreCalcolato;
     };
     
     const additionalCostsTotalForTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmountForTotal(item), 0);
@@ -428,6 +489,7 @@ const preparePayload = () => {
             tipo_voce_salvata: 'incentivo',
             valore_applicato: valoreApplicato,
             tipo_valore_salvato: inc.tipo_valore === '%' ? '%' : '€',
+            iva: inc.iva || false,
             anni_durata_agevolazione_salvata: inc.anni_durata_default || 0,
             anno_inizio_salvato: inc.anno_inizio || 1,
             anno_fine_salvato: inc.anno_fine || 1,
@@ -445,6 +507,7 @@ const preparePayload = () => {
             tipo_voce_salvata: 'sconto',
             valore_applicato: valoreApplicato,
             tipo_valore_salvato: sconto.tipo_valore === '%' ? '%' : '€',
+            iva: sconto.iva || false,
             anni_durata_agevolazione_salvata: sconto.anni_durata_default || 0,
             anno_inizio_salvato: sconto.anno_inizio || 1,
             anno_fine_salvato: sconto.anno_fine || 1,
@@ -462,6 +525,7 @@ const preparePayload = () => {
             tipo_voce_salvata: 'costo',
             valore_applicato: valoreApplicato,
             tipo_valore_salvato: costo.tipo_valore === '%' ? '%' : '€',
+            iva: costo.iva || false,
             anni_durata_agevolazione_salvata: costo.anni_durata_default || 0,
             anno_inizio_salvato: costo.anno_inizio || 1,
             anno_fine_salvato: costo.anno_fine || 1,
@@ -484,11 +548,18 @@ const preparePayload = () => {
         
         const calculateAdjustmentAmount = (item) => {
             if (!item) return 0;
+            let valoreCalcolato = 0;
             if (item.tipo_valore === '%') {
                 const baseAmount = productPrice + roofTypePrice;
-                return (baseAmount * item.valore_default) / 100;
+                valoreCalcolato = (baseAmount * item.valore_default) / 100;
+            } else {
+                valoreCalcolato = item.amount || item.valore_default || 0;
             }
-            return item.amount || item.valore_default || 0;
+            // Se la voce ha IVA, applica l'IVA al 22%
+            if (item.iva) {
+                valoreCalcolato = valoreCalcolato * 1.22;
+            }
+            return valoreCalcolato;
         };
         
         const additionalCostsTotal = (props.formData.additionalCosts || []).reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
@@ -542,7 +613,7 @@ const preparePayload = () => {
                 const risparmioAnnuale = simulationData.value.risparmioAutoconsumo * Math.pow(1.02, year - 1);
                 const venditaEnergia = simulationData.value.venditaEccedenza * Math.pow(1.02, year - 1);
                 
-                // Incentivo CER - sempre lo stesso valore per 20 anni se abilitato (eccedenza × 0.108)
+                // Incentivo CER - sempre lo stesso valore per 20 anni se abilitato (venditaEccedenza * ratio + IVA)
                 const ricavoIncentivoCer = props.formData.enableCer ? simulationData.value.incentivoCer : 0;
                 
                 // Detrazione fiscale solo per i primi 10 anni

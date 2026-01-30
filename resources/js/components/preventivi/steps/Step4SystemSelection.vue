@@ -328,7 +328,6 @@
                         <input type="checkbox" id="enable-cer-check" :checked="formData.enableCer" @change="updateFormData('enableCer', $event.target.checked)" style="margin-right:8px;"/>
                         Abilita Incentivo CER
                     </label>
-                    <span class="help-text" style="font-size:12px;color:#6b7280;">Calcolo: eccedenza (kWh) × 0.108 €/kWh</span>
                 </div>
                 <AdjustmentList title="Incentivi" listName="incentives" :items="formData.incentives" @update:items="updateFormData('incentives', $event)" />
                 <div class="grid-responsive-2">
@@ -345,7 +344,7 @@
                 <EarningsInfoCard 
                     title="INCENTIVO CER" 
                     :value="simulationResults.incentivoCer.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 1 })"
-                    description="Incentivo annuale CER per l'energia condivisa nella Comunità Energetica (eccedenza × 0.108 €/kWh)."
+                    description="Incentivo annuale CER calcolato sulla vendita eccedenza con IVA inclusa."
                 />
                 <EarningsInfoCard 
                     title="DETRAZIONE FISCALE" 
@@ -680,19 +679,33 @@ const totalSystemCostComputed = computed(() => {
     const roofTypePrice = props.formData.roofTypePrice || 0;
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => {
         if (!item) return sum;
+        let valoreCalcolato = 0;
         if (item.tipo_valore === '%') {
             const baseAmount = productPrice + roofTypePrice;
-            return sum + (baseAmount * item.valore_default) / 100;
+            valoreCalcolato = (baseAmount * item.valore_default) / 100;
+        } else {
+            valoreCalcolato = item.amount || item.valore_default || 0;
         }
-        return sum + (item.amount || item.valore_default || 0);
+        // Se la voce ha IVA, applica l'IVA al 22%
+        if (item.iva) {
+            valoreCalcolato = valoreCalcolato * 1.22;
+        }
+        return sum + valoreCalcolato;
     }, 0);
     const discountsTotal = props.formData.discounts.reduce((sum, item) => {
         if (!item) return sum;
+        let valoreCalcolato = 0;
         if (item.tipo_valore === '%') {
             const baseAmount = productPrice + roofTypePrice;
-            return sum + (baseAmount * item.valore_default) / 100;
+            valoreCalcolato = (baseAmount * item.valore_default) / 100;
+        } else {
+            valoreCalcolato = item.amount || item.valore_default || 0;
         }
-        return sum + (item.amount || item.valore_default || 0);
+        // Se la voce ha IVA, applica l'IVA al 22%
+        if (item.iva) {
+            valoreCalcolato = valoreCalcolato * 1.22;
+        }
+        return sum + valoreCalcolato;
     }, 0);
     return productPrice + roofTypePrice + additionalCostsTotal - discountsTotal;
 });
@@ -895,8 +908,10 @@ const simulationResults = computed(() => {
     const energiaImmessaInRete = Math.max(0, annualProductionKwh - totalAutoconsumoKwh);
     const venditaEccedenza = energiaImmessaInRete * PRICE_RITIRO_DEDICATO;
 
-    // CALCOLO INCENTIVO CER - eccedenza × 0.108 €/kWh (solo se abilitato)
-    const incentivoCer = props.formData.enableCer ? energiaImmessaInRete * 0.108 : 0;
+    // CALCOLO INCENTIVO CER - venditaEccedenza * (0.108 / PRICE_RITIRO_DEDICATO) + IVA 22%
+    const incentiveRatio = PRICE_RITIRO_DEDICATO > 0 ? 0.108 / PRICE_RITIRO_DEDICATO : 0;
+    const incentivoCerBase = props.formData.enableCer ? venditaEccedenza * incentiveRatio : 0;
+    const incentivoCer2 = incentivoCerBase * 1.22; // Aggiungi IVA al 22%
 
     // Cerca il prezzo del prodotto selezionato
     let productPrice = 0;
@@ -912,16 +927,23 @@ const simulationResults = computed(() => {
     // Il prezzo batteria è già incluso nel prezzo prodotto
     const roofTypePrice = props.formData.roofTypePrice || 0;
     
-    // Calcola i costi aggiuntivi e sconti gestendo valori percentuali
+    // Calcola i costi aggiuntivi e sconti gestendo valori percentuali e IVA
     const calculateAdjustmentAmount = (item) => {
         if (!item) return 0;
+        let valoreCalcolato = 0;
         // Se è una voce percentuale, calcola l'importo come percentuale del costo base
         if (item.tipo_valore === '%') {
             const baseAmount = productPrice + roofTypePrice;
-            return (baseAmount * item.valore_default) / 100;
+            valoreCalcolato = (baseAmount * item.valore_default) / 100;
+        } else {
+            // Altrimenti usa l'importo diretto
+            valoreCalcolato = item.amount || item.valore_default || 0;
         }
-        // Altrimenti usa l'importo diretto
-        return item.amount || item.valore_default || 0;
+        // Se la voce ha IVA, applica l'IVA al 22%
+        if (item.iva) {
+            valoreCalcolato = valoreCalcolato * 1.22;
+        }
+        return valoreCalcolato;
     };
     
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);
@@ -937,7 +959,7 @@ const simulationResults = computed(() => {
     }
     const detrazioneFiscale = (totalSystemCost * deductionPercentage) / 10;
     
-    return { risparmioAutoconsumo, venditaEccedenza, incentivoCer, detrazioneFiscale };
+    return { risparmioAutoconsumo, venditaEccedenza, incentivoCer:incentivoCer2, detrazioneFiscale };
 });
 
 const isResidential = computed(() => {
@@ -985,11 +1007,18 @@ const calculateTotalSystemCost = () => {
     
     const calculateAdjustmentAmount = (item) => {
         if (!item) return 0;
+        let valoreCalcolato = 0;
         if (item.tipo_valore === '%') {
             const baseAmount = productPrice + roofTypePrice;
-            return (baseAmount * item.valore_default) / 100;
+            valoreCalcolato = (baseAmount * item.valore_default) / 100;
+        } else {
+            valoreCalcolato = item.amount || item.valore_default || 0;
         }
-        return item.amount || item.valore_default || 0;
+        // Se la voce ha IVA, applica l'IVA al 22%
+        if (item.iva) {
+            valoreCalcolato = valoreCalcolato * 1.22;
+        }
+        return valoreCalcolato;
     };
     
     const additionalCostsTotal = props.formData.additionalCosts.reduce((sum, item) => sum + calculateAdjustmentAmount(item), 0);

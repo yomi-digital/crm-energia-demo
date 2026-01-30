@@ -136,16 +136,19 @@ const Step4SystemSelection: React.FC<StepProps> = ({ formData, updateFormData })
         const dato2Kwh = Math.max(0, nighttimeConsumptionKwh - (batteryCapacityKwh * 365));
         const venditaEccedenza = (dato1Kwh + dato2Kwh) * PRICE_RITIRO_DEDICATO;
 
-        // 5. Incentivo CER - Y * 0.108 where Y is venditaEccedenza
+        // 5. CALCOLO INCENTIVO CER - venditaEccedenza * (0.108 / PRICE_RITIRO_DEDICATO) + IVA 22%
         const incentiveRatio = PRICE_RITIRO_DEDICATO > 0 ? 0.108 / PRICE_RITIRO_DEDICATO : 0;
-        const incentivoCer = venditaEccedenza * incentiveRatio;
+        const incentivoCerBase = formData.enableCer ? venditaEccedenza * incentiveRatio : 0;
+        const incentivoCer = incentivoCerBase * 1.22; // Aggiungi IVA al 22%
 
-        // 6. Detrazione Fiscale
+        // 6. Calcolo costo totale sistema per detrazione fiscale
         const productPrice = PRODUCTS.find(p => p.name === formData.selectedProduct)?.price || 0;
         const batteryPrice = calculateBatteryPrice(formData.selectedBatteryCapacity);
         const additionalCostsTotal = formData.additionalCosts.reduce((sum, item) => sum + item.amount, 0);
         const discountsTotal = formData.discounts.reduce((sum, item) => sum + item.amount, 0);
         const totalSystemCost = productPrice + batteryPrice + additionalCostsTotal - discountsTotal;
+
+        // 7. Detrazione Fiscale
 
         let deductionPercentage = 0;
         if (formData.fiscalDeductionType === 'prima_casa') {
