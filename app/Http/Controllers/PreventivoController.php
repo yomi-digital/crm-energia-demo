@@ -568,7 +568,7 @@ class PreventivoController extends Controller
             'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_voce_salvata' => ['required', 'string', Rule::in(['incentivo', 'sconto', 'costo', 'prodotto'])],
             'PREVENTIVI_VOCE_ECONOMICHE.*.valore_applicato' => ['required', new StrictPositiveNumberRule('PREVENTIVI_VOCE_ECONOMICHE.*.valore_applicato', false, 0, true)],
             'PREVENTIVI_VOCE_ECONOMICHE.*.tipo_valore_salvato' => 'required|string|in:%,€',
-            'PREVENTIVI_VOCE_ECONOMICHE.*.iva' => 'nullable|boolean',
+            'PREVENTIVI_VOCE_ECONOMICHE.*.iva' => 'nullable|integer|in:0,10,22',
             'PREVENTIVI_VOCE_ECONOMICHE.*.anno_inizio_salvato' => ['required', new StrictNonNegativeRule('PREVENTIVI_VOCE_ECONOMICHE.*.anno_inizio_salvato')],
             'PREVENTIVI_VOCE_ECONOMICHE.*.anno_fine_salvato' => ['required', new StrictNonNegativeRule('PREVENTIVI_VOCE_ECONOMICHE.*.anno_fine_salvato')],
 

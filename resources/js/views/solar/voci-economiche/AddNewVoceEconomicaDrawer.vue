@@ -20,7 +20,7 @@ const tipoVoce = ref('')
 const tipoValore = ref('')
 const valoreDefault = ref('')
 const tipoCliente = ref(['RESIDENZIALE', 'BUSINESS'])
-const iva = ref(false)
+const iva = ref(0)
 
 const tipoVoceOptions = [
   { title: 'Incentivo', value: 'incentivo' },
@@ -37,6 +37,12 @@ const tipoValoreOptions = [
 const tipoClienteOptions = [
   { title: 'Residenziale', value: 'RESIDENZIALE' },
   { title: 'Business', value: 'BUSINESS' },
+]
+
+const ivaOptions = [
+  { title: 'IVA non presente', value: 0 },
+  { title: 'IVA 10%', value: 10 },
+  { title: 'IVA 22%', value: 22 },
 ]
 
 // 👉 drawer close
@@ -70,7 +76,7 @@ const onSubmit = () => {
         tipoValore.value = ''
         valoreDefault.value = ''
         tipoCliente.value = ['RESIDENZIALE', 'BUSINESS']
-        iva.value = false
+        iva.value = 0
       })
     }
   })
@@ -162,9 +168,11 @@ const handleDrawerModelValueUpdate = val => {
 
               <!-- 👉 IVA -->
               <VCol cols="12">
-                <VCheckbox
+                <AppSelect
                   v-model="iva"
+                  :items="ivaOptions"
                   label="IVA"
+                  placeholder="Seleziona IVA"
                 />
               </VCol>
 

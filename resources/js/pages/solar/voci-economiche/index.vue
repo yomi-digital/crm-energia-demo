@@ -193,8 +193,9 @@ const customerTypes = [
 
 const ivaOptions = [
   { value: '', title: 'Tutti' },
-  { value: 'true', title: 'Con IVA' },
-  { value: 'false', title: 'Senza IVA' },
+  { value: '0', title: 'IVA non presente' },
+  { value: '10', title: 'IVA 10%' },
+  { value: '22', title: 'IVA 22%' },
 ]
 </script>
 
@@ -375,10 +376,10 @@ const ivaOptions = [
         <!-- IVA -->
         <template #item.iva="{ item }">
           <VChip
-            :color="item.iva ? 'success' : 'default'"
+            :color="item.iva > 0 ? 'success' : 'default'"
             size="small"
           >
-            {{ item.iva ? 'Sì' : 'No' }}
+            {{ item.iva > 0 ? `IVA ${item.iva}%` : 'IVA non presente' }}
           </VChip>
         </template>
 

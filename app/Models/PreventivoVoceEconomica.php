@@ -26,7 +26,7 @@ class PreventivoVoceEconomica extends Model
 
     protected $casts = [
         'valore_applicato' => 'float',
-        'iva' => 'boolean',
+        'iva' => 'integer',
         'anno_inizio_salvato' => 'float',
         'anno_fine_salvato' => 'float',
     ];

@@ -29,7 +29,7 @@ class VoceEconomica extends Model
         'anno_inizio' => 'integer',
         'anno_fine' => 'integer',
         'is_active' => 'boolean',
-        'iva' => 'boolean',
+        'iva' => 'integer',
     ];
 
     public function applicabilita()

@@ -2689,7 +2689,7 @@
                             foreach ($vociEconomiche as $voce) {
                                 $valoreApplicato = floatval($voce->valore_applicato ?? 0);
                                 $tipoValore = $voce->tipo_valore_salvato ?? '';
-                                $haIva = $voce->iva ?? false;
+                                $ivaPercentuale = intval($voce->iva ?? 0);
                                 
                                 $valoreCalcolato = 0;
                                 
@@ -2701,10 +2701,10 @@
                                     $valoreCalcolato = $valoreApplicato;
                                 }
                                 
-                                // Se la voce NON ha IVA, applica l'IVA al 22% perché è solo l'imponibile
-                                // Se ha IVA, il valore è già comprensivo di IVA
-                                if (!$haIva) {
-                                    $valoreCalcolato = $valoreCalcolato * 1.22;
+                                // Se la voce ha IVA != 0, applica l'IVA in base alla percentuale specificata
+                                // Se IVA = 0, il valore è già comprensivo di IVA (o senza IVA)
+                                if ($ivaPercentuale > 0) {
+                                    $valoreCalcolato = $valoreCalcolato * (1 + ($ivaPercentuale / 100));
                                 }
                                 
                                 $totaleScontiIncentivi += $valoreCalcolato;
@@ -2882,7 +2882,7 @@
                         @php
                             $valoreApplicato = floatval($voce->valore_applicato ?? 0);
                             $tipoValore = $voce->tipo_valore_salvato ?? '';
-                            $haIva = $voce->iva ?? false;
+                            $ivaPercentuale = intval($voce->iva ?? 0);
                             
                             $valoreCalcolato = 0;
                             if ($tipoValore === '%') {
@@ -2891,9 +2891,13 @@
                                 $valoreCalcolato = $valoreApplicato;
                             }
                             
-                            // Se la voce NON ha IVA, applica l'IVA al 22% perché è solo l'imponibile
-                            // Se ha IVA, il valore è già comprensivo di IVA
-                            $valoreConIva = $haIva ? $valoreCalcolato : $valoreCalcolato * 1.22;
+                            // Se la voce ha IVA != 0, applica l'IVA in base alla percentuale specificata
+                            // Se IVA = 0, il valore è già comprensivo di IVA (o senza IVA)
+                            if ($ivaPercentuale > 0) {
+                                $valoreConIva = $valoreCalcolato * (1 + ($ivaPercentuale / 100));
+                            } else {
+                                $valoreConIva = $valoreCalcolato;
+                            }
                             
                             // Accumula i totali per tipo voce
                             if ($voce->tipo_voce_salvata === 'incentivo') {
@@ -2921,7 +2925,7 @@
                                 {{ number_format($valoreApplicato, 2, ',', '.') }}{{ $tipoValore === '%' ? '%' : ' €' }}
                             </td>
                             <td style="padding: 8px; border: 1px solid #ddd; text-align: center; word-wrap: break-word;">
-                                {{ $haIva ? 'Sì (22%)' : 'No' }}
+                                {{ $ivaPercentuale > 0 ? 'Sì (' . $ivaPercentuale . '%)' : 'No' }}
                             </td>
                             <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold; word-wrap: break-word;">
                                 € {{ number_format($valoreConIva, 2, ',', '.') }}

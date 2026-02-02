@@ -24,7 +24,7 @@ const tipoVoce = ref()
 const tipoValore = ref()
 const valoreDefault = ref()
 const tipoCliente = ref([])
-const iva = ref(false)
+const iva = ref(0)
 
 const tipoVoceOptions = [
   { title: 'Incentivo', value: 'incentivo' },
@@ -43,12 +43,24 @@ const tipoClienteOptions = [
   { title: 'Business', value: 'BUSINESS' },
 ]
 
+const ivaOptions = [
+  { title: 'IVA non presente', value: 0 },
+  { title: 'IVA 10%', value: 10 },
+  { title: 'IVA 22%', value: 22 },
+]
+
 nomeVoce.value = props.voceEconomica.nome_voce
 tipoVoce.value = props.voceEconomica.tipo_voce
 tipoValore.value = props.voceEconomica.tipo_valore
 valoreDefault.value = props.voceEconomica.valore_default
 tipoCliente.value = props.voceEconomica.tipo_cliente || []
-iva.value = props.voceEconomica.iva ?? false
+// Converti IVA da boolean a integer se necessario (per retrocompatibilità)
+const ivaValue = props.voceEconomica.iva
+if (typeof ivaValue === 'boolean') {
+  iva.value = ivaValue ? 22 : 0
+} else {
+  iva.value = ivaValue ?? 0
+}
 
 watch(() => props.isDrawerOpen, (val) => {
   if (val) {
@@ -57,7 +69,13 @@ watch(() => props.isDrawerOpen, (val) => {
     tipoValore.value = props.voceEconomica.tipo_valore
     valoreDefault.value = props.voceEconomica.valore_default
     tipoCliente.value = props.voceEconomica.tipo_cliente || []
-    iva.value = props.voceEconomica.iva ?? false
+    // Converti IVA da boolean a integer se necessario (per retrocompatibilità)
+const ivaValue = props.voceEconomica.iva
+if (typeof ivaValue === 'boolean') {
+  iva.value = ivaValue ? 22 : 0
+} else {
+  iva.value = ivaValue ?? 0
+}
   }
 })
 
@@ -179,9 +197,11 @@ const handleDrawerModelValueUpdate = val => {
 
               <!-- 👉 IVA -->
               <VCol cols="12">
-                <VCheckbox
+                <AppSelect
                   v-model="iva"
+                  :items="ivaOptions"
                   label="IVA"
+                  placeholder="Seleziona IVA"
                 />
               </VCol>
 

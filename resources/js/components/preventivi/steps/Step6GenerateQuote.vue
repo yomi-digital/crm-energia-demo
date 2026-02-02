@@ -476,6 +476,27 @@ const preparePayload = () => {
         }
     }
 
+    // Funzione helper per convertire IVA a integer
+    const convertIvaToInteger = (ivaValue) => {
+        // Se è già un numero valido (0, 10, 22), restituiscilo
+        if (typeof ivaValue === 'number' && [0, 10, 22].includes(ivaValue)) {
+            return ivaValue;
+        }
+        // Se è boolean, converti: true -> 22, false -> 0
+        if (typeof ivaValue === 'boolean') {
+            return ivaValue ? 22 : 0;
+        }
+        // Se è stringa numerica, convertila
+        if (typeof ivaValue === 'string') {
+            const num = parseInt(ivaValue, 10);
+            if (!isNaN(num) && [0, 10, 22].includes(num)) {
+                return num;
+            }
+        }
+        // Default: 0
+        return 0;
+    };
+
     // Prepara voci economiche
     const vociEconomiche = [];
     
@@ -490,7 +511,7 @@ const preparePayload = () => {
             tipo_voce_salvata: 'incentivo',
             valore_applicato: valoreApplicato,
             tipo_valore_salvato: inc.tipo_valore === '%' ? '%' : '€',
-            iva: inc.iva || false,
+            iva: convertIvaToInteger(inc.iva),
             anni_durata_agevolazione_salvata: inc.anni_durata_default || 0,
             anno_inizio_salvato: inc.anno_inizio || 1,
             anno_fine_salvato: inc.anno_fine || 1,
@@ -508,7 +529,7 @@ const preparePayload = () => {
             tipo_voce_salvata: 'sconto',
             valore_applicato: valoreApplicato,
             tipo_valore_salvato: sconto.tipo_valore === '%' ? '%' : '€',
-            iva: sconto.iva || false,
+            iva: convertIvaToInteger(sconto.iva),
             anni_durata_agevolazione_salvata: sconto.anni_durata_default || 0,
             anno_inizio_salvato: sconto.anno_inizio || 1,
             anno_fine_salvato: sconto.anno_fine || 1,
@@ -526,7 +547,7 @@ const preparePayload = () => {
             tipo_voce_salvata: 'costo',
             valore_applicato: valoreApplicato,
             tipo_valore_salvato: costo.tipo_valore === '%' ? '%' : '€',
-            iva: costo.iva || false,
+            iva: convertIvaToInteger(costo.iva),
             anni_durata_agevolazione_salvata: costo.anni_durata_default || 0,
             anno_inizio_salvato: costo.anno_inizio || 1,
             anno_fine_salvato: costo.anno_fine || 1,
@@ -544,7 +565,7 @@ const preparePayload = () => {
             tipo_voce_salvata: 'prodotto',
             valore_applicato: valoreApplicato,
             tipo_valore_salvato: prodotto.tipo_valore === '%' ? '%' : '€',
-            iva: prodotto.iva || false,
+            iva: convertIvaToInteger(prodotto.iva),
             anni_durata_agevolazione_salvata: prodotto.anni_durata_default || 0,
             anno_inizio_salvato: prodotto.anno_inizio || 1,
             anno_fine_salvato: prodotto.anno_fine || 1,

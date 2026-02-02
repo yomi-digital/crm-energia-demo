@@ -82,7 +82,7 @@ const loadVociFromApi = async () => {
             anni_durata_default: voce.anni_durata_default,
             anno_inizio: voce.anno_inizio,
             anno_fine: voce.anno_fine,
-            iva: voce.iva || false, // Flag IVA
+            iva: convertIvaToInteger(voce.iva), // IVA come integer (0, 10, 22)
             // Manteniamo anche description e amount per compatibilità con il formato esistente
             description: voce.nome_voce,
             amount: voce.valore_default, // Importo di default, sarà calcolato se percentuale
@@ -115,6 +115,27 @@ const currentOptions = computed(() => {
     return fallbackMap[props.listName] || [];
 });
 
+// Funzione helper per convertire IVA a integer (riutilizzabile)
+const convertIvaToInteger = (ivaValue) => {
+    // Se è già un numero valido (0, 10, 22), restituiscilo
+    if (typeof ivaValue === 'number' && [0, 10, 22].includes(ivaValue)) {
+        return ivaValue;
+    }
+    // Se è boolean, converti: true -> 22, false -> 0
+    if (typeof ivaValue === 'boolean') {
+        return ivaValue ? 22 : 0;
+    }
+    // Se è stringa numerica, convertila
+    if (typeof ivaValue === 'string') {
+        const num = parseInt(ivaValue, 10);
+        if (!isNaN(num) && [0, 10, 22].includes(num)) {
+            return num;
+        }
+    }
+    // Default: 0
+    return 0;
+};
+
 const handleDescriptionChange = (index, newIdVoce) => {
     const newList = [...props.items];
     const selectedOption = currentOptions.value.find(opt => 
@@ -134,7 +155,7 @@ const handleDescriptionChange = (index, newIdVoce) => {
                 anni_durata_default: selectedOption.anni_durata_default,
                 anno_inizio: selectedOption.anno_inizio,
                 anno_fine: selectedOption.anno_fine,
-                iva: selectedOption.iva || false, // Flag IVA
+                iva: convertIvaToInteger(selectedOption.iva), // IVA come integer
                 // Mantieni anche description e amount per compatibilità
                 description: selectedOption.nome_voce,
                 amount: selectedOption.valore_default, // Sarà calcolato se percentuale
@@ -163,7 +184,7 @@ const handleAddItem = () => {
                 anni_durata_default: firstOption.anni_durata_default,
                 anno_inizio: firstOption.anno_inizio,
                 anno_fine: firstOption.anno_fine,
-                iva: firstOption.iva || false, // Flag IVA
+                iva: convertIvaToInteger(firstOption.iva), // IVA come integer
                 description: firstOption.nome_voce,
                 amount: firstOption.valore_default,
             }]);
