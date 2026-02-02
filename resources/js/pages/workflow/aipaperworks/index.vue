@@ -444,8 +444,7 @@ const processDocument = async (item) => {
               v-if="item.assignment_status !== 'accept' && item.assignment_status !== 'accepted'"
               size="small"
               color="success"
-              variant="tonal"
-              class="compact-btn"
+              variant="flat"
               @click="acceptPaperwork(item)"
             >
               Accetta di lavorarla
