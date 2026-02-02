@@ -1853,7 +1853,7 @@
                     }
                 @endphp
                 <h3 style="margin-bottom: 10px;">OGGETTO:</h3>
-                <p style="margin-bottom: 10px;"><b>Offerta per la realizzazione "chiavi in mano" di {{ $nome_prodotto_oggetto ? '('.$nome_prodotto_oggetto.') ' : '' }}</b></p>
+                <p style="margin-bottom: 10px;"><b>Offerta per la realizzazione "chiavi in mano" di un {{ $nome_prodotto_oggetto ? ''.$nome_prodotto_oggetto.'' : '' }}</b></p>
                 <p><i>Spett.le Cliente</i></p>
                 <p style="margin-bottom: 10px;">in riferimento ai colloqui intercorsi ed alla Sua richiesta, Le formuliamo la nostra proposta per l'esecuzione di quanto in oggetto alle seguenti principali condizioni. L'Azienda rimane a disposizione per ulteriori chiarimenti.</p>
                 <p>La presente proposta commerciale comprende:</p>
@@ -2398,7 +2398,20 @@
                         <div style="position: absolute; top: 5.8mm; right: 70mm; height: 10mm; width: 10mm; background-image: url('{{ public_path('images/pdf/Arrow_1.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
                         <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">DETRAZIONE <span style="color: #4BAE66; font-weight: bold;">FISCALE</span></span>
                         <div style="border:1px solid #e0e0e0; height: 22mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(206, 206, 206) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                            <p style="font-size: 18px; font-weight: bold; transform: translateY(5mm) translateX(5mm);">{{ number_format($preventivo->detrazione_fiscale_annua ?? 0, 2, ',', '.') }} <span style="color: #999;">%</span></p>
+                            @php
+                                // Calcola il prezzo del prodotto per la detrazione fiscale
+                                $prezzoProdottoDetrazione = 0;
+                                if ($preventivo->dettagliProdotti && $preventivo->dettagliProdotti->count() > 0) {
+                                    $primoProdottoDetrazione = $preventivo->dettagliProdotti->first();
+                                    $quantitaDetrazione = floatval($primoProdottoDetrazione->quantita ?? 1);
+                                    $prezzoUnitarioDetrazione = floatval($primoProdottoDetrazione->prezzo_unitario_salvato ?? 0);
+                                    $prezzoProdottoDetrazione = $quantitaDetrazione * $prezzoUnitarioDetrazione;
+                                }
+                                // Calcola la detrazione fiscale: (percentuale detrazione fiscale% del prodotto) / 20
+                                $detrazioneFiscalePercentuale = floatval($preventivo->detrazione_fiscale_annua ?? 0);
+                                $detrazioneFiscaleCosto = ($detrazioneFiscalePercentuale * $prezzoProdottoDetrazione) / 100 / 20;
+                            @endphp
+                            <p style="font-size: 18px; font-weight: bold; transform: translateY(5mm) translateX(5mm);">{{ number_format($detrazioneFiscaleCosto, 2, ',', '.') }} <span style="color: #999;">€</span></p>
                         </div>
                     </div>
 
@@ -2409,7 +2422,14 @@
                         <div style="position: absolute; top: 5.8mm; left: 4.8mm; height: 10mm; width: 10mm; background-image: url('{{ public_path('images/pdf/Arrow_3.png') }}'); background-size: contain; background-position: center; background-repeat: no-repeat;"></div>
                         <span style="font-size: 12px; font-weight: bold; transform: translateX(5mm);">VANTAGGIO <span style="color: #4BAE66; font-weight: bold;">ANNUO TOTALE</span></span>
                         <div style="border:1px solid #e0e0e0; height: 22mm; width: 84mm; border-radius: 15px; margin-top: 2.5mm; background: linear-gradient(to bottom, #ffffff 0%,rgb(116, 13, 13) 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                            <p style="font-size: 18px; font-weight: bold; transform: translateY(5mm) translateX(5mm);">{{ number_format(($preventivo->risparmio_autoconsumo_annuo ?? 0) + ($preventivo->vendita_eccedenze_rid_annua ?? 0) + ($preventivo->incentivo_cer_annuo ?? 0), 2, ',', '.') }} <span style="color: #999;">€</span></p>
+                            @php
+                                // Calcola il vantaggio annuo totale: risparmio autoconsumo + vendita eccedenze + incentivo cer + detrazione fiscale
+                                $vantaggioAnnuoTotale = ($preventivo->risparmio_autoconsumo_annuo ?? 0) 
+                                    + ($preventivo->vendita_eccedenze_rid_annua ?? 0) 
+                                    + ($preventivo->incentivo_cer_annuo ?? 0)
+                                    + $detrazioneFiscaleCosto;
+                            @endphp
+                            <p style="font-size: 18px; font-weight: bold; transform: translateY(5mm) translateX(5mm);">{{ number_format($vantaggioAnnuoTotale, 2, ',', '.') }} <span style="color: #999;">€</span></p>
                         </div>
                     </div>
 
@@ -2646,7 +2666,7 @@
                     }
                     
                     // Calcola totale offerta economica
-                    // Formula: prezzo prodotto - (sconti + incentivi)
+                    // Ora mostra solo il costo del prodotto senza sottrazioni
                     $totale_offerta = 0;
                     $prezzoProdotto = 0;
                     
@@ -2657,7 +2677,10 @@
                         $prezzoUnitario = floatval($primoProdotto->prezzo_unitario_salvato ?? 0);
                         $prezzoProdotto = $quantita * $prezzoUnitario;
                         
-                        // Calcola sconti, incentivi, costi e prodotti
+                        // L'offerta economica è semplicemente il prezzo del prodotto senza sottrazioni
+                        $totale_offerta = $prezzoProdotto;
+                        
+                        // Calcola sconti, incentivi, costi e prodotti per altre sezioni (es. tabella VOCI ECONOMICHE APPLICATE)
                         $totaleScontiIncentivi = 0;
                         if ($preventivo->vociEconomiche) {
                             $vociEconomiche = $preventivo->vociEconomiche
@@ -2686,14 +2709,6 @@
                                 
                                 $totaleScontiIncentivi += $valoreCalcolato;
                             }
-                        }
-                        
-                        // Sottrai sconti, incentivi, costi e prodotti dal prezzo del prodotto
-                        $totale_offerta = $prezzoProdotto - $totaleScontiIncentivi;
-                        
-                        // Assicurati che il totale non sia negativo
-                        if ($totale_offerta < 0) {
-                            $totale_offerta = 0;
                         }
                     }
                     
@@ -2856,6 +2871,12 @@
                                 $prezzoUnitario = floatval($primoProdotto->prezzo_unitario_salvato ?? 0);
                                 $prezzoProdottoBase = $quantita * $prezzoUnitario;
                             }
+                            
+                            // Inizializza i totali per tipo voce
+                            $totaleIncentivi = 0;
+                            $totaleSconti = 0;
+                            $totaleCosti = 0;
+                            $totaleProdotti = 0;
                         @endphp
                         @foreach($preventivo->vociEconomiche->whereIn('tipo_voce_salvata', ['sconto', 'incentivo', 'costo', 'prodotto']) as $voce)
                         @php
@@ -2873,6 +2894,17 @@
                             // Se la voce NON ha IVA, applica l'IVA al 22% perché è solo l'imponibile
                             // Se ha IVA, il valore è già comprensivo di IVA
                             $valoreConIva = $haIva ? $valoreCalcolato : $valoreCalcolato * 1.22;
+                            
+                            // Accumula i totali per tipo voce
+                            if ($voce->tipo_voce_salvata === 'incentivo') {
+                                $totaleIncentivi += $valoreConIva;
+                            } elseif ($voce->tipo_voce_salvata === 'sconto') {
+                                $totaleSconti += $valoreConIva;
+                            } elseif ($voce->tipo_voce_salvata === 'costo') {
+                                $totaleCosti += $valoreConIva;
+                            } elseif ($voce->tipo_voce_salvata === 'prodotto') {
+                                $totaleProdotti += $valoreConIva;
+                            }
                             
                             $tipoVoceLabels = [
                                 'sconto' => 'Sconto',
@@ -2896,6 +2928,16 @@
                             </td>
                         </tr>
                         @endforeach
+                        @php
+                            // Calcola il TOTALE: Costo del prodotto - incentivi - sconti + costi + prodotto
+                            $totaleFinale = $prezzoProdottoBase - $totaleIncentivi - $totaleSconti + $totaleCosti + $totaleProdotti;
+                        @endphp
+                        <tr style="background-color: #e8f5e9; font-weight: bold;">
+                            <td style="padding: 8px; border: 1px solid #ddd; word-wrap: break-word;" colspan="4">TOTALE</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold; word-wrap: break-word;">
+                                € {{ number_format($totaleFinale, 2, ',', '.') }}
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
