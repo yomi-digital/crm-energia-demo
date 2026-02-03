@@ -246,21 +246,34 @@ const uploadContract = async (files) => {
           />
 
           <!-- Selettore Agente - visibile solo per gestione, struttura e backoffice -->
-          <AppAutocomplete
-            v-if="canSelectAgent"
-            v-model="selectedAgentId"
-            label="Agente *"
-            :items="agents"
-            item-title="title"
-            item-value="value"
-            placeholder="Seleziona un agente"
-            :loading="isLoadingAgents"
-            :disabled="isUploading || !selectedBrand"
-            :error="!selectedAgentId && alert.show && alert.type === 'warning'"
-            class="mb-4"
-            clearable
-            required
-          />
+          <template v-if="canSelectAgent">
+            <AppAutocomplete
+              v-model="selectedAgentId"
+              label="Agente *"
+              :items="agents"
+              item-title="title"
+              item-value="value"
+              placeholder="Seleziona un agente"
+              :loading="isLoadingAgents"
+              :disabled="isUploading || !selectedBrand"
+              :error="!selectedAgentId && alert.show && alert.type === 'warning'"
+              class="mb-1"
+              clearable
+              required
+            />
+            <p
+              v-if="selectedBrand"
+              class="text-caption text-medium-emphasis mb-4"
+            >
+              Sono mostrati solo gli agenti abilitati per il brand selezionato (flusso invertito rispetto a Crea pratica: qui si sceglie prima il brand).
+            </p>
+            <p
+              v-else
+              class="text-caption text-medium-emphasis mb-4"
+            >
+              Seleziona prima un brand per vedere gli agenti disponibili.
+            </p>
+          </template>
 
           <DropZoneContracts
             @dropped="uploadContract"
