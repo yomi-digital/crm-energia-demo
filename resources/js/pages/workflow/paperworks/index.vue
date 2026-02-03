@@ -399,6 +399,12 @@ if (! canViewPayout) {
   headers = headers.filter(header => header.key !== 'pay')
 }
 
+// Colonna Mandato visibile solo per admin e backoffice
+const canViewMandate = loggedInUser?.roles?.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
+if (! canViewMandate) {
+  headers = headers.filter(header => header.key !== 'mandate_id')
+}
+
 // Computed per pulire i parametri vuoti dalla query
 const queryParams = computed(() => {
   const params = {
