@@ -1196,7 +1196,7 @@ const updateDateFromYearMonth = () => {
             />
             <span class="text-high-emphasis text-body-1 text-capitalize">
               <RouterLink
-                v-if="item.user && $can('view', 'users')"
+                v-if="!isAgent && item.user && $can('view', 'users')"
                 :to="{ name: 'admin-users-id', params: { id: item.user.id } }"
                 class="font-weight-medium text-link"
                 @click.stop
