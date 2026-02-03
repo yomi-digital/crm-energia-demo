@@ -1071,7 +1071,7 @@ const navigateToOpenTickets = () => {
 
 
     <VRow
-      v-if="!isAgent"
+      v-if="isAdmin"
       class="mt-6"
     >
       <VCol cols="12">
