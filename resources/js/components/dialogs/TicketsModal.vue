@@ -8,6 +8,29 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
+const userData = useCookie('userData').value
+const isStrutturaOrAgente = computed(() => {
+  if (!userData?.roles) return false
+  return userData.roles.some(role => ['struttura', 'agente'].includes(role.name))
+})
+
+const ticketTableHeaders = computed(() => {
+  const base = [
+    { title: 'ID', key: 'id', width: '80' },
+    { title: 'Pratica', key: 'paperwork_id', sortable: false },
+    { title: 'Cliente', key: 'customer', sortable: false },
+    { title: 'Oggetto', key: 'title', sortable: false },
+    { title: 'Agente', key: 'agent', sortable: false },
+    { title: 'Stato', key: 'status' },
+    { title: 'Creato Da', key: 'created_by', sortable: false },
+    { title: 'Data Creazione', key: 'created_at', sortable: false },
+  ]
+  if (isStrutturaOrAgente.value) {
+    return [...base, { title: 'Azioni', key: 'actions', sortable: false, width: '100' }]
+  }
+  return base
+})
+
 const isOpen = ref(false)
 
 watch(() => props.modelValue, (newVal) => {
@@ -88,16 +111,7 @@ const close = () => {
           :items="tickets"
           :items-length="totalTickets"
           :loading="isLoading"
-          :headers="[
-            { title: 'ID', key: 'id', width: '80' },
-            { title: 'Pratica', key: 'paperwork_id', sortable: false },
-            { title: 'Cliente', key: 'customer', sortable: false },
-            { title: 'Oggetto', key: 'title', sortable: false },
-            { title: 'Agente', key: 'agent', sortable: false },
-            { title: 'Stato', key: 'status' },
-            { title: 'Creato Da', key: 'created_by', sortable: false },
-            { title: 'Data Creazione', key: 'created_at', sortable: false },
-          ]"
+          :headers="ticketTableHeaders"
           class="text-no-wrap"
           @update:options="updateOptions"
         >
@@ -164,6 +178,23 @@ const close = () => {
             <div class="text-high-emphasis text-body-1">
               {{ item.created_at }}
             </div>
+          </template>
+
+          <!-- Azioni (solo per struttura/agente) -->
+          <template
+            v-if="isStrutturaOrAgente"
+            #item.actions="{ item }"
+          >
+            <VBtn
+              size="small"
+              color="info"
+              variant="tonal"
+              class="compact-btn"
+              :to="{ name: 'workflow-tickets-id', params: { id: item.id } }"
+              title="Apri ticket"
+            >
+              Vedi
+            </VBtn>
           </template>
 
           <!-- pagination -->
