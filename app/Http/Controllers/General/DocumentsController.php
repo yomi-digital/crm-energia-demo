@@ -46,7 +46,7 @@ class DocumentsController extends Controller
                 ];
             }
 
-            $files[] = [
+            $item = [
                 'type' => $file['type'],
                 'path' => $path,
                 'url' => $cdnPath . $file['path'],
@@ -54,12 +54,45 @@ class DocumentsController extends Controller
                 'title' => $name,
                 'icon' => $file['type'] === 'dir' ? 'tabler-folder-filled' : 'tabler-file',
             ];
+
+            // Per cartelle brand (primo livello, type dir): aggiungi type e category del brand dopo icon
+            if ($file['type'] === 'dir' && count($split) === 1) {
+                $brandModel = $brands->firstWhere('name', $brand);
+                $item['brand_type'] = $brandModel ? $brandModel->type : null;
+                $item['category'] = $brandModel ? $brandModel->category : null;
+            }
+
+            $files[] = $item;
         }
 
-        return response()->json([
+        $requestPath = $request->get('path', '');
+        $response = [
             'documents' => $files,
             'brands_without_folder' => array_values($brandsWithoutFolder),
-        ]);
+        ];
+
+        // Pagina iniziale (path vuoto): raggruppamento fake per category (solo cartelle brand)
+        if ($requestPath === '') {
+            $grouped = collect($files)->groupBy(function ($item) {
+                return $item['category'] ?? '__senza_categoria__';
+            })->map(function ($items, $category) {
+                return [
+                    'category' => $category === '__senza_categoria__' ? null : $category,
+                    'items' => $items->values()->all(),
+                ];
+            })->values()->all();
+            // Ordina: prima gruppi con category, poi senza (null)
+            usort($grouped, function ($a, $b) {
+                if ($a['category'] === null) return 1;
+                if ($b['category'] === null) return -1;
+                return strcasecmp($a['category'], $b['category']);
+            });
+            $response['grouped_documents'] = $grouped;
+        } else {
+            $response['grouped_documents'] = [];
+        }
+
+        return response()->json($response);
     }
 
     public function newFolder(Request $request)

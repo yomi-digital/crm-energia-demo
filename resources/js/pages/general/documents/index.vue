@@ -119,6 +119,36 @@ const documents = computed(() => {
   return documentsData.value.documents
 })
 
+/** Raggruppamento per category (solo pagina iniziale, path vuoto). Da API o fallback da documents. */
+const groupedDocuments = computed(() => {
+  if (currentPath.value !== '') return null
+  const docs = documentsData.value?.documents ?? []
+  const fromApi = documentsData.value?.grouped_documents
+  if (fromApi && Array.isArray(fromApi) && fromApi.length > 0) return fromApi
+  // Fallback: raggruppa lato client per category (solo cartelle brand con category)
+  const byCategory = new Map()
+  for (const item of docs) {
+    const cat = item.category ?? null
+    const key = cat === null ? '__null__' : cat
+    if (!byCategory.has(key)) byCategory.set(key, { category: cat, items: [] })
+    byCategory.get(key).items.push(item)
+  }
+  const groups = Array.from(byCategory.entries())
+    .map(([key, g]) => ({ category: key === '__null__' ? null : g.category, items: g.items }))
+    .sort((a, b) => {
+      if (a.category === null) return 1
+      if (b.category === null) return -1
+      return (a.category || '').localeCompare(b.category || '')
+    })
+  return groups.length ? groups : null
+})
+
+/** Se true, mostriamo la lista raggruppata per category (fake file system). */
+const showGroupedByCategory = computed(() => !!groupedDocuments.value && !searchQuery.value)
+
+/** Indice del pannello accordion aperto (null = tutti chiusi di default). */
+const expandedCategoryIndex = ref(null)
+
 const isRemoveDialogVisible = ref(false)
 
 const deleteDocument = async id => {
@@ -443,25 +473,103 @@ const handlePopState = (event) => {
               />
             </div>
 
+            <!-- Accordion per category (solo pagina iniziale, senza ricerca) – chiusi di default -->
+            <VExpansionPanels
+              v-if="! isLoadingDocuments && showGroupedByCategory"
+              v-model="expandedCategoryIndex"
+              variant="accordion"
+              class="documents-category-accordion"
+            >
+              <VExpansionPanel
+                v-for="(group, groupIndex) in groupedDocuments"
+                :key="group.category ?? '__null__'"
+                :value="groupIndex"
+              >
+                <VExpansionPanelTitle>
+                  {{ group.category ?? 'Senza categoria' }}
+                  <template #actions>
+                    <VChip
+                      size="small"
+                      color="primary"
+                      variant="tonal"
+                    >
+                      {{ group.items.length }}
+                    </VChip>
+                  </template>
+                </VExpansionPanelTitle>
+                <VExpansionPanelText>
+                  <VList
+                    nav
+                    :lines="false"
+                    class="py-0"
+                  >
+                    <VListItem
+                      v-for="item in group.items"
+                      :key="item.path"
+                      :value="item.title"
+                      @click="navigateFm(item)"
+                    >
+                      <template #prepend>
+                        <VIcon :color="item.type === 'dir' ? 'warning' : 'primary'" :icon="item.icon" />
+                      </template>
+                      <VListItemTitle>
+                        {{ item.title }}
+                      </VListItemTitle>
+                      <template #append>
+                        <VBtn
+                          v-if="item.type === 'dir' && currentPath !== '' && ($can('edit', 'documents') || canCreateFolders)"
+                          variant="text"
+                          color="info"
+                          icon="tabler-pencil"
+                          @click.stop="openRenameDialog(item)"
+                        />
+                        <VBtn
+                          v-if="item.type === 'file'"
+                          variant="text"
+                          color="primary"
+                          icon="tabler-eye"
+                          :href="item.url"
+                          target="_blank"
+                        />
+                        <VBtn
+                          v-if="item.type === 'file'"
+                          variant="text"
+                          color="primary"
+                          icon="tabler-download"
+                          @click.stop="downloadDocument(item)"
+                        />
+                        <VBtn
+                          v-if="$can('edit', 'documents') && (item.type === 'file' || canDeleteFolders)"
+                          variant="text"
+                          color="error"
+                          icon="tabler-trash"
+                          @click.stop="selectDocumentForRemove(item)"
+                        />
+                      </template>
+                    </VListItem>
+                  </VList>
+                </VExpansionPanelText>
+              </VExpansionPanel>
+            </VExpansionPanels>
+
+            <!-- Lista piatta (path non vuoto o con ricerca) -->
             <VList
-              v-if="! isLoadingDocuments"
+              v-else-if="! isLoadingDocuments"
               nav
               :lines="false"
             >
               <VListItem
                 v-for="item in documents"
-                :key="item.title"
+                :key="item.path || item.title"
                 :value="item.title"
                 @click="navigateFm(item)"
               >
                 <template #prepend>
                   <VIcon :color="item.type === 'dir' ? 'warning' : 'primary'" :icon="item.icon" />
                 </template>
-
                 <VListItemTitle>
                   {{ item.title }}
                 </VListItemTitle>
-
                 <template #append>
                   <VBtn
                     v-if="item.type === 'dir' && currentPath !== '' && ($can('edit', 'documents') || canCreateFolders)"
