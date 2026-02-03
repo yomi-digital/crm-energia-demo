@@ -28,6 +28,10 @@ class UsersController extends Controller
             $users->where('team_leader', $request->get('isTeamLeader'));
         }
 
+        if ($request->filled('area')) {
+            $users->where('area', $request->get('area'));
+        }
+
         if ($request->user()->hasRole('agente') || $request->user()->hasRole('telemarketing')) {
             $users->where('id', $request->user()->id);
         } elseif ($request->user()->hasRole('struttura') || $request->user()->hasRole('team leader')) {

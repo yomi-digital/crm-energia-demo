@@ -9,7 +9,8 @@ definePage({
 const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser.roles.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 
-import AddNewUserDrawer from '@/views/admin/users/AddNewUserDrawer.vue';
+import { AREAS } from '@/utils/constants'
+import AddNewUserDrawer from '@/views/admin/users/AddNewUserDrawer.vue'
 
 // 👉 Store
 const route = useRoute()
@@ -17,6 +18,7 @@ const searchQuery = ref(route.query.q || '')
 const selectedRole = ref(route.query.role)
 const selectedTeamLeader = ref(route.query.isTeamLeader)
 const selectedStatus = ref(route.query.enabled)
+const selectedArea = ref(route.query.area ?? '')
 
 // Data table options
 const itemsPerPage = ref(Number(route.query.itemsPerPage) || 25)
@@ -32,7 +34,7 @@ const updateOptions = options => {
 }
 
 // Update URL on filter change
-watch([searchQuery, selectedRole, selectedTeamLeader, selectedStatus, itemsPerPage, page, sortBy, orderBy], () => {
+watch([searchQuery, selectedRole, selectedTeamLeader, selectedStatus, selectedArea, itemsPerPage, page, sortBy, orderBy], () => {
   router.replace({
     query: {
       ...route.query,
@@ -40,6 +42,7 @@ watch([searchQuery, selectedRole, selectedTeamLeader, selectedStatus, itemsPerPa
       role: selectedRole.value,
       isTeamLeader: selectedTeamLeader.value,
       enabled: selectedStatus.value,
+      area: selectedArea.value || undefined,
       itemsPerPage: itemsPerPage.value,
       page: page.value,
       sortBy: sortBy.value,
@@ -100,6 +103,7 @@ const {
     isTeamLeader: selectedTeamLeader,
     enabled: selectedStatus,
     role: selectedRole,
+    area: selectedArea,
     itemsPerPage,
     page,
     sortBy,
@@ -159,7 +163,7 @@ const isTeamLeader = [
   },
 ]
 
-import { getAvatar, resolveUserRoleVariant, resolveUserStatusVariant } from '@/utils/userRole';
+import { getAvatar, resolveUserRoleVariant, resolveUserStatusVariant } from '@/utils/userRole'
 
 const isAddNewUserDrawerVisible = ref(false)
 
@@ -168,7 +172,7 @@ const isSnackbarVisible = ref(false)
 const snackbarMessage = ref('')
 const snackbarColor = ref('success')
 
-const areaOptions = ['Catania', 'Lecce']
+const areaOptions = AREAS.filter(a => a.value !== '').map(a => a.title)
 const areaLoadingUserId = ref(null)
 
 const addNewUser = async userData => {
@@ -294,6 +298,19 @@ const updateUserArea = async (user, area) => {
               v-model="selectedTeamLeader"
               placeholder="Team Leader"
               :items="isTeamLeader"
+              clearable
+              clear-icon="tabler-x"
+            />
+          </VCol>
+          <!-- 👉 Select Area -->
+          <VCol
+            cols="12"
+            sm="4"
+          >
+            <AppSelect
+              v-model="selectedArea"
+              placeholder="Filtra per Area"
+              :items="AREAS"
               clearable
               clear-icon="tabler-x"
             />
