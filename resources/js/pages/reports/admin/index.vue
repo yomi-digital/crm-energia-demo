@@ -6,6 +6,8 @@ definePage({
   },
 })
 
+import { AREAS } from '@/utils/constants'
+
 // 👉 Store
 const searchQuery = ref('')
 
@@ -21,6 +23,7 @@ const selectedProduct = ref('')
 const selectedStatus = ref('')
 const selectedCategory = ref('')
 const selectedAgency = ref('')
+const selectedArea = ref('')
 const selectedAdditionalCosts = ref('')
 // const selectedMandate = ref('')
 
@@ -59,6 +62,11 @@ const headers = [
   {
     title: 'Collaboratore',
     key: 'agent',
+    sortable: false,
+  },
+  {
+    title: 'Area',
+    key: 'area',
     sortable: false,
   },
   {
@@ -143,6 +151,7 @@ const {
     status: selectedStatus,
     category: selectedCategory,
     agency_id: selectedAgency,
+    area: selectedArea,
     additional_costs: selectedAdditionalCosts,
   },
 }))
@@ -166,6 +175,7 @@ const exportReport = async () => {
         status: selectedStatus.value,
         category: selectedCategory.value,
         agency_id: selectedAgency.value,
+        area: selectedArea.value || undefined,
       },
       responseType: 'blob'
     })
@@ -361,6 +371,7 @@ const saveReport = async () => {
       brand_id: selectedBrand.value,
       product_id: selectedProduct.value,
       agency_id: selectedAgency.value,
+      area: selectedArea.value || undefined,
       additional_costs: selectedAdditionalCosts.value,
     },
   })
@@ -425,6 +436,16 @@ const saveReport = async () => {
             />
           </VCol>
 
+          <VCol cols="3">
+            <AppSelect
+              v-model="selectedArea"
+              label="Filtra per Area"
+              placeholder="Tutte le aree"
+              :items="AREAS"
+              clearable
+              clear-icon="tabler-x"
+            />
+          </VCol>
         </VRow>
 
         <VRow>
@@ -612,6 +633,20 @@ const saveReport = async () => {
               {{ item.agency || 'N/A' }}
             </div>
           </div>
+        </template>
+
+        <!-- Area -->
+        <template #item.area="{ item }">
+          <VChip
+            v-if="item.area"
+            color="primary"
+            size="small"
+            label
+            class="text-uppercase"
+          >
+            {{ item.area }}
+          </VChip>
+          <span v-else class="text-medium-emphasis">N/A</span>
         </template>
 
         <!-- Brand -->

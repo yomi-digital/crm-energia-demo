@@ -199,6 +199,11 @@ class ReportsController extends Controller
             $paperworks = $paperworks->where('category', $request->get('category'));
         }
 
+        if ($request->filled('area')) {
+            $usersInArea = \App\Models\User::where('area', $request->get('area'))->pluck('id');
+            $paperworks = $paperworks->whereIn('user_id', $usersInArea);
+        }
+
         // Filtro per costi aggiuntivi (spedizione, visura, altri costi)
         if ($request->filled('additional_costs')) {
             $additionalCostsFilter = $request->get('additional_costs');
@@ -519,6 +524,7 @@ class ReportsController extends Controller
             'parent' => $parent ? implode(' ', array_filter([$parent->name, $parent->last_name])) : null,
             'agent_id' => $paperwork->user_id,
             'agent' => $paperwork->user ? implode(' ', array_filter([$paperwork->user->name, $paperwork->user->last_name])) : 'N/A',
+            'area' => $paperwork->user?->area ?? null,
             'agency_id' => $paperwork->mandate_id,
             'agency' => $paperwork->mandate ? $paperwork->mandate->name : null,
             'customer_id' => $paperwork->customer_id,
@@ -646,7 +652,9 @@ class ReportsController extends Controller
             'Pratica',
             'Account POD/PDR',
             'Struttura',
+            'Agenzia',
             'Collaboratore',
+            'Area',
             'Cliente',
             'CF',
             'Partita IVA',
@@ -674,7 +682,9 @@ class ReportsController extends Controller
                 $data['order_code'],
                 $data['account_pod_pdr'],
                 $data['parent'],
+                $data['agency'] ?? '',
                 $data['agent'],
+                $data['area'] ?? '',
                 $data['customer'],
                 $data['tax_id_code'],
                 $data['vat_number'],
@@ -693,7 +703,9 @@ class ReportsController extends Controller
                     $additionalEntry['order_code'],
                     $additionalEntry['account_pod_pdr'],
                     $additionalEntry['parent'],
+                    $additionalEntry['agency'] ?? '',
                     $additionalEntry['agent'],
+                    $additionalEntry['area'] ?? '',
                     $additionalEntry['customer'],
                     $additionalEntry['tax_id_code'],
                     $additionalEntry['vat_number'],
