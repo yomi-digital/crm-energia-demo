@@ -905,17 +905,14 @@ const navigateToPreviousMonthPaperworks = () => {
 }
 
 const isSuspendedPaperworksModalOpen = ref(false)
+const isTicketsModalOpen = ref(false)
 
 const navigateToSuspendedPaperworks = () => {
   isSuspendedPaperworksModalOpen.value = true
 }
 
 const navigateToOpenTickets = () => {
-  // Scroll alla sezione "Tickets" nella stessa pagina
-  const element = document.querySelector('[data-section="tickets"]')
-  if (element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
+  isTicketsModalOpen.value = true
 }
 </script>
 
@@ -1341,13 +1338,23 @@ const navigateToOpenTickets = () => {
       </VCard>
     </VDialog>
 
-    <!-- Tickets Section -->
-    <VRow class="mt-6" data-section="tickets">
-      <VCol cols="12">
-        <VCard variant="outlined" class="pa-4">
-          <VCardTitle class="text-h5 mb-4">
-            Tickets
-          </VCardTitle>
+    <VDialog
+      v-model="isTicketsModalOpen"
+      max-width="1200"
+    >
+      <VCard>
+        <VCardTitle class="d-flex align-center justify-space-between pa-4">
+          <span class="text-h5">Tickets</span>
+          <VBtn
+            icon
+            variant="text"
+            size="small"
+            @click="isTicketsModalOpen = false"
+          >
+            <VIcon>tabler-x</VIcon>
+          </VBtn>
+        </VCardTitle>
+        <VCardText class="pa-0">
           <VDataTableServer
             v-model:items-per-page="ticketsItemsPerPage"
             v-model:page="ticketsPage"
@@ -1440,9 +1447,9 @@ const navigateToOpenTickets = () => {
               />
             </template>
           </VDataTableServer>
-        </VCard>
-      </VCol>
-    </VRow>
+        </VCardText>
+      </VCard>
+    </VDialog>
 
     <!-- Filters for Stats -->
     <VRow class="mt-6">
