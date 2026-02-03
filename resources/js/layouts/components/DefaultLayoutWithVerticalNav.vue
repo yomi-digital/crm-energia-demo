@@ -1,5 +1,6 @@
 <script setup>
 import navItems from '@/navigation/vertical'
+import { can } from '@layouts/plugins/casl'
 
 // Components
 import NavBarContractUpload from '@/components/NavBarContractUpload.vue'
@@ -9,6 +10,39 @@ import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import UserProfile from '@/layouts/components/UserProfile.vue'
 // @layouts plugin
 import { VerticalNavLayout } from '@layouts'
+
+/** Filtra navItems: nasconde le sezioni (heading) che non hanno alcuna voce visibile sotto. */
+function filterNavItemsWithVisibleSections(items) {
+  if (!items?.length) return []
+  const result = []
+  let i = 0
+  while (i < items.length) {
+    if ('heading' in items[i]) {
+      const headingIndex = i
+      i += 1
+      const sectionItems = []
+      while (i < items.length && !('heading' in items[i])) {
+        sectionItems.push(items[i])
+        i += 1
+      }
+      const visibleItems = sectionItems.filter(
+        item => item.action != null && item.subject != null && can(item.action, item.subject)
+      )
+      if (visibleItems.length > 0) {
+        result.push(items[headingIndex])
+        result.push(...visibleItems)
+      }
+    } else {
+      const item = items[i]
+      if (item.action != null && item.subject != null && can(item.action, item.subject))
+        result.push(item)
+      i += 1
+    }
+  }
+  return result
+}
+
+const filteredNavItems = computed(() => filterNavItemsWithVisibleSections(navItems))
 
 // SECTION: Loading Indicator
 const isFallbackStateActive = ref(false)
@@ -27,7 +61,7 @@ watch([
 </script>
 
 <template>
-  <VerticalNavLayout :nav-items="navItems">
+  <VerticalNavLayout :nav-items="filteredNavItems">
     <!-- 👉 navbar -->
     <template #navbar="{ toggleVerticalOverlayNavActive }">
       <div class="d-flex h-100 align-center">
