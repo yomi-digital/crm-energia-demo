@@ -541,14 +541,23 @@ const fetchStats = async () => {
     })
     
     // Update donut charts
+    todayDonutOptions.value = {
+      ...todayDonutOptions.value,
+      labels: Object.keys(data.today)
+    }
     todayDonutOptions.value.series = Object.values(data.today)
-    todayDonutOptions.value.labels = Object.keys(data.today)
     
+    currentMonthDonutOptions.value = {
+      ...currentMonthDonutOptions.value,
+      labels: Object.keys(data.currentMonth)
+    }
     currentMonthDonutOptions.value.series = Object.values(data.currentMonth)
-    currentMonthDonutOptions.value.labels = Object.keys(data.currentMonth)
     
+    lastMonthDonutOptions.value = {
+      ...lastMonthDonutOptions.value,
+      labels: Object.keys(data.previousMonth)
+    }
     lastMonthDonutOptions.value.series = Object.values(data.previousMonth)
-    lastMonthDonutOptions.value.labels = Object.keys(data.previousMonth)
   } catch (error) {
     console.error('Error fetching stats:', error)
   }
@@ -1498,6 +1507,7 @@ const navigateToOpenTickets = () => {
             />
           </div>
           <VueApexCharts
+            :key="'today-donut-' + JSON.stringify(todayDonutOptions.labels)"
             :options="todayDonutOptions"
             :series="todayDonutOptions.series"
             height="350"
@@ -1523,6 +1533,7 @@ const navigateToOpenTickets = () => {
             />
           </div>
           <VueApexCharts
+            :key="'current-month-donut-' + JSON.stringify(currentMonthDonutOptions.labels)"
             :options="currentMonthDonutOptions"
             :series="currentMonthDonutOptions.series"
             height="350"
@@ -1548,6 +1559,7 @@ const navigateToOpenTickets = () => {
             />
           </div>
           <VueApexCharts
+            :key="'last-month-donut-' + JSON.stringify(lastMonthDonutOptions.labels)"
             :options="lastMonthDonutOptions"
             :series="lastMonthDonutOptions.series"
             height="350"
