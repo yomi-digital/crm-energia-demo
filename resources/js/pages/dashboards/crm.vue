@@ -1,5 +1,7 @@
 <script setup>
 import AIPaperworkUnassignedModal from '@/components/dialogs/AIPaperworkUnassignedModal.vue'
+import SuspendedPaperworksModal from '@/components/dialogs/SuspendedPaperworksModal.vue'
+import TicketsModal from '@/components/dialogs/TicketsModal.vue'
 import StatusChip from '@/components/StatusChip.vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -16,8 +18,6 @@ const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
 const isAgent = loggedInUser?.roles?.some(role => role.name === 'agente')
-const isStruttura = loggedInUser?.roles?.some(role => role.name === 'struttura')
-const isStrutturaOrAgente = isStruttura || isAgent
 
 // Controlla se l'utente può vedere il pulsante AI (admin, backoffice, struttura, agente)
 const canSeeAI = loggedInUser?.roles?.some(role => 
@@ -429,6 +429,12 @@ const aiSnackbarColor = ref('success')
 const unassignedModalOpen = ref(false)
 const unassignedModalBrandName = ref(null)
 
+// Modal per pratiche sospese
+const isSuspendedModalVisible = ref(false)
+
+// Modal per ticket
+const isTicketsModalVisible = ref(false)
+
 // Headers dinamici per la tabella "Pratiche in entrata" in base al ruolo
 const aiPaperworksHeaders = computed(() => {
   const baseHeaders = [
@@ -488,24 +494,6 @@ const acceptAiPaperwork = async item => {
 const ticketStatusText = (status) => {
   return ['Aperto', 'In Lavorazione', 'Risolto'][status - 1]
 }
-
-// Headers tabella Tickets: per struttura/agente aggiungi colonna Azioni
-const ticketTableHeaders = computed(() => {
-  const base = [
-    { title: 'ID', key: 'id', width: '80' },
-    { title: 'Pratica', key: 'paperwork_id', sortable: false },
-    { title: 'Cliente', key: 'customer', sortable: false },
-    { title: 'Oggetto', key: 'title', sortable: false },
-    { title: 'Agente', key: 'agent', sortable: false },
-    { title: 'Stato', key: 'status' },
-    { title: 'Creato Da', key: 'created_by', sortable: false },
-    { title: 'Data Creazione', key: 'created_at', sortable: false },
-  ]
-  if (isStrutturaOrAgente) {
-    return [...base, { title: 'Azioni', key: 'actions', sortable: false, width: '100' }]
-  }
-  return base
-})
 
 // Function to fetch tickets
 const fetchTickets = async () => {
@@ -924,15 +912,12 @@ const navigateToPreviousMonthPaperworks = () => {
   })
 }
 
-const isSuspendedPaperworksModalOpen = ref(false)
-const isTicketsModalOpen = ref(false)
-
 const navigateToSuspendedPaperworks = () => {
-  isSuspendedPaperworksModalOpen.value = true
+  isSuspendedModalVisible.value = true
 }
 
 const navigateToOpenTickets = () => {
-  isTicketsModalOpen.value = true
+  isTicketsModalVisible.value = true
 }
 </script>
 
@@ -1251,23 +1236,12 @@ const navigateToOpenTickets = () => {
       </VCol>
     </VRow>
 
-    <VDialog
-      v-model="isSuspendedPaperworksModalOpen"
-      max-width="1200"
-    >
-      <VCard>
-        <VCardTitle class="d-flex align-center justify-space-between pa-4">
-          <span class="text-h5">Pratiche sospese</span>
-          <VBtn
-            icon
-            variant="text"
-            size="small"
-            @click="isSuspendedPaperworksModalOpen = false"
-          >
-            <VIcon>tabler-x</VIcon>
-          </VBtn>
-        </VCardTitle>
-        <VCardText class="pa-0">
+    <VRow class="mt-6">
+      <VCol cols="12">
+        <VCard variant="outlined" class="pa-4">
+          <VCardTitle class="text-h5 mb-4">
+            Pratiche sospese
+          </VCardTitle>
           <VDataTableServer
             v-model:items-per-page="itemsPerPage"
             v-model:page="page"
@@ -1354,33 +1328,32 @@ const navigateToOpenTickets = () => {
               />
             </template>
           </VDataTableServer>
-        </VCardText>
-      </VCard>
-    </VDialog>
+        </VCard>
+      </VCol>
+    </VRow>
 
-    <VDialog
-      v-model="isTicketsModalOpen"
-      max-width="1200"
-    >
-      <VCard>
-        <VCardTitle class="d-flex align-center justify-space-between pa-4">
-          <span class="text-h5">Tickets</span>
-          <VBtn
-            icon
-            variant="text"
-            size="small"
-            @click="isTicketsModalOpen = false"
-          >
-            <VIcon>tabler-x</VIcon>
-          </VBtn>
-        </VCardTitle>
-        <VCardText class="pa-0">
+    <!-- Tickets Section -->
+    <VRow class="mt-6" data-section="tickets">
+      <VCol cols="12">
+        <VCard variant="outlined" class="pa-4">
+          <VCardTitle class="text-h5 mb-4">
+            Tickets
+          </VCardTitle>
           <VDataTableServer
             v-model:items-per-page="ticketsItemsPerPage"
             v-model:page="ticketsPage"
             :items="ticketsData"
             :items-length="totalTickets"
-            :headers="ticketTableHeaders"
+            :headers="[
+              { title: 'ID', key: 'id', width: '80' },
+              { title: 'Pratica', key: 'paperwork_id', sortable: false },
+              { title: 'Cliente', key: 'customer', sortable: false },
+              { title: 'Oggetto', key: 'title', sortable: false },
+              { title: 'Agente', key: 'agent', sortable: false },
+              { title: 'Stato', key: 'status' },
+              { title: 'Creato Da', key: 'created_by', sortable: false },
+              { title: 'Data Creazione', key: 'created_at', sortable: false },
+            ]"
             class="text-no-wrap"
             @update:options="updateTicketsOptions"
           >
@@ -1449,23 +1422,6 @@ const navigateToOpenTickets = () => {
               </div>
             </template>
 
-            <!-- Azioni (solo per struttura/agente) -->
-            <template
-              v-if="isStrutturaOrAgente"
-              #item.actions="{ item }"
-            >
-              <VBtn
-                size="small"
-                color="info"
-                variant="tonal"
-                class="compact-btn"
-                :to="{ name: 'workflow-tickets-id', params: { id: item.id } }"
-                title="Apri ticket"
-              >
-                Vedi
-              </VBtn>
-            </template>
-
             <!-- pagination -->
             <template #bottom>
               <TablePagination
@@ -1475,9 +1431,9 @@ const navigateToOpenTickets = () => {
               />
             </template>
           </VDataTableServer>
-        </VCardText>
-      </VCard>
-    </VDialog>
+        </VCard>
+      </VCol>
+    </VRow>
 
     <!-- Filters for Stats -->
     <VRow class="mt-6">
@@ -1695,6 +1651,16 @@ const navigateToOpenTickets = () => {
   <AIPaperworkUnassignedModal
     v-model="unassignedModalOpen"
     :brand-name="unassignedModalBrandName"
+  />
+  
+  <!-- Modal per pratiche sospese -->
+  <SuspendedPaperworksModal
+    v-model="isSuspendedModalVisible"
+  />
+  
+  <!-- Modal per ticket -->
+  <TicketsModal
+    v-model="isTicketsModalVisible"
   />
   
 </template>
