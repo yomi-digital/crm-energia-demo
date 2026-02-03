@@ -10,6 +10,9 @@ trait PaperworkTrait
             return 0;
         }
 
+        if (! $paperwork->product || ! $paperwork->product->brand_id) {
+            return 0;
+        }
 
         // Get user fee band for this brand
         $brandUser = \App\Models\BrandUser::where('user_id', $paperwork->user_id)->where('brand_id', $paperwork->product->brand_id)->first();
