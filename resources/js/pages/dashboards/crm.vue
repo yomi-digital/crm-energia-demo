@@ -16,6 +16,8 @@ const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 const isBackoffice = loggedInUser?.roles?.some(role => role.name === 'backoffice')
 const isAgent = loggedInUser?.roles?.some(role => role.name === 'agente')
+const isStruttura = loggedInUser?.roles?.some(role => role.name === 'struttura')
+const isStrutturaOrAgente = isStruttura || isAgent
 
 // Controlla se l'utente può vedere il pulsante AI (admin, backoffice, struttura, agente)
 const canSeeAI = loggedInUser?.roles?.some(role => 
@@ -486,6 +488,24 @@ const acceptAiPaperwork = async item => {
 const ticketStatusText = (status) => {
   return ['Aperto', 'In Lavorazione', 'Risolto'][status - 1]
 }
+
+// Headers tabella Tickets: per struttura/agente aggiungi colonna Azioni
+const ticketTableHeaders = computed(() => {
+  const base = [
+    { title: 'ID', key: 'id', width: '80' },
+    { title: 'Pratica', key: 'paperwork_id', sortable: false },
+    { title: 'Cliente', key: 'customer', sortable: false },
+    { title: 'Oggetto', key: 'title', sortable: false },
+    { title: 'Agente', key: 'agent', sortable: false },
+    { title: 'Stato', key: 'status' },
+    { title: 'Creato Da', key: 'created_by', sortable: false },
+    { title: 'Data Creazione', key: 'created_at', sortable: false },
+  ]
+  if (isStrutturaOrAgente) {
+    return [...base, { title: 'Azioni', key: 'actions', sortable: false, width: '100' }]
+  }
+  return base
+})
 
 // Function to fetch tickets
 const fetchTickets = async () => {
@@ -1344,16 +1364,7 @@ const navigateToOpenTickets = () => {
             v-model:page="ticketsPage"
             :items="ticketsData"
             :items-length="totalTickets"
-            :headers="[
-              { title: 'ID', key: 'id', width: '80' },
-              { title: 'Pratica', key: 'paperwork_id', sortable: false },
-              { title: 'Cliente', key: 'customer', sortable: false },
-              { title: 'Oggetto', key: 'title', sortable: false },
-              { title: 'Agente', key: 'agent', sortable: false },
-              { title: 'Stato', key: 'status' },
-              { title: 'Creato Da', key: 'created_by', sortable: false },
-              { title: 'Data Creazione', key: 'created_at', sortable: false },
-            ]"
+            :headers="ticketTableHeaders"
             class="text-no-wrap"
             @update:options="updateTicketsOptions"
           >
@@ -1420,6 +1431,23 @@ const navigateToOpenTickets = () => {
               <div class="text-high-emphasis text-body-1">
                 {{ item.created_at }}
               </div>
+            </template>
+
+            <!-- Azioni (solo per struttura/agente) -->
+            <template
+              v-if="isStrutturaOrAgente"
+              #item.actions="{ item }"
+            >
+              <VBtn
+                size="small"
+                color="info"
+                variant="tonal"
+                class="compact-btn"
+                :to="{ name: 'workflow-tickets-id', params: { id: item.id } }"
+                title="Apri ticket"
+              >
+                Vedi
+              </VBtn>
             </template>
 
             <!-- pagination -->
