@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="customer-phone-input-wrapper">
     <!-- Mostra il componente solo quando è pronto con il valore corretto -->
     <phone-input
       :id="telephoneInputId"
@@ -197,6 +197,7 @@ const handlePhoneChange = (phone) => {
   line-height: 1.2;
 }
 
+// Stili globali per il componente interno (se esposti)
 .baseinput-core {
   height: 38px !important;
 }
@@ -204,5 +205,57 @@ const handlePhoneChange = (phone) => {
 .baseinput-label {
   margin: 3px !important;
   font-weight: normal !important;
+}
+
+// Override FORZATO per tema scuro usando il wrapper
+.customer-phone-input-wrapper {
+  // Targetta qualsiasi input dentro il wrapper
+  :deep(input) {
+    color: rgb(var(--v-theme-on-surface)) !important;
+    background-color: transparent !important;
+    
+    &::placeholder {
+      color: rgba(var(--v-theme-on-surface), 0.38) !important;
+    }
+  }
+
+  // Targetta classi comuni della libreria (e varianti)
+  :deep(.baseinput-core),
+  :deep(.phone-input),
+  :deep(.input-tel__input),
+  :deep(.country-selector__toggle),
+  :deep(.country-selector__label) {
+    color: rgb(var(--v-theme-on-surface)) !important;
+    background-color: rgb(var(--v-theme-surface)) !important;
+    border-color: rgba(var(--v-theme-on-surface), 0.38) !important;
+  }
+
+  // Correzione specifica per la label se presente
+  :deep(.baseinput-label) {
+    color: rgba(var(--v-theme-on-surface), 0.8) !important;
+    background-color: rgb(var(--v-theme-surface)) !important;
+  }
+
+  // Gestione lista paesi (spesso è un elemento separato o portale, ma proviamo qui)
+  :deep(.country-list),
+  :deep(.dots-text-div) {
+    background-color: rgb(var(--v-theme-surface)) !important;
+    color: rgb(var(--v-theme-on-surface)) !important;
+    border: 1px solid rgba(var(--v-theme-on-surface), 0.12) !important;
+  }
+
+  :deep(.country-item) {
+     background-color: transparent !important;
+     color: rgb(var(--v-theme-on-surface)) !important;
+     
+     &:hover, &.selected {
+       background-color: rgba(var(--v-theme-primary), 0.1) !important;
+     }
+     
+     strong {
+       color: rgb(var(--v-theme-on-surface)) !important;
+       font-weight: 600 !important;
+     }
+  }
 }
 </style>

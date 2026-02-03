@@ -4,7 +4,7 @@
         <div style="display:flex;flex-direction:column;gap:8px;">
             <div v-for="(item, index) in items" :key="index" class="form-row">
                 <select 
-                    :value="item.id_voce || item.description" 
+                    :value="item.id_voce || item.Fdescription" 
                     @change="handleDescriptionChange(index, $event.target.value)"
                     class="field-select field--grow"
                 >

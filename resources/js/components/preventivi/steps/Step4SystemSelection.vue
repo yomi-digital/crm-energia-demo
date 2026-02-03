@@ -33,7 +33,7 @@
                     </option>
                 </select>
                 <div v-if="formData.roofType && selectedRoofTypeCostPerKw !== null" style="margin-top:8px;">
-                    <label class="field-label" for="roof-type-price" style="font-size:12px;color:#6b7280;">Prezzo aggiuntivo tetto (€/kW)</label>
+                    <label class="field-label" for="roof-type-price">Prezzo aggiuntivo tetto (€/kW)</label>
                     <input 
                         type="number" 
                         id="roof-type-price" 
@@ -68,7 +68,7 @@
                         {{ kw }} kW
                     </option>
                 </select>
-                <p v-if="formData.selectedPowerKw > 0 && formData.roofTypePrice > 0" style="margin-top:8px;font-size:12px;color:#6b7280;">
+                <p v-if="formData.selectedPowerKw > 0 && formData.roofTypePrice > 0" class="help-text">
                     Costo aggiuntivo tetto: <strong>{{ formData.roofTypePrice.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }) }}</strong>
                 </p>
             </div>
@@ -98,10 +98,10 @@
                         class="field-select"
                         style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 30px; min-height: 38px;"
                     >
-                        <span v-if="!localSelectedProduct" style="color: #9ca3af;">Scegli un prodotto</span>
+                        <span v-if="!localSelectedProduct" class="muted">Scegli un prodotto</span>
                         <span v-else style="display: flex; flex-direction: column; gap: 2px;">
-                            <span>{{ selectedProductDisplayText }}</span>
-                            <span v-if="selectedProductDescription && selectedProductDescription.length > 1" style="font-size: 11px; color: #6b7280;">{{ selectedProductDescription }}</span>
+                            <span style="color: var(--pv-text)">{{ selectedProductDisplayText }}</span>
+                            <span v-if="selectedProductDescription && selectedProductDescription.length > 1" class="muted" style="font-size: 11px;">{{ selectedProductDescription }}</span>
                         </span>
                         <svg 
                             width="12" 
@@ -109,7 +109,7 @@
                             viewBox="0 0 12 12" 
                             fill="none" 
                             xmlns="http://www.w3.org/2000/svg"
-                            :style="{ transform: isProductDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }"
+                            :style="{ transform: isProductDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: 'var(--pv-text)' }"
                         >
                             <path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -124,14 +124,15 @@
                                 top: dropdownPosition.top + 'px',
                                 left: dropdownPosition.left + 'px',
                                 width: dropdownPosition.width + 'px',
-                                background: 'white',
-                                border: '1px solid #e5e7eb',
+                                background: 'var(--pv-surface)',
+                                border: '1px solid var(--pv-border)',
                                 borderRadius: '4px',
                                 marginTop: '4px',
                                 maxHeight: '300px',
                                 overflowY: 'auto',
                                 zIndex: 9999,
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                boxShadow: 'var(--pv-shadow)',
+                                color: 'var(--pv-text)'
                             }"
                         >
                         <div 
@@ -139,11 +140,11 @@
                             :style="{ 
                                 padding: '10px 12px', 
                                 cursor: 'pointer', 
-                                backgroundColor: !localSelectedProduct ? '#f3f4f6' : 'transparent',
-                                borderBottom: '1px solid #e5e7eb'
+                                backgroundColor: !localSelectedProduct ? 'var(--pv-hover-bg)' : 'transparent',
+                                borderBottom: '1px solid var(--pv-border)'
                             }"
-                            @mouseenter="$event.target.style.backgroundColor = '#f9fafb'"
-                            @mouseleave="$event.target.style.backgroundColor = !localSelectedProduct ? '#f3f4f6' : 'transparent'"
+                            @mouseenter="$event.target.style.backgroundColor = 'var(--pv-hover-bg)'"
+                            @mouseleave="$event.target.style.backgroundColor = !localSelectedProduct ? 'var(--pv-hover-bg)' : 'transparent'"
                         >
                             <span>Scegli un prodotto</span>
                         </div>
@@ -151,7 +152,7 @@
                         <template v-for="(products, groupName) in groupedProducts" :key="groupName">
                             <div 
                                 @click.stop="toggleGroup(groupName)"
-                                style="padding: 8px 12px; font-weight: bold; background-color: #e5e7eb; color: #374151; font-size: 12px; text-transform: uppercase; cursor: pointer; display: flex; justify-content: space-between; align-items: center;"
+                                style="padding: 8px 12px; font-weight: bold; background-color: var(--pv-sidebar-bg); color: var(--pv-heading); font-size: 12px; text-transform: uppercase; cursor: pointer; display: flex; justify-content: space-between; align-items: center;"
                             >
                                 <span>{{ groupName }} ({{ products.length }})</span>
                                 <svg 
@@ -173,15 +174,15 @@
                                     :style="{ 
                                         padding: '10px 12px', 
                                         cursor: 'pointer', 
-                                        backgroundColor: localSelectedProduct === String(product.id_prodotto) ? '#f3f4f6' : 'transparent',
-                                        borderBottom: '1px solid #e5e7eb'
+                                        backgroundColor: localSelectedProduct === String(product.id_prodotto) ? 'var(--pv-hover-bg)' : 'transparent',
+                                        borderBottom: '1px solid var(--pv-border)'
                                     }"
-                                    @mouseenter="$event.target.style.backgroundColor = '#f9fafb'"
-                                    @mouseleave="$event.target.style.backgroundColor = localSelectedProduct === String(product.id_prodotto) ? '#f3f4f6' : 'transparent'"
+                                    @mouseenter="$event.target.style.backgroundColor = 'var(--pv-hover-bg)'"
+                                    @mouseleave="$event.target.style.backgroundColor = localSelectedProduct === String(product.id_prodotto) ? 'var(--pv-hover-bg)' : 'transparent'"
                                 >
                                     <div style="display: flex; flex-direction: column; gap: 4px;">
                                         <span style="font-weight: 500;">{{ product.codice_prodotto }} ({{ product.prezzo_base }} €)</span>
-                                        <span v-if="product.descrizione && product.descrizione.length > 1" style="font-size: 12px; color: #6b7280; line-height: 1.4;">{{ product.descrizione }}</span>
+                                        <span v-if="product.descrizione && product.descrizione.length > 1" class="muted" style="font-size: 12px; line-height: 1.4;">{{ product.descrizione }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -190,7 +191,7 @@
                     </Teleport>
                 </div>
                 <div class="pill" style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
-                    <label for="iva-check" style="font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;">
+                    <label for="iva-check" style="font-size:14px;font-weight:600;color:var(--pv-text);display:flex;align-items:center;">
                      <input type="checkbox" id="iva-check" :checked="formData.iva === 1" @change="updateFormData('iva', $event.target.checked ? 1 : 0)" style="margin-right:8px;"/>
                         IVA inclusa
                     </label>
@@ -198,24 +199,24 @@
             </div>
         </div>
 
-        <div>
+            <div>
             <h3 class="section-subtitle" style="margin-bottom:8px;">Pagamento e Opzioni</h3>
              <div style="display:flex;flex-direction:column;gap:12px;">
                 <div class="pill">
                     <span class="section-subtitle" style="display:block;margin-bottom:8px;">Metodo di Pagamento</span>
                     <div class="inline-fields">
-                        <label v-for="modalita in modalitaPagamento" :key="modalita.id_modalita" style="display:flex;align-items:center;color:#374151;">
+                        <label v-for="modalita in modalitaPagamento" :key="modalita.id_modalita" style="display:flex;align-items:center;color:var(--pv-text);">
                             <input type="radio" name="payment" :value="modalita.nome_modalita" :checked="formData.paymentMethod === modalita.nome_modalita" @change="handlePaymentMethodChange(modalita.nome_modalita)" style="margin-right:8px;"/>
                             {{ modalita.nome_modalita }}
                         </label>
-                        <label style="display:flex;align-items:center;color:#374151;">
+                        <label style="display:flex;align-items:center;color:var(--pv-text);">
                             <input type="radio" name="payment" value="Misto" :checked="formData.paymentMethod === 'Misto'" @change="handlePaymentMethodChange('Misto')" style="margin-right:8px;"/>
                             Misto (Bonifico + Finanziamento)
                         </label>
                     </div>
                     
                     <!-- Pagamento Misto -->
-                    <div v-if="formData.paymentMethod === 'Misto'" style="margin-top:12px;padding-top:12px;border-top:1px solid #e5e7eb;">
+                    <div v-if="formData.paymentMethod === 'Misto'" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pv-border);">
                         <div class="grid-responsive-2" style="margin-bottom:12px;">
                             <div>
                                 <label class="field-label" for="bonificoAmount">Importo Bonifico (€)</label>
@@ -223,7 +224,7 @@
                             </div>
                             <div>
                                 <label class="field-label" for="finanziamentoAmount">Importo Finanziamento (€)</label>
-                                <input type="number" id="finanziamentoAmount" :value="formData.paymentMisto?.finanziamentoAmount || 0" @input="handlePagamentoMistoChange('finanziamentoAmount', $event.target.value)" class="field-input" min="0" step="0.01" readonly style="background-color:#f3f4f6;"/>
+                                <input type="number" id="finanziamentoAmount" :value="formData.paymentMisto?.finanziamentoAmount || 0" @input="handlePagamentoMistoChange('finanziamentoAmount', $event.target.value)" class="field-input" min="0" step="0.01" readonly style="background-color:var(--pv-hover-bg);"/>
                                 <p class="help-text" style="margin-top:4px;font-size:11px;">Calcolato automaticamente</p>
                             </div>
                         </div>
@@ -240,7 +241,7 @@
                         <div class="grid-responsive-2" style="margin-top:12px;">
                             <div>
                                 <label class="field-label" for="installmentAmountMisto">Importo rata finanziamento (€)</label>
-                                <input type="number" id="installmentAmountMisto" :value="formData.paymentMisto?.installmentAmount || 0" @input="handlePagamentoMistoChange('installmentAmount', $event.target.value)" class="field-input" min="0" step="0.01" readonly style="background-color:#f3f4f6;"/>
+                                <input type="number" id="installmentAmountMisto" :value="formData.paymentMisto?.installmentAmount || 0" @input="handlePagamentoMistoChange('installmentAmount', $event.target.value)" class="field-input" min="0" step="0.01" readonly style="background-color:var(--pv-hover-bg);"/>
                                 <p class="help-text" style="font-size:12px;margin-top:4px;">Calcolata automaticamente (TAEG 9.30%, spese 1.50€/mese)</p>
                             </div>
                             <div>
@@ -254,7 +255,7 @@
                      <div v-if="formData.paymentMethod && (formData.paymentMethod.toLowerCase().includes('finanziamento') || formData.paymentMethod === 'Finanziamento')" class="grid-responsive-2" style="margin-top:12px;padding-top:12px;border-top:1px solid #e5e7eb;">
                         <div>
                             <label class="field-label" for="installmentAmount">Importo rata (€)</label>
-                            <input type="number" id="installmentAmount" :value="formData.installmentAmount" @input="handleFinanziamentoChange('installmentAmount', $event.target.value)" class="field-input" readonly style="background-color:#f3f4f6;"/>
+                            <input type="number" id="installmentAmount" :value="formData.installmentAmount" @input="handleFinanziamentoChange('installmentAmount', $event.target.value)" class="field-input" readonly style="background-color:var(--pv-hover-bg);"/>
                             <p class="help-text" style="font-size:12px;margin-top:4px;">Calcolata automaticamente (TAEG 9.30%, spese 1.50€/mese)</p>
                         </div>
                         <div>
@@ -281,14 +282,14 @@
                     </div>
                 </div>
                 <div class="pill" style="display:flex;align-items:center;justify-content:space-between;">
-                    <label for="maintenance-check" style="font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;">
+                    <label for="maintenance-check" style="font-size:14px;font-weight:600;color:var(--pv-text);display:flex;align-items:center;">
                      <input type="checkbox" id="maintenance-check" :checked="formData.maintenance.enabled" @change="updateFormData('maintenance', {...formData.maintenance, enabled: $event.target.checked})" style="margin-right:8px;"/>
                         Manutenzione (costo annuale)
                     </label>
                     <input v-if="formData.maintenance.enabled" type="number" placeholder="Importo" :value="formData.maintenance.cost" @input="updateFormData('maintenance', {...formData.maintenance, cost: Number($event.target.value)})" class="field-input" style="width:90px;"/>
                 </div>
                  <div class="pill" style="display:flex;align-items:center;justify-content:space-between;">
-                    <label for="insurance-check" style="font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;">
+                    <label for="insurance-check" style="font-size:14px;font-weight:600;color:var(--pv-text);display:flex;align-items:center;">
                      <input type="checkbox" id="insurance-check" :checked="formData.insurance.enabled" @change="updateFormData('insurance', {...formData.insurance, enabled: $event.target.checked})" style="margin-right:8px;"/>
                         Assicurazione (costo annuale)
                     </label>
@@ -299,7 +300,7 @@
 
         <div>
              <h3 class="section-subtitle" style="margin-bottom:8px;">Agevolazioni e Costi Aggiuntivi</h3>
-             <p class="help-text">Configurazione per cliente: <span style="font-weight:600;color:#111827;">{{ isResidential ? 'Residenziale' : 'Business' }}</span></p>
+             <p class="help-text">Configurazione per cliente: <span style="font-weight:600;color:var(--pv-heading);">{{ isResidential ? 'Residenziale' : 'Business' }}</span></p>
              <div style="display:flex;flex-direction:column;gap:12px;">
                 <div class="pill">
                     <h4 class="section-subtitle" style="margin-bottom:8px;">Detrazione Fiscale</h4>
@@ -324,7 +325,7 @@
         </div>
                 <!-- <AdjustmentList components will be added here -->
                 <div class="pill" style="display:flex;align-items:center;justify-content:space-between;">
-                    <label for="enable-cer-check" style="font-size:14px;font-weight:600;color:#374151;display:flex;align-items:center;">
+                    <label for="enable-cer-check" style="font-size:14px;font-weight:600;color:var(--pv-text);display:flex;align-items:center;">
                         <input type="checkbox" id="enable-cer-check" :checked="formData.enableCer" @change="updateFormData('enableCer', $event.target.checked)" style="margin-right:8px;"/>
                         Abilita Incentivo CER
                     </label>
