@@ -40,6 +40,18 @@ class ReportsController extends Controller
             $reports = $reports->where('status', $request->get('status'));
         }
 
+        // Filtro per data di creazione
+        if ($request->filled('from') && $request->filled('to')) {
+            $reports = $reports->whereBetween('created_at', [
+                $request->get('from') . ' 00:00:00',
+                $request->get('to') . ' 23:59:59'
+            ]);
+        } elseif ($request->filled('from')) {
+            $reports = $reports->whereDate('created_at', '>=', $request->get('from'));
+        } elseif ($request->filled('to')) {
+            $reports = $reports->whereDate('created_at', '<=', $request->get('to'));
+        }
+
         if ($request->get('q')) {
             $search = $request->get('q');
             $reports = $reports->where(function ($query) use ($search) {

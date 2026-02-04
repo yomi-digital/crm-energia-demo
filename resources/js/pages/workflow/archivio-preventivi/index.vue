@@ -344,12 +344,13 @@ const viewPdf = async (preventivoId) => {
 const downloadPdf = async (preventivo) => {
   try {
     const preventivoId = typeof preventivo === 'object' ? preventivo.id_preventivo : preventivo
-    const response = await $api(`/preventivi/download/${preventivoId}`)
-    if (response && response.downloadUrl) {
-      // Safari richiede di fare fetch del blob prima di scaricare
-      const fileResponse = await fetch(response.downloadUrl)
-      const blob = await fileResponse.blob()
-      
+    
+    // Richiedi il file direttamente come blob
+    const response = await $api(`/preventivi/download/${preventivoId}`, {
+      responseType: 'blob'
+    })
+
+    if (response) {
       // Costruisci il nome del file: <id> <Nome> <Cognome>.pdf
       let fileName = `${preventivoId}`
       if (typeof preventivo === 'object' && preventivo.cliente) {
@@ -368,7 +369,7 @@ const downloadPdf = async (preventivo) => {
       }
       
       // Crea un URL temporaneo per il blob
-      const url = window.URL.createObjectURL(blob)
+      const url = window.URL.createObjectURL(response)
       
       // Crea il link e cliccalo
       const link = document.createElement('a')
@@ -382,7 +383,7 @@ const downloadPdf = async (preventivo) => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
     } else {
-      console.error('URL di download non disponibile')
+      console.error('Download non riuscito o risposta vuota')
     }
   } catch (error) {
     console.error('Errore nel download del PDF:', error)
