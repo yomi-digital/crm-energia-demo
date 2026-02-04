@@ -99,6 +99,7 @@ class DashboardController extends Controller
                     'customer_id' => $paperwork->customer->id,
                     'agent' => $paperwork->user->name . ' ' . $paperwork->user->last_name,
                     'agent_id' => $paperwork->user->id,
+                    'backoffice' => $paperwork->user->name . ' ' . $paperwork->user->last_name,
                     'brand' => $paperwork->product->brand->name ?? 'N/A',
                     'brand_id' => $paperwork->product->brand->id,
                     'product' => $paperwork->product->name ?? 'N/A',

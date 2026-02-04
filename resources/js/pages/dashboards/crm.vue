@@ -1273,6 +1273,7 @@ const navigateToOpenTickets = () => {
               { title: 'Cliente', key: 'customer', sortable: false },
               { title: 'Prodotto', key: 'product', sortable: false },
               { title: 'Stato', key: 'state' },
+              { title: 'Backoffice', key: 'backoffice', sortable: false },
               { title: 'Ticket', key: 'hasTicket', sortable: false, align: 'center', width: '80' },
               { title: 'Data', key: 'created_at', sortable: false },
             ]"
@@ -1327,6 +1328,16 @@ const navigateToOpenTickets = () => {
                 fallback-style="text"
                 class="compact-chip"
               />
+            </template>
+
+            <!-- Backoffice -->
+            <template #item.backoffice="{ item }">
+              <span v-if="item.backoffice">
+                {{ item.backoffice }}
+              </span>
+              <span v-else>
+                N/A
+              </span>
             </template>
 
             <!-- Has Ticket -->
