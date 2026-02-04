@@ -553,7 +553,7 @@ const filteredProvinces = computed(() => {
       >
         <AppSelect
           v-model="category"
-          label="Tipologia"
+          label="Tipologia *"
           placeholder="Seleziona"
           :items="categories"
           :rules="[requiredValidator]"
@@ -577,7 +577,7 @@ const filteredProvinces = computed(() => {
       >
         <AppTextField
           v-model="name"
-          label="Nome"
+          label="Nome *"
           placeholder="Mario"
           :rules="[requiredValidator]"
         />
@@ -605,7 +605,7 @@ const filteredProvinces = computed(() => {
       >
         <AppTextField
         v-model="businessName"
-        label="Ragione Sociale"
+        label="Ragione Sociale *"
         placeholder="Società SRL"
         :rules="[requiredValidator]"
         />
@@ -638,7 +638,7 @@ const filteredProvinces = computed(() => {
       >
         <AppTextField
           v-model="vatNumber"
-          label="Partita IVA"
+          label="Partita IVA *"
           placeholder="12345678901"
           :rules="[requiredValidator]"
           :custom-error="vatError"
@@ -709,7 +709,7 @@ const filteredProvinces = computed(() => {
         <CustomerTelPhoneInput
           v-model="mobile"
           type="mobile"
-          label="Cellulare"
+          label="Cellulare *"
           placeholder="Cellulare"
           name="mobile"
           required
@@ -767,7 +767,7 @@ const filteredProvinces = computed(() => {
       >
         <AppTextField
           v-model="address"
-          label="Indirizzo"
+          label="Indirizzo *"
           placeholder="Via Roma 123"
           :rules="[requiredValidator]"
         />
@@ -782,7 +782,7 @@ const filteredProvinces = computed(() => {
       >
         <AppCombobox
           v-model="region"
-          label="Regione"
+          label="Regione *"
           placeholder="Seleziona"
           :rules="[requiredValidator]"
           :items="regions"
@@ -816,7 +816,7 @@ const filteredProvinces = computed(() => {
       >
         <AppTextField
           v-model="city"
-          label="Città"
+          label="Città *"
           placeholder="Roma"
           :rules="[requiredValidator]"
         />
