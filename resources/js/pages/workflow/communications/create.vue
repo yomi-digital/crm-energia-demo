@@ -1,4 +1,11 @@
 <script setup>
+definePage({
+  meta: {
+    action: 'see',
+    subject: 'communications',
+  },
+})
+
 import FormCreate from '@/views/workflow/communications/FormCreate.vue';
 </script>
 
