@@ -68,80 +68,72 @@ const loadListini = async () => {
   }
 }
 
-fkCategoria.value = props.prodotto.fk_categoria
-codiceProdotto.value = props.prodotto.codice_prodotto
-descrizione.value = props.prodotto.descrizione
-potenzaKwp.value = props.prodotto.potenza_kwp_pannelli
-capacitaKwh.value = props.prodotto.capacita_kwh
-prezzoBase.value = props.prodotto.prezzo_base
-potenzaInverter.value = props.prodotto.potenza_inverter
-marca.value = props.prodotto.marca_inverter
-linkSchedaProdottoTecnica.value = props.prodotto.link_scheda_prodotto_tecnica || ''
-quantitaInverter.value = props.prodotto.quantita_inverter
-marcaBatteria.value = props.prodotto.marca_batteria
-potenzaBatteria.value = props.prodotto.potenza_batteria
-quantitaBatterie.value = props.prodotto.quantita_batterie
-quantitaPannelli.value = props.prodotto.quantita_pannelli
-marcaPannelli.value = props.prodotto.marca_pannelli
-listini.value = (props.prodotto.listini || []).map(l => l.id)
+// Funzione helper per impostare i valori del form
+const setFormValues = () => {
+  fkCategoria.value = props.prodotto.fk_categoria
+  codiceProdotto.value = props.prodotto.codice_prodotto
+  descrizione.value = props.prodotto.descrizione
+  potenzaKwp.value = props.prodotto.potenza_kwp_pannelli
+  capacitaKwh.value = props.prodotto.capacita_kwh
+  prezzoBase.value = props.prodotto.prezzo_base
+  potenzaInverter.value = props.prodotto.potenza_inverter
+  marca.value = props.prodotto.marca_inverter
+  linkSchedaProdottoTecnica.value = props.prodotto.link_scheda_prodotto_tecnica || ''
+  quantitaInverter.value = props.prodotto.quantita_inverter
+  marcaBatteria.value = props.prodotto.marca_batteria
+  potenzaBatteria.value = props.prodotto.potenza_batteria
+  quantitaBatterie.value = props.prodotto.quantita_batterie
+  quantitaPannelli.value = props.prodotto.quantita_pannelli
+  marcaPannelli.value = props.prodotto.marca_pannelli
+  
+  // Imposta i listini solo se availableListini è già caricato e contiene gli ID
+  if (props.prodotto.listini && props.prodotto.listini.length > 0) {
+    const listiniIds = props.prodotto.listini.map(l => l.id)
+    // Verifica che tutti gli ID esistano in availableListini
+    const validListiniIds = listiniIds.filter(id => 
+      availableListini.value.some(l => l.value === id)
+    )
+    listini.value = validListiniIds
+  } else {
+    listini.value = []
+  }
+  
+  // Verifica che la categoria esista in categorie
+  if (fkCategoria.value && categorie.value.length > 0) {
+    const categoriaExists = categorie.value.some(c => c.value === fkCategoria.value)
+    if (!categoriaExists) {
+      // Se la categoria non esiste, resetta il valore
+      fkCategoria.value = null
+    }
+  }
+}
 
 watch(() => props.isDrawerOpen, async (val) => {
   if (val) {
     // Carica categorie e listini in parallelo
     await Promise.all([loadCategorie(), loadListini()])
     
-    // Aspetta che i listini siano caricati prima di impostare i valori
+    // Aspetta che i dati siano completamente caricati prima di impostare i valori
     await nextTick()
     
-    fkCategoria.value = props.prodotto.fk_categoria
-    codiceProdotto.value = props.prodotto.codice_prodotto
-    descrizione.value = props.prodotto.descrizione
-    potenzaKwp.value = props.prodotto.potenza_kwp_pannelli
-    capacitaKwh.value = props.prodotto.capacita_kwh
-    prezzoBase.value = props.prodotto.prezzo_base
-    potenzaInverter.value = props.prodotto.potenza_inverter
-    marca.value = props.prodotto.marca_inverter
-    linkSchedaProdottoTecnica.value = props.prodotto.link_scheda_prodotto_tecnica || ''
-    quantitaInverter.value = props.prodotto.quantita_inverter
-    marcaBatteria.value = props.prodotto.marca_batteria
-    potenzaBatteria.value = props.prodotto.potenza_batteria
-    quantitaBatterie.value = props.prodotto.quantita_batterie
-    quantitaPannelli.value = props.prodotto.quantita_pannelli
-    marcaPannelli.value = props.prodotto.marca_pannelli
-    
-    // Imposta i listini solo dopo che availableListini è stato caricato
-    if (props.prodotto.listini && props.prodotto.listini.length > 0) {
-      listini.value = props.prodotto.listini.map(l => l.id)
-    } else {
-      listini.value = []
-    }
+    // Ora imposta i valori dopo che i dati sono stati caricati
+    setFormValues()
   }
 })
 
 // Watch anche sul prodotto per aggiornare quando cambia
 watch(() => props.prodotto, (newProdotto) => {
   if (newProdotto && props.isDrawerOpen) {
-    fkCategoria.value = newProdotto.fk_categoria
-    codiceProdotto.value = newProdotto.codice_prodotto
-    descrizione.value = newProdotto.descrizione
-    potenzaKwp.value = newProdotto.potenza_kwp_pannelli
-    capacitaKwh.value = newProdotto.capacita_kwh
-    prezzoBase.value = newProdotto.prezzo_base
-    potenzaInverter.value = newProdotto.potenza_inverter
-    marca.value = newProdotto.marca_inverter
-    linkSchedaProdottoTecnica.value = newProdotto.link_scheda_prodotto_tecnica || ''
-    quantitaInverter.value = newProdotto.quantita_inverter
-    marcaBatteria.value = newProdotto.marca_batteria
-    potenzaBatteria.value = newProdotto.potenza_batteria
-    quantitaBatterie.value = newProdotto.quantita_batterie
-    quantitaPannelli.value = newProdotto.quantita_pannelli
-    marcaPannelli.value = newProdotto.marca_pannelli
-    
-    if (newProdotto.listini && newProdotto.listini.length > 0) {
-      listini.value = newProdotto.listini.map(l => l.id)
-    } else {
-      listini.value = []
-    }
+    // Usa la funzione helper che verifica che i dati siano caricati
+    setFormValues()
+  }
+}, { deep: true })
+
+// Watch per aggiornare i valori quando categorie o listini vengono caricati
+watch([categorie, availableListini], () => {
+  if (props.isDrawerOpen && props.prodotto) {
+    // Aggiorna i valori quando i dati vengono caricati
+    setFormValues()
   }
 }, { deep: true })
 
@@ -310,6 +302,7 @@ const handleDrawerModelValueUpdate = val => {
                   v-model="linkSchedaProdottoTecnica"
                   label="Link Scheda Prodotto Tecnica"
                   placeholder="https://www.example.com"
+                  :rules="[urlValidator]"
                 />
               </VCol>
 

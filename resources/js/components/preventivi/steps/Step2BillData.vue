@@ -66,7 +66,7 @@
                 <button @click="handleAddMonth" :disabled="formData.billData.length >= 12" class="btn btn-primary">
                     Aggiungi Mese
                 </button>
-                <button v-if="formData.billData.length > 0 && formData.billData.length < 12" @click="handleAutoGenerate" class="btn btn-ghost">
+                <button v-if="showAutoGenerateMonthly" @click="handleAutoGenerate" class="btn btn-ghost">
                     Usa media per mesi restanti
                 </button>
             </template>
@@ -74,7 +74,7 @@
                 <button @click="handleAddBimestre" :disabled="formData.billData.length >= 6" class="btn btn-primary">
                     Aggiungi Bimestre
                 </button>
-                <button v-if="formData.billData.length > 0 && formData.billData.length < 6" @click="handleAutoGenerateBimestri" class="btn btn-ghost">
+                <button v-if="showAutoGenerateBimonthly" @click="handleAutoGenerateBimestri" class="btn btn-ghost">
                     Usa media per bimestri restanti
                 </button>
             </template>
@@ -321,24 +321,14 @@ const handleRemoveMonth = (index) => {
     delete localBillValues.value[key];
   });
   
-  // Rimuovi la riga e riaggiorna le chiavi dei valori locali rimanenti
-  const newBillData = formData.value.billData.filter((_, i) => i !== index);
-  
-  // Riorganizza le chiavi locali (sposta in su gli indici)
-  const newLocalValues = {};
-  Object.keys(localBillValues.value).forEach(key => {
-    const [oldIndex, field] = key.split('-');
-    const oldIdx = parseInt(oldIndex);
-    if (oldIdx < index) {
-      // Mantieni la stessa chiave
-      newLocalValues[key] = localBillValues.value[key];
-    } else if (oldIdx > index) {
-      // Sposta in su di 1
-      newLocalValues[`${oldIdx - 1}-${field}`] = localBillValues.value[key];
-    }
-    // Se oldIdx === index, non copiare (riga rimossa)
-  });
-  localBillValues.value = newLocalValues;
+  // Resetta i valori della riga invece di rimuoverla
+  const newBillData = [...formData.value.billData];
+  newBillData[index] = {
+    ...newBillData[index],
+    f1: 0,
+    f2: 0,
+    f3: 0,
+  };
   
   updateFormData('billData', newBillData);
 };
@@ -396,26 +386,28 @@ const handleBillBlur = (index, field) => {
 const handleAutoGenerate = () => {
     if (formData.value.billData.length === 0 || formData.value.billData.length >= 12) return;
     
-    // Verifica che tutte le righe esistenti siano popolate (almeno un valore > 0)
-    const allRowsPopulated = formData.value.billData.every(month => 
+    // Filtra solo le righe popolate (almeno un valore > 0)
+    const populatedRows = formData.value.billData.filter(month => 
         month.f1 > 0 || month.f2 > 0 || month.f3 > 0
     );
     
-    if (!allRowsPopulated) {
-        alert('Per favore, compila tutti i mesi esistenti prima di generare automaticamente i restanti.');
+    // Verifica che ci sia almeno una riga popolata
+    if (populatedRows.length === 0) {
+        alert('Per favore, compila almeno un mese prima di generare automaticamente i restanti.');
         return;
     }
     
-    const avg = formData.value.billData.reduce((acc, month) => {
+    // Calcola la media solo dalle righe popolate
+    const avg = populatedRows.reduce((acc, month) => {
         acc.f1 += month.f1;
         acc.f2 += month.f2;
         acc.f3 += month.f3;
         return acc;
     }, { f1: 0, f2: 0, f3: 0 });
     
-    avg.f1 /= formData.value.billData.length;
-    avg.f2 /= formData.value.billData.length;
-    avg.f3 /= formData.value.billData.length;
+    avg.f1 /= populatedRows.length;
+    avg.f2 /= populatedRows.length;
+    avg.f3 /= populatedRows.length;
 
     const filledData = [...formData.value.billData];
     let lastMonthData = filledData[filledData.length - 1];
@@ -439,26 +431,28 @@ const handleAutoGenerate = () => {
 const handleAutoGenerateBimestri = () => {
     if (formData.value.billData.length === 0 || formData.value.billData.length >= 6) return;
     
-    // Verifica che tutti i bimestri esistenti siano popolati (almeno un valore > 0)
-    const allRowsPopulated = formData.value.billData.every(bimester => 
+    // Filtra solo le righe popolate (almeno un valore > 0)
+    const populatedRows = formData.value.billData.filter(bimester => 
         bimester.f1 > 0 || bimester.f2 > 0 || bimester.f3 > 0
     );
     
-    if (!allRowsPopulated) {
-        alert('Per favore, compila tutti i bimestri esistenti prima di generare automaticamente i restanti.');
+    // Verifica che ci sia almeno una riga popolata
+    if (populatedRows.length === 0) {
+        alert('Per favore, compila almeno un bimestre prima di generare automaticamente i restanti.');
         return;
     }
     
-    const avg = formData.value.billData.reduce((acc, bimester) => {
+    // Calcola la media solo dalle righe popolate
+    const avg = populatedRows.reduce((acc, bimester) => {
         acc.f1 += bimester.f1;
         acc.f2 += bimester.f2;
         acc.f3 += bimester.f3;
         return acc;
     }, { f1: 0, f2: 0, f3: 0 });
     
-    avg.f1 /= formData.value.billData.length;
-    avg.f2 /= formData.value.billData.length;
-    avg.f3 /= formData.value.billData.length;
+    avg.f1 /= populatedRows.length;
+    avg.f2 /= populatedRows.length;
+    avg.f3 /= populatedRows.length;
 
     const filledData = [...formData.value.billData];
     let lastBimesterData = filledData[filledData.length - 1];
@@ -536,6 +530,20 @@ const isDataComplete = computed(() => localBillEntryMode.value && (
     (localBillEntryMode.value === 'bimonthly' && formData.value.billData.length === 6) ||
     (localBillEntryMode.value === 'annual' && formData.value.billData.length === 12)
 ));
+
+const showAutoGenerateMonthly = computed(() => {
+    if (localBillEntryMode.value !== 'monthly') return false;
+    if (!formData.value.billData || !Array.isArray(formData.value.billData)) return false;
+    const length = formData.value.billData.length;
+    return length > 0 && length < 12;
+});
+
+const showAutoGenerateBimonthly = computed(() => {
+    if (localBillEntryMode.value !== 'bimonthly') return false;
+    if (!formData.value.billData || !Array.isArray(formData.value.billData)) return false;
+    const length = formData.value.billData.length;
+    return length > 0 && length < 6;
+});
 
 const costInputLabels = {
   monthly: 'Costo totale bolletta (mensile)',

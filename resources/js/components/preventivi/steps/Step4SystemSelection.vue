@@ -118,7 +118,7 @@
                         <div 
                             v-if="isProductDropdownOpen"
                             data-product-dropdown
-                            @mousedown.prevent
+                            @mousedown.stop
                             :style="{
                                 position: 'fixed',
                                 top: dropdownPosition.top + 'px',
@@ -149,6 +149,44 @@
                             <span>Scegli un prodotto</span>
                         </div>
                         
+                        <!-- Campo di ricerca -->
+                        <div 
+                            style="padding: 8px 12px; border-bottom: 1px solid var(--pv-border);"
+                            @click.stop
+                            @mousedown.stop
+                        >
+                            <input
+                                ref="productSearchInput"
+                                v-model="productSearchQuery"
+                                type="text"
+                                placeholder="Cerca prodotto per codice, descrizione o prezzo..."
+                                @click.stop
+                                @mousedown.stop
+                                @keydown.escape="isProductDropdownOpen = false"
+                                @keydown.enter.prevent
+                                @keydown.down.prevent="focusFirstProduct"
+                                @input="handleSearchInput"
+                                style="
+                                    width: 100%;
+                                    padding: 8px 12px;
+                                    border: 1px solid var(--pv-border);
+                                    border-radius: 4px;
+                                    background-color: var(--pv-surface);
+                                    color: var(--pv-text);
+                                    font-size: 14px;
+                                    outline: none;
+                                    box-sizing: border-box;
+                                "
+                                @focus="$event.target.style.borderColor = 'var(--pv-primary)'"
+                                @blur="handleSearchBlur"
+                            />
+                        </div>
+                        
+                        <!-- Messaggio se non ci sono risultati -->
+                        <div v-if="Object.keys(groupedProducts).length === 0 && productSearchQuery.trim() !== ''" style="padding: 20px; text-align: center; color: var(--pv-text-muted);">
+                            Nessun prodotto trovato per "{{ productSearchQuery }}"
+                        </div>
+                        
                         <template v-for="(products, groupName) in groupedProducts" :key="groupName">
                             <div 
                                 @click.stop="toggleGroup(groupName)"
@@ -166,7 +204,7 @@
                                     <path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </div>
-                            <div v-show="expandedGroups[groupName]">
+                            <div v-show="expandedGroups[groupName] || productSearchQuery.trim() !== ''">
                                 <div 
                                     v-for="product in products" 
                                     :key="product.id_prodotto + '-' + groupName"
@@ -400,11 +438,20 @@ const isProductDropdownOpen = ref(false);
 const productSelectTrigger = ref(null);
 const dropdownPosition = ref({ top: 0, left: 0, width: 0 });
 const expandedGroups = ref({});
+const productSearchQuery = ref('');
+const productSearchInput = ref(null);
 
 // Sincronizza il valore locale con il prop
 watch(() => props.formData.selectedProduct, (newVal) => {
   localSelectedProduct.value = newVal ? String(newVal) : '';
 }, { immediate: true });
+
+// Watch per mantenere il dropdown aperto quando si digita
+watch(productSearchQuery, () => {
+  if (productSearchQuery.value && !isProductDropdownOpen.value) {
+    isProductDropdownOpen.value = true;
+  }
+});
 
 // Watch per impostare il primo tetto come default quando vengono caricate le tipologie
 watch(tipologieTetto, (newTipologie) => {
@@ -425,10 +472,25 @@ watch(tipologieTetto, (newTipologie) => {
   }
 }, { immediate: true });
 
-// Computed per raggruppare i prodotti per listino
+// Funzione per filtrare i prodotti in base alla query di ricerca
+const filterProduct = (product, query) => {
+  if (!query || query.trim() === '') return true;
+  
+  const searchLower = query.toLowerCase().trim();
+  const codiceProdotto = (product.codice_prodotto || '').toLowerCase();
+  const descrizione = (product.descrizione || '').toLowerCase();
+  const prezzoBase = String(product.prezzo_base || '');
+  
+  return codiceProdotto.includes(searchLower) || 
+         descrizione.includes(searchLower) || 
+         prezzoBase.includes(searchLower);
+};
+
+// Computed per raggruppare i prodotti per listino (con filtro di ricerca)
 const groupedProducts = computed(() => {
   const groups = {};
   const products = prodottiFotovoltaico.value || [];
+  const searchQuery = productSearchQuery.value || '';
   
   // Determina la categoria cliente corrente (default: Business se vuoto)
   const category = props.formData.clientCategory || '';
@@ -437,6 +499,11 @@ const groupedProducts = computed(() => {
   const targetTypeNormalized = isRes ? 'residenziale' : 'business';
 
   products.forEach(product => {
+    // Applica il filtro di ricerca
+    if (!filterProduct(product, searchQuery)) {
+      return;
+    }
+    
     // Assicurati che product.listini sia sempre un array (gestisce casi di caricamento incompleto)
     const productListini = Array.isArray(product.listini) ? product.listini : [];
     
@@ -469,6 +536,13 @@ const groupedProducts = computed(() => {
       });
     }
   });
+
+  // Se c'è una ricerca attiva, espandi automaticamente tutti i gruppi
+  if (searchQuery.trim() !== '') {
+    Object.keys(groups).forEach(groupName => {
+      expandedGroups.value[groupName] = true;
+    });
+  }
 
   return groups;
 });
@@ -510,7 +584,14 @@ const toggleProductDropdown = () => {
   isProductDropdownOpen.value = !isProductDropdownOpen.value;
   if (isProductDropdownOpen.value) {
     // Aggiorna la posizione quando si apre
-    setTimeout(() => updateDropdownPosition(), 0);
+    nextTick(() => {
+      updateDropdownPosition();
+      
+      // Focus sull'input di ricerca quando si apre il dropdown
+      if (productSearchInput.value) {
+        productSearchInput.value.focus();
+      }
+    });
     
     // Espandi il gruppo del prodotto selezionato
     if (localSelectedProduct.value) {
@@ -520,16 +601,50 @@ const toggleProductDropdown = () => {
             }
         }
     }
+  } else {
+    // Reset della ricerca quando si chiude il dropdown
+    productSearchQuery.value = '';
   }
+};
+
+// Gestione input nel campo di ricerca
+const handleSearchInput = () => {
+  // Mantieni il dropdown aperto quando si digita
+  if (!isProductDropdownOpen.value) {
+    isProductDropdownOpen.value = true;
+  }
+};
+
+// Gestione blur del campo di ricerca
+const handleSearchBlur = (event) => {
+  // Ripristina il colore del bordo
+  event.target.style.borderColor = 'var(--pv-border)';
+  
+  // Non chiudere il dropdown immediatamente al blur
+  // Aspetta un piccolo delay per permettere il click su un prodotto
+  setTimeout(() => {
+    // Se il dropdown è ancora aperto e non c'è focus su altri elementi del dropdown,
+    // potrebbe essere necessario chiuderlo, ma lasciamo che handleClickOutside lo gestisca
+  }, 100);
+};
+
+// Focus sul primo prodotto (per navigazione con tastiera)
+const focusFirstProduct = () => {
+  // Implementazione opzionale per navigazione con tastiera
 };
 
 // Gestione click fuori dal dropdown
 const handleClickOutside = (event) => {
   if (isProductDropdownOpen.value && productSelectTrigger.value && !productSelectTrigger.value.contains(event.target)) {
-    // Controlla se il click è sul dropdown stesso
+    // Controlla se il click è sul dropdown stesso o sul campo di ricerca
     const dropdown = document.querySelector('[data-product-dropdown]');
-    if (!dropdown || !dropdown.contains(event.target)) {
+    const isClickOnSearchInput = productSearchInput.value && event.target === productSearchInput.value;
+    const isClickInDropdown = dropdown && dropdown.contains(event.target);
+    
+    // Non chiudere se si sta cliccando nel dropdown o nel campo di ricerca
+    if (!isClickInDropdown && !isClickOnSearchInput) {
       isProductDropdownOpen.value = false;
+      productSearchQuery.value = '';
     }
   }
 };
@@ -833,6 +948,9 @@ const handleRoofTypeChange = (value) => {
 const handleProductChange = (value) => {
   // Chiudi il dropdown
   isProductDropdownOpen.value = false;
+  
+  // Reset della ricerca
+  productSearchQuery.value = '';
   
   // Aggiorna il valore locale immediatamente per feedback visivo
   localSelectedProduct.value = value;
