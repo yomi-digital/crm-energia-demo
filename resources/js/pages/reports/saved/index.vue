@@ -21,6 +21,29 @@ const selectedUser = ref('')
 const selectedStatus = ref('')
 const selectedArea = ref('')
 
+// Date range filter
+const fromDate = ref('')
+const toDate = ref('')
+const dateRange = ref(null)
+
+// Watch dateRange to parse dates
+watch(dateRange, (newRange) => {
+  if (newRange) {
+    // AppDateTimePicker returns format: "YYYY-MM-DD al YYYY-MM-DD"
+    const [from, to] = newRange.split(' al ')
+    if (from && to) {
+      fromDate.value = from
+      toDate.value = to
+    } else {
+      fromDate.value = ''
+      toDate.value = ''
+    }
+  } else {
+    fromDate.value = ''
+    toDate.value = ''
+  }
+}, { deep: true })
+
 const updateOptions = options => {
   sortBy.value = options.sortBy[0]?.key
   orderBy.value = options.sortBy[0]?.order
@@ -66,6 +89,8 @@ const {
     user_id: selectedUser,
     status: selectedStatus,
     area: selectedArea,
+    from: fromDate,
+    to: toDate,
   },
 }))
 
@@ -135,6 +160,16 @@ const deleteReport = async id => {
     <VCard class="mb-6">
       <VCardText>
         <VRow>
+          <VCol cols="3">
+            <AppDateTimePicker
+              v-model="dateRange"
+              label="Filtra per Data"
+              placeholder="Seleziona intervallo date"
+              :config="{ mode: 'range' }"
+              clearable
+            />
+          </VCol>
+
           <VCol cols="3">
             <AppAutocomplete
               v-model="selectedArea"

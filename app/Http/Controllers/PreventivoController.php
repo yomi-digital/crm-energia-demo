@@ -752,16 +752,9 @@ class PreventivoController extends Controller
             ], 404);
         }
 
-        $expirationMinutes = 60 * 6;
-
-        $pdfService = new PreventivoPdfService();
-        $temporaryUrl = $pdfService->getTemporaryUrlFromPath($preventivo->pdf_url, $expirationMinutes);
-
-        return response()->json([
-            'downloadUrl' => $temporaryUrl,
-            'expiresAt' => now()->addMinutes($expirationMinutes)->toIso8601String(),
-            'expiresInMinutes' => $expirationMinutes,
-        ]);
+        // Scarica direttamente il file dal cloud e lo invia al client (proxy)
+        // Questo evita problemi di CORS con URL firmati su domini esterni
+        return Storage::disk('do')->download($preventivo->pdf_url);
     }
 
     private function transformEntriesToCSV($entries)
