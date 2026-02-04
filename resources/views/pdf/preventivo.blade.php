@@ -2756,7 +2756,7 @@
                 </div>
                 <!-- Prodotto - Box -->
                 <div style="position: absolute; top: 31mm; left: 18mm; width: 110mm; height: 10mm; background-color: white; border-radius: 16px; padding: 2mm; text-align: left;">
-                    <p style="font-size: 14px; font-weight: bold; color: black; margin: 0; line-height: 10mm; transform: translateY(-4mm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $nome_prodotto_selezionato }}</p>
+                    <p style="font-size: 10px; font-weight: bold; color: black; margin: 0; line-height: 10mm; transform: translateY(-4mm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $nome_prodotto_selezionato }}</p>
                 </div>
                 
                 <!-- OFFERTA ECONOMICA - Titolo -->
