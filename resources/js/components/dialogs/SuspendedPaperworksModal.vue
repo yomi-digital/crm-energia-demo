@@ -85,6 +85,7 @@ const close = () => {
           :items="paperworks"
           :items-length="totalPaperworks"
           :loading="isLoading"
+          loading-text="Caricamento in corso..."
           :headers="[
             { title: 'ID', key: 'id', width: '80' },
             { title: 'Agente', key: 'agent', sortable: false },

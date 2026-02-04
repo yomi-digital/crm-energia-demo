@@ -111,6 +111,7 @@ const close = () => {
           :items="tickets"
           :items-length="totalTickets"
           :loading="isLoading"
+          loading-text="Caricamento in corso..."
           :headers="ticketTableHeaders"
           class="text-no-wrap"
           @update:options="updateOptions"

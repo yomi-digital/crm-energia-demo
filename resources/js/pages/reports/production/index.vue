@@ -671,7 +671,7 @@ watch(selectedBrand, async (newBrands) => {
 fetchProducts(selectedBrand.value)
 
 const fetchAgents = async (query) => {
-  const response = await $api('/agents?select=1')
+  const response = await $api('/agents?select=1&itemsPerPage=999999')
   for (const agent of response.agents) {
     agents.value.push({
       title: `${agent.name} ${agent.last_name}`.trim(),
@@ -711,11 +711,36 @@ const fetchAgencies = async (query = '') => {
   }
 }
 
+const fetchInitialAgency = async () => {
+  if (!selectedAgency.value) return
+  
+  try {
+    const response = await $api(`/agencies/${selectedAgency.value}`)
+    const agency = response.agency
+    
+    if (agency) {
+      const agencyOption = {
+        title: agency.name,
+        value: agency.id,
+      }
+      
+      // Add to agencies list if not present
+      if (!agencies.value.some(a => a.value === agency.id)) {
+        agencies.value.push(agencyOption)
+      }
+    }
+  } catch (error) {
+    console.error('Errore recupero agenzia iniziale:', error)
+  }
+}
+
 const handleAgenciesSearch = useDebounceFn(value => {
   fetchAgencies(value)
 }, 300)
 
-fetchAgencies()
+fetchAgencies().then(() => {
+  fetchInitialAgency()
+})
 
 // Dialog per mostrare le note
 const isNotesDialogVisible = ref(false)
