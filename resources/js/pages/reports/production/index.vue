@@ -44,13 +44,32 @@ const parseProductFromUrl = () => {
   return []
 }
 
+// Inizializza selectedStatus dall'URL (può essere una stringa separata da trattini)
+const parseStatusFromUrl = () => {
+  const statusParam = route.query.status
+  if (!statusParam) return []
+  if (typeof statusParam === 'string') {
+    // Usa solo "-" come separatore tra stati multipli, mantieni gli spazi interni es. "OK PAGABILE"
+    return statusParam.split('-').filter(Boolean)
+  }
+  return []
+}
+
+// Inizializza selectedAgent dall'URL, convertendo l'ID in numero
+const parseAgentFromUrl = () => {
+  const agentParam = route.query.agent_id
+  if (!agentParam) return ''
+  const parsed = Number(agentParam)
+  return isNaN(parsed) ? '' : parsed
+}
+
 const selectedArea = ref(route.query.area || '')
 const selectedBrand = ref(parseBrandFromUrl())
 const selectedProduct = ref(parseProductFromUrl())
-const selectedAgent = ref(route.query.agent_id || '')
+const selectedAgent = ref(parseAgentFromUrl())
 const selectedAgency = ref(route.query.agency_id || '')
 const selectedMandate = ref(route.query.mandate_id || '')
-const selectedStatus = ref(route.query.status || '')
+const selectedStatus = ref(parseStatusFromUrl())
 const selectedSubStatus = ref(route.query.substatus || '')
 const selectedCategory = ref(route.query.category || '')
 const selectedHasAppointment = ref(route.query.has_appointment || '')
@@ -187,6 +206,13 @@ const productIdsParam = computed(() => {
     : ''
 })
 
+// Computed per concatenare gli status selezionati
+const statusParam = computed(() => {
+  return Array.isArray(selectedStatus.value) && selectedStatus.value.length > 0 
+    ? selectedStatus.value.join('-') 
+    : ''
+})
+
 // Flag per evitare loop infiniti quando aggiorniamo l'URL
 let isUpdatingFromUrl = false
 
@@ -231,7 +257,9 @@ watch([
   if (selectedAgent.value) query.agent_id = selectedAgent.value
   if (selectedAgency.value) query.agency_id = selectedAgency.value
   if (selectedMandate.value) query.mandate_id = selectedMandate.value
-  if (selectedStatus.value) query.status = selectedStatus.value
+  if (Array.isArray(selectedStatus.value) && selectedStatus.value.length > 0) {
+    query.status = selectedStatus.value.join('-')
+  }
   if (selectedSubStatus.value) query.substatus = selectedSubStatus.value
   if (selectedCategory.value) query.category = selectedCategory.value
   if (selectedHasAppointment.value) query.has_appointment = selectedHasAppointment.value
@@ -267,10 +295,21 @@ watch(() => route.query, (newQuery) => {
       selectedProduct.value = []
     }
   }
-  if (newQuery.agent_id !== undefined) selectedAgent.value = newQuery.agent_id || ''
+  if (newQuery.agent_id !== undefined) {
+    const parsedAgent = Number(newQuery.agent_id)
+    selectedAgent.value = !isNaN(parsedAgent) ? parsedAgent : ''
+  }
   if (newQuery.agency_id !== undefined) selectedAgency.value = newQuery.agency_id || ''
   if (newQuery.mandate_id !== undefined) selectedMandate.value = newQuery.mandate_id || ''
-  if (newQuery.status !== undefined) selectedStatus.value = newQuery.status || ''
+  if (newQuery.status !== undefined) {
+    const statusParamFromUrl = newQuery.status
+    if (statusParamFromUrl && typeof statusParamFromUrl === 'string') {
+      // Usa solo "-" come separatore tra stati multipli, mantieni gli spazi interni es. "OK PAGABILE"
+      selectedStatus.value = statusParamFromUrl.split('-').filter(Boolean)
+    } else {
+      selectedStatus.value = []
+    }
+  }
   if (newQuery.category !== undefined) selectedCategory.value = newQuery.category || ''
   if (newQuery.has_appointment !== undefined) selectedHasAppointment.value = newQuery.has_appointment || ''
   
@@ -298,7 +337,7 @@ const {
     agent_id: selectedAgent,
     agency_id: selectedAgency,
     mandate_id: selectedMandate,
-    status: selectedStatus,
+    status: statusParam,
     substatus: selectedSubStatus,
     category: selectedCategory,
     has_appointment: selectedHasAppointment,
@@ -312,6 +351,9 @@ const exportReport = async () => {
       : ''
     const productIds = Array.isArray(selectedProduct.value) && selectedProduct.value.length > 0 
       ? selectedProduct.value.join('-') 
+      : ''
+    const statuses = Array.isArray(selectedStatus.value) && selectedStatus.value.length > 0
+      ? selectedStatus.value.join('-')
       : ''
     
     const data = await $api(`/reports/production`, {
@@ -331,7 +373,7 @@ const exportReport = async () => {
         agent_id: selectedAgent.value,
         agency_id: selectedAgency.value,
         mandate_id: selectedMandate.value,
-        status: selectedStatus.value,
+        status: statuses,
         substatus: selectedSubStatus.value,
         category: selectedCategory.value,
         has_appointment: selectedHasAppointment.value,
@@ -847,8 +889,26 @@ const saveProduct = async () => {
               label="Filtra per Stato"
               clearable
               :items="statuses"
-              placeholder="Seleziona uno Stato"
-            />
+              multiple
+              chips
+              closable-chips
+              placeholder="Seleziona uno o più Stati"
+            >
+              <template #selection="{ item, index }">
+                <VChip v-if="index < 2">
+                  <span>{{ item.title }}</span>
+                </VChip>
+                <span
+                  v-if="index === 2"
+                  class="text-grey text-caption align-self-center"
+                >
+                  (+{{ selectedStatus.length - 2 }} altri)
+                </span>
+              </template>
+              <template #prepend-inner>
+                <span v-if="selectedStatus.length === 0" class="text-high-emphasis">Tutti</span>
+              </template>
+            </AppAutocomplete>
           </VCol>
 
           <VCol cols="3">

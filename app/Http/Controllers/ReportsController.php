@@ -411,14 +411,21 @@ class ReportsController extends Controller
         }
 
         if ($request->filled('status')) {
-            $status = $request->get('status');
-            $paperworks = $paperworks->where(function ($query) use ($status) {
-                $query->where('partner_outcome', $status)
-                      ->orWhere(function ($q) use ($status) {
-                          $q->whereNull('partner_outcome')
-                            ->where('order_status', $status);
-                      });
-            });
+            // Supporta più stati separati da "-"
+            $statusParam = $request->get('status');
+            $statuses = is_string($statusParam)
+                ? array_filter(explode('-', $statusParam))
+                : (array) $statusParam;
+
+            if (!empty($statuses)) {
+                $paperworks = $paperworks->where(function ($query) use ($statuses) {
+                    $query->whereIn('partner_outcome', $statuses)
+                          ->orWhere(function ($q) use ($statuses) {
+                              $q->whereNull('partner_outcome')
+                                ->whereIn('order_status', $statuses);
+                          });
+                });
+            }
         }
 
         if ($request->filled('substatus')) {
