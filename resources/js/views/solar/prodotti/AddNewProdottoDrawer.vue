@@ -1,5 +1,6 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
+import { nextTick } from 'vue'
 
 const props = defineProps({
   isDrawerOpen: {
@@ -67,6 +68,28 @@ watch(() => props.isDrawerOpen, async (val) => {
   if (val) {
     // Carica categorie e listini in parallelo e aspetta il completamento
     await Promise.all([loadCategorie(), loadListini()])
+    
+    // Assicurati che i valori siano resettati dopo il caricamento
+    await nextTick()
+    
+    // Verifica che i valori siano validi rispetto agli items caricati
+    if (fkCategoria.value && categorie.value.length > 0) {
+      const categoriaExists = categorie.value.some(c => c.value === fkCategoria.value)
+      if (!categoriaExists) {
+        fkCategoria.value = ''
+      }
+    }
+    
+    if (listini.value && listini.value.length > 0 && availableListini.value.length > 0) {
+      // Filtra solo i listini che esistono realmente
+      listini.value = listini.value.filter(id => 
+        availableListini.value.some(l => l.value === id)
+      )
+    }
+  } else {
+    // Reset dei valori quando il drawer si chiude
+    fkCategoria.value = ''
+    listini.value = []
   }
 })
 
@@ -259,6 +282,7 @@ const handleDrawerModelValueUpdate = val => {
                   v-model="linkSchedaProdottoTecnica"
                   label="Link Scheda Prodotto Tecnica"
                   placeholder="https://www.example.com"
+                  :rules="[urlValidator]"
                 />
               </VCol>
 

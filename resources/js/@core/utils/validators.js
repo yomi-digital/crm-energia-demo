@@ -74,7 +74,7 @@ export const urlValidator = value => {
     return true
   const re = /^https?:\/\/[^\s$.?#].\S*$/
 
-  return re.test(String(value)) || 'URL is invalid'
+  return re.test(String(value)) || 'Inserire un URL valido (deve iniziare con http:// o https://)'
 }
 
 // 👉 Length Validator
