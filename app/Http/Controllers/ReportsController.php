@@ -576,6 +576,20 @@ class ReportsController extends Controller
             }
         }
 
+        //Fix del nome e cognome del cliente
+        $customerName = "N/A";
+        if ($paperwork->customer) {
+            if (!empty($paperwork->customer->business_name)) {
+                $customerName = $paperwork->customer->business_name;
+            } else if (!empty($paperwork->customer->name) && !empty($paperwork->customer->last_name)) {
+                $customerName = implode(' ', array_filter([$paperwork->customer->name, $paperwork->customer->last_name]));
+            } else if (!empty($paperwork->customer->name)) {
+                $customerName = $paperwork->customer->name;
+            } else if (!empty($paperwork->customer->last_name)) {
+                $customerName = $paperwork->customer->last_name;
+            }
+        }
+
         return [
             'parent_id' => $parent ? $parent->id : null,
             'parent' => $parent ? implode(' ', array_filter([$parent->name, $parent->last_name])) : null,
@@ -586,7 +600,7 @@ class ReportsController extends Controller
             'mandate_id' => $paperwork->mandate_id,
             'mandate' => $paperwork->mandate ? $paperwork->mandate->name : null,
             'customer_id' => $paperwork->customer_id,
-            'customer' => $paperwork->customer ? implode(' ', array_filter([$paperwork->customer->name, $paperwork->customer->business_name])) : null,
+            'customer' => $customerName,
             'brand_id' => $paperwork->product && $paperwork->product->brand ? $paperwork->product->brand_id : null,
             'brand' => $paperwork->product && $paperwork->product->brand ? $paperwork->product->brand->name : 'N/A',
             'product_id' => $paperwork->product_id,
@@ -635,6 +649,7 @@ class ReportsController extends Controller
             'Brand',
             'Prodotto',
             'Pratica',
+            'Cliente',
             'Insertita',
             'Stato',
             'Note',
@@ -654,6 +669,7 @@ class ReportsController extends Controller
                 $data['brand'],
                 $data['product'],
                 $data['order_code'],
+                $data['customer'],
                 $data['inserted_at'],
                 $data['status'],
                 $this->sanitizeNotesForExport($data['notes'] ?? ''),
