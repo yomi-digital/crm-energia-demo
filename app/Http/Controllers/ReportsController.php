@@ -448,6 +448,10 @@ class ReportsController extends Controller
             $paperworks = $paperworks->where('category', $request->get('category'));
         }
 
+        if ($request->filled('type')) {
+            $paperworks = $paperworks->where('type', $request->get('type'));
+        }
+
         if ($request->filled('has_appointment')) {
             $hasAppointment = $request->get('has_appointment');
             if ($hasAppointment === '1' || $hasAppointment === 'SI') {
@@ -461,7 +465,7 @@ class ReportsController extends Controller
 
         if ($request->has('export')) {
             $allPaperworks = $paperworks->get();
-            $csvPath = $this->transformPaperworksToCSV($allPaperworks, $user);
+            $csvPath = $this->transformPaperworksToCSV($allPaperworks, $user, $request);
 
             // Transform csv to excel
             $data = array_map('str_getcsv', file($csvPath));
@@ -606,13 +610,23 @@ class ReportsController extends Controller
             'product_id' => $paperwork->product_id,
             'product' => $paperwork->product ? $paperwork->product->name : 'N/A',
             'order_code' => $paperwork->order_code,
+            'account_pod_pdr' => $paperwork->account_pod_pdr,
             'paperwork_id' => $paperwork->id,
             'inserted_at' => $paperwork->partner_sent_at ? \Carbon\Carbon::parse($paperwork->partner_sent_at)->format(config('app.date_format')) : null,
             'status' => $paperwork->partner_outcome ?: $paperwork->order_status,
             'order_status' => $paperwork->order_status,
             'category' => $paperwork->category,
+            'type' => $paperwork->type,
             'has_appointment' => $paperwork->appointment_id ? 'SI' : 'NO',
             'notes' => $paperwork->notes,
+            'area' => $paperwork->user?->area ?? null,
+            'partner_outcome' => $paperwork->partner_outcome,
+            'partner_outcome_at' => $paperwork->partner_outcome_at ? \Carbon\Carbon::parse($paperwork->partner_outcome_at)->format(config('app.date_format')) : null,
+            'tax_id_code' => $paperwork->customer ? ($paperwork->customer->tax_id_code ?? 'N/A') : 'N/A',
+            'vat_number' => $paperwork->customer ? ($paperwork->customer->vat_number ?? 'N/A') : 'N/A',
+            'email' => $paperwork->customer ? ($paperwork->customer->email ?? 'N/A') : 'N/A',
+            'phone' => $paperwork->customer ? ($paperwork->customer->phone ?? 'N/A') : 'N/A',
+            'mobile' => $paperwork->customer ? ($paperwork->customer->mobile ?? 'N/A') : 'N/A',
         ];
     }
 
@@ -640,20 +654,41 @@ class ReportsController extends Controller
         return $notes;
     }
 
-    private function transformPaperworksToCSV($paperworks, $user)
+    private function transformPaperworksToCSV($paperworks, $user, $request)
     {
+        // Verifica se l'utente è admin per includere il compenso
+        $isAdmin = $request->user()->hasRole('amministrazione') || $request->user()->hasRole('gestione');
+        
         $headers = [
-            'Struttura',
-            'Agente',
-            'Agenzia',
+            'Inserimento',
+            'POD/PDR',
+            'Id Pratica',
             'Brand',
-            'Prodotto',
-            'Pratica',
+            'Agenzia',
+            'Struttura',
             'Cliente',
-            'Insertita',
+            'Area',
+            'Agente',
+            'Categoria',
             'Stato',
-            'Note',
+            'Data esito partner',
         ];
+        
+        // Aggiungi Compenso solo se admin
+        if ($isAdmin) {
+            $headers[] = 'Compenso';
+        }
+        
+        $headers = array_merge($headers, [
+            'Esito partner',
+            'Note',
+            'P. IVA',
+            'Codice fiscale',
+            'Email',
+            'Telefono',
+            'Cellulare',
+            'Appuntamento',
+        ]);
 
         // Save csv to /tmp 
         $csvPath = tempnam(sys_get_temp_dir(), 'csv');
@@ -662,18 +697,53 @@ class ReportsController extends Controller
 
         foreach ($paperworks as $paperwork) {
             $data = $this->transformPaperwork($paperwork, $user);
-            fputcsv($fp, [
-                $data['parent'],
-                $data['agent'],
-                $data['agency'],
-                $data['brand'],
-                $data['product'],
-                $data['order_code'],
-                $data['customer'],
+            
+            // Calcola il compenso solo se admin
+            $payout = null;
+            if ($isAdmin) {
+                if ($user) {
+                    $parent = $user;
+                } else {
+                    $parent = \App\Models\UserRelationship::where('related_id', $paperwork->user_id)->first();
+                    if ($parent) {
+                        $parent = \App\Models\User::find($parent->user_id);
+                    }
+                }
+                $payout = $this->calculatePaperworkPayout($paperwork, $parent);
+            }
+            
+            $row = [
                 $data['inserted_at'],
+                $data['account_pod_pdr'],
+                $data['paperwork_id'],
+                $data['brand'],
+                $data['agency'],
+                $data['parent'],
+                $data['customer'],
+                $data['area'],
+                $data['agent'],
+                $data['category'],
                 $data['status'],
+                $data['partner_outcome_at'],
+            ];
+            
+            // Aggiungi compenso solo se admin
+            if ($isAdmin) {
+                $row[] = $payout;
+            }
+            
+            $row = array_merge($row, [
+                $data['partner_outcome'] ?? 'N/A',
                 $this->sanitizeNotesForExport($data['notes'] ?? ''),
+                $data['vat_number'],
+                $data['tax_id_code'],
+                $data['email'],
+                $data['phone'],
+                $data['mobile'],
+                $data['has_appointment'],
             ]);
+            
+            fputcsv($fp, $row);
         }
 
         fclose($fp);

@@ -72,6 +72,7 @@ const selectedMandate = ref(route.query.mandate_id || '')
 const selectedStatus = ref(parseStatusFromUrl())
 const selectedSubStatus = ref(route.query.substatus || '')
 const selectedCategory = ref(route.query.category || '')
+const selectedType = ref(route.query.type || '')
 const selectedHasAppointment = ref(route.query.has_appointment || '')
 
 const loggedInUser = useCookie('userData').value
@@ -133,8 +134,18 @@ const headers = [
     width: '200px',
   },
   {
-    title: 'Tipologia',
+    title: 'POD/PDR',
+    key: 'account_pod_pdr',
+    sortable: false,
+  },
+  {
+    title: 'Categoria',
     key: 'category',
+    sortable: false,
+  },
+  {
+    title: 'Tipo',
+    key: 'type',
     sortable: false,
   },
   {
@@ -233,7 +244,8 @@ watch([
   selectedMandate,
   selectedStatus, 
   selectedSubStatus,
-  selectedCategory, 
+  selectedCategory,
+  selectedType, 
   selectedHasAppointment
 ], () => {
   if (isUpdatingFromUrl) return
@@ -262,6 +274,7 @@ watch([
   }
   if (selectedSubStatus.value) query.substatus = selectedSubStatus.value
   if (selectedCategory.value) query.category = selectedCategory.value
+  if (selectedType.value) query.type = selectedType.value
   if (selectedHasAppointment.value) query.has_appointment = selectedHasAppointment.value
   
   router.replace({ query })
@@ -311,6 +324,7 @@ watch(() => route.query, (newQuery) => {
     }
   }
   if (newQuery.category !== undefined) selectedCategory.value = newQuery.category || ''
+  if (newQuery.type !== undefined) selectedType.value = newQuery.type || ''
   if (newQuery.has_appointment !== undefined) selectedHasAppointment.value = newQuery.has_appointment || ''
   
   // Aggiorna dateRange
@@ -340,6 +354,7 @@ const {
     status: statusParam,
     substatus: selectedSubStatus,
     category: selectedCategory,
+    type: selectedType,
     has_appointment: selectedHasAppointment,
   },
 }))
@@ -376,6 +391,7 @@ const exportReport = async () => {
         status: statuses,
         substatus: selectedSubStatus.value,
         category: selectedCategory.value,
+        type: selectedType.value,
         has_appointment: selectedHasAppointment.value,
       },
       responseType: 'blob'
@@ -561,6 +577,25 @@ const categories = ref([
   {
     title: 'PORTABILITÀ',
     value: 'PORTABILITÀ',
+  },
+])
+
+const types = ref([
+  {
+    title: 'Tutti',
+    value: '',
+  },
+  {
+    title: 'Energia',
+    value: 'ENERGIA',
+  },
+  {
+    title: 'Telefonia',
+    value: 'TELEFONIA',
+  },
+  {
+    title: 'Fotovoltaico',
+    value: 'Fotovoltaico',
   },
 ])
 
@@ -949,10 +984,20 @@ const saveProduct = async () => {
           <VCol cols="3">
             <AppAutocomplete
               v-model="selectedCategory"
-              label="Filtra per Tipologia"
+              label="Filtra per Categoria"
               clearable
               :items="categories"
-              placeholder="Seleziona una Tipologia"
+              placeholder="Seleziona una Categoria"
+            />
+          </VCol>
+
+          <VCol cols="3">
+            <AppAutocomplete
+              v-model="selectedType"
+              label="Filtra per Tipo"
+              clearable
+              :items="types"
+              placeholder="Seleziona un Tipo"
             />
           </VCol>
 
