@@ -1,7 +1,7 @@
 <script setup>
 definePage({
   meta: {
-    action: 'access',
+    action: 'see',
     subject: 'communications',
   },
 })
