@@ -3098,7 +3098,7 @@
             <div style="width: 178mm; height: 220mm; position: relative;">
                 
                 <!-- Colonna sinistra -->
-                <div style="position: absolute; top: 0; left: 0; width: 85mm; height: 220mm; font-size: 7.5px; line-height: 1.6mm; text-align: justify; padding-right: 2mm;">
+                <div style="position: absolute; top: 0; left: 0; width: 85mm; height: 220mm; font-size: 10px; line-height: 2.2mm; text-align: justify; padding-right: 2mm;">
                     <p style="margin-bottom: 1.5mm;">Gentile Cliente / Potenziale Cliente,</p>
                     <p style="margin-bottom: 1.5mm;">ALFACOM S.R.L., con sede legale in Viale Leonardo da Vinci, 8 – 95128 Catania (CT), P. IVA 05466900874, iscritta con il numero REA 368504, la informa che i Suoi dati saranno trattati ai sensi dell'art. 13 del Regolamento UE 2016/679 ("GDPR") e del D.Lgs. 30.06.2003 n. 196, così come modificato e integrato dal D.Lgs. 10.08.2018 n. 101 (c.d. "Codice in materia di protezione dei dati personali" o "Codice Privacy"), al fine di offrirle i servizi di contatto e assistenza commerciale da Lei richiesti.</p>
                     
@@ -3121,7 +3121,7 @@
                 </div>
                 
                 <!-- Colonna destra -->
-                <div style="position: absolute; top: 0; right: 0; width: 85mm; height: 220mm; font-size: 7.5px; text-align: justify; line-height: 1.6mm; padding-left: 2mm; padding-right: 1mm;">
+                <div style="position: absolute; top: 0; right: 0; width: 85mm; height: 220mm; font-size: 10px; text-align: justify; line-height: 2.2mm; padding-left: 2mm; padding-right: 1mm;">
                     <p style="font-weight: bold; margin: 0 0 0.5mm 0;">MODALITÀ DEL TRATTAMENTO</p>
                     <p style="margin-bottom: 1.5mm;">Alfacom S.r.l., nella qualità di Titolare del trattamento, raccoglie i Suoi dati personali direttamente e, in taluni casi, per mezzo di soggetti terzi, nel rispetto delle norme di riservatezza e sicurezza previste dall'art. 32 del Regolamento.</p>
                     
