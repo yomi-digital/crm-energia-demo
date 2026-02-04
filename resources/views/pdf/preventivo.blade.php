@@ -1794,10 +1794,10 @@
                         <span>Agente: <b>{{ $preventivo->agente->name ?? '' }} {{ $preventivo->agente->last_name ?? '' }}</b></span>
                     </div>
                 @endif
-                <div style="transform: translateY(45mm) translateX(20mm)">
-                    <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: 65mm; height: auto;">
+                <div style="transform: translateY(45mm) translateX(45mm)">
+                    <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: 50mm; height: auto;">
                 </div>
-                <div style="absolute; bottom: 0; left: 0; border-left: 1px solid gray; width: 0px; height: 70mm;">
+                <div style="absolute; bottom: 0; left: 0; border-left: 1px solid gray; width: 0px; height: 70mm; transform: translateX(25mm);">
                 </div>
             </div>
         </div>
