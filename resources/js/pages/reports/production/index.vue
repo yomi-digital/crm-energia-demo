@@ -169,6 +169,56 @@ const headers = [
     sortable: false,
   },
   {
+    title: 'Area',
+    key: 'area',
+    sortable: false,
+  },
+  {
+    title: 'Data esito partner',
+    key: 'partner_outcome_at',
+    sortable: false,
+  },
+  {
+    title: 'Compenso €',
+    key: 'payout',
+    sortable: false,
+  },
+  {
+    title: 'Esito partner',
+    key: 'partner_outcome',
+    sortable: false,
+  },
+  {
+    title: 'Note',
+    key: 'notes',
+    sortable: false,
+  },
+  {
+    title: 'P. IVA',
+    key: 'vat_number',
+    sortable: false,
+  },
+  {
+    title: 'Codice fiscale',
+    key: 'tax_id_code',
+    sortable: false,
+  },
+  {
+    title: 'Email',
+    key: 'email',
+    sortable: false,
+  },
+  {
+    title: 'Telefono',
+    key: 'phone',
+    sortable: false,
+  },
+  {
+    title: 'Cellulare',
+    key: 'mobile',
+    sortable: false,
+  },
+  {
     title: 'Azioni',
     key: 'actions',
     sortable: false,
@@ -177,11 +227,27 @@ const headers = [
 
 // Filtra gli headers in base ai permessi dell'utente
 const filteredHeaders = computed(() => {
-  if (isAdminOrBackoffice.value) {
-    return headers
+  let filtered = headers
+  
+  if (!isAdminOrBackoffice.value) {
+    // Gli agenti non vedono parent, agency, mandate e compenso
+    filtered = filtered.filter(header => 
+      header.key !== 'parent' && 
+      header.key !== 'agency' && 
+      header.key !== 'mandate' &&
+      header.key !== 'payout'
+    )
+  } else {
+    // Gli admin vedono tutto tranne il compenso se non sono amministrazione/gestione
+    const isAdmin = loggedInUser?.roles?.some(role => 
+      role.name === 'amministrazione' || role.name === 'gestione'
+    )
+    if (!isAdmin) {
+      filtered = filtered.filter(header => header.key !== 'payout')
+    }
   }
-  // Gli agenti non vedono parent, agency e mandate
-  return headers.filter(header => header.key !== 'parent' && header.key !== 'agency' && header.key !== 'mandate')
+  
+  return filtered
 })
 
 // Default to last 30 days o dall'URL
@@ -1221,6 +1287,105 @@ const saveProduct = async () => {
           <div class="d-flex align-center gap-x-2">
             <div class="text-capitalize text-high-emphasis text-body-1">
               {{ item.status || 'N/A' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Area -->
+        <template #item.area="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              {{ item.area || 'N/A' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Data esito partner -->
+        <template #item.partner_outcome_at="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              {{ item.partner_outcome_at || 'N/A' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Compenso -->
+        <template #item.payout="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.payout ? `€ ${item.payout.toFixed(2)}` : 'N/A' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Esito partner -->
+        <template #item.partner_outcome="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-capitalize text-high-emphasis text-body-1">
+              {{ item.partner_outcome || 'N/A' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Note -->
+        <template #item.notes="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1" style="max-width: 200px; white-space: normal; word-wrap: break-word;">
+              {{ item.notes ? (item.notes.length > 50 ? item.notes.substring(0, 50) + '...' : item.notes) : 'N/A' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- P. IVA -->
+        <template #item.vat_number="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.vat_number || 'N/A' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Codice fiscale -->
+        <template #item.tax_id_code="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              {{ item.tax_id_code || 'N/A' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Email -->
+        <template #item.email="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              <a v-if="item.email && item.email !== 'N/A'" :href="`mailto:${item.email}`" class="text-link">
+                {{ item.email }}
+              </a>
+              <span v-else>{{ item.email || 'N/A' }}</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Telefono -->
+        <template #item.phone="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              <a v-if="item.phone && item.phone !== 'N/A'" :href="`tel:${item.phone}`" class="text-link">
+                {{ item.phone }}
+              </a>
+              <span v-else>{{ item.phone || 'N/A' }}</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Cellulare -->
+        <template #item.mobile="{ item }">
+          <div class="d-flex align-center gap-x-2">
+            <div class="text-high-emphasis text-body-1">
+              <a v-if="item.mobile && item.mobile !== 'N/A'" :href="`tel:${item.mobile}`" class="text-link">
+                {{ item.mobile }}
+              </a>
+              <span v-else>{{ item.mobile || 'N/A' }}</span>
             </div>
           </div>
         </template>

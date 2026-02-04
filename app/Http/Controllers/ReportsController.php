@@ -489,9 +489,29 @@ class ReportsController extends Controller
 
         $perPage = $request->get('itemsPerPage', 500);
         $paperworks = $paperworks->paginate($perPage);
+        
+        // Verifica se l'utente è admin per calcolare il compenso
+        $isAdmin = $request->user()->hasRole('amministrazione') || $request->user()->hasRole('gestione');
 
-        $paperworks->getCollection()->transform(function ($paperwork) use ($user) {
-            return $this->transformPaperwork($paperwork, $user);
+        $paperworks->getCollection()->transform(function ($paperwork) use ($user, $isAdmin) {
+            $data = $this->transformPaperwork($paperwork, $user);
+            
+            // Calcola il compenso solo se admin
+            if ($isAdmin) {
+                if ($user) {
+                    $parent = $user;
+                } else {
+                    $parent = \App\Models\UserRelationship::where('related_id', $paperwork->user_id)->first();
+                    if ($parent) {
+                        $parent = \App\Models\User::find($parent->user_id);
+                    }
+                }
+                $data['payout'] = $this->calculatePaperworkPayout($paperwork, $parent);
+            } else {
+                $data['payout'] = null;
+            }
+            
+            return $data;
         });
 
         return response()->json([
