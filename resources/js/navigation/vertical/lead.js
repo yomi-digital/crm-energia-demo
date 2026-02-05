@@ -6,7 +6,7 @@ export default [
     roles: ['gestione', 'amministrazione'],
   },
   {
-    title: 'Alfacom Solar Lead',
+    title: 'Demo Solar Lead',
     icon: { icon: 'tabler-solar-panel-2' },
     to: 'lead-alfacom-solar-lead',
     action: 'access',

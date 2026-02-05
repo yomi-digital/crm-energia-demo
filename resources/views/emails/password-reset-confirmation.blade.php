@@ -84,7 +84,7 @@
         <div class="header">
             <div class="success-icon">✅</div>
             <h1>Password Reimpostata con Successo</h1>
-            <p style="margin: 10px 0 0 0; opacity: 0.9;">Alfacom CRM</p>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Demo CRM</p>
         </div>
 
         <div class="content">
@@ -95,7 +95,7 @@
                 <p>La tua password è stata reimpostata con successo!</p>
             </div>
 
-            <p>Il tuo account Alfacom CRM è ora protetto con la nuova password che hai scelto.</p>
+            <p>Il tuo account Demo CRM è ora protetto con la nuova password che hai scelto.</p>
 
             <div class="info-box">
                 <p><strong>🔒 Informazioni di sicurezza:</strong></p>
@@ -115,11 +115,11 @@
 
             <p>Se hai domande o problemi, contatta il supporto tecnico.</p>
 
-            <p>Saluti,<br><strong>Team Alfacom CRM</strong></p>
+            <p>Saluti,<br><strong>Team Demo CRM</strong></p>
         </div>
 
         <div class="footer">
-            <p>Questo messaggio è stato inviato automaticamente da Alfacom CRM.</p>
+            <p>Questo messaggio è stato inviato automaticamente da Demo CRM.</p>
             <p>Per favore non rispondere a questa email.</p>
         </div>
     </div>

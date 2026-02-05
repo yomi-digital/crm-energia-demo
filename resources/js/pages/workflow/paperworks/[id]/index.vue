@@ -416,7 +416,7 @@ const downloadDocument = async doc => {
             >
               <VCardText>
                 <div class="text-body-1">
-                  <div class="font-weight-medium mb-2">Note Alfacom</div>
+                  <div class="font-weight-medium mb-2">Note Demo</div>
                   <div>{{ paperworkData.owner_notes || 'N/A' }}</div>
                 </div>
               </VCardText>

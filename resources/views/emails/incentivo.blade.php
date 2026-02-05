@@ -87,7 +87,7 @@
 <body>
     <div class="header-logos">
         <div class="logo-center">
-            <img src="https://easywork-crm.fra1.digitaloceanspaces.com/logos/LOGO_nobg.png" alt="Logo Alfacom" style="height: 60px;">
+            <img src="https://easywork-crm.fra1.digitaloceanspaces.com/logos/LOGO_nobg.png" alt="Logo Demo" style="height: 60px;">
         </div>
     </div>
 
@@ -158,7 +158,7 @@
     </div>
 
     <div class="footer">
-        <p>Il team di Alfacom Solar</p>
+        <p>Il team di Demo Solar</p>
         <p style="font-size: 12px; margin-top: 10px;">
             Questa email è stata inviata a {{ $email }} in seguito al calcolo dell'incentivo fotovoltaico.<br>
             © {{ date('Y') }} - Tutti i diritti riservati

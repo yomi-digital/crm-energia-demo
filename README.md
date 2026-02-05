@@ -46,7 +46,7 @@ Questo comando:
 
 In produzione, questo comando viene eseguito automaticamente ogni minuto via cron (vedi `App\Console\Kernel`).
 
-## Database Seeding (Alfacom Import)
+## Database Seeding (Demo Import)
 
 ### Comandi standard (RAM di default PHP, 128MB)
 

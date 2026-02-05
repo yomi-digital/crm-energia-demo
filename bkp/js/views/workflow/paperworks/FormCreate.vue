@@ -345,7 +345,7 @@ const createUser = async () => {
       >
         <AppTextarea
           v-model="ownerNotes"
-          label="Note Alfacom"
+          label="Note Demo"
           placeholder="Note"
         />
       </VCol>

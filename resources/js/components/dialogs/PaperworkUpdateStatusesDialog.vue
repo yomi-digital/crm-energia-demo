@@ -373,8 +373,8 @@ const onFormReset = () => {
             <VCol cols="12" sm="6">
               <AppTextarea
                 v-model="ownerNotes"
-                label="Note Alfacom"
-                placeholder="Inserisci note Alfacom..."
+                label="Note Demo"
+                placeholder="Inserisci note Demo..."
                 rows="4"
               />
             </VCol>

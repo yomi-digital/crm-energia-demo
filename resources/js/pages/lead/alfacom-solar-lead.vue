@@ -416,7 +416,7 @@ const exportExcel = async () => {
     <VCardText>
       <div class="d-flex align-center justify-space-between mb-4">
         <h1 class="text-h3">
-          Alfacom Solar Lead
+          Demo Solar Lead
         </h1>
         <div class="d-flex gap-2">
           <VBtn

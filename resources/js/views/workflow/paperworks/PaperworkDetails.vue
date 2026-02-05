@@ -40,14 +40,14 @@ watch(formData, () => {
         />
       </VCol>
 
-      <!-- 👉 Note Alfacom -->
+      <!-- 👉 Note Demo -->
       <VCol
         cols="12"
         md="12"
       >
         <AppTextarea
           v-model="formData.owner_notes"
-          label="Note Alfacom"
+          label="Note Demo"
           placeholder="Note"
         />
       </VCol>

@@ -388,11 +388,11 @@ const onStartDateChange = value => {
                 />
               </VCol>
 
-              <!-- 👉 Note Alfacom -->
+              <!-- 👉 Note Demo -->
               <VCol cols="12" v-if="isAdmin">
                 <AppTextarea
                   v-model="event.extendedProps.notes"
-                  label="Note Alfacom"
+                  label="Note Demo"
                   placeholder=""
                 />
               </VCol>

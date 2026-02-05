@@ -43,7 +43,7 @@
 <body>
     <div class="header">
         <h1>Nuova Comunicazione</h1>
-        <p>Alfacom CRM</p>
+        <p>Demo CRM</p>
     </div>
 
     <div class="content">
@@ -61,7 +61,7 @@
     </div>
 
     <div class="footer">
-        <p>Questo messaggio è stato inviato automaticamente da Alfacom CRM.</p>
+        <p>Questo messaggio è stato inviato automaticamente da Demo CRM.</p>
         <p>Per favore non rispondere a questa email.</p>
     </div>
 </body>

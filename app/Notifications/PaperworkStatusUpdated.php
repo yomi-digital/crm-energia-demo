@@ -98,7 +98,7 @@ class PaperworkStatusUpdated extends Notification
                     ->line('**Esito Partner:** ' . $esitoPartner)
                     ->line('**Data Esito Partner:** ' . $dataEsitoPartner)
                     ->action('Visualizza Pratica', url('/workflow/paperworks/' . $this->paperwork->id))
-                    ->line('Grazie per aver utilizzato Alfacom CRM!');
+                    ->line('Grazie per aver utilizzato Demo CRM!');
     }
 
     /**

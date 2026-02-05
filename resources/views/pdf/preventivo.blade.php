@@ -1758,10 +1758,10 @@
         <div style="width: 100%; height: 117mm; position: relative;">
             <!-- Colonna Sinistra: Dati Preventivo e Cliente -->
             <div style="width:88mm; height: 117mm; display:inline-block; vertical-align: top;">
-                <!-- Barra verde con alfacomsolar.it -->
+                <!-- Barra verde con demosolar.it -->
                 <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
                     <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
-                        alfacomsolar.it
+                        demosolar.it
                     </div>
                 </div>
 
@@ -1795,7 +1795,7 @@
                     </div>
                 @endif
                 <div style="transform: translateY(45mm) translateX(45mm)">
-                    <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: 50mm; height: auto;">
+                    <img src="{{ public_path('images/pdf/DEMO-logo.png') }}" alt="DEMO Solar Logo" style="width: 50mm; height: auto;">
                 </div>
                 <div style="absolute; bottom: 0; left: 0; border-left: 1px solid gray; width: 0px; height: 70mm; transform: translateX(25mm);">
                 </div>
@@ -1804,7 +1804,7 @@
 
         <!-- Footer Aziendale -->
         <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
-        ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+        DEMO S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppodemo.it
         </div>
     </div>
 
@@ -1815,7 +1815,7 @@
             
             <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
                 <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
-                    alfacomsolar.it
+                    demosolar.it
                 </div>
             </div>
 
@@ -1824,7 +1824,7 @@
             </div>
 
             <div style="position: absolute; top: 30%; right: 15mm;">
-                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+                <img src="{{ public_path('images/pdf/DEMO-logo.png') }}" alt="DEMO Solar Logo" style="width: auto; height: 15mm;">
             </div>
         </div>
 
@@ -1982,7 +1982,7 @@
         <div>
         <!-- Footer Aziendale -->
         <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
-            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+            DEMO S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppodemo.it
         </div>
         <!-- Contenuto principale -->
         <!-- <div class="page-content" style="position: relative; padding: 20mm 15mm; border:1px solid red;">
@@ -1991,7 +1991,7 @@
              <div style="width: 100%; border:1px solid blue;">
                 <div style="width:55mm; height: 18mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
                         <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(4mm)">
-                            alfacomsolar.it
+                            demosolar.it
                         </div>
                 </div>
             </div>
@@ -2202,7 +2202,7 @@
             
             <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
                 <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
-                    alfacomsolar.it
+                    demosolar.it
                 </div>
             </div>
 
@@ -2211,7 +2211,7 @@
             </div>
 
             <div style="position: absolute; top: 30%; right: 15mm;">
-                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+                <img src="{{ public_path('images/pdf/DEMO-logo.png') }}" alt="DEMO Solar Logo" style="width: auto; height: 15mm;">
             </div>
         </div>
 
@@ -2259,7 +2259,7 @@
 
         <!-- Footer Aziendale -->
         <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
-            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+            DEMO S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppodemo.it
         </div>
     </div>
 
@@ -2270,7 +2270,7 @@
             
             <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
                 <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
-                    alfacomsolar.it
+                    demosolar.it
                 </div>
             </div>
 
@@ -2279,7 +2279,7 @@
             </div>
 
             <div style="position: absolute; top: 30%; right: 15mm;">
-                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+                <img src="{{ public_path('images/pdf/DEMO-logo.png') }}" alt="DEMO Solar Logo" style="width: auto; height: 15mm;">
             </div>
         </div>
 
@@ -2446,7 +2446,7 @@
 
        <!-- Footer Aziendale -->
        <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
-            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+            DEMO S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppodemo.it
         </div>
     </div>
 
@@ -2457,7 +2457,7 @@
             
             <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
                 <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
-                    alfacomsolar.it
+                    demosolar.it
                 </div>
             </div>
 
@@ -2466,7 +2466,7 @@
             </div>
 
             <div style="position: absolute; top: 30%; right: 15mm;">
-                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+                <img src="{{ public_path('images/pdf/DEMO-logo.png') }}" alt="DEMO Solar Logo" style="width: auto; height: 15mm;">
             </div>
         </div>
 
@@ -2562,7 +2562,7 @@
 
         <!-- Footer Aziendale -->
         <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
-            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+            DEMO S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoDEMO.it
         </div>
     </div>
 
@@ -2573,7 +2573,7 @@
             
             <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
                 <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
-                    alfacomsolar.it
+                    DEMOsolar.it
                 </div>
             </div>
 
@@ -2582,7 +2582,7 @@
             </div>
 
             <div style="position: absolute; top: 30%; right: 15mm;">
-                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+                <img src="{{ public_path('images/pdf/DEMO-logo.png') }}" alt="DEMO Solar Logo" style="width: auto; height: 15mm;">
             </div>
         </div>
 
@@ -2822,7 +2822,7 @@
         </span> -->
         <!-- Footer Aziendale -->
         <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
-            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+            DEMO S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppodemo.it
         </div>
     </div>
 
@@ -2834,7 +2834,7 @@
             
             <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
                 <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
-                    alfacomsolar.it
+                    demosolar.it
                 </div>
             </div>
 
@@ -2843,7 +2843,7 @@
             </div>
 
             <div style="position: absolute; top: 30%; right: 15mm;">
-                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+                <img src="{{ public_path('images/pdf/DEMO-logo.png') }}" alt="DEMO Solar Logo" style="width: auto; height: 15mm;">
             </div>
         </div>
 
@@ -2949,7 +2949,7 @@
 
         <!-- Footer Aziendale -->
         <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
-            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+            DEMO S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppodemo.it
         </div>
     </div>
     @endif
@@ -2961,7 +2961,7 @@
             
             <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
                 <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
-                    alfacomsolar.it
+                    demosolar.it
                 </div>
             </div>
 
@@ -2970,7 +2970,7 @@
             </div>
 
             <div style="position: absolute; top: 30%; right: 15mm;">
-                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+                <img src="{{ public_path('images/pdf/DEMO-logo.png') }}" alt="DEMO Solar Logo" style="width: auto; height: 15mm;">
             </div>
         </div>
 
@@ -3062,7 +3062,7 @@
 
         <!-- Footer Aziendale -->
         <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
-            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+            DEMO S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppodemo.it
         </div>
     </div>
     
@@ -3073,7 +3073,7 @@
             
             <div style="width:55mm; height: 15mm; background-color: #4BAE66; padding: 0 18mm; border-radius: 0mm 5mm 5mm 0mm;">
                 <div style="color: white; font-size: 16px; font-weight: bold; transform: translateY(2.5mm)">
-                    alfacomsolar.it
+                    demosolar.it
                 </div>
             </div>
 
@@ -3082,7 +3082,7 @@
             </div>
 
             <div style="position: absolute; top: 30%; right: 15mm;">
-                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: auto; height: 15mm;">
+                <img src="{{ public_path('images/pdf/DEMO-logo.png') }}" alt="DEMO Solar Logo" style="width: auto; height: 15mm;">
             </div>
         </div>
 
@@ -3100,7 +3100,7 @@
                 <!-- Colonna sinistra -->
                 <div style="position: absolute; top: 0; left: 0; width: 85mm; height: 220mm; font-size: 10px; line-height: 2.2mm; text-align: justify; padding-right: 2mm;">
                     <p style="margin-bottom: 1.5mm;">Gentile Cliente / Potenziale Cliente,</p>
-                    <p style="margin-bottom: 1.5mm;">ALFACOM S.R.L., con sede legale in Viale Leonardo da Vinci, 8 – 95128 Catania (CT), P. IVA 05466900874, iscritta con il numero REA 368504, la informa che i Suoi dati saranno trattati ai sensi dell'art. 13 del Regolamento UE 2016/679 ("GDPR") e del D.Lgs. 30.06.2003 n. 196, così come modificato e integrato dal D.Lgs. 10.08.2018 n. 101 (c.d. "Codice in materia di protezione dei dati personali" o "Codice Privacy"), al fine di offrirle i servizi di contatto e assistenza commerciale da Lei richiesti.</p>
+                    <p style="margin-bottom: 1.5mm;">DEMO S.R.L., con sede legale in Viale Leonardo da Vinci, 8 – 95128 Catania (CT), P. IVA 05466900874, iscritta con il numero REA 368504, la informa che i Suoi dati saranno trattati ai sensi dell'art. 13 del Regolamento UE 2016/679 ("GDPR") e del D.Lgs. 30.06.2003 n. 196, così come modificato e integrato dal D.Lgs. 10.08.2018 n. 101 (c.d. "Codice in materia di protezione dei dati personali" o "Codice Privacy"), al fine di offrirle i servizi di contatto e assistenza commerciale da Lei richiesti.</p>
                     
                     <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">FONTE DEI DATI</p>
                     <p style="margin-bottom: 1.5mm;">I suddetti dati sono forniti volontariamente dall'Interessato nell'ambito delle attività preliminari e propedeutiche alla conclusione di una proposta di contratto con il Titolare.</p>
@@ -3109,7 +3109,7 @@
                     <p style="margin-bottom: 1.5mm;">I dati oggetto di trattamento sono: dati che permettono l'identificazione diretta, quali dati anagrafici (es. nome, cognome, indirizzo), dati di contatto (es. telefono, cellulare, e-mail), dati urbanistici-catastali e, in generale, ogni altro dato o informazione necessaria per la conclusione ed esecuzione del contratto, unicamente finalizzati a un migliore soddisfacimento delle richieste dell'Interessato nell'ambito delle finalità sotto descritte. È facoltà dell'Interessato fornire o non fornire tali informazioni, consapevole che, in mancanza, non sarà possibile fornire il servizio.</p>
                     
                     <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">BASE GIURIDICA DEL TRATTAMENTO</p>
-                    <p style="margin-bottom: 1.5mm;">Il trattamento è necessario all'esecuzione di un contratto, di cui Lei, nostro cliente o potenziale cliente, è parte, nonché all'esecuzione di misure precontrattuali o post-contrattuali adottate su Sua richiesta o su richiesta di Alfacom S.r.l., ai sensi dell'art. 6, par. 1, lett. b) e c) del GDPR.</p>
+                    <p style="margin-bottom: 1.5mm;">Il trattamento è necessario all'esecuzione di un contratto, di cui Lei, nostro cliente o potenziale cliente, è parte, nonché all'esecuzione di misure precontrattuali o post-contrattuali adottate su Sua richiesta o su richiesta di DEMO S.R.L., ai sensi dell'art. 6, par. 1, lett. b) e c) del GDPR.</p>
                     
                     <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">FINALITÀ DEL TRATTAMENTO E PERIODO DI CONSERVAZIONE</p>
                     <p style="margin-bottom: 0.5mm;">I dati personali forniti al Titolare verranno trattati per il perseguimento delle seguenti finalità:</p>
@@ -3117,13 +3117,13 @@
                     <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• Adempiere ad obblighi previsti da regolamenti e dalla normativa nazionale e sovranazionale applicabile. La base giuridica del trattamento è la necessità di assolvere obblighi di legge. Periodo di conservazione dei dati: per la durata degli obblighi di legge.</p>
                     <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• Accertare, esercitare o difendere i diritti del Titolare in sede giudiziaria, se necessario. La base giuridica del trattamento è il legittimo interesse del Titolare. Periodo di conservazione dei dati: per tutta la durata del contenzioso, fino all'esaurimento dei termini di esperibilità delle azioni di impugnazione.</p>
                     <p style="margin-left: 2mm; margin-bottom: 0.3mm;">• Inviare comunicazioni promozionali, commerciali e/o attività di marketing, anche per il miglioramento della qualità dei servizi offerti, tramite sistemi di contatto telefonico o posta elettronica. La base giuridica del trattamento è il consenso dell'Interessato. Periodo di conservazione dei dati: 24 mesi dalla raccolta del consenso, ferma restando la possibilità per l'Interessato di modificare e/o revocare la propria volontà in qualsiasi momento, secondo le modalità e i contatti resi noti dal Titolare.</p>
-                    <p style="margin-left: 2mm; margin-bottom: 1.5mm;">• Autorizzare Alfacom S.r.l. alla ripresa fotografica e video del bene venduto (impianto) e all'utilizzo delle immagini per scopi pubblicitari, senza alcun riferimento diretto che consenta l'identificazione del Committente. Periodo di conservazione dei dati: 24 mesi dalla raccolta del consenso, ferma restando la possibilità per l'Interessato di modificare e/o revocare la propria volontà in qualsiasi momento.</p>
+                    <p style="margin-left: 2mm; margin-bottom: 1.5mm;">• Autorizzare DEMO S.R.L. alla ripresa fotografica e video del bene venduto (impianto) e all'utilizzo delle immagini per scopi pubblicitari, senza alcun riferimento diretto che consenta l'identificazione del Committente. Periodo di conservazione dei dati: 24 mesi dalla raccolta del consenso, ferma restando la possibilità per l'Interessato di modificare e/o revocare la propria volontà in qualsiasi momento.</p>
                 </div>
                 
                 <!-- Colonna destra -->
                 <div style="position: absolute; top: 0; right: 0; width: 85mm; height: 220mm; font-size: 10px; text-align: justify; line-height: 2.2mm; padding-left: 2mm; padding-right: 1mm;">
                     <p style="font-weight: bold; margin: 0 0 0.5mm 0;">MODALITÀ DEL TRATTAMENTO</p>
-                    <p style="margin-bottom: 1.5mm;">Alfacom S.r.l., nella qualità di Titolare del trattamento, raccoglie i Suoi dati personali direttamente e, in taluni casi, per mezzo di soggetti terzi, nel rispetto delle norme di riservatezza e sicurezza previste dall'art. 32 del Regolamento.</p>
+                    <p style="margin-bottom: 1.5mm;">DEMO S.r.l., nella qualità di Titolare del trattamento, raccoglie i Suoi dati personali direttamente e, in taluni casi, per mezzo di soggetti terzi, nel rispetto delle norme di riservatezza e sicurezza previste dall'art. 32 del Regolamento.</p>
                     
                     <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">DESTINATARI DEI DATI</p>
                     <p style="margin-bottom: 0.5mm;">I dati possono essere trattati da soggetti esterni operanti in qualità di Titolari, quali, a titolo esemplificativo, Autorità ed organi di vigilanza e controllo, Pubbliche Autorità che ne facciano espressa richiesta per finalità amministrative o istituzionali, nonché persone, società, associazioni o studi professionali che prestino attività di assistenza e consulenza, il GSE, il Distributore e tutti i soggetti cui la comunicazione sia necessaria per il corretto adempimento delle finalità connesse e successive all'esecuzione del contratto.</p>
@@ -3136,14 +3136,14 @@
                     <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">DIRITTI DEGLI INTERESSATI</p>
                     <p style="margin-bottom: 0.5mm;">Gli articoli da 15 a 21 del Regolamento UE 2016/679 conferiscono all'Interessato specifici diritti, tra cui quello di ottenere dal Titolare la conferma dell'esistenza o meno dei propri dati personali e la loro messa a disposizione in forma intelligibile. L'Interessato ha diritto di conoscere l'origine dei dati, le finalità e le modalità del trattamento, la logica applicata al trattamento, nonché gli estremi identificativi del Titolare e dei soggetti cui i dati possono essere comunicati.</p>
                     <p style="margin-bottom: 1.5mm;">L'Interessato ha inoltre diritto di ottenere l'aggiornamento, la rettificazione e l'integrazione dei dati, la cancellazione, la trasformazione in forma anonima o il blocco dei dati trattati in violazione di legge, nonché di opporsi, per motivi legittimi, al trattamento dei dati.</p>
-                    <p style="margin-bottom: 1.5mm;">L'Interessato che intenda avvalersi dei diritti sopra descritti può inviare comunicazione mediante posta raccomandata A/R indirizzata a ALFACOM S.R.L., Viale Leonardo da Vinci, 8 – 95128 Catania.</p>
+                    <p style="margin-bottom: 1.5mm;">L'Interessato che intenda avvalersi dei diritti sopra descritti può inviare comunicazione mediante posta raccomandata A/R indirizzata a DEMO S.R.L., Viale Leonardo da Vinci, 8 – 95128 Catania.</p>
                     
                     <p style="font-weight: bold; margin: 1.5mm 0 0.5mm 0;">MODIFICA ED AGGIORNAMENTO DELL'INFORMATIVA SULLA PRIVACY</p>
                     <p style="margin-bottom: 3mm;">Il Titolare del trattamento si riserva il diritto di modificare e/o integrare la presente informativa, anche in ragione di successive modifiche legislative, raccomandazioni, autorizzazioni generali, linee guida o ulteriori misure di garanzia indicate dal Garante per la protezione dei dati personali italiano o europeo, al fine di fornire una maggiore tutela nel trattamento dei dati personali.</p>
                     
                     <p style="margin-bottom: 2mm; font-weight: bold;">Il Committente:</p>
-                    <p style="margin-bottom: 1mm;">☐ Autorizza ALFACOM S.R.L. ad utilizzare i miei dati per le finalità e secondo le modalità sopra richiamate.</p>
-                    <p style="margin-bottom: 1mm;">☐ Non autorizza ALFACOM S.R.L. ad utilizzare i miei dati per le finalità e secondo le modalità sopra richiamate.</p>
+                    <p style="margin-bottom: 1mm;">☐ Autorizza DEMO S.R.L. ad utilizzare i miei dati per le finalità e secondo le modalità sopra richiamate.</p>
+                    <p style="margin-bottom: 1mm;">☐ Non autorizza DEMO S.R.L. ad utilizzare i miei dati per le finalità e secondo le modalità sopra richiamate.</p>
                     
                     <p style="margin-bottom: 2mm;">Luogo e data _______________________________</p>
                     <p style="margin-bottom: 0;">Firma _______________________________</p>
@@ -3154,7 +3154,7 @@
 
         <!-- Footer Aziendale -->
         <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 5mm 15mm; text-align: center; font-size: 9px; transform: translateX(-20mm);">
-            ALFACOM S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppoalfacom.it
+            DEMO S.R.L. | Viale Leonardo da Vinci, 8 | 95128 Catania (CT) | P.IVA: 05466900874 | Tel.: 095/8185744 | E-mail: info@gruppodemo.it
         </div>
     </div>
 
@@ -3164,17 +3164,17 @@
             <div style="width:100%; height: 115mm; background-image: url('{{ public_path('images/pdf/House-min.webp') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
             </div>
             <div style="width:100%; height: 80mm; text-align: center; position: relative;">
-                <img src="{{ public_path('images/pdf/alfacom-logo.png') }}" alt="Alfacom Solar Logo" style="width: 65mm; height: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <img src="{{ public_path('images/pdf/DEMO-logo.png') }}" alt="DEMO Solar Logo" style="width: 65mm; height: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
             </div>
             <div style="width:100%; height: 80mm; position: relative; text-align: center;">
                 <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                    <p style="font-size: 14px; font-weight: bold; margin: 0 0 3mm 0;">ALFACOM S.R.L.</p>
+                    <p style="font-size: 14px; font-weight: bold; margin: 0 0 3mm 0;">DEMO S.R.L.</p>
                     <p style="font-size: 12px; margin: 0mm; line-height: 1.0;">Viale Leonardo da Vinci, 8</p>
                     <p style="font-size: 12px; margin: 0mm; line-height: 1.0;">95128 Catania (CT)</p>
                     <p style="font-size: 12px; margin: 0mm; line-height: 1.0;">P.IVA: 05466900874</p>
                     <p style="font-size: 12px; margin: 0mm; line-height: 1.0;">Tel.: 095/8185744</p>
-                    <p style="font-size: 12px; margin: 0mm 0mm 3mm 0mm; line-height: 1.0;">E-mail: info@gruppoalfacom.it</p>
-                    <p style="font-size: 16px; color: #4BAE66; font-weight: bold; margin: 0;">alfacomsolar.it</p>
+                    <p style="font-size: 12px; margin: 0mm 0mm 3mm 0mm; line-height: 1.0;">E-mail: info@gruppodemo.it</p>
+                    <p style="font-size: 16px; color: #4BAE66; font-weight: bold; margin: 0;">demosolar.it</p>
                 </div>
             </div>
         

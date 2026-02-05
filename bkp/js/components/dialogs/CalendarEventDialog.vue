@@ -178,7 +178,7 @@ const dialogModelValueUpdate = val => {
           <VListItem style="padding-bottom: 5px !important">
             <VListItemTitle>
               <h6 class="text-h6 mt-2">
-                Note Alfacom
+                Note Demo
                 <div class="text-body-1">
                   {{ eventData.extendedProps.notes }}
                 </div>

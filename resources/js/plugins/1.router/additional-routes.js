@@ -18,7 +18,7 @@ export const redirects = [
         }
       }
 
-      // ALFACOM_TODO: Redirect based on user role
+      // DEMO_TODO: Redirect based on user role
       return { name: 'dashboards-crm' }
       // if (userRole === 'admin')
       // if (userRole === 'client')

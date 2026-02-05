@@ -21,7 +21,7 @@ const notes = ref(props.paperworkData?.notes || '')
 const ownerNotes = ref(props.paperworkData?.owner_notes || '')
 const isSaving = ref(false)
 
-// Verifica se l'utente è admin per modificare le note Alfacom
+// Verifica se l'utente è admin per modificare le note Demo
 const loggedInUser = useCookie('userData').value
 const isAdmin = loggedInUser?.roles?.some(role => role.name === 'gestione' || role.name === 'backoffice' || role.name === 'amministrazione')
 
@@ -98,13 +98,13 @@ const saveNotes = async () => {
               />
             </div>
 
-            <!-- Note Alfacom (solo per admin) -->
+            <!-- Note Demo (solo per admin) -->
             <div v-if="isAdmin" class="mb-6">
-              <h6 class="text-h6 mb-2">Note Alfacom</h6>
+              <h6 class="text-h6 mb-2">Note Demo</h6>
               <AppTextarea
                 v-model="ownerNotes"
-                label="Note Alfacom"
-                placeholder="Inserisci note Alfacom per questa pratica..."
+                label="Note Demo"
+                placeholder="Inserisci note Demo per questa pratica..."
                 rows="6"
               />
             </div>
