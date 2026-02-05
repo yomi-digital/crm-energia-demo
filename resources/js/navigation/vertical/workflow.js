@@ -38,19 +38,5 @@ export default [
     to: 'workflow-communications',
     action: 'access',
     subject: 'communications',
-  }, 
-  {
-    title: 'Preventivi',
-    icon: { icon: 'tabler-currency-euro' },
-    to: 'workflow-preventivi',
-    action: 'access',
-    subject: 'preventivi',
-  },
-  {
-    title: 'Archivio Preventivi',
-    icon: { icon: 'tabler-archive' },
-    to: 'workflow-archivio-preventivi',
-    action: 'access',
-    subject: 'preventivi',
   },
 ]
