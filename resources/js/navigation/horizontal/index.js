@@ -1,4 +1,3 @@
-import solar from '../vertical/solar'
 import apps from './apps'
 import charts from './charts'
 import dashboard from './dashboard'
@@ -7,4 +6,4 @@ import misc from './misc'
 import pages from './pages'
 import tables from './tables'
 import uiElements from './ui-elements'
-export default [...dashboard, ...apps, ...pages, ...uiElements, ...forms, ...tables, ...charts, ...misc, ...solar]
+export default [...dashboard, ...apps, ...pages, ...uiElements, ...forms, ...tables, ...charts, ...misc]
